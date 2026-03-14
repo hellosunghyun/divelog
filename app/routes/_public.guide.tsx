@@ -1,3 +1,4 @@
+import { useSearchParams } from "react-router";
 import type { Route } from "./+types/_public.guide";
 import HeroSection from "../components/HeroSection";
 import CTABand from "../components/CTABand";
@@ -11,6 +12,9 @@ export async function loader(_args: Route.LoaderArgs) {
 }
 
 export default function GuidePage() {
+  const [searchParams] = useSearchParams();
+  const authError = searchParams.get("auth_error") === "1";
+
   return (
     <div>
       <HeroSection
@@ -19,7 +23,22 @@ export default function GuidePage() {
         subtitle="탐구를 기록하는 방법을 안내합니다. 완성된 글이 아니어도 괜찮습니다."
       />
 
-      <div className="max-w-reading mx-auto py-12 px-4 md:py-20">
+      <div className="max-w-reading mx-auto py-12 px-6 md:py-20">
+        {authError && (
+          <div className="mb-8 rounded-2xl border border-ocean-blue/20 bg-mist-blue/30 p-6">
+            <h3 className="text-lg font-bold text-deep-ocean mb-2">로그인 인증을 확인할 수 없습니다</h3>
+            <p className="text-sm text-text-secondary leading-relaxed mb-4">
+              ada-kr-pos.com에 로그인되어 있지만 divelog에서 세션을 확인하지 못했습니다.
+              브라우저의 쿠키 설정을 확인하거나, 다시 시도해 주세요.
+            </p>
+            <a
+              href="https://ada-kr-pos.com/login?callbackUrl=https%3A%2F%2Fdivelog.ada-kr-pos.com%2Fwrite"
+              className="inline-block rounded-full bg-ocean-blue text-white px-6 py-2.5 text-sm font-bold hover:bg-ocean-blue/90 transition-all no-underline"
+            >
+              다시 로그인 시도
+            </a>
+          </div>
+        )}
         <section className="mb-10">
           <h2 className="text-2xl font-semibold leading-title text-text-primary mb-4">
             기록하기

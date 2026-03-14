@@ -8,7 +8,12 @@ import { nanoid } from "./utils.server";
 import { getAuth } from "./auth.server";
 
 function getLoginRedirectUrl(request: Request): string {
-  return `https://ada-kr-pos.com/login?callbackUrl=${encodeURIComponent(request.url)}`;
+  const url = new URL(request.url);
+  url.searchParams.delete("auth_retry");
+  const cleanUrl = url.toString();
+  const callbackUrl = new URL(cleanUrl);
+  callbackUrl.searchParams.set("auth_retry", "1");
+  return `https://ada-kr-pos.com/login?callbackUrl=${encodeURIComponent(callbackUrl.toString())}`;
 }
 
 export async function getOptionalUser(request: Request, context: AppLoadContext) {
@@ -24,6 +29,10 @@ export async function requireAuth(request: Request, context: AppLoadContext) {
   const auth = await getAuth(request, context.cloudflare.env.ADAKRPOS_API_KEY);
 
   if (!auth.isAuthenticated) {
+    const url = new URL(request.url);
+    if (url.searchParams.has("auth_retry")) {
+      throw redirect("/guide?auth_error=1");
+    }
     throw redirect(getLoginRedirectUrl(request));
   }
 
