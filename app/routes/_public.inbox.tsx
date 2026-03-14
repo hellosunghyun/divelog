@@ -71,25 +71,25 @@ export default function InboxPage({ loaderData }: Route.ComponentProps) {
     <div>
       <HeroSection variant="home" title="인박스" subtitle={`읽지 않은 알림 ${unreadCount}개`} />
 
-      <div className="max-w-[760px] mx-auto py-8 px-4">
+      <div className="max-w-[760px] mx-auto py-12 px-6">
         <div className="flex gap-2 mb-6 items-center justify-between">
           <div className="flex gap-2">
             <a
               href="?tab=all"
-              className={`px-3 py-1.5 rounded-full text-meta no-underline ${
+              className={`px-4 py-2 rounded-full text-sm no-underline transition-colors ${
                 tab === "all"
-                  ? "bg-ocean-blue text-white"
-                  : "bg-transparent text-text-secondary hover:text-text-primary"
+                  ? "bg-deep-ocean text-white font-medium"
+                  : "text-text-secondary hover:bg-mist-blue/30"
               }`}
             >
               전체
             </a>
             <a
               href="?tab=unread"
-              className={`px-3 py-1.5 rounded-full text-meta no-underline ${
+              className={`px-4 py-2 rounded-full text-sm no-underline transition-colors ${
                 tab === "unread"
-                  ? "bg-ocean-blue text-white"
-                  : "bg-transparent text-text-secondary hover:text-text-primary"
+                  ? "bg-deep-ocean text-white font-medium"
+                  : "text-text-secondary hover:bg-mist-blue/30"
               }`}
             >
               읽지 않음
@@ -111,11 +111,11 @@ export default function InboxPage({ loaderData }: Route.ComponentProps) {
         {notifs.length === 0 ? (
           <EmptyState variant="notifications" />
         ) : (
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-4">
             {notifs.map((n) => (
               <div
                 key={n.id}
-                className={`${n.isRead ? "bg-surface" : "bg-mist-blue"} rounded-md border border-border p-4 flex items-start gap-3 hover:bg-surface-secondary transition-colors`}
+                className={`${n.isRead ? "bg-surface" : "bg-mist-blue"} rounded-lg border border-border p-5 flex items-start gap-3 hover:bg-surface-secondary transition-colors`}
               >
                 <div className="flex-1">
                   <span className="text-caption text-ocean-blue">
@@ -132,7 +132,7 @@ export default function InboxPage({ loaderData }: Route.ComponentProps) {
                   {n.recordId && (
                     <Link
                       to={`/logs/${n.recordId}`}
-                      className="text-caption text-text-tertiary hover:text-text-secondary"
+                      className="text-caption text-text-tertiary hover:text-ocean-blue transition-colors no-underline"
                     >
                       기록 보기 →
                     </Link>

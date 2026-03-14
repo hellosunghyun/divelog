@@ -18,22 +18,22 @@ export default function AdminLearnerDetailPage({ loaderData }: Route.ComponentPr
   return (
     <div>
       <div className="flex gap-4 items-center mb-6">
-        <Link to="/admin/learners" className="text-[13px] text-admin-text-secondary hover:text-admin-text">← 목록</Link>
+        <Link to="/admin/learners" className="text-meta text-admin-text-secondary hover:text-admin-text transition-colors">← 목록</Link>
         <h2 className="text-xl font-semibold text-admin-text">{learner.displayName}</h2>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-admin-surface rounded-md p-4 border border-admin-border">
-          <h3 className="text-sm font-semibold mb-4">프로필</h3>
-          <p className="text-[13px] text-admin-text-secondary">Slug: {learner.slug}</p>
-          <p className="text-[13px] text-admin-text-secondary mt-1">코호트: {learner.cohort ?? "-"}</p>
-          <p className="text-[13px] text-admin-text-secondary mt-1">기록 수: {lr.length}</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div className="bg-admin-surface rounded-lg p-5 border border-admin-border">
+          <h3 className="text-sm font-semibold mb-4 text-admin-text">프로필</h3>
+          <p className="text-meta text-admin-text-secondary">Slug: {learner.slug}</p>
+          <p className="text-meta text-admin-text-secondary mt-1">코호트: {learner.cohort ?? "-"}</p>
+          <p className="text-meta text-admin-text-secondary mt-1">기록 수: {lr.length}</p>
         </div>
-        <div className="bg-admin-surface rounded-md p-4 border border-admin-border">
-          <h3 className="text-sm font-semibold mb-4">최근 기록</h3>
+        <div className="bg-admin-surface rounded-lg p-5 border border-admin-border">
+          <h3 className="text-sm font-semibold mb-4 text-admin-text">최근 기록</h3>
           {lr.slice(0, 5).map((r) => (
             <div key={r.id} className="flex gap-2 py-1.5 border-b border-admin-border last:border-b-0">
-              <span className="text-xs text-admin-text flex-1">{r.title}</span>
-              <span className="text-[11px] text-admin-text-secondary">{r.visibility}</span>
+              <span className="text-caption text-admin-text flex-1">{r.title}</span>
+              <span className="text-caption text-admin-text-secondary">{r.visibility}</span>
             </div>
           ))}
         </div>

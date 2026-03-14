@@ -80,20 +80,20 @@ export default function MySpacePage({ loaderData }: Route.ComponentProps) {
         subtitle={learner?.bio ?? undefined}
       />
 
-      <div className="max-w-content mx-auto py-12 px-4 md:py-20">
-        <section className="mb-10">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-text-primary">
+      <div className="max-w-content mx-auto py-16 px-6 md:py-24">
+        <section className="mb-12">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-xl font-semibold text-text-primary tracking-tight">
               임시저장
             </h2>
-            <Link to="/write" className="text-sm text-ocean-blue hover:underline">
+            <Link to="/write" className="text-sm text-ocean-blue hover:text-ocean-blue transition-colors no-underline">
               + 새 기록
             </Link>
           </div>
           {drafts.length === 0 ? (
             <EmptyState variant="records" message="임시저장된 기록이 없습니다." />
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {drafts.map(({ record }) => (
                 <SceneCard key={record.id} record={record} />
               ))}
@@ -101,14 +101,14 @@ export default function MySpacePage({ loaderData }: Route.ComponentProps) {
           )}
         </section>
 
-        <section className="mb-10">
-          <h2 className="text-xl font-semibold text-text-primary mb-6">
+        <section className="mb-12">
+          <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-8">
             저장한 문장들
           </h2>
           {mySentences.length === 0 ? (
             <EmptyState variant="generic" message="저장한 문장이 없습니다." />
           ) : (
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-4">
               {mySentences.map(({ sentence }) => (
                 <HighlightedSentenceCard key={sentence.id} sentence={sentence} />
               ))}
@@ -116,14 +116,14 @@ export default function MySpacePage({ loaderData }: Route.ComponentProps) {
           )}
         </section>
 
-        <section className="mb-10">
-          <h2 className="text-xl font-semibold text-text-primary mb-6">
+        <section className="mb-12">
+          <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-8">
             내 질문들
           </h2>
           {myQuestions.length === 0 ? (
             <EmptyState variant="questions" />
           ) : (
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-5">
               {myQuestions.map(({ question, recordSlug, recordTitle }) => (
                 <QuestionCard
                   key={question.id}
@@ -140,13 +140,13 @@ export default function MySpacePage({ loaderData }: Route.ComponentProps) {
         </section>
 
         <section>
-          <h2 className="text-xl font-semibold text-text-primary mb-6">
+          <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-8">
             미답변 질문들
           </h2>
           {unansweredQuestions.length === 0 ? (
             <EmptyState variant="questions" message="미답변 질문이 없습니다." />
           ) : (
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-5">
               {unansweredQuestions.map(({ question, recordSlug, recordTitle }) => (
                 <QuestionCard
                   key={question.id}
