@@ -17,22 +17,34 @@ export default function AdminAuditPage({ loaderData }: Route.ComponentProps) {
   const TARGET_TYPES = ["record", "stage", "learner", "response", "challenge", "collaboration", "memory"];
   return (
     <div>
-      <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "24px" }}>
-        <h2 style={{ fontSize: "20px", fontWeight: "600", color: "var(--color-admin-text)" }}>감사 로그</h2>
-        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-          <a href="/admin/audit" style={{ fontSize: "11px", padding: "2px 8px", borderRadius: "4px", backgroundColor: !targetType ? "var(--color-admin-accent)" : "var(--color-admin-border)", color: !targetType ? "white" : "var(--color-admin-text)", textDecoration: "none" }}>전체</a>
-          {TARGET_TYPES.map((t) => <a key={t} href={`?type=${t}`} style={{ fontSize: "11px", padding: "2px 8px", borderRadius: "4px", backgroundColor: targetType === t ? "var(--color-admin-accent)" : "var(--color-admin-border)", color: targetType === t ? "white" : "var(--color-admin-text)", textDecoration: "none" }}>{t}</a>)}
+      <div className="flex items-center gap-4 mb-6">
+        <h2 className="text-xl font-semibold text-admin-text">감사 로그</h2>
+        <div className="flex gap-1.5 flex-wrap">
+          <a href="/admin/audit" className={`text-caption px-2 py-0.5 rounded-full ${!targetType ? "bg-admin-accent text-white" : "bg-admin-bg text-admin-text border border-admin-border"} hover:opacity-80 transition-opacity`}>전체</a>
+          {TARGET_TYPES.map((t) => (
+            <a key={t} href={`?type=${t}`} className={`text-caption px-2 py-0.5 rounded-full ${targetType === t ? "bg-admin-accent text-white" : "bg-admin-bg text-admin-text border border-admin-border"} hover:opacity-80 transition-opacity`}>{t}</a>
+          ))}
         </div>
       </div>
-      <table style={{ width: "100%", borderCollapse: "collapse", backgroundColor: "var(--color-admin-surface)", borderRadius: "8px" }}>
-        <thead><tr style={{ borderBottom: "1px solid var(--color-admin-border)" }}>{["행위자", "대상 유형", "대상 ID", "액션", "시각"].map((h) => <th key={h} style={{ textAlign: "left", padding: "10px 16px", fontSize: "12px", color: "var(--color-admin-text-secondary)", fontWeight: "600" }}>{h}</th>)}</tr></thead>
-        <tbody>{logs.map((log) => (<tr key={log.id} style={{ borderBottom: "1px solid var(--color-admin-border)" }}>
-          <td style={{ padding: "10px 16px", fontSize: "12px", color: "var(--color-admin-text-secondary)", fontFamily: "monospace" }}>{log.actorId.substring(0, 12)}</td>
-          <td style={{ padding: "10px 16px", fontSize: "13px" }}>{log.targetType}</td>
-          <td style={{ padding: "10px 16px", fontSize: "12px", color: "var(--color-admin-text-secondary)", fontFamily: "monospace" }}>{log.targetId.substring(0, 12)}</td>
-          <td style={{ padding: "10px 16px", fontSize: "13px" }}>{log.action}</td>
-          <td style={{ padding: "10px 16px", fontSize: "12px", color: "var(--color-admin-text-secondary)" }}>{new Date((log.createdAt ?? 0) * 1000).toLocaleString("ko-KR")}</td>
-        </tr>))}</tbody>
+      <table className="w-full border-collapse bg-admin-surface rounded-md overflow-hidden">
+        <thead>
+          <tr className="border-b border-admin-border">
+            {["행위자", "대상 유형", "대상 ID", "액션", "시각"].map((h) => (
+              <th key={h} className="text-left px-4 py-2 text-caption font-semibold text-admin-text-secondary uppercase tracking-wide">{h}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {logs.map((log) => (
+            <tr key={log.id} className="border-b border-admin-border hover:bg-admin-bg transition-colors">
+              <td className="px-4 py-2 text-caption text-admin-text-secondary font-mono">{log.actorId.substring(0, 12)}</td>
+              <td className="px-4 py-2 text-meta">{log.targetType}</td>
+              <td className="px-4 py-2 text-caption text-admin-text-secondary font-mono">{log.targetId.substring(0, 12)}</td>
+              <td className="px-4 py-2 text-meta">{log.action}</td>
+              <td className="px-4 py-2 text-caption text-admin-text-secondary">{new Date((log.createdAt ?? 0) * 1000).toLocaleString("ko-KR")}</td>
+            </tr>
+          ))}
+        </tbody>
       </table>
     </div>
   );

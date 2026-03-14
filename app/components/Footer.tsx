@@ -8,24 +8,22 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="border-t border-border bg-surface mt-16">
-      <div className="max-w-content mx-auto px-4 py-8">
+    <footer className="border-t border-border bg-surface mt-16 py-12">
+      <div className="max-w-content mx-auto px-4">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          {/* Navigation Links */}
           <nav className="flex items-center gap-6">
             {footerLinks.map((link) => (
               <Link
                 key={link.to}
                 to={link.to}
-                className="text-sm text-text-tertiary hover:text-text-secondary transition-colors"
+                className="text-sm text-text-secondary hover:text-text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
               >
                 {link.label}
               </Link>
             ))}
           </nav>
 
-          {/* Copyright */}
-          <p className="text-sm text-text-tertiary">
+          <p className="text-sm text-text-secondary">
             divelog — ADA Learner 여정 아카이브
           </p>
         </div>

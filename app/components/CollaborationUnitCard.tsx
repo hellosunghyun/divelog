@@ -31,7 +31,7 @@ export default function CollaborationUnitCard({ unit, memberCount, challenge }: 
     >
       <div>
         <span className={
-          `text-xs px-2 py-0.5 rounded-full ` +
+          `text-caption px-2 py-0.5 rounded-full font-medium ` +
           (unit.status === "active" 
             ? "bg-mist-blue text-ocean-blue" 
             : "bg-border text-text-secondary")
@@ -42,7 +42,7 @@ export default function CollaborationUnitCard({ unit, memberCount, challenge }: 
       
       {/* Team Question FIRST — before team intro (DOM order matters) */}
       {unit.currentQuestion && (
-        <p className="text-base text-ocean-blue leading-normal italic">
+        <p className="text-lg text-ocean-blue leading-body italic">
           "{unit.currentQuestion}"
         </p>
       )}
@@ -55,12 +55,12 @@ export default function CollaborationUnitCard({ unit, memberCount, challenge }: 
       </Link>
       
       {unit.description && (
-        <p className="text-[13px] text-text-secondary">
+        <p className="text-meta text-text-secondary">
           {unit.description}
         </p>
       )}
 
-      <div className="flex gap-4 text-[13px] text-text-tertiary">
+      <div className="flex gap-4 text-meta text-text-tertiary">
         {memberCount !== undefined && <span>팀원 {memberCount}명</span>}
         {challenge && (
           <Link 

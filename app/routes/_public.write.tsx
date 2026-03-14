@@ -116,47 +116,20 @@ export default function WritePage({ loaderData }: Route.ComponentProps) {
   const isSubmitting = navigation.state === "submitting";
 
   return (
-    <div
-      style={{
-        maxWidth: "var(--max-reading-width)",
-        margin: "0 auto",
-        padding: "var(--space-12) var(--space-4)",
-      }}
-    >
-      <h1
-        style={{
-          fontSize: "var(--font-size-3xl)",
-          fontWeight: "var(--font-weight-bold)",
-          color: "var(--color-text-primary)",
-          marginBottom: "var(--space-2)",
-        }}
-      >
+    <div className="max-w-reading mx-auto py-12 px-4 md:py-20">
+      <h1 className="text-3xl font-semibold text-text-primary mb-2">
         기록하기
       </h1>
-      <p
-        style={{
-          fontSize: "var(--font-size-base)",
-          color: "var(--color-text-secondary)",
-          marginBottom: "var(--space-8)",
-        }}
-      >
+      <p className="text-base text-text-secondary mb-8">
         완성된 글이 아니어도 괜찮습니다.
       </p>
 
-      <form method="post" style={{ display: "flex", flexDirection: "column", gap: "var(--space-6)" }}>
-        <fieldset style={{ border: "none", margin: 0, padding: 0 }}>
-          <legend
-            style={{
-              display: "block",
-              fontSize: "13px",
-              fontWeight: "var(--font-weight-medium)",
-              color: "var(--color-text-secondary)",
-              marginBottom: "var(--space-2)",
-            }}
-          >
+      <form method="post" className="flex flex-col gap-6">
+        <fieldset className="border-0 m-0 p-0">
+          <legend className="block text-meta font-medium text-text-secondary mb-2">
             유형
           </legend>
-          <div style={{ display: "flex", gap: "var(--space-2)", flexWrap: "wrap" }}>
+          <div className="flex gap-2 flex-wrap">
             {[
               { value: "personal", label: "개인 탐구" },
               { value: "challenge", label: "챌린지" },
@@ -164,38 +137,30 @@ export default function WritePage({ loaderData }: Route.ComponentProps) {
             ].map((opt) => (
               <label
                 key={opt.value}
-                style={{ display: "flex", alignItems: "center", gap: "var(--space-1)", cursor: "pointer" }}
+                className="flex items-center gap-1 cursor-pointer"
               >
                 <input type="radio" name="type" value={opt.value} defaultChecked={opt.value === "personal"} />
-                <span style={{ fontSize: "var(--font-size-base)" }}>{opt.label}</span>
+                <span className="text-base">{opt.label}</span>
               </label>
             ))}
           </div>
         </fieldset>
 
-        <fieldset style={{ border: "none", margin: 0, padding: 0 }}>
-          <legend
-            style={{
-              display: "block",
-              fontSize: "13px",
-              fontWeight: "var(--font-weight-medium)",
-              color: "var(--color-text-secondary)",
-              marginBottom: "var(--space-2)",
-            }}
-          >
+        <fieldset className="border-0 m-0 p-0">
+          <legend className="block text-meta font-medium text-text-secondary mb-2">
             형식
           </legend>
-          <div style={{ display: "flex", gap: "var(--space-2)", flexWrap: "wrap" }}>
+          <div className="flex gap-2 flex-wrap">
             {[
               { value: "note", label: "노트 (짧게)" },
               { value: "article", label: "글 (길게)" },
             ].map((opt) => (
               <label
                 key={opt.value}
-                style={{ display: "flex", alignItems: "center", gap: "var(--space-1)", cursor: "pointer" }}
+                className="flex items-center gap-1 cursor-pointer"
               >
                 <input type="radio" name="format" value={opt.value} defaultChecked={opt.value === "note"} />
-                <span style={{ fontSize: "var(--font-size-base)" }}>{opt.label}</span>
+                <span className="text-base">{opt.label}</span>
               </label>
             ))}
           </div>
@@ -204,26 +169,14 @@ export default function WritePage({ loaderData }: Route.ComponentProps) {
         <div>
           <label
             htmlFor="rhythm"
-            style={{
-              display: "block",
-              fontSize: "13px",
-              fontWeight: "var(--font-weight-medium)",
-              color: "var(--color-text-secondary)",
-              marginBottom: "var(--space-2)",
-            }}
+            className="block text-meta font-medium text-text-secondary mb-2"
           >
             리듬
           </label>
           <select
             id="rhythm"
             name="rhythm"
-            style={{
-              padding: "8px 12px",
-              borderRadius: "var(--radius-md)",
-              border: "1px solid var(--color-border)",
-              fontSize: "var(--font-size-base)",
-              backgroundColor: "var(--color-surface)",
-            }}
+            className="rounded-md border border-border bg-surface px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-ocean-blue"
           >
             <option value="free">자유</option>
             <option value="sprint">스프린트</option>
@@ -236,27 +189,14 @@ export default function WritePage({ loaderData }: Route.ComponentProps) {
           <div>
             <label
               htmlFor="templateId"
-              style={{
-                display: "block",
-                fontSize: "13px",
-                fontWeight: "var(--font-weight-medium)",
-                color: "var(--color-text-secondary)",
-                marginBottom: "var(--space-2)",
-              }}
+              className="block text-meta font-medium text-text-secondary mb-2"
             >
               템플릿 (선택)
             </label>
             <select
               id="templateId"
               name="templateId"
-              style={{
-                padding: "8px 12px",
-                borderRadius: "var(--radius-md)",
-                border: "1px solid var(--color-border)",
-                fontSize: "var(--font-size-base)",
-                backgroundColor: "var(--color-surface)",
-                width: "100%",
-              }}
+              className="w-full rounded-md border border-border bg-surface px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-ocean-blue"
             >
               <option value="">템플릿 없이 시작</option>
               {availableTemplates.map((tmpl) => (
@@ -274,27 +214,14 @@ export default function WritePage({ loaderData }: Route.ComponentProps) {
           <div>
             <label
               htmlFor="collaborationUnitId"
-              style={{
-                display: "block",
-                fontSize: "13px",
-                fontWeight: "var(--font-weight-medium)",
-                color: "var(--color-text-secondary)",
-                marginBottom: "var(--space-2)",
-              }}
+              className="block text-meta font-medium text-text-secondary mb-2"
             >
               협업 유닛 (선택)
             </label>
             <select
               id="collaborationUnitId"
               name="collaborationUnitId"
-              style={{
-                padding: "8px 12px",
-                borderRadius: "var(--radius-md)",
-                border: "1px solid var(--color-border)",
-                fontSize: "var(--font-size-base)",
-                backgroundColor: "var(--color-surface)",
-                width: "100%",
-              }}
+              className="w-full rounded-md border border-border bg-surface px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-ocean-blue"
             >
               <option value="">선택 안 함</option>
               {collaborations.map((unit) => (
@@ -309,15 +236,9 @@ export default function WritePage({ loaderData }: Route.ComponentProps) {
         <div>
           <label
             htmlFor="title"
-            style={{
-              display: "block",
-              fontSize: "13px",
-              fontWeight: "var(--font-weight-medium)",
-              color: "var(--color-text-secondary)",
-              marginBottom: "var(--space-2)",
-            }}
+            className="block text-meta font-medium text-text-secondary mb-2"
           >
-            제목 <span style={{ color: "var(--color-error)" }}>*</span>
+            제목 <span className="text-error">*</span>
           </label>
           <input
             id="title"
@@ -325,17 +246,10 @@ export default function WritePage({ loaderData }: Route.ComponentProps) {
             type="text"
             required
             placeholder="제목을 입력하세요"
-            style={{
-              width: "100%",
-              padding: "8px 12px",
-              borderRadius: "var(--radius-md)",
-              border: "1px solid var(--color-border)",
-              fontSize: "var(--font-size-base)",
-              fontFamily: "inherit",
-            }}
+            className="w-full rounded-md border border-border bg-surface px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-ocean-blue focus:ring-offset-1"
           />
           {actionData?.errors?.title && (
-            <p style={{ color: "var(--color-error)", fontSize: "13px", marginTop: "4px" }}>
+            <p className="text-error text-meta mt-1">
               {actionData.errors.title[0]}
             </p>
           )}
@@ -344,15 +258,9 @@ export default function WritePage({ loaderData }: Route.ComponentProps) {
         <div>
           <label
             htmlFor="content"
-            style={{
-              display: "block",
-              fontSize: "13px",
-              fontWeight: "var(--font-weight-medium)",
-              color: "var(--color-text-secondary)",
-              marginBottom: "var(--space-2)",
-            }}
+            className="block text-meta font-medium text-text-secondary mb-2"
           >
-            내용 <span style={{ color: "var(--color-error)" }}>*</span>
+            내용 <span className="text-error">*</span>
           </label>
           <textarea
             id="content"
@@ -360,19 +268,10 @@ export default function WritePage({ loaderData }: Route.ComponentProps) {
             required
             rows={16}
             placeholder="지금 이 순간의 탐구를 기록해보세요..."
-            style={{
-              width: "100%",
-              padding: "12px",
-              borderRadius: "var(--radius-md)",
-              border: "1px solid var(--color-border)",
-              fontSize: "var(--font-size-base)",
-              lineHeight: "var(--line-height-relaxed)",
-              resize: "vertical",
-              fontFamily: "inherit",
-            }}
+            className="w-full rounded-md border border-border bg-surface px-4 py-3 text-base leading-body min-h-[200px] resize-y focus:outline-none focus:ring-2 focus:ring-ocean-blue"
           />
           {actionData?.errors?.content && (
-            <p style={{ color: "var(--color-error)", fontSize: "13px", marginTop: "4px" }}>
+            <p className="text-error text-meta mt-1">
               {actionData.errors.content[0]}
             </p>
           )}
@@ -381,13 +280,7 @@ export default function WritePage({ loaderData }: Route.ComponentProps) {
         <div>
           <label
             htmlFor="question"
-            style={{
-              display: "block",
-              fontSize: "13px",
-              fontWeight: "var(--font-weight-medium)",
-              color: "var(--color-text-secondary)",
-              marginBottom: "var(--space-2)",
-            }}
+            className="block text-meta font-medium text-text-secondary mb-2"
           >
             남겨둘 질문 (선택)
           </label>
@@ -396,17 +289,10 @@ export default function WritePage({ loaderData }: Route.ComponentProps) {
             name="question"
             type="text"
             placeholder="이 기록에 남기고 싶은 질문이 있다면..."
-            style={{
-              width: "100%",
-              padding: "8px 12px",
-              borderRadius: "var(--radius-md)",
-              border: "1px solid var(--color-border)",
-              fontSize: "var(--font-size-base)",
-              fontFamily: "inherit",
-            }}
+            className="w-full rounded-md border border-border bg-surface-secondary px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-ocean-blue focus:ring-offset-1"
           />
           {actionData?.errors?.question && (
-            <p style={{ color: "var(--color-error)", fontSize: "13px", marginTop: "4px" }}>
+            <p className="text-error text-meta mt-1">
               {actionData.errors.question[0]}
             </p>
           )}
@@ -415,26 +301,14 @@ export default function WritePage({ loaderData }: Route.ComponentProps) {
         <div>
           <label
             htmlFor="responsePreference"
-            style={{
-              display: "block",
-              fontSize: "13px",
-              fontWeight: "var(--font-weight-medium)",
-              color: "var(--color-text-secondary)",
-              marginBottom: "var(--space-2)",
-            }}
+            className="block text-meta font-medium text-text-secondary mb-2"
           >
             응답 설정
           </label>
           <select
             id="responsePreference"
             name="responsePreference"
-            style={{
-              padding: "8px 12px",
-              borderRadius: "var(--radius-md)",
-              border: "1px solid var(--color-border)",
-              fontSize: "var(--font-size-base)",
-              backgroundColor: "var(--color-surface)",
-            }}
+            className="rounded-md border border-border bg-surface px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-ocean-blue"
           >
             <option value="open">모든 응답 허용</option>
             <option value="question_only">질문만 허용</option>
@@ -445,26 +319,14 @@ export default function WritePage({ loaderData }: Route.ComponentProps) {
         <div>
           <label
             htmlFor="visibility"
-            style={{
-              display: "block",
-              fontSize: "13px",
-              fontWeight: "var(--font-weight-medium)",
-              color: "var(--color-text-secondary)",
-              marginBottom: "var(--space-2)",
-            }}
+            className="block text-meta font-medium text-text-secondary mb-2"
           >
             공개 범위
           </label>
           <select
             id="visibility"
             name="visibility"
-            style={{
-              padding: "8px 12px",
-              borderRadius: "var(--radius-md)",
-              border: "1px solid var(--color-border)",
-              fontSize: "var(--font-size-base)",
-              backgroundColor: "var(--color-surface)",
-            }}
+            className="rounded-md border border-border bg-surface px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-ocean-blue"
           >
             <option value="cohort">코호트 공개</option>
             <option value="public">전체 공개</option>
@@ -472,40 +334,17 @@ export default function WritePage({ loaderData }: Route.ComponentProps) {
           </select>
         </div>
 
-        <div
-          style={{
-            display: "flex",
-            gap: "var(--space-3)",
-            paddingTop: "var(--space-4)",
-            borderTop: "1px solid var(--color-border)",
-          }}
-        >
+        <div className="flex gap-3 pt-4 border-t border-border">
           <button
             type="submit"
             disabled={isSubmitting}
-            style={{
-              padding: "12px 24px",
-              borderRadius: "var(--radius-md)",
-              backgroundColor: "var(--color-ocean-blue)",
-              color: "white",
-              border: "none",
-              cursor: "pointer",
-              fontSize: "var(--font-size-base)",
-              opacity: isSubmitting ? 0.6 : 1,
-            }}
+            className="rounded-md bg-ocean-blue text-white px-6 py-3 text-base font-medium hover:bg-deep-ocean transition-colors focus-visible:ring-2 focus-visible:ring-ocean-blue disabled:opacity-60"
           >
             {isSubmitting ? "저장 중..." : "기록 저장"}
           </button>
           <Link
             to="/logs"
-            style={{
-              padding: "12px 24px",
-              borderRadius: "var(--radius-md)",
-              border: "1px solid var(--color-border)",
-              color: "var(--color-text-secondary)",
-              fontSize: "var(--font-size-base)",
-              textDecoration: "none",
-            }}
+            className="border border-border text-text-secondary rounded-md px-6 py-3 text-base font-medium hover:bg-surface-secondary transition-colors no-underline"
           >
             취소
           </Link>

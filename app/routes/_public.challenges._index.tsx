@@ -28,27 +28,27 @@ export default function ChallengesPage({ loaderData }: Route.ComponentProps) {
   return (
     <div>
       <HeroSection variant="challenge" title="챌린지" subtitle="함께 탐구하는 공동의 도전들" />
-      <div style={{ maxWidth: "var(--max-content-width)", margin: "0 auto", padding: "var(--space-12) var(--space-4)" }}>
+      <div className="max-w-content mx-auto py-12 px-4">
         {allChallenges.length === 0 ? (
           <EmptyState variant="generic" message="아직 진행 중인 챌린지가 없습니다." />
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
+          <div className="flex flex-col gap-4">
             {allChallenges.map((challenge) => (
-              <Link key={challenge.id} to={`/challenges/${challenge.slug}`} style={{ display: "block", textDecoration: "none", backgroundColor: "var(--color-surface)", borderRadius: "var(--radius-lg)", border: "1px solid var(--color-border)", padding: "var(--space-6)", boxShadow: "var(--shadow-sm)" }}>
+              <Link key={challenge.id} to={`/challenges/${challenge.slug}`} className="block no-underline bg-surface rounded-lg border border-border p-6 shadow-sm">
                 {challenge.currentQuestion && (
-                  <p style={{ fontSize: "var(--font-size-base)", color: "var(--color-ocean-blue)", fontStyle: "italic", marginBottom: "var(--space-3)" }}>
+                  <p className="text-base text-ocean-blue italic mb-3">
                     "{challenge.currentQuestion}"
                   </p>
                 )}
-                <h2 style={{ fontSize: "var(--font-size-xl)", fontWeight: "var(--font-weight-semibold)", color: "var(--color-text-primary)", marginBottom: challenge.problemDefinition ? "var(--space-2)" : 0 }}>
+                <h2 className="text-xl font-semibold text-text-primary mb-2">
                   {challenge.name}
                 </h2>
                 {challenge.problemDefinition && (
-                  <p style={{ fontSize: "var(--font-size-base)", color: "var(--color-text-secondary)", lineHeight: "var(--line-height-normal)" }}>
+                  <p className="text-base text-text-secondary leading-normal">
                     {challenge.problemDefinition}
                   </p>
                 )}
-                <div style={{ marginTop: "var(--space-3)", fontSize: "12px", padding: "2px 8px", borderRadius: "var(--radius-full)", backgroundColor: "var(--color-border)", color: "var(--color-text-secondary)", display: "inline-block" }}>
+                <div className="mt-3 text-caption px-2 py-0.5 rounded-full bg-border text-text-secondary inline-block">
                   {STATUS_LABELS[challenge.status] ?? challenge.status}
                 </div>
               </Link>

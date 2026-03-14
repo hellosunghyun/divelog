@@ -17,19 +17,38 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 export default function AdminRecordsPage({ loaderData }: Route.ComponentProps) {
   return (
     <div>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "24px" }}>
-        <h2 style={{ fontSize: "20px", fontWeight: "600", color: "var(--color-admin-text)" }}>기록 관리</h2>
-        <div style={{ display: "flex", gap: "8px" }}>
-          <a href="/admin/records" style={{ fontSize: "12px", padding: "4px 10px", borderRadius: "4px", backgroundColor: "var(--color-admin-border)", color: "var(--color-admin-text)", textDecoration: "none" }}>전체</a>
-          <a href="?filter=flagged" style={{ fontSize: "12px", padding: "4px 10px", borderRadius: "4px", backgroundColor: "var(--color-error)", color: "white", textDecoration: "none" }}>Flagged</a>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-xl font-semibold text-admin-text">기록 관리</h2>
+        <div className="flex gap-2">
+          <a href="/admin/records" className="text-xs px-2.5 py-1 rounded bg-admin-border text-admin-text no-underline hover:opacity-80">전체</a>
+          <a href="?filter=flagged" className="text-xs px-2.5 py-1 rounded bg-error text-white no-underline hover:opacity-80">Flagged</a>
         </div>
       </div>
       {loaderData.records.length === 0 ? (
         <EmptyState variant="generic" message="기록이 없습니다" />
       ) : (
-        <table style={{ width: "100%", borderCollapse: "collapse", backgroundColor: "var(--color-admin-surface)", borderRadius: "8px" }}>
-          <thead><tr style={{ borderBottom: "1px solid var(--color-admin-border)" }}>{["제목", "작성자", "형식", "공개", "moderation", "작업"].map((h) => <th key={h} style={{ textAlign: "left", padding: "10px 16px", fontSize: "12px", color: "var(--color-admin-text-secondary)", fontWeight: "600" }}>{h}</th>)}</tr></thead>
-          <tbody>{loaderData.records.map(({ record, author }) => (<tr key={record.id} style={{ borderBottom: "1px solid var(--color-admin-border)" }}><td style={{ padding: "10px 16px", fontSize: "13px", maxWidth: "200px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{record.title}</td><td style={{ padding: "10px 16px", fontSize: "13px" }}>{author?.displayName ?? "-"}</td><td style={{ padding: "10px 16px", fontSize: "13px" }}>{record.format}</td><td style={{ padding: "10px 16px", fontSize: "13px" }}>{record.visibility}</td><td style={{ padding: "10px 16px", fontSize: "13px", color: record.moderationStatus === "flagged" ? "var(--color-error)" : undefined }}>{record.moderationStatus}</td><td style={{ padding: "10px 16px" }}><Link to={`/admin/records/${record.id}`} style={{ fontSize: "12px", color: "var(--color-admin-accent)" }}>검토</Link></td></tr>))}</tbody>
+        <table className="w-full border-collapse bg-admin-surface rounded-md">
+          <thead>
+            <tr className="border-b border-admin-border">
+              {["제목", "작성자", "형식", "공개", "moderation", "작업"].map((h) => (
+                <th key={h} className="text-left px-3 py-2 text-xs text-admin-text-secondary font-semibold uppercase tracking-wide">{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {loaderData.records.map(({ record, author }) => (
+              <tr key={record.id} className="border-b border-admin-border hover:bg-admin-bg transition-colors">
+                <td className="px-3 py-2 text-[13px] max-w-[200px] truncate">{record.title}</td>
+                <td className="px-3 py-2 text-[13px]">{author?.displayName ?? "-"}</td>
+                <td className="px-3 py-2 text-[13px]">{record.format}</td>
+                <td className="px-3 py-2 text-[13px]">{record.visibility}</td>
+                <td className={`px-3 py-2 text-[13px] ${record.moderationStatus === "flagged" ? "text-error" : ""}`}>{record.moderationStatus}</td>
+                <td className="px-3 py-2">
+                  <Link to={`/admin/records/${record.id}`} className="text-xs text-admin-accent hover:underline">검토</Link>
+                </td>
+              </tr>
+            ))}
+          </tbody>
         </table>
       )}
     </div>

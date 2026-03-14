@@ -20,31 +20,17 @@ export default function HighlightedSentenceCard({ sentence, savedBy, record }: H
   return (
     <blockquote
       data-testid="sentence-card"
-      style={{
-        backgroundColor: "var(--color-surface)",
-        borderRadius: "var(--radius-lg)",
-        border: "1px solid var(--color-border)",
-        borderLeft: "3px solid var(--color-reef-cyan)",
-        padding: "var(--space-6)",
-        display: "flex",
-        flexDirection: "column",
-        gap: "var(--space-3)",
-      }}
+      className="rounded-lg border border-border bg-surface p-6 shadow-sm border-l-[3px] border-l-reef-cyan flex flex-col gap-3"
     >
-      <p style={{
-        fontSize: "var(--font-size-lg)",
-        lineHeight: "var(--line-height-relaxed)",
-        color: "var(--color-text-primary)",
-        fontStyle: "italic",
-      }}>
+      <p className="text-lg leading-relaxed text-text-primary italic">
         "{sentence.content}"
       </p>
       {sentence.reason && (
-        <p style={{ fontSize: "13px", color: "var(--color-text-secondary)" }}>
+        <p className="text-meta text-text-secondary">
           {sentence.reason}
         </p>
       )}
-      <div style={{ display: "flex", gap: "var(--space-4)", fontSize: "13px", color: "var(--color-text-tertiary)" }}>
+      <div className="flex gap-4 text-meta text-text-tertiary">
         {savedBy && <Link to={`/learners/${savedBy.slug}`}>{savedBy.displayName}</Link>}
         {record && <Link to={`/logs/${record.slug}`}>← {record.title}</Link>}
       </div>

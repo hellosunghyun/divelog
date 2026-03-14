@@ -54,16 +54,16 @@ export default function JourneyPage({ loaderData }: Route.ComponentProps) {
 
       {/* Stage Strip */}
       {allStages.length > 0 && (
-        <div style={{ backgroundColor: "var(--color-surface)", borderBottom: "1px solid var(--color-border)" }}>
+        <div className="bg-surface border-b border-border">
           <StageStrip stages={allStages} currentStageSlug={currentStage?.slug} />
         </div>
       )}
 
-      <div style={{ maxWidth: "var(--max-content-width)", margin: "0 auto", padding: "var(--space-12) var(--space-4)" }}>
+      <div className="max-w-content mx-auto px-4 py-12 md:py-20">
         {allStages.length === 0 ? (
           <EmptyState variant="generic" message="아직 Stage가 등록되지 않았습니다." />
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
+          <div className="flex flex-col gap-4">
             {allStages.map((stage, index) => {
               const accentColor = STAGE_ACCENTS[stage.type] ?? "var(--color-ocean-blue)";
               const isCurrent = stage.isCurrent;
@@ -72,86 +72,52 @@ export default function JourneyPage({ loaderData }: Route.ComponentProps) {
                 <Link
                   key={stage.id}
                   to={`/journey/${stage.slug}`}
+                  className="block bg-surface rounded-lg p-6 hover:bg-surface-secondary transition-colors"
                   style={{
-                    display: "block",
-                    textDecoration: "none",
-                    backgroundColor: "var(--color-surface)",
-                    borderRadius: "var(--radius-lg)",
-                    border: isCurrent ? `1.5px solid ${accentColor}` : "1px solid var(--color-border)",
-                    padding: "var(--space-6)",
+                    border: isCurrent ? `1.5px solid ${accentColor}` : undefined,
                     opacity: stage.status === "upcoming" ? 0.7 : 1,
                   }}
                 >
-                  <div style={{ display: "flex", alignItems: "flex-start", gap: "var(--space-4)" }}>
+                  <div className="flex items-start gap-4">
                     {/* Stage number */}
                     <div
+                      className="w-8 h-8 rounded-full flex items-center justify-center text-meta font-semibold shrink-0"
                       style={{
-                        width: "32px",
-                        height: "32px",
-                        borderRadius: "var(--radius-full)",
                         backgroundColor: `color-mix(in srgb, ${accentColor} 15%, transparent)`,
                         color: accentColor,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: "13px",
-                        fontWeight: "var(--font-weight-semibold)",
-                        flexShrink: 0,
                       }}
                     >
                       {index + 1}
                     </div>
 
-                    <div style={{ flex: 1 }}>
-                      <div style={{ display: "flex", gap: "var(--space-2)", marginBottom: "var(--space-2)", flexWrap: "wrap" }}>
+                    <div className="flex-1">
+                      <div className="flex gap-2 mb-2 flex-wrap">
                         <span
+                          className="text-caption px-2 py-0.5 rounded-full"
                           style={{
-                            fontSize: "12px",
-                            padding: "2px 8px",
-                            borderRadius: "var(--radius-full)",
                             backgroundColor: `color-mix(in srgb, ${accentColor} 12%, transparent)`,
                             color: accentColor,
                           }}
                         >
                           {STAGE_TYPE_LABELS[stage.type] ?? stage.type}
                         </span>
-                        <span
-                          style={{
-                            fontSize: "12px",
-                            padding: "2px 8px",
-                            borderRadius: "var(--radius-full)",
-                            backgroundColor: "var(--color-border)",
-                            color: "var(--color-text-secondary)",
-                          }}
-                        >
+                        <span className="text-caption px-2 py-0.5 rounded-full bg-border text-text-secondary">
                           {STATUS_LABELS[stage.status] ?? stage.status}
                         </span>
                         {isCurrent && (
                           <span
-                            style={{
-                              fontSize: "12px",
-                              padding: "2px 8px",
-                              borderRadius: "var(--radius-full)",
-                              backgroundColor: accentColor,
-                              color: "white",
-                            }}
+                            className="text-caption px-2 py-0.5 rounded-full text-white"
+                            style={{ backgroundColor: accentColor }}
                           >
                             현재
                           </span>
                         )}
                       </div>
-                      <h2
-                        style={{
-                          fontSize: "var(--font-size-xl)",
-                          fontWeight: "var(--font-weight-semibold)",
-                          color: "var(--color-text-primary)",
-                          marginBottom: stage.description ? "var(--space-2)" : 0,
-                        }}
-                      >
+                      <h2 className="text-xl font-semibold text-text-primary mb-2">
                         {stage.name}
                       </h2>
                       {stage.description && (
-                        <p style={{ fontSize: "var(--font-size-base)", color: "var(--color-text-secondary)", lineHeight: "var(--line-height-normal)" }}>
+                        <p className="text-base text-text-secondary leading-body">
                           {stage.description}
                         </p>
                       )}

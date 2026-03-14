@@ -92,30 +92,16 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
         title="여정을 기록합니다"
         subtitle="ADA Learner의 아홉 달을 탐색하고, 질문하고, 연결합니다. 완성된 글이 아니어도 괜찮습니다."
       >
-        <div style={{ display: "flex", gap: "var(--space-4)", flexWrap: "wrap" }}>
+        <div className="flex gap-4 flex-wrap">
           <a
             href="/journey"
-            style={{
-              padding: "12px 24px",
-              borderRadius: "var(--radius-md)",
-              backgroundColor: "var(--color-ocean-blue)",
-              color: "white",
-              textDecoration: "none",
-              fontSize: "var(--font-size-base)",
-            }}
+            className="px-6 py-3 rounded-md bg-ocean-blue text-white text-base font-medium hover:bg-deep-ocean transition-colors focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
           >
             여정 탐색하기
           </a>
           <a
             href="/logs"
-            style={{
-              padding: "12px 24px",
-              borderRadius: "var(--radius-md)",
-              border: "1px solid var(--color-border)",
-              color: "var(--color-text-secondary)",
-              textDecoration: "none",
-              fontSize: "var(--font-size-base)",
-            }}
+            className="px-6 py-3 rounded-md border border-border text-text-secondary text-base font-medium hover:bg-surface-secondary transition-colors"
           >
             기록 보기
           </a>
@@ -123,45 +109,23 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
       </HeroSection>
 
       {allStages.length > 0 && (
-        <div style={{ backgroundColor: "var(--color-surface)", borderBottom: "1px solid var(--color-border)" }}>
+        <div className="bg-surface border-b border-border">
           <StageStrip stages={allStages} currentStageSlug={currentStage?.slug} />
         </div>
       )}
 
-      <div style={{ maxWidth: "var(--max-content-width)", margin: "0 auto", padding: "var(--space-12) var(--space-4)" }}>
+      <div className="max-w-content mx-auto px-4 py-12 md:py-20">
         {currentStage && (
-          <section style={{ marginBottom: "var(--space-12)" }}>
-            <div style={{ marginBottom: "var(--space-6)" }}>
-              <span
-                style={{
-                  fontSize: "12px",
-                  padding: "2px 10px",
-                  borderRadius: "var(--radius-full)",
-                  backgroundColor: "var(--color-mist-blue)",
-                  color: "var(--color-ocean-blue)",
-                }}
-              >
+          <section className="mb-12">
+            <div className="mb-6">
+              <span className="text-caption px-2.5 py-0.5 rounded-full bg-mist-blue text-ocean-blue">
                 현재 Stage
               </span>
-              <h2
-                style={{
-                  marginTop: "var(--space-3)",
-                  fontSize: "var(--font-size-2xl)",
-                  fontWeight: "var(--font-weight-semibold)",
-                  color: "var(--color-text-primary)",
-                }}
-              >
+              <h2 className="mt-3 text-2xl font-semibold text-text-primary">
                 {currentStage.name}
               </h2>
               {currentStage.description && (
-                <p
-                  style={{
-                    marginTop: "var(--space-2)",
-                    fontSize: "var(--font-size-base)",
-                    color: "var(--color-text-secondary)",
-                    maxWidth: "var(--max-reading-width)",
-                  }}
-                >
+                <p className="mt-2 text-base text-text-secondary max-w-reading">
                   {currentStage.description}
                 </p>
               )}
@@ -170,18 +134,11 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
         )}
 
         {openQuestions.length > 0 && (
-          <section style={{ marginBottom: "var(--space-12)" }}>
-            <h2
-              style={{
-                fontSize: "var(--font-size-xl)",
-                fontWeight: "var(--font-weight-semibold)",
-                color: "var(--color-text-primary)",
-                marginBottom: "var(--space-6)",
-              }}
-            >
+          <section className="mb-12">
+            <h2 className="text-xl font-semibold text-text-primary mb-6">
               열린 질문들
             </h2>
-            <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
+            <div className="flex flex-col gap-4">
               {openQuestions.map((row) => (
                 <QuestionCard
                   key={row.questionId}
@@ -202,36 +159,17 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
           </section>
         )}
 
-        <section style={{ marginBottom: "var(--space-12)" }}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              marginBottom: "var(--space-6)",
-            }}
-          >
-            <h2
-              style={{
-                fontSize: "var(--font-size-xl)",
-                fontWeight: "var(--font-weight-semibold)",
-                color: "var(--color-text-primary)",
-              }}
-            >
+        <section className="mb-12">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-semibold text-text-primary">
               최근 기록
             </h2>
-            <a href="/logs" style={{ fontSize: "14px", color: "var(--color-text-tertiary)" }}>
+            <a href="/logs" className="text-sm text-text-tertiary hover:text-text-secondary transition-colors">
               전체 보기 →
             </a>
           </div>
           {recentRecords.length > 0 ? (
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-                gap: "var(--space-4)",
-              }}
-            >
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {recentRecords.map((row) => (
                 <SceneCard
                   key={row.id}
@@ -258,24 +196,11 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
         </section>
 
         {recentSentences.length > 0 && (
-          <section style={{ marginBottom: "var(--space-12)" }}>
-            <h2
-              style={{
-                fontSize: "var(--font-size-xl)",
-                fontWeight: "var(--font-weight-semibold)",
-                color: "var(--color-text-primary)",
-                marginBottom: "var(--space-6)",
-              }}
-            >
+          <section className="mb-12">
+            <h2 className="text-xl font-semibold text-text-primary mb-6">
               남겨두고 싶은 문장들
             </h2>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-                gap: "var(--space-4)",
-              }}
-            >
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {recentSentences.map((row) => (
                 <HighlightedSentenceCard
                   key={row.sentenceId}
@@ -301,35 +226,16 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
         )}
 
         {spotlightLearners.length > 0 && (
-          <section style={{ marginBottom: "var(--space-12)" }}>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                marginBottom: "var(--space-6)",
-              }}
-            >
-              <h2
-                style={{
-                  fontSize: "var(--font-size-xl)",
-                  fontWeight: "var(--font-weight-semibold)",
-                  color: "var(--color-text-primary)",
-                }}
-              >
+          <section className="mb-12">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold text-text-primary">
                 Learner
               </h2>
-              <a href="/learners" style={{ fontSize: "14px", color: "var(--color-text-tertiary)" }}>
+              <a href="/learners" className="text-sm text-text-tertiary hover:text-text-secondary transition-colors">
                 전체 보기 →
               </a>
             </div>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
-                gap: "var(--space-4)",
-              }}
-            >
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {spotlightLearners.map((learner) => (
                 <LearnerCard key={learner.userId} learner={learner} />
               ))}

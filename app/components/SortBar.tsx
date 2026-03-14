@@ -5,7 +5,7 @@ interface SortOption {
   label: string;
 }
 
-// NOTE: NO 인기순/추천순/popular
+// NO 인기순/추천순/popular
 const DEFAULT_SORT_OPTIONS: SortOption[] = [
   { value: "recent", label: "최근 기록" },
   { value: "oldest", label: "오래된 기록" },
@@ -19,8 +19,8 @@ export default function SortBar({ options = DEFAULT_SORT_OPTIONS }: SortBarProps
   const [searchParams, setSearchParams] = useSearchParams();
 
   return (
-    <div style={{ display: "flex", gap: "var(--space-2)", alignItems: "center" }}>
-      <span style={{ fontSize: "13px", color: "var(--color-text-secondary)" }}>정렬</span>
+    <div className="flex gap-2 items-center">
+      <span className="text-meta text-text-secondary">정렬</span>
       <select
         value={searchParams.get("sort") ?? "recent"}
         onChange={(e) => {
@@ -28,13 +28,7 @@ export default function SortBar({ options = DEFAULT_SORT_OPTIONS }: SortBarProps
           newParams.set("sort", e.target.value);
           setSearchParams(newParams);
         }}
-        style={{
-          fontSize: "13px",
-          padding: "4px 8px",
-          borderRadius: "var(--radius-sm)",
-          border: "1px solid var(--color-border)",
-          backgroundColor: "var(--color-surface)",
-        }}
+        className="text-meta px-2 py-1 rounded-sm border border-border bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
       >
         {options.map((opt) => (
           <option key={opt.value} value={opt.value}>{opt.label}</option>

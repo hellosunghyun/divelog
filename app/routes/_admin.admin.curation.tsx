@@ -31,20 +31,38 @@ export default function AdminCurationPage({ loaderData }: Route.ComponentProps) 
   const SLOT_TYPE_LABELS: Record<string, string> = { scene: "장면", question: "질문", sentence: "문장", learner: "Learner", stage_featured: "Stage 특집" };
   return (
     <div>
-      <h2 style={{ fontSize: "20px", fontWeight: "600", color: "var(--color-admin-text)", marginBottom: "24px" }}>큐레이션</h2>
-      <table style={{ width: "100%", borderCollapse: "collapse", backgroundColor: "var(--color-admin-surface)", borderRadius: "8px" }}>
-        <thead><tr style={{ borderBottom: "1px solid var(--color-admin-border)" }}>{["슬롯 유형", "대상 ID", "순서", "고정", "숨김", "작업"].map((h) => <th key={h} style={{ textAlign: "left", padding: "10px 16px", fontSize: "12px", color: "var(--color-admin-text-secondary)", fontWeight: "600" }}>{h}</th>)}</tr></thead>
-        <tbody>{slots.map((s) => (<tr key={s.id} style={{ borderBottom: "1px solid var(--color-admin-border)" }}>
-          <td style={{ padding: "10px 16px", fontSize: "13px", color: "var(--color-admin-text)" }}>{SLOT_TYPE_LABELS[s.slotType] ?? s.slotType}</td>
-          <td style={{ padding: "10px 16px", fontSize: "13px", color: "var(--color-admin-text-secondary)", fontFamily: "monospace" }}>{s.targetId.substring(0, 12)}...</td>
-          <td style={{ padding: "10px 16px", fontSize: "13px" }}>{s.position}</td>
-          <td style={{ padding: "10px 16px", fontSize: "13px" }}>{s.pinned ? "✓" : ""}</td>
-          <td style={{ padding: "10px 16px", fontSize: "13px" }}>{s.hidden ? "✓" : ""}</td>
-          <td style={{ padding: "10px 16px", display: "flex", gap: "8px" }}>
-            <form method="post" style={{ display: "inline" }}><input type="hidden" name="id" value={s.id} /><input type="hidden" name="intent" value={s.pinned ? "unpin" : "pin"} /><button type="submit" style={{ fontSize: "11px", padding: "2px 8px", borderRadius: "4px", border: "1px solid var(--color-admin-border)", cursor: "pointer", backgroundColor: "var(--color-admin-surface)" }}>{s.pinned ? "고정 해제" : "고정"}</button></form>
-            <form method="post" style={{ display: "inline" }}><input type="hidden" name="id" value={s.id} /><input type="hidden" name="intent" value={s.hidden ? "unhide" : "hide"} /><button type="submit" style={{ fontSize: "11px", padding: "2px 8px", borderRadius: "4px", border: "1px solid var(--color-admin-border)", cursor: "pointer", backgroundColor: "var(--color-admin-surface)" }}>{s.hidden ? "표시" : "숨김"}</button></form>
-          </td>
-        </tr>))}</tbody>
+      <h2 className="text-xl font-semibold text-admin-text mb-6">큐레이션</h2>
+      <table className="w-full border-collapse bg-admin-surface rounded-md">
+        <thead>
+          <tr className="border-b border-admin-border">
+            {["슬롯 유형", "대상 ID", "순서", "고정", "숨김", "작업"].map((h) => (
+              <th key={h} className="text-left px-3 py-2 text-xs text-admin-text-secondary font-semibold uppercase tracking-wide">{h}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {slots.map((s) => (
+            <tr key={s.id} className="border-b border-admin-border">
+              <td className="px-3 py-2 text-[13px] text-admin-text">{SLOT_TYPE_LABELS[s.slotType] ?? s.slotType}</td>
+              <td className="px-3 py-2 text-[13px] text-admin-text-secondary font-mono">{s.targetId.substring(0, 12)}...</td>
+              <td className="px-3 py-2 text-[13px]">{s.position}</td>
+              <td className="px-3 py-2 text-[13px]">{s.pinned ? "✓" : ""}</td>
+              <td className="px-3 py-2 text-[13px]">{s.hidden ? "✓" : ""}</td>
+              <td className="px-3 py-2 flex gap-2">
+                <form method="post" className="inline">
+                  <input type="hidden" name="id" value={s.id} />
+                  <input type="hidden" name="intent" value={s.pinned ? "unpin" : "pin"} />
+                  <button type="submit" className="text-[11px] px-2 py-0.5 rounded-sm border border-admin-border cursor-pointer bg-admin-surface hover:bg-admin-bg">{s.pinned ? "고정 해제" : "고정"}</button>
+                </form>
+                <form method="post" className="inline">
+                  <input type="hidden" name="id" value={s.id} />
+                  <input type="hidden" name="intent" value={s.hidden ? "unhide" : "hide"} />
+                  <button type="submit" className="text-[11px] px-2 py-0.5 rounded-sm border border-admin-border cursor-pointer bg-admin-surface hover:bg-admin-bg">{s.hidden ? "표시" : "숨김"}</button>
+                </form>
+              </td>
+            </tr>
+          ))}
+        </tbody>
       </table>
     </div>
   );

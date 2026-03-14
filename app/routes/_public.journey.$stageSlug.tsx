@@ -83,74 +83,28 @@ export default function StageDetailPage({ loaderData }: Route.ComponentProps) {
         badge={stage.isCurrent ? "현재 Stage" : undefined}
       />
 
-      <div
-        style={{
-          backgroundColor: "var(--color-surface)",
-          borderBottom: "1px solid var(--color-border)",
-        }}
-      >
+      <div className="bg-surface border-b border-border">
         <StageStrip stages={allStages} currentStageSlug={stage.slug} />
       </div>
 
-      <div
-        style={{
-          maxWidth: "var(--max-content-width)",
-          margin: "0 auto",
-          padding: "var(--space-12) var(--space-4)",
-        }}
-      >
-        {/* Quiet Check-in — text description only, NO charts/numbers */}
+      <div className="max-w-content mx-auto px-4 py-12 md:py-20">
         {stage.heroContent && (
-          <section
-            style={{
-              marginBottom: "var(--space-12)",
-              padding: "var(--space-8)",
-              backgroundColor: "var(--color-surface)",
-              borderRadius: "var(--radius-lg)",
-              border: "1px solid var(--color-border)",
-            }}
-          >
-            <p
-              style={{
-                fontSize: "13px",
-                color: "var(--color-text-tertiary)",
-                marginBottom: "var(--space-3)",
-              }}
-            >
+          <section className="mb-12 p-8 bg-surface rounded-lg border border-border">
+            <p className="text-meta text-text-tertiary mb-3">
               이 Stage의 탐구
             </p>
-            <p
-              style={{
-                fontSize: "var(--font-size-lg)",
-                color: "var(--color-text-primary)",
-                lineHeight: "var(--line-height-relaxed)",
-                fontStyle: "italic",
-              }}
-            >
+            <p className="text-lg text-text-primary leading-relaxed italic">
               {stage.heroContent}
             </p>
           </section>
         )}
 
         {stageQuestions.length > 0 && (
-          <section style={{ marginBottom: "var(--space-12)" }}>
-            <h2
-              style={{
-                fontSize: "var(--font-size-xl)",
-                fontWeight: "var(--font-weight-semibold)",
-                color: "var(--color-text-primary)",
-                marginBottom: "var(--space-6)",
-              }}
-            >
+          <section className="mb-12">
+            <h2 className="text-xl font-semibold text-text-primary mb-6">
               이 Stage의 열린 질문들
             </h2>
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "var(--space-4)",
-              }}
-            >
+            <div className="flex flex-col gap-4">
               {stageQuestions.map(({ question, recordSlug, recordTitle }) => (
                 <QuestionCard
                   key={question.id}
@@ -166,48 +120,21 @@ export default function StageDetailPage({ loaderData }: Route.ComponentProps) {
           </section>
         )}
 
-        <section style={{ marginBottom: "var(--space-12)" }}>
-          <h2
-            style={{
-              fontSize: "var(--font-size-xl)",
-              fontWeight: "var(--font-weight-semibold)",
-              color: "var(--color-text-primary)",
-              marginBottom: "var(--space-6)",
-            }}
-          >
+        <section className="mb-12">
+          <h2 className="text-xl font-semibold text-text-primary mb-6">
             협업
           </h2>
           {stageCollaborations.length === 0 ? (
-            <div
-              style={{
-                padding: "var(--space-8)",
-                backgroundColor: "var(--color-surface)",
-                borderRadius: "var(--radius-lg)",
-                border: "1px solid var(--color-border)",
-                textAlign: "center",
-              }}
-            >
-              <p style={{ color: "var(--color-text-secondary)" }}>
+            <div className="p-8 bg-surface rounded-lg border border-border text-center">
+              <p className="text-text-secondary">
                 이 Stage는 개인 탐색 중심으로 진행됩니다.
               </p>
-              <p
-                style={{
-                  fontSize: "13px",
-                  color: "var(--color-text-tertiary)",
-                  marginTop: "var(--space-2)",
-                }}
-              >
+              <p className="text-meta text-text-tertiary mt-2">
                 혼자서 탐구하는 것도 충분한 탐구입니다.
               </p>
             </div>
           ) : (
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-                gap: "var(--space-4)",
-              }}
-            >
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {stageCollaborations.map((unit) => (
                 <CollaborationUnitCard key={unit.id} unit={unit} />
               ))}
@@ -216,26 +143,13 @@ export default function StageDetailPage({ loaderData }: Route.ComponentProps) {
         </section>
 
         <section>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              marginBottom: "var(--space-6)",
-            }}
-          >
-            <h2
-              style={{
-                fontSize: "var(--font-size-xl)",
-                fontWeight: "var(--font-weight-semibold)",
-                color: "var(--color-text-primary)",
-              }}
-            >
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-semibold text-text-primary">
               기록
             </h2>
             <Link
               to={`/logs?stage=${stage.id}`}
-              style={{ fontSize: "14px", color: "var(--color-text-tertiary)" }}
+              className="text-sm text-text-tertiary hover:text-text-secondary transition-colors"
             >
               전체 보기 →
             </Link>
@@ -246,13 +160,7 @@ export default function StageDetailPage({ loaderData }: Route.ComponentProps) {
               action={{ label: "이 Stage에 기록하기", href: "/write" }}
             />
           ) : (
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-                gap: "var(--space-4)",
-              }}
-            >
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {stageRecords.map(({ record, author }) => (
                 <SceneCard key={record.id} record={record} author={author ?? undefined} />
               ))}
@@ -266,34 +174,16 @@ export default function StageDetailPage({ loaderData }: Route.ComponentProps) {
 
 export function ErrorBoundary() {
   return (
-    <div style={{ textAlign: "center", padding: "64px 16px" }}>
-      <p
-        style={{
-          fontSize: "20px",
-          fontWeight: "600",
-          color: "var(--color-text-primary)",
-        }}
-      >
+    <div className="text-center py-16 px-4">
+      <p className="text-xl font-semibold text-text-primary">
         Stage를 찾을 수 없습니다
       </p>
-      <p
-        style={{
-          marginTop: "8px",
-          color: "var(--color-text-secondary)",
-        }}
-      >
+      <p className="mt-2 text-text-secondary">
         요청하신 Stage가 존재하지 않습니다.
       </p>
       <Link
         to="/journey"
-        style={{
-          marginTop: "16px",
-          display: "inline-block",
-          padding: "10px 20px",
-          borderRadius: "var(--radius-md)",
-          backgroundColor: "var(--color-ocean-blue)",
-          color: "white",
-        }}
+        className="mt-4 inline-block px-5 py-2.5 rounded-md bg-ocean-blue text-white font-medium hover:bg-deep-ocean transition-colors"
       >
         여정으로 돌아가기
       </Link>

@@ -18,46 +18,21 @@ export default function QuestionCard({ question, record, onRespond }: QuestionCa
   return (
     <article
       data-testid="question-card"
-      style={{
-        backgroundColor: "var(--color-surface)",
-        borderRadius: "var(--radius-lg)",
-        border: "1px solid var(--color-border)",
-        padding: "var(--space-8)",
-        paddingTop: "var(--space-10)",
-      }}
+      className="rounded-lg border border-border bg-surface p-6 lg:p-7 shadow-sm"
     >
-      <div
-        style={{
-          fontSize: "var(--font-size-sm)",
-          color: "var(--color-ocean-blue)",
-          marginBottom: "var(--space-4)",
-          fontWeight: "var(--font-weight-medium)",
-        }}
-      >
+      <div className="text-sm text-ocean-blue mb-4 font-medium">
         {question.direction === "inward" ? "나에게 묻다" : "함께 생각해볼 질문"}
       </div>
 
-      <p
-        style={{
-          fontSize: "var(--font-size-xl)",
-          lineHeight: "var(--line-height-relaxed)",
-          color: "var(--color-text-primary)",
-          fontWeight: "var(--font-weight-medium)",
-          marginBottom: "var(--space-6)",
-        }}
-      >
+      <p className="text-xl leading-relaxed text-text-primary font-semibold mb-6">
         {question.content}
       </p>
 
       {record && (
-        <div style={{ marginBottom: "var(--space-4)" }}>
+        <div className="mb-4">
           <Link
             to={`/logs/${record.slug}`}
-            style={{
-              fontSize: "var(--font-size-sm)",
-              color: "var(--color-text-tertiary)",
-              textDecoration: "none",
-            }}
+            className="text-sm text-text-tertiary no-underline"
           >
             ← {record.title}
           </Link>
@@ -68,16 +43,7 @@ export default function QuestionCard({ question, record, onRespond }: QuestionCa
         <button
           type="button"
           onClick={onRespond}
-          style={{
-            fontSize: "var(--font-size-sm)",
-            padding: "8px 16px",
-            borderRadius: "var(--radius-md)",
-            border: "1px solid var(--color-border)",
-            backgroundColor: "transparent",
-            color: "var(--color-text-secondary)",
-            cursor: "pointer",
-            transition: "all var(--duration-fast) var(--ease-default)",
-          }}
+          className="rounded-md px-4 py-2 text-sm border border-border bg-transparent text-text-secondary cursor-pointer transition-all duration-fast"
         >
           이 질문에 응답하기
         </button>

@@ -248,6 +248,223 @@ const parentData = useRouteLoaderData("_public");
 - 협업 상태 (Forming, Active, Restructured, Archived)
 - Visibility (Draft, Cohort, Public)
 
+### `.docs/design.md` — Quiet Depth 디자인 가이드라인
+**참조 시점**: UI 구현, 스타일링, 컴포넌트 디자인 작업 시 **반드시** 참조
+- 디자인 철학 (Content-first, Journey-first, Quiet Depth, Reflection over Stimulation)
+- 색상 팔레트 (Core Palette, Stage Tone Mapping)
+- 타이포그래피 스케일 (Hero 48~64px ~ Caption 12px)
+- 간격 시스템 (4px 배수 기반)
+- 카드 스펙 (radius 20~24px, padding 20~28px)
+- 레이아웃 폭 (1440/1200/720px)
+- 네비게이션, Hero, Journey Strip, 각종 카드 디자인 가이드
+- 모션 가이드 (허용/금지), 아이콘/일러스트 가이드
+- 접근성 가이드, Admin 디자인 가이드
+- 품질 체크리스트
+
+---
+
+## Quiet Depth 디자인 가이드라인
+
+> 전체 원본은 `.docs/design.md` 참조. 아래는 구현에 필요한 핵심 규칙 요약.
+
+### 디자인 철학
+
+이 사이트는 **"예쁜 바다 사이트"가 아니라 Learner의 질문과 기록이 조용하고 깊게 읽히는 공간**이다.
+
+| 원칙 | 설명 |
+|------|------|
+| Content-first | 기록이 주인공. 배경·애니메이션·그래픽은 보조 |
+| Journey-first | 피드가 아니라 여정. "지금 어디를 지나고 있는가"를 먼저 |
+| Quiet Depth | 깊이감 = 얇은 경계선 + 부드러운 surface + 채도 낮은 블루 + 충분한 여백 |
+| Reflection over Stimulation | SNS식 즉각 반응/자극 금지. 읽고, 머물고, 다시 생각하게 |
+| Belonging without Competition | 연결하되 비교하지 않음. 지표보다 질문과 공명 중심 |
+
+시각적 북극성: **에디토리얼** + **수면 아래의 깊이감** + **정제된 현대성**
+
+### 색상 시스템
+
+```
+Background:        #F6F8FB
+Surface:           #FFFFFF
+Surface Secondary: #F2F5F8
+Border:            #E3E8EF
+
+Text Primary:      #1D1D1F
+Text Secondary:    #6E6E73
+Text Tertiary:     #8C8C91
+
+Deep Ocean:        #0B2447
+Ocean Blue:        #146C94
+Reef Cyan:         #6CC4D6
+Mist Blue:         #EAF4FA
+```
+
+**Stage Tone Mapping**: Prelude=Mist, Bridge=Cyan, Challenge=Deep Ocean, Epilogue=Mist+Neutral
+
+**색 사용 규칙**:
+- 본문은 높은 대비의 중립 텍스트
+- 강조는 컬러보다 weight와 spacing으로 먼저
+- 상태색은 semantic 목적에만
+- 카드마다 다른 accent 남발 금지
+- 링크는 텍스트처럼 보이되 hover/active에서 식별 가능
+- 배경은 완전 흰색보다 옅은 블루-그레이 (`#F6F8FB`)
+
+### 타이포그래피
+
+**폰트**: system-ui / SF Pro 감성, 한글은 Pretendard 또는 동급 현대적 산세리프
+
+| 용도 | 크기 | 무게 | line-height |
+|------|------|------|-------------|
+| Hero Title | 48 ~ 64px | 600 | 1.1 ~ 1.2 |
+| Page Title | 32 ~ 40px | 600 | 1.1 ~ 1.2 |
+| Section Title | 22 ~ 28px | 600 | 1.2 |
+| Card Title | 18 ~ 20px | 600 | 1.2 |
+| Body Large | 18px | 400 | 1.6 ~ 1.75 |
+| Body Default | 16px | 400 | 1.6 ~ 1.75 |
+| Meta | 13 ~ 14px | 500 | 1.5 |
+| Caption | 12px | 500 | 1.5 |
+
+**규칙**: 제목은 무게로 강조(색 절제), 같은 계층 제목 크기 일관, 본문 폭 제한, bold 남발 금지
+
+### 간격 시스템
+
+**기본 scale**: 4의 배수 — `4, 8, 12, 16, 24, 32, 40, 48, 64, 80, 96`
+
+**섹션 간 간격**: 모바일 48~64px, 데스크톱 80~120px
+
+**여백 우선순위**: 페이지 외곽 → 섹션 간 → 카드 내부 패딩 → 요소 간
+
+**핵심**: 고급스러움 = 넉넉한 여백 + 통일된 간격. 질문 카드/기록 본문 주변은 일반 카드보다 여유 있게.
+
+### 레이아웃
+
+| 요소 | 폭 |
+|------|-----|
+| 전체 캔버스 최대 | 1440px |
+| 콘텐츠 최대 | 1200px |
+| 읽기 중심 상세 | 720px |
+| 보조 레일 | 280 ~ 320px |
+
+- 모바일: 1열 / 태블릿: 1~2열 / 데스크톱: 12-column grid
+- Hero 이후 섹션은 왼쪽 정렬 기본
+- centered layout 남발 금지
+- 같은 계층 카드/텍스트는 baseline 정렬
+
+### 카드 시스템
+
+**기본 스펙**: 배경 Surface, border 1px solid `#E3E8EF`, radius 20~24px, shadow 매우 약하게, padding 20~28px
+
+| 카드 | 특성 |
+|------|------|
+| Scene Card | 가장 기본. hover 시 미세한 상승만 |
+| Question Card | 더 조용하고 여유 있는 여백. 질문이 가장 크게 |
+| Response Card | 더 단순하고 플랫. 말풍선 아닌 정리된 메모 카드 |
+| Highlighted Sentence Card | 큰 인용문 + 남긴 이유 + 남긴 사람. 타이포로 해결 |
+| Learner Card | 프로필보다 질문이 먼저. 아바타는 보조 |
+| Collaboration Unit Card | 팀 장식보다 질문 중심. 협업 후에만 등장 |
+| Summary Card | 요약/안내 중심, 텍스트 비중 높음 |
+
+**깊이감 순서**: 배경 톤 차이 → border 명도 차이 → 여백 차이 → blur/material → 마지막으로만 shadow
+
+### 네비게이션
+
+**구성**: 로고 / 여정 / 기록 / 챌린지 / Learner / 가이드 / 검색 / 기록 남기기 CTA
+
+**원칙**: 얇고 조용, sticky 가능, 배경 투명 또는 약한 material, 수평 간격 넉넉, 현재 위치는 underline-less 강조
+
+**모바일**: 햄버거 메뉴 허용, 하단 탭바 사용 안 함, 검색/기록 CTA 우선순위 유지
+
+### Hero
+
+- 역할: 제품 설명이 아닌, 사용자를 정서 상태로 데려가는 공간
+- 구성: Eyebrow + 큰 타이틀 + 짧은 설명 + CTA + 배경 visual
+- 비주얼: 직접 해양 일러스트 금지, 수면 아래 빛의 층위/푸른 안개/깊이감 gradient
+- 카피: 짧고 선명, 과도한 브랜딩 슬로건 금지, 문학적이되 모호하지 않게
+
+### Journey Strip
+
+- 각 Stage는 capsule 또는 세로 기둥
+- 현재 Stage: 진한 톤 + 약한 glow
+- 과거: 채도 낮게, 미래: outline 위주
+- hover 시 설명 노출, click 시 Stage 상세
+- 모바일: 세로 스택 또는 horizontal scroll
+- 금지: game-like progress UI, 퍼센트 진행률 과장
+
+### 폼 / 에디터
+
+- distraction-free, 쓰기 흐름 방해 최소
+- 입력창 radius는 카드보다 약간 작게, border 얇게
+- focus: semantic blue 또는 deep tone
+- textarea: line-height 충분히, placeholder는 안내형 문장
+- 질문 입력: 본문과 다른 배경 톤, 작은 라벨
+- Visibility/응답 선호도: segmented control 또는 chip group
+
+### 모션 가이드
+
+| 허용 | 금지 |
+|------|------|
+| fade-up | bubble animation |
+| subtle hover elevation | parallax 남발 |
+| slow background drift | wave animation 남발 |
+| sheet/drawer 자연스러운 전환 | bouncing microinteraction |
+| | confetti/reward animation |
+
+**원칙**: 모션은 존재를 느끼게만 하고, 시선을 잡아끌지 않는다.
+
+### 아이콘 / 일러스트
+
+- 아이콘: stroke 기반, 단순하고 얇은 계열, 크기 일관, 텍스트 옆 보조
+- 금지: 3D/skeuomorphic 아이콘, 만화적 잠수부/물고기, 감정형 이모지 남발
+- 일러스트: 최소화. 필요 시 abstract gradient / layered shapes 우선
+
+### 접근성
+
+- 본문 최소 16px, 충분한 색 대비
+- 인터랙티브 요소 터치 타깃 44px↑
+- 키보드 포커스 명확, focus ring 충분한 두께와 명도차
+- outline 제거 금지, hover와 focus 같은 시각 효과 금지
+- reduced motion 지원, 스크린리더 라벨 제공
+- 장식용 얇은 회색 텍스트 남발 금지
+
+### 카피 톤
+
+| 지향 | 지양 |
+|------|------|
+| plain, warm, precise, non-judgmental | 베스트, 인기, 정답, 상위, 완벽한 기록 |
+| "완성된 글이 아니어도 괜찮습니다" | 강요하는 어조 |
+| "무엇이 남았는지부터 적어도 좋습니다" | urgency tone |
+
+**UI 카피**: 버튼은 짧고 행동 중심, 에러는 plain language, 빈 상태는 다음 행동 제안, 허가의 어조
+
+### Admin 디자인
+
+Public과 다른 톤: neutral, calm, efficient, dense, readable
+
+| 항목 | Public | Admin |
+|------|--------|-------|
+| 여백 | 넉넉 | compact |
+| radius | 20~24px | 약간 줄이기 |
+| 정보 밀도 | 낮음 | 높음 |
+| Hero | 감성적 | 금지 |
+| 블루 테마 | Quiet Depth | 과하지 않게 |
+| 테이블 | 미사용 | dense table 허용 |
+
+**구조**: 좌측 네비 + 상단 context bar + main canvas + optional inspector drawer
+**우선순위**: 빠른 스캔 → 빠른 편집 → 빠른 필터링 → preview → bulk action
+
+### 디자인 품질 체크리스트
+
+- [ ] 같은 계층 제목 크기 일관적인가
+- [ ] 여백 체계가 흔들리지 않는가
+- [ ] Stage 톤이 명확히 구분되는가
+- [ ] 해저 감성이 과하지 않은가
+- [ ] 기록과 질문이 가장 먼저 보이는가
+- [ ] 본문 읽기 폭 안정적인가
+- [ ] 질문 카드가 충분히 구분되는가
+- [ ] 응답이 댓글처럼 보이지 않는가
+- [ ] focus 상태 선명한가, contrast 충분한가
+- [ ] 모바일 터치 영역, 텍스트 크기 적절한가
+
 ---
 
 ## 핵심 제약사항 (Guardrails)

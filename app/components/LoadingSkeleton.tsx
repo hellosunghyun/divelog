@@ -3,37 +3,21 @@ interface LoadingSkeletonProps {
   count?: number;
 }
 
-function SkeletonBox({ width = "100%", height = "20px", rounded = false }: { width?: string; height?: string; rounded?: boolean }) {
+function SkeletonBox({ width = "w-full", height = "h-5", rounded = false }: { width?: string; height?: string; rounded?: boolean }) {
   return (
     <div
-      style={{
-        width,
-        height,
-        backgroundColor: "var(--color-border)",
-        borderRadius: rounded ? "var(--radius-full)" : "var(--radius-sm)",
-        animation: "pulse 1.5s ease-in-out infinite",
-      }}
+      className={`bg-surface-secondary animate-pulse ${width} ${height} ${rounded ? "rounded-full" : "rounded-sm"}`}
     />
   );
 }
 
 function CardSkeleton() {
   return (
-    <div
-      style={{
-        backgroundColor: "var(--color-surface)",
-        borderRadius: "var(--radius-lg)",
-        border: "1px solid var(--color-border)",
-        padding: "var(--space-6)",
-        display: "flex",
-        flexDirection: "column",
-        gap: "var(--space-3)",
-      }}
-    >
-      <SkeletonBox width="30%" height="18px" rounded />
-      <SkeletonBox width="70%" height="22px" />
-      <SkeletonBox height="16px" />
-      <SkeletonBox width="85%" height="16px" />
+    <div className="bg-surface rounded-lg border border-border p-6 flex flex-col gap-3">
+      <SkeletonBox width="w-[30%]" height="h-[18px]" rounded />
+      <SkeletonBox width="w-[70%]" height="h-[22px]" />
+      <SkeletonBox height="h-4" />
+      <SkeletonBox width="w-[85%]" height="h-4" />
     </div>
   );
 }
@@ -41,16 +25,10 @@ function CardSkeleton() {
 export default function LoadingSkeleton({ variant = "card", count = 3 }: LoadingSkeletonProps) {
   return (
     <div
-      style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}
+      className="flex flex-col gap-4"
       role="status"
       aria-busy="true"
     >
-      <style>{`
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.4; }
-        }
-      `}</style>
       {Array.from({ length: count }).map((_, i) => (
         <CardSkeleton key={i} />
       ))}

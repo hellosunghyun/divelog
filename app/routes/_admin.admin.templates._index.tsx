@@ -12,13 +12,29 @@ export async function loader({ context }: Route.LoaderArgs) {
 export default function AdminTemplatesPage({ loaderData }: Route.ComponentProps) {
   return (
     <div>
-      <h2 style={{ fontSize: "20px", fontWeight: "600", color: "var(--color-admin-text)", marginBottom: "24px" }}>템플릿 ({loaderData.templates.length}개)</h2>
+      <h2 className="text-xl font-semibold text-admin-text mb-6">템플릿 ({loaderData.templates.length}개)</h2>
       {loaderData.templates.length === 0 ? (
         <EmptyState variant="generic" message="등록된 템플릿이 없습니다" />
       ) : (
-        <table style={{ width: "100%", borderCollapse: "collapse", backgroundColor: "var(--color-admin-surface)", borderRadius: "8px" }}>
-          <thead><tr style={{ borderBottom: "1px solid var(--color-admin-border)" }}>{["이름", "형식", "리듬", "활성", "작업"].map((h) => <th key={h} style={{ textAlign: "left", padding: "10px 16px", fontSize: "12px", color: "var(--color-admin-text-secondary)", fontWeight: "600" }}>{h}</th>)}</tr></thead>
-          <tbody>{loaderData.templates.map((t) => (<tr key={t.id} style={{ borderBottom: "1px solid var(--color-admin-border)" }}><td style={{ padding: "10px 16px", fontSize: "13px", color: "var(--color-admin-text)" }}>{t.name}</td><td style={{ padding: "10px 16px", fontSize: "13px" }}>{t.form ?? "-"}</td><td style={{ padding: "10px 16px", fontSize: "13px" }}>{t.rhythm ?? "-"}</td><td style={{ padding: "10px 16px", fontSize: "13px" }}>{t.active ? "✓" : "✗"}</td><td style={{ padding: "10px 16px" }}><Link to={`/admin/templates/${t.id}`} style={{ fontSize: "12px", color: "var(--color-admin-accent)" }}>편집</Link></td></tr>))}</tbody>
+        <table className="w-full border-collapse bg-admin-surface rounded-md overflow-hidden">
+          <thead>
+            <tr className="border-b border-admin-border">
+              {["이름", "형식", "리듬", "활성", "작업"].map((h) => (
+                <th key={h} className="text-left px-4 py-2 text-caption font-semibold text-admin-text-secondary uppercase tracking-wide">{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {loaderData.templates.map((t) => (
+              <tr key={t.id} className="border-b border-admin-border hover:bg-admin-bg transition-colors">
+                <td className="px-4 py-2 text-meta text-admin-text">{t.name}</td>
+                <td className="px-4 py-2 text-meta">{t.form ?? "-"}</td>
+                <td className="px-4 py-2 text-meta">{t.rhythm ?? "-"}</td>
+                <td className="px-4 py-2 text-meta">{t.active ? "✓" : "✗"}</td>
+                <td className="px-4 py-2"><Link to={`/admin/templates/${t.id}`} className="text-caption text-admin-accent hover:underline">편집</Link></td>
+              </tr>
+            ))}
+          </tbody>
         </table>
       )}
     </div>

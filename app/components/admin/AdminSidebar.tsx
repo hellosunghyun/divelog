@@ -21,25 +21,16 @@ export default function AdminSidebar() {
   const location = useLocation();
 
   return (
-    <aside
-      className="w-56 flex-shrink-0 h-full overflow-y-auto flex flex-col"
-      style={{ backgroundColor: "var(--color-admin-sidebar)" }}
-    >
-      {/* Logo/Brand */}
-      <div
-        className="px-4 py-5 border-b"
-        style={{ borderColor: "#1F2937" }}
-      >
+    <aside className="w-56 flex-shrink-0 h-full overflow-y-auto flex flex-col bg-admin-sidebar">
+      <div className="px-4 py-5 border-b border-admin-sidebar-hover">
         <Link
           to="/admin"
-          className="text-sm font-semibold"
-          style={{ color: "var(--color-admin-sidebar-text)" }}
+          className="text-sm font-semibold text-admin-sidebar-text hover:opacity-80 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-admin-accent focus-visible:ring-offset-2 focus-visible:ring-offset-admin-sidebar"
         >
           divelog admin
         </Link>
       </div>
 
-      {/* Navigation */}
       <nav className="flex-1 py-4 px-2">
         {NAV_ITEMS.map((item) => {
           const isActive =
@@ -51,15 +42,11 @@ export default function AdminSidebar() {
             <Link
               key={item.href}
               to={item.href}
-              className="flex items-center px-3 py-2 mb-0.5 rounded-md text-sm transition-colors"
-              style={{
-                color: isActive
-                  ? "var(--color-admin-sidebar-text)"
-                  : "#9CA3AF",
-                backgroundColor: isActive
-                  ? "var(--color-admin-sidebar-active)"
-                  : "transparent",
-              }}
+              className={`flex items-center px-3 py-2 mb-0.5 rounded-md text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-admin-accent focus-visible:ring-offset-2 focus-visible:ring-offset-admin-sidebar ${
+                isActive
+                  ? "text-admin-sidebar-text bg-admin-sidebar-active"
+                  : "text-admin-text-secondary hover:text-admin-sidebar-text hover:bg-admin-sidebar-hover"
+              }`}
             >
               {item.label}
             </Link>
@@ -67,15 +54,10 @@ export default function AdminSidebar() {
         })}
       </nav>
 
-      {/* Footer */}
-      <div
-        className="px-4 py-4 border-t"
-        style={{ borderColor: "#1F2937" }}
-      >
+      <div className="px-4 py-4 border-t border-admin-sidebar-hover">
         <Link
           to="/"
-          className="text-xs hover:underline"
-          style={{ color: "#6B7280" }}
+          className="text-xs text-admin-text-secondary hover:text-admin-sidebar-text hover:underline transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-admin-accent focus-visible:ring-offset-2 focus-visible:ring-offset-admin-sidebar"
         >
           ← 사이트로 돌아가기
         </Link>

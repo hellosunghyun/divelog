@@ -12,13 +12,31 @@ export async function loader({ context }: Route.LoaderArgs) {
 export default function AdminDialoguePage({ loaderData }: Route.ComponentProps) {
   return (
     <div>
-      <h2 style={{ fontSize: "20px", fontWeight: "600", color: "var(--color-admin-text)", marginBottom: "24px" }}>Dialogue 관리</h2>
+      <h2 className="text-xl font-semibold text-admin-text mb-6">Dialogue 관리</h2>
       {loaderData.responses.length === 0 ? (
         <EmptyState variant="generic" message="응답이 없습니다" />
       ) : (
-        <table style={{ width: "100%", borderCollapse: "collapse", backgroundColor: "var(--color-admin-surface)", borderRadius: "8px" }}>
-          <thead><tr style={{ borderBottom: "1px solid var(--color-admin-border)" }}>{["유형", "내용", "작성자", "moderation", "작업"].map((h) => <th key={h} style={{ textAlign: "left", padding: "10px 16px", fontSize: "12px", color: "var(--color-admin-text-secondary)", fontWeight: "600" }}>{h}</th>)}</tr></thead>
-          <tbody>{loaderData.responses.map(({ response, author }) => (<tr key={response.id} style={{ borderBottom: "1px solid var(--color-admin-border)" }}><td style={{ padding: "10px 16px", fontSize: "13px" }}>{response.type}</td><td style={{ padding: "10px 16px", fontSize: "13px", maxWidth: "300px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{response.content}</td><td style={{ padding: "10px 16px", fontSize: "13px" }}>{author?.displayName ?? "-"}</td><td style={{ padding: "10px 16px", fontSize: "13px", color: response.moderationStatus === "flagged" ? "var(--color-error)" : undefined }}>{response.moderationStatus}</td><td style={{ padding: "10px 16px" }}><Link to={`/admin/dialogue/${response.id}`} style={{ fontSize: "12px", color: "var(--color-admin-accent)" }}>검토</Link></td></tr>))}</tbody>
+        <table className="w-full border-collapse bg-admin-surface rounded-md">
+          <thead>
+            <tr className="border-b border-admin-border">
+              {["유형", "내용", "작성자", "moderation", "작업"].map((h) => (
+                <th key={h} className="text-left px-3 py-2 text-xs text-admin-text-secondary font-semibold uppercase tracking-wide">{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {loaderData.responses.map(({ response, author }) => (
+              <tr key={response.id} className="border-b border-admin-border hover:bg-admin-bg transition-colors">
+                <td className="px-3 py-2 text-[13px]">{response.type}</td>
+                <td className="px-3 py-2 text-[13px] max-w-[300px] truncate">{response.content}</td>
+                <td className="px-3 py-2 text-[13px]">{author?.displayName ?? "-"}</td>
+                <td className={`px-3 py-2 text-[13px] ${response.moderationStatus === "flagged" ? "text-error" : ""}`}>{response.moderationStatus}</td>
+                <td className="px-3 py-2">
+                  <Link to={`/admin/dialogue/${response.id}`} className="text-xs text-admin-accent hover:underline">검토</Link>
+                </td>
+              </tr>
+            ))}
+          </tbody>
         </table>
       )}
     </div>

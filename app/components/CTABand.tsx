@@ -8,16 +8,22 @@ interface CTABandProps {
 
 export default function CTABand({ primaryCta, secondaryCta, message }: CTABandProps) {
   return (
-    <section style={{ padding: "var(--space-10) var(--space-4)", backgroundColor: "var(--color-mist-blue)", borderRadius: "var(--radius-lg)", textAlign: "center" }}>
-      {message && <p style={{ fontSize: "var(--font-size-lg)", color: "var(--color-text-secondary)", marginBottom: "var(--space-6)" }}>{message}</p>}
-      <div style={{ display: "flex", gap: "var(--space-4)", justifyContent: "center", flexWrap: "wrap" }}>
+    <section className="py-8 px-4 bg-mist-blue rounded-lg text-center flex flex-col items-center gap-4">
+      {message && <p className="text-lg text-text-secondary">{message}</p>}
+      <div className="flex gap-4 justify-center flex-wrap">
         {primaryCta && (
-          <Link to={primaryCta.href} style={{ padding: "12px 24px", borderRadius: "var(--radius-md)", backgroundColor: "var(--color-ocean-blue)", color: "white", fontWeight: "var(--font-weight-medium)", fontSize: "var(--font-size-base)" }}>
+          <Link
+            to={primaryCta.href}
+            className="px-6 py-3 rounded-md bg-ocean-blue text-white font-medium text-base hover:bg-deep-ocean transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
+          >
             {primaryCta.label}
           </Link>
         )}
         {secondaryCta && (
-          <Link to={secondaryCta.href} style={{ padding: "12px 24px", borderRadius: "var(--radius-md)", border: "1px solid var(--color-border)", color: "var(--color-text-secondary)", fontSize: "var(--font-size-base)" }}>
+          <Link
+            to={secondaryCta.href}
+            className="px-6 py-3 rounded-md border border-border text-text-secondary text-base hover:bg-surface-secondary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
+          >
             {secondaryCta.label}
           </Link>
         )}

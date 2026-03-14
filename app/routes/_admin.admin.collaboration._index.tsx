@@ -13,13 +13,30 @@ export default function AdminCollaborationPage({ loaderData }: Route.ComponentPr
   const STATUS: Record<string, string> = { forming: "구성 중", active: "탐구 중", restructured: "재편성됨", archived: "아카이브" };
   return (
     <div>
-      <h2 style={{ fontSize: "20px", fontWeight: "600", color: "var(--color-admin-text)", marginBottom: "24px" }}>Collaboration 관리</h2>
+      <h2 className="text-xl font-semibold text-admin-text mb-6">Collaboration 관리</h2>
       {loaderData.units.length === 0 ? (
         <EmptyState variant="generic" message="Collaboration Unit이 없습니다" />
       ) : (
-        <table style={{ width: "100%", borderCollapse: "collapse", backgroundColor: "var(--color-admin-surface)", borderRadius: "8px" }}>
-          <thead><tr style={{ borderBottom: "1px solid var(--color-admin-border)" }}>{["이름", "상태", "Slug", "작업"].map((h) => <th key={h} style={{ textAlign: "left", padding: "10px 16px", fontSize: "12px", color: "var(--color-admin-text-secondary)", fontWeight: "600" }}>{h}</th>)}</tr></thead>
-          <tbody>{loaderData.units.map((u) => (<tr key={u.id} style={{ borderBottom: "1px solid var(--color-admin-border)" }}><td style={{ padding: "10px 16px", fontSize: "13px", color: "var(--color-admin-text)" }}>{u.name}</td><td style={{ padding: "10px 16px", fontSize: "13px" }}>{STATUS[u.status] ?? u.status}</td><td style={{ padding: "10px 16px", fontSize: "13px", color: "var(--color-admin-text-secondary)" }}>{u.slug}</td><td style={{ padding: "10px 16px" }}><Link to={`/admin/collaboration/${u.id}`} style={{ fontSize: "12px", color: "var(--color-admin-accent)" }}>관리</Link></td></tr>))}</tbody>
+        <table className="w-full border-collapse bg-admin-surface rounded-md">
+          <thead>
+            <tr className="border-b border-admin-border">
+              {["이름", "상태", "Slug", "작업"].map((h) => (
+                <th key={h} className="text-left px-3 py-2 text-xs text-admin-text-secondary font-semibold uppercase tracking-wide">{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {loaderData.units.map((u) => (
+              <tr key={u.id} className="border-b border-admin-border hover:bg-admin-bg transition-colors">
+                <td className="px-3 py-2 text-[13px] text-admin-text">{u.name}</td>
+                <td className="px-3 py-2 text-[13px]">{STATUS[u.status] ?? u.status}</td>
+                <td className="px-3 py-2 text-[13px] text-admin-text-secondary">{u.slug}</td>
+                <td className="px-3 py-2">
+                  <Link to={`/admin/collaboration/${u.id}`} className="text-xs text-admin-accent hover:underline">관리</Link>
+                </td>
+              </tr>
+            ))}
+          </tbody>
         </table>
       )}
     </div>

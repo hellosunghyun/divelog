@@ -89,23 +89,10 @@ export default function MemoryPage({ loaderData }: Route.ComponentProps) {
         accentTone={stage.type}
       />
 
-      <div
-        style={{
-          maxWidth: "var(--max-reading-width)",
-          margin: "0 auto",
-          padding: "var(--space-12) var(--space-4)",
-        }}
-      >
+      <div className="max-w-reading mx-auto py-12 px-4 md:py-20">
         {memQuestions.length > 0 && (
-          <section style={{ marginBottom: "var(--space-10)" }}>
-            <h2
-              style={{
-                fontSize: "var(--font-size-xl)",
-                fontWeight: "var(--font-weight-semibold)",
-                color: "var(--color-text-primary)",
-                marginBottom: "var(--space-6)",
-              }}
-            >
+          <section className="mb-10">
+            <h2 className="text-xl font-semibold text-text-primary mb-6">
               오래 남은 질문들
             </h2>
             {memQuestions.map(({ question }) =>
@@ -115,15 +102,8 @@ export default function MemoryPage({ loaderData }: Route.ComponentProps) {
         )}
 
         {memSentences.length > 0 && (
-          <section style={{ marginBottom: "var(--space-10)" }}>
-            <h2
-              style={{
-                fontSize: "var(--font-size-xl)",
-                fontWeight: "var(--font-weight-semibold)",
-                color: "var(--color-text-primary)",
-                marginBottom: "var(--space-6)",
-              }}
-            >
+          <section className="mb-10">
+            <h2 className="text-xl font-semibold text-text-primary mb-6">
               오래 남은 문장들
             </h2>
             {memSentences.map(({ sentence }) =>
@@ -135,30 +115,11 @@ export default function MemoryPage({ loaderData }: Route.ComponentProps) {
         )}
 
         {memory.carryForwardQuestion && (
-          <section
-            style={{
-              marginBottom: "var(--space-10)",
-              padding: "var(--space-8)",
-              backgroundColor: "var(--color-mist-blue)",
-              borderRadius: "var(--radius-lg)",
-            }}
-          >
-            <p
-              style={{
-                fontSize: "13px",
-                color: "var(--color-text-tertiary)",
-                marginBottom: "var(--space-3)",
-              }}
-            >
+          <section className="mb-10 p-8 bg-mist-blue rounded-lg">
+            <p className="text-meta text-text-tertiary mb-3">
               다음으로 이어가는 질문
             </p>
-            <p
-              style={{
-                fontSize: "var(--font-size-xl)",
-                color: "var(--color-text-primary)",
-                fontStyle: "italic",
-              }}
-            >
+            <p className="text-xl text-text-primary italic">
               "{memory.carryForwardQuestion}"
             </p>
           </section>
@@ -166,23 +127,10 @@ export default function MemoryPage({ loaderData }: Route.ComponentProps) {
 
         {memRecords.length > 0 && (
           <section>
-            <h2
-              style={{
-                fontSize: "var(--font-size-xl)",
-                fontWeight: "var(--font-weight-semibold)",
-                color: "var(--color-text-primary)",
-                marginBottom: "var(--space-6)",
-              }}
-            >
+            <h2 className="text-xl font-semibold text-text-primary mb-6">
               대표 기록들
             </h2>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-                gap: "var(--space-4)",
-              }}
-            >
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {memRecords.map(({ record }) =>
                 record ? <SceneCard key={record.id} record={record} /> : null
               )}
@@ -196,26 +144,13 @@ export default function MemoryPage({ loaderData }: Route.ComponentProps) {
 
 export function ErrorBoundary() {
   return (
-    <div style={{ textAlign: "center", padding: "64px 16px" }}>
-      <p
-        style={{
-          fontSize: "20px",
-          fontWeight: "600",
-          color: "var(--color-text-primary)",
-        }}
-      >
+    <div className="text-center py-16 px-4">
+      <p className="text-xl font-semibold text-text-primary">
         Collective Memory를 찾을 수 없습니다
       </p>
       <Link
         to="/journey"
-        style={{
-          marginTop: "16px",
-          display: "inline-block",
-          padding: "10px 20px",
-          borderRadius: "var(--radius-md)",
-          backgroundColor: "var(--color-ocean-blue)",
-          color: "white",
-        }}
+        className="mt-4 inline-block py-2.5 px-5 rounded-md bg-ocean-blue text-white"
       >
         여정으로
       </Link>

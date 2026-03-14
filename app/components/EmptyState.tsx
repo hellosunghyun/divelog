@@ -41,29 +41,18 @@ export default function EmptyState({ variant = "generic", action, message }: Emp
   const content = MESSAGES[variant];
 
   return (
-    <div style={{
-      textAlign: "center",
-      padding: "var(--space-16) var(--space-4)",
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      gap: "var(--space-4)",
-    }}>
-      <p style={{ fontSize: "var(--font-size-lg)", fontWeight: "var(--font-weight-medium)", color: "var(--color-text-primary)" }}>
+    <div className="flex flex-col items-center text-center py-16 px-4 gap-4">
+      <p className="text-xl font-semibold text-text-primary">
         {content.title}
       </p>
-      <p style={{ fontSize: "var(--font-size-base)", color: "var(--color-text-secondary)", maxWidth: "360px" }}>
+      <p className="text-base text-text-secondary leading-body max-w-[360px]">
         {message ?? content.body}
       </p>
       {action && (
-        <Link to={action.href} style={{
-          marginTop: "var(--space-2)",
-          padding: "10px 20px",
-          borderRadius: "var(--radius-md)",
-          backgroundColor: "var(--color-ocean-blue)",
-          color: "white",
-          fontSize: "var(--font-size-base)",
-        }}>
+        <Link
+          to={action.href}
+          className="mt-4 px-5 py-2.5 rounded-md bg-ocean-blue text-white text-sm font-medium hover:bg-deep-ocean transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
+        >
           {action.label}
         </Link>
       )}

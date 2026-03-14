@@ -71,46 +71,26 @@ export default function InboxPage({ loaderData }: Route.ComponentProps) {
     <div>
       <HeroSection variant="home" title="인박스" subtitle={`읽지 않은 알림 ${unreadCount}개`} />
 
-      <div
-        style={{
-          maxWidth: "760px",
-          margin: "0 auto",
-          padding: "var(--space-8) var(--space-4)",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            gap: "var(--space-2)",
-            marginBottom: "var(--space-6)",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <div style={{ display: "flex", gap: "var(--space-2)" }}>
+      <div className="max-w-[760px] mx-auto py-8 px-4">
+        <div className="flex gap-2 mb-6 items-center justify-between">
+          <div className="flex gap-2">
             <a
               href="?tab=all"
-              style={{
-                padding: "6px 12px",
-                borderRadius: "var(--radius-full)",
-                fontSize: "13px",
-                textDecoration: "none",
-                backgroundColor: tab === "all" ? "var(--color-ocean-blue)" : "transparent",
-                color: tab === "all" ? "white" : "var(--color-text-secondary)",
-              }}
+              className={`px-3 py-1.5 rounded-full text-meta no-underline ${
+                tab === "all"
+                  ? "bg-ocean-blue text-white"
+                  : "bg-transparent text-text-secondary hover:text-text-primary"
+              }`}
             >
               전체
             </a>
             <a
               href="?tab=unread"
-              style={{
-                padding: "6px 12px",
-                borderRadius: "var(--radius-full)",
-                fontSize: "13px",
-                textDecoration: "none",
-                backgroundColor: tab === "unread" ? "var(--color-ocean-blue)" : "transparent",
-                color: tab === "unread" ? "white" : "var(--color-text-secondary)",
-              }}
+              className={`px-3 py-1.5 rounded-full text-meta no-underline ${
+                tab === "unread"
+                  ? "bg-ocean-blue text-white"
+                  : "bg-transparent text-text-secondary hover:text-text-primary"
+              }`}
             >
               읽지 않음
             </a>
@@ -120,13 +100,7 @@ export default function InboxPage({ loaderData }: Route.ComponentProps) {
               <input type="hidden" name="intent" value="mark_all_read" />
               <button
                 type="submit"
-                style={{
-                  fontSize: "13px",
-                  color: "var(--color-text-tertiary)",
-                  border: "none",
-                  background: "none",
-                  cursor: "pointer",
-                }}
+                className="text-meta text-text-tertiary border-none bg-transparent cursor-pointer hover:text-text-secondary transition-colors"
               >
                 모두 읽음 처리
               </button>
@@ -137,71 +111,47 @@ export default function InboxPage({ loaderData }: Route.ComponentProps) {
         {notifs.length === 0 ? (
           <EmptyState variant="notifications" />
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
+          <div className="flex flex-col gap-3">
             {notifs.map((n) => (
               <div
                 key={n.id}
-                style={{
-                  backgroundColor: n.isRead ? "var(--color-surface)" : "var(--color-mist-blue)",
-                  borderRadius: "var(--radius-md)",
-                  border: "1px solid var(--color-border)",
-                  padding: "var(--space-4)",
-                  display: "flex",
-                  alignItems: "flex-start",
-                  gap: "var(--space-3)",
-                }}
+                className={`${n.isRead ? "bg-surface" : "bg-mist-blue"} rounded-md border border-border p-4 flex items-start gap-3 hover:bg-surface-secondary transition-colors`}
               >
-                <div style={{ flex: 1 }}>
-                  <span style={{ fontSize: "12px", color: "var(--color-ocean-blue)" }}>
+                <div className="flex-1">
+                  <span className="text-caption text-ocean-blue">
                     {NOTIF_TYPE[n.type] ?? n.type}
                   </span>
-                  <p
-                    style={{
-                      fontSize: "var(--font-size-base)",
-                      color: "var(--color-text-primary)",
-                      marginTop: "4px",
-                    }}
-                  >
+                  <p className="text-base text-text-primary mt-1">
                     {n.title}
                   </p>
                   {n.content && (
-                    <p
-                      style={{
-                        fontSize: "13px",
-                        color: "var(--color-text-secondary)",
-                        marginTop: "4px",
-                      }}
-                    >
+                    <p className="text-meta text-text-secondary mt-1">
                       {n.content}
                     </p>
                   )}
                   {n.recordId && (
                     <Link
                       to={`/logs/${n.recordId}`}
-                      style={{ fontSize: "12px", color: "var(--color-text-tertiary)" }}
+                      className="text-caption text-text-tertiary hover:text-text-secondary"
                     >
                       기록 보기 →
                     </Link>
                   )}
                 </div>
                 {!n.isRead && (
-                  <Form method="post">
-                    <input type="hidden" name="intent" value="mark_read" />
-                    <input type="hidden" name="id" value={n.id} />
-                    <button
-                      type="submit"
-                      style={{
-                        fontSize: "12px",
-                        color: "var(--color-text-tertiary)",
-                        border: "none",
-                        background: "none",
-                        cursor: "pointer",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      읽음
-                    </button>
-                  </Form>
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-ocean-blue flex-shrink-0" />
+                    <Form method="post">
+                      <input type="hidden" name="intent" value="mark_read" />
+                      <input type="hidden" name="id" value={n.id} />
+                      <button
+                        type="submit"
+                        className="text-caption text-text-tertiary border-none bg-transparent cursor-pointer whitespace-nowrap hover:text-text-secondary transition-colors"
+                      >
+                        읽음
+                      </button>
+                    </Form>
+                  </div>
                 )}
               </div>
             ))}

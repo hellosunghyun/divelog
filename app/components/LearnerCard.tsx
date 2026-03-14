@@ -27,7 +27,7 @@ export default function LearnerCard({ learner, recentRecord, stage }: LearnerCar
     >
       {/* Question FIRST — before profile (DOM order matters) */}
       {learner.currentQuestion && (
-        <p className="text-base text-ocean-blue leading-normal italic">
+        <p className="text-lg text-ocean-blue leading-body italic">
           "{learner.currentQuestion}"
         </p>
       )}
@@ -47,18 +47,18 @@ export default function LearnerCard({ learner, recentRecord, stage }: LearnerCar
         <div>
           <Link 
             to={`/learners/${learner.slug}`} 
-            className="font-semibold text-text-primary text-[15px] hover:text-ocean-blue transition-colors"
+            className="font-semibold text-text-primary text-base hover:text-ocean-blue transition-colors"
           >
             {learner.displayName}
           </Link>
           {stage && (
-            <p className="text-xs text-text-tertiary">{stage.name}</p>
+            <p className="text-caption text-text-tertiary">{stage.name}</p>
           )}
         </div>
       </div>
       
       {learner.bio && (
-        <p className="text-[13px] text-text-secondary leading-normal">
+        <p className="text-meta text-text-secondary leading-body">
           {learner.bio}
         </p>
       )}
@@ -66,7 +66,7 @@ export default function LearnerCard({ learner, recentRecord, stage }: LearnerCar
       {recentRecord && (
         <Link 
           to={`/logs/${recentRecord.slug}`} 
-          className="text-[13px] text-text-tertiary hover:text-ocean-blue transition-colors"
+          className="text-meta text-text-tertiary hover:text-ocean-blue transition-colors"
         >
           최근: {recentRecord.title}
         </Link>

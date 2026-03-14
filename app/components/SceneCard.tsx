@@ -50,53 +50,20 @@ export default function SceneCard({
   return (
     <article
       data-testid="scene-card"
-      style={{
-        backgroundColor: "var(--color-surface)",
-        borderRadius: "var(--radius-lg)",
-        border: "1px solid var(--color-border)",
-        boxShadow: "var(--shadow-sm)",
-        padding: "var(--space-6)",
-        display: "flex",
-        flexDirection: "column",
-        gap: "var(--space-3)",
-      }}
+      className="rounded-lg border border-border bg-surface p-6 shadow-sm transition-transform duration-fast hover:-translate-y-px flex flex-col gap-4"
     >
       {/* Stage + Format badges */}
-      <div style={{ display: "flex", gap: "var(--space-2)", flexWrap: "wrap" }}>
+      <div className="flex gap-2 flex-wrap">
         {stage && (
-          <span
-            style={{
-              fontSize: "12px",
-              padding: "2px 8px",
-              borderRadius: "var(--radius-full)",
-              backgroundColor: "var(--color-mist-blue)",
-              color: "var(--color-ocean-blue)",
-            }}
-          >
+          <span className="text-caption px-2 py-0.5 rounded-full bg-mist-blue text-ocean-blue">
             {stage.name}
           </span>
         )}
-        <span
-          style={{
-            fontSize: "12px",
-            padding: "2px 8px",
-            borderRadius: "var(--radius-full)",
-            backgroundColor: "var(--color-border)",
-            color: "var(--color-text-secondary)",
-          }}
-        >
+        <span className="text-caption px-2 py-0.5 rounded-full bg-border text-text-secondary">
           {FORMAT_LABELS[record.format] ?? record.format}
         </span>
         {record.rhythm && record.rhythm !== "free" && (
-          <span
-            style={{
-              fontSize: "12px",
-              padding: "2px 8px",
-              borderRadius: "var(--radius-full)",
-              backgroundColor: "var(--color-border)",
-              color: "var(--color-text-secondary)",
-            }}
-          >
+          <span className="text-caption px-2 py-0.5 rounded-full bg-border text-text-secondary">
             {RHYTHM_LABELS[record.rhythm] ?? record.rhythm}
           </span>
         )}
@@ -105,66 +72,33 @@ export default function SceneCard({
       {/* Title */}
       <Link
         to={`/logs/${record.slug}`}
-        style={{
-          fontSize: "var(--font-size-lg)",
-          fontWeight: "var(--font-weight-semibold)",
-          color: "var(--color-text-primary)",
-          lineHeight: "var(--line-height-tight)",
-          textDecoration: "none",
-        }}
+        className="text-lg font-semibold text-text-primary leading-title no-underline"
       >
         <h3>{record.title}</h3>
       </Link>
 
       {/* Snippet */}
-      <p
-        style={{
-          fontSize: "var(--font-size-base)",
-          color: "var(--color-text-secondary)",
-          lineHeight: "var(--line-height-normal)",
-          margin: 0,
-        }}
-      >
+      <p className="text-base text-text-secondary leading-body m-0">
         {snippet}
       </p>
 
       {/* Footer */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginTop: "var(--space-2)",
-        }}
-      >
+      <div className="flex items-center justify-between mt-2">
         {author && (
           <Link
             to={`/learners/${author.slug}`}
-            style={{
-              fontSize: "13px",
-              color: "var(--color-text-secondary)",
-              textDecoration: "none",
-            }}
+            className="text-meta text-text-secondary no-underline"
           >
             {author.displayName}
           </Link>
         )}
 
         {/* Indicator icons */}
-        <div
-          style={{
-            display: "flex",
-            gap: "var(--space-2)",
-            marginLeft: author ? "auto" : 0,
-          }}
-        >
+        <div className={`flex gap-2 ${author ? "ml-auto" : ""}`}>
           {hasQuestions && (
             <span
               title="열린 질문 있음"
-              style={{
-                fontSize: "12px",
-                color: "var(--color-ocean-blue)",
-              }}
+              className="text-caption text-ocean-blue"
               role="img"
               aria-label="열린 질문 있음"
             >
@@ -174,10 +108,7 @@ export default function SceneCard({
           {hasSelfAnswers && (
             <span
               title="자기답변 있음"
-              style={{
-                fontSize: "12px",
-                color: "var(--color-bridge)",
-              }}
+              className="text-caption text-bridge"
               role="img"
               aria-label="자기답변 있음"
             >
@@ -187,10 +118,7 @@ export default function SceneCard({
           {hasLinkedRecord && (
             <span
               title="이어진 기록 있음"
-              style={{
-                fontSize: "12px",
-                color: "var(--color-text-tertiary)",
-              }}
+              className="text-caption text-text-tertiary"
               role="img"
               aria-label="이어진 기록 있음"
             >

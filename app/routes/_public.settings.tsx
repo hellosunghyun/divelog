@@ -58,27 +58,12 @@ export default function SettingsPage({ loaderData }: Route.ComponentProps) {
         subtitle="divelog 전용 설정입니다. 이름·바이오 변경은 ada-kr-pos.com에서 합니다."
       />
 
-      <div
-        style={{
-          maxWidth: "600px",
-          margin: "0 auto",
-          padding: "var(--space-12) var(--space-4)",
-        }}
-      >
-        <form
-          method="post"
-          style={{ display: "flex", flexDirection: "column", gap: "var(--space-6)" }}
-        >
+      <div className="max-w-[600px] mx-auto py-12 px-4 md:py-20">
+        <form method="post" className="flex flex-col gap-6">
           <div>
             <label
               htmlFor="defaultVisibility"
-              style={{
-                display: "block",
-                fontSize: "13px",
-                fontWeight: "var(--font-weight-medium)",
-                color: "var(--color-text-secondary)",
-                marginBottom: "var(--space-2)",
-              }}
+              className="block text-meta font-medium text-text-secondary mb-2"
             >
               기본 공개 범위
             </label>
@@ -86,14 +71,7 @@ export default function SettingsPage({ loaderData }: Route.ComponentProps) {
               id="defaultVisibility"
               name="defaultVisibility"
               defaultValue={learner?.defaultVisibility ?? "cohort"}
-              style={{
-                padding: "8px 12px",
-                borderRadius: "var(--radius-md)",
-                border: "1px solid var(--color-border)",
-                fontSize: "var(--font-size-base)",
-                backgroundColor: "var(--color-surface)",
-                width: "100%",
-              }}
+              className="w-full rounded-sm border border-border bg-surface px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-ocean-blue"
             >
               <option value="draft">임시저장</option>
               <option value="cohort">코호트 공개</option>
@@ -104,13 +82,7 @@ export default function SettingsPage({ loaderData }: Route.ComponentProps) {
           <div>
             <label
               htmlFor="defaultResponsePreference"
-              style={{
-                display: "block",
-                fontSize: "13px",
-                fontWeight: "var(--font-weight-medium)",
-                color: "var(--color-text-secondary)",
-                marginBottom: "var(--space-2)",
-              }}
+              className="block text-meta font-medium text-text-secondary mb-2"
             >
               응답 선호도
             </label>
@@ -118,14 +90,7 @@ export default function SettingsPage({ loaderData }: Route.ComponentProps) {
               id="defaultResponsePreference"
               name="defaultResponsePreference"
               defaultValue={learner?.defaultResponsePreference ?? "open"}
-              style={{
-                padding: "8px 12px",
-                borderRadius: "var(--radius-md)",
-                border: "1px solid var(--color-border)",
-                fontSize: "var(--font-size-base)",
-                backgroundColor: "var(--color-surface)",
-                width: "100%",
-              }}
+              className="w-full rounded-sm border border-border bg-surface px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-ocean-blue"
             >
               <option value="open">모든 응답</option>
               <option value="question_only">질문만</option>
@@ -134,56 +99,26 @@ export default function SettingsPage({ loaderData }: Route.ComponentProps) {
           </div>
 
           <div>
-            <label
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "var(--space-2)",
-                cursor: "pointer",
-              }}
-            >
+            <label className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
                 name="notificationEmailEnabled"
                 defaultChecked={learner?.notificationEmailEnabled ?? true}
+                className="w-4 h-4 rounded border-border text-ocean-blue focus:ring-2 focus:ring-ocean-blue"
               />
-              <span
-                style={{
-                  fontSize: "var(--font-size-base)",
-                  color: "var(--color-text-primary)",
-                }}
-              >
+              <span className="text-base text-text-primary">
                 이메일 알림 받기
               </span>
             </label>
           </div>
 
-          <div
-            style={{
-              paddingTop: "var(--space-4)",
-              borderTop: "1px solid var(--color-border)",
-            }}
-          >
-            <p
-              style={{
-                fontSize: "13px",
-                color: "var(--color-text-tertiary)",
-                marginBottom: "var(--space-4)",
-              }}
-            >
+          <div className="pt-4 border-t border-border">
+            <p className="text-meta text-text-tertiary mb-4">
               이름·바이오 변경은 ada-kr-pos.com 계정 설정에서 합니다.
             </p>
             <button
               type="submit"
-              style={{
-                padding: "10px 20px",
-                borderRadius: "var(--radius-md)",
-                backgroundColor: "var(--color-ocean-blue)",
-                color: "white",
-                border: "none",
-                cursor: "pointer",
-                fontSize: "var(--font-size-base)",
-              }}
+              className="bg-ocean-blue text-white rounded-md px-5 py-2.5 text-base font-medium hover:bg-deep-ocean transition-colors"
             >
               저장
             </button>

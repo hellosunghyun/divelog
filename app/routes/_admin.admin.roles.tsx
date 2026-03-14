@@ -25,24 +25,54 @@ const ROLE_LABELS: Record<string, string> = { admin: "관리자", operator: "운
 
 export default function AdminRolesPage({ loaderData }: Route.ComponentProps) {
   const { roles } = loaderData;
+  const labelClass = "block text-caption text-admin-text-secondary mb-1";
+  const inputClass = "w-full px-3 py-1.5 rounded-md border border-admin-border text-meta font-sans focus:outline-none focus:ring-2 focus:ring-admin-accent";
   return (
     <div>
-      <h2 style={{ fontSize: "20px", fontWeight: "600", color: "var(--color-admin-text)", marginBottom: "24px" }}>역할 & 권한</h2>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px" }}>
-        <div style={{ backgroundColor: "var(--color-admin-surface)", borderRadius: "8px", padding: "20px", border: "1px solid var(--color-admin-border)" }}>
-          <h3 style={{ fontSize: "14px", fontWeight: "600", marginBottom: "16px", color: "var(--color-admin-text)" }}>현재 역할</h3>
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead><tr>{["사용자", "역할", "작업"].map((h) => <th key={h} style={{ textAlign: "left", padding: "6px 8px", fontSize: "11px", color: "var(--color-admin-text-secondary)" }}>{h}</th>)}</tr></thead>
-            <tbody>{roles.map(({ role, learner }) => (<tr key={role.id} style={{ borderBottom: "1px solid var(--color-admin-border)" }}><td style={{ padding: "6px 8px", fontSize: "12px" }}>{learner?.displayName ?? role.userId.substring(0, 10)}</td><td style={{ padding: "6px 8px", fontSize: "12px" }}>{ROLE_LABELS[role.role] ?? role.role}</td><td style={{ padding: "6px 8px" }}><form method="post" style={{ display: "inline" }}><input type="hidden" name="id" value={role.id} /><input type="hidden" name="intent" value="revoke" /><button type="submit" style={{ fontSize: "11px", padding: "2px 6px", borderRadius: "3px", border: "1px solid var(--color-error)", color: "var(--color-error)", background: "none", cursor: "pointer" }}>회수</button></form></td></tr>))}</tbody>
+      <h2 className="text-xl font-semibold text-admin-text mb-6">역할 & 권한</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bg-admin-surface rounded-md p-5 border border-admin-border">
+          <h3 className="text-sm font-semibold mb-4 text-admin-text">현재 역할</h3>
+          <table className="w-full border-collapse">
+            <thead>
+              <tr>
+                {["사용자", "역할", "작업"].map((h) => (
+                  <th key={h} className="text-left px-2 py-1.5 text-caption text-admin-text-secondary">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {roles.map(({ role, learner }) => (
+                <tr key={role.id} className="border-b border-admin-border">
+                  <td className="px-2 py-1.5 text-caption">{learner?.displayName ?? role.userId.substring(0, 10)}</td>
+                  <td className="px-2 py-1.5 text-caption">{ROLE_LABELS[role.role] ?? role.role}</td>
+                  <td className="px-2 py-1.5">
+                    <form method="post" className="inline">
+                      <input type="hidden" name="id" value={role.id} />
+                      <input type="hidden" name="intent" value="revoke" />
+                      <button type="submit" className="text-caption px-1.5 py-0.5 rounded border border-error text-error bg-transparent hover:bg-error/10 transition-colors cursor-pointer">회수</button>
+                    </form>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
           </table>
         </div>
-        <div style={{ backgroundColor: "var(--color-admin-surface)", borderRadius: "8px", padding: "20px", border: "1px solid var(--color-admin-border)" }}>
-          <h3 style={{ fontSize: "14px", fontWeight: "600", marginBottom: "16px", color: "var(--color-admin-text)" }}>역할 부여</h3>
-          <form method="post" style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+        <div className="bg-admin-surface rounded-md p-5 border border-admin-border">
+          <h3 className="text-sm font-semibold mb-4 text-admin-text">역할 부여</h3>
+          <form method="post" className="flex flex-col gap-3">
             <input type="hidden" name="intent" value="grant" />
-            <div><label style={{ display: "block", fontSize: "12px", color: "var(--color-admin-text-secondary)", marginBottom: "4px" }}>사용자 ID</label><input name="userId" required placeholder="usr-..." style={{ width: "100%", padding: "6px 10px", borderRadius: "4px", border: "1px solid var(--color-admin-border)", fontSize: "13px", fontFamily: "inherit" }} /></div>
-            <div><label style={{ display: "block", fontSize: "12px", color: "var(--color-admin-text-secondary)", marginBottom: "4px" }}>역할</label><select name="role" style={{ width: "100%", padding: "6px 10px", borderRadius: "4px", border: "1px solid var(--color-admin-border)", fontSize: "13px" }}>{Object.entries(ROLE_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></div>
-            <button type="submit" style={{ padding: "6px 16px", borderRadius: "4px", backgroundColor: "var(--color-admin-accent)", color: "white", border: "none", cursor: "pointer", fontSize: "13px" }}>부여</button>
+            <div>
+              <label className={labelClass}>사용자 ID</label>
+              <input name="userId" required placeholder="usr-..." className={inputClass} />
+            </div>
+            <div>
+              <label className={labelClass}>역할</label>
+              <select name="role" className={inputClass}>
+                {Object.entries(ROLE_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+              </select>
+            </div>
+            <button type="submit" className="px-4 py-1.5 rounded-md bg-admin-accent text-white text-meta font-medium hover:opacity-90 transition-opacity focus-visible:ring-2 focus-visible:ring-admin-accent">부여</button>
           </form>
         </div>
       </div>

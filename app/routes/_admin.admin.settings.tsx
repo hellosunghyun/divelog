@@ -31,12 +31,19 @@ export default function AdminSettingsPage({ loaderData }: Route.ComponentProps) 
   ];
   return (
     <div>
-      <h2 style={{ fontSize: "20px", fontWeight: "600", color: "var(--color-admin-text)", marginBottom: "24px" }}>시스템 설정</h2>
-      <form method="post" style={{ maxWidth: "500px", backgroundColor: "var(--color-admin-surface)", borderRadius: "8px", padding: "24px", border: "1px solid var(--color-admin-border)", display: "flex", flexDirection: "column", gap: "16px" }}>
+      <h2 className="text-xl font-semibold text-admin-text mb-6">시스템 설정</h2>
+      <form method="post" className="max-w-[500px] bg-admin-surface rounded-md p-6 border border-admin-border flex flex-col gap-4">
         {BOOL_SETTINGS.map((s) => (
-          <div key={s.key}><label style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "pointer", fontSize: "14px", color: "var(--color-admin-text)" }}><input type="checkbox" name={s.key} defaultChecked={getVal(s.key)} />{s.label}</label></div>
+          <div key={s.key}>
+            <label className="flex items-center gap-3 cursor-pointer text-sm text-admin-text">
+              <input type="checkbox" name={s.key} defaultChecked={getVal(s.key)} className="w-4 h-4 rounded border-admin-border text-admin-accent focus:ring-admin-accent" />
+              {s.label}
+            </label>
+          </div>
         ))}
-        <div style={{ paddingTop: "8px", borderTop: "1px solid var(--color-admin-border)" }}><button type="submit" style={{ padding: "8px 20px", borderRadius: "6px", backgroundColor: "var(--color-admin-accent)", color: "white", border: "none", cursor: "pointer", fontSize: "14px" }}>저장</button></div>
+        <div className="pt-2 border-t border-admin-border">
+          <button type="submit" className="px-5 py-2 rounded-md bg-admin-accent text-white text-sm font-medium hover:opacity-90 transition-opacity focus-visible:ring-2 focus-visible:ring-admin-accent focus-visible:ring-offset-2">저장</button>
+        </div>
       </form>
     </div>
   );

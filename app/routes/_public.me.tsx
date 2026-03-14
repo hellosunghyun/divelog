@@ -80,45 +80,20 @@ export default function MySpacePage({ loaderData }: Route.ComponentProps) {
         subtitle={learner?.bio ?? undefined}
       />
 
-      <div
-        style={{
-          maxWidth: "var(--max-content-width)",
-          margin: "0 auto",
-          padding: "var(--space-12) var(--space-4)",
-        }}
-      >
-        <section style={{ marginBottom: "var(--space-10)" }}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              marginBottom: "var(--space-6)",
-            }}
-          >
-            <h2
-              style={{
-                fontSize: "var(--font-size-xl)",
-                fontWeight: "var(--font-weight-semibold)",
-                color: "var(--color-text-primary)",
-              }}
-            >
+      <div className="max-w-content mx-auto py-12 px-4 md:py-20">
+        <section className="mb-10">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-semibold text-text-primary">
               임시저장
             </h2>
-            <Link to="/write" style={{ fontSize: "14px", color: "var(--color-ocean-blue)" }}>
+            <Link to="/write" className="text-sm text-ocean-blue hover:underline">
               + 새 기록
             </Link>
           </div>
           {drafts.length === 0 ? (
             <EmptyState variant="records" message="임시저장된 기록이 없습니다." />
           ) : (
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-                gap: "var(--space-4)",
-              }}
-            >
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {drafts.map(({ record }) => (
                 <SceneCard key={record.id} record={record} />
               ))}
@@ -126,21 +101,14 @@ export default function MySpacePage({ loaderData }: Route.ComponentProps) {
           )}
         </section>
 
-        <section style={{ marginBottom: "var(--space-10)" }}>
-          <h2
-            style={{
-              fontSize: "var(--font-size-xl)",
-              fontWeight: "var(--font-weight-semibold)",
-              color: "var(--color-text-primary)",
-              marginBottom: "var(--space-6)",
-            }}
-          >
+        <section className="mb-10">
+          <h2 className="text-xl font-semibold text-text-primary mb-6">
             저장한 문장들
           </h2>
           {mySentences.length === 0 ? (
             <EmptyState variant="generic" message="저장한 문장이 없습니다." />
           ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
+            <div className="flex flex-col gap-3">
               {mySentences.map(({ sentence }) => (
                 <HighlightedSentenceCard key={sentence.id} sentence={sentence} />
               ))}
@@ -148,21 +116,14 @@ export default function MySpacePage({ loaderData }: Route.ComponentProps) {
           )}
         </section>
 
-        <section style={{ marginBottom: "var(--space-10)" }}>
-          <h2
-            style={{
-              fontSize: "var(--font-size-xl)",
-              fontWeight: "var(--font-weight-semibold)",
-              color: "var(--color-text-primary)",
-              marginBottom: "var(--space-6)",
-            }}
-          >
+        <section className="mb-10">
+          <h2 className="text-xl font-semibold text-text-primary mb-6">
             내 질문들
           </h2>
           {myQuestions.length === 0 ? (
             <EmptyState variant="questions" />
           ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
+            <div className="flex flex-col gap-4">
               {myQuestions.map(({ question, recordSlug, recordTitle }) => (
                 <QuestionCard
                   key={question.id}
@@ -179,20 +140,13 @@ export default function MySpacePage({ loaderData }: Route.ComponentProps) {
         </section>
 
         <section>
-          <h2
-            style={{
-              fontSize: "var(--font-size-xl)",
-              fontWeight: "var(--font-weight-semibold)",
-              color: "var(--color-text-primary)",
-              marginBottom: "var(--space-6)",
-            }}
-          >
+          <h2 className="text-xl font-semibold text-text-primary mb-6">
             미답변 질문들
           </h2>
           {unansweredQuestions.length === 0 ? (
             <EmptyState variant="questions" message="미답변 질문이 없습니다." />
           ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
+            <div className="flex flex-col gap-4">
               {unansweredQuestions.map(({ question, recordSlug, recordTitle }) => (
                 <QuestionCard
                   key={question.id}

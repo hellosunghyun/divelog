@@ -7,32 +7,41 @@ interface HeroSectionProps {
   children?: React.ReactNode;
 }
 
-const ACCENT_COLORS: Record<string, string> = {
-  prelude: "var(--color-prelude)",
-  bridge: "var(--color-bridge)",
-  challenge: "var(--color-challenge)",
-  epilogue: "var(--color-epilogue)",
+const ACCENT_BG: Record<string, string> = {
+  prelude: "bg-prelude/10 text-prelude",
+  bridge: "bg-bridge/10 text-bridge",
+  challenge: "bg-challenge/10 text-challenge",
+  epilogue: "bg-epilogue/10 text-epilogue",
+};
+
+const ACCENT_BORDER: Record<string, string> = {
+  prelude: "border-prelude/30",
+  bridge: "border-bridge/30",
+  challenge: "border-challenge/30",
+  epilogue: "border-epilogue/30",
 };
 
 export default function HeroSection({ variant, title, subtitle, accentTone, badge, children }: HeroSectionProps) {
-  const accentColor = accentTone ? ACCENT_COLORS[accentTone] : "var(--color-ocean-blue)";
+  const accentBgClass = accentTone ? (ACCENT_BG[accentTone] ?? "bg-ocean-blue/10 text-ocean-blue") : "bg-ocean-blue/10 text-ocean-blue";
+  const accentBorderClass = accentTone ? (ACCENT_BORDER[accentTone] ?? "border-ocean-blue/30") : "border-ocean-blue/30";
+
   return (
-    <section style={{ padding: "var(--space-16) var(--space-4)", backgroundColor: "var(--color-surface)", borderBottom: "1px solid var(--color-border)" }}>
-      <div style={{ maxWidth: "var(--max-content-width)", margin: "0 auto" }}>
+    <section className="py-16 px-4 bg-gradient-to-b from-mist-blue to-bg border-b border-border">
+      <div className="max-w-content mx-auto">
         {badge && (
-          <div style={{ display: "inline-block", fontSize: "12px", padding: "2px 10px", borderRadius: "var(--radius-full)", backgroundColor: `color-mix(in srgb, ${accentColor} 12%, transparent)`, color: accentColor, marginBottom: "var(--space-4)", fontWeight: "var(--font-weight-medium)" }}>
+          <div className={`inline-block text-caption px-2.5 py-0.5 rounded-full border ${accentBgClass} ${accentBorderClass} font-medium mb-4`}>
             {badge}
           </div>
         )}
-        <h1 style={{ fontSize: variant === "home" ? "var(--font-size-4xl)" : "var(--font-size-3xl)", fontWeight: "var(--font-weight-bold)", color: "var(--color-text-primary)", lineHeight: "var(--line-height-tight)", marginBottom: subtitle ? "var(--space-4)" : "0" }}>
+        <h1 className={`${variant === "home" ? "text-5xl lg:text-6xl" : "text-3xl lg:text-4xl"} font-semibold text-text-primary leading-hero ${subtitle ? "mb-4" : ""}`}>
           {title}
         </h1>
         {subtitle && (
-          <p style={{ fontSize: "var(--font-size-lg)", color: "var(--color-text-secondary)", lineHeight: "var(--line-height-normal)", maxWidth: "var(--max-reading-width)" }}>
+          <p className="text-lg text-text-secondary leading-body max-w-reading">
             {subtitle}
           </p>
         )}
-        {children && <div style={{ marginTop: "var(--space-6)" }}>{children}</div>}
+        {children && <div className="mt-6">{children}</div>}
       </div>
     </section>
   );

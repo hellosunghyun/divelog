@@ -17,17 +17,25 @@ export default function AdminLearnerDetailPage({ loaderData }: Route.ComponentPr
   const { learner, records: lr } = loaderData;
   return (
     <div>
-      <div style={{ display: "flex", gap: "16px", alignItems: "center", marginBottom: "24px" }}><Link to="/admin/learners" style={{ fontSize: "13px", color: "var(--color-admin-text-secondary)" }}>← 목록</Link><h2 style={{ fontSize: "20px", fontWeight: "600", color: "var(--color-admin-text)" }}>{learner.displayName}</h2></div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px" }}>
-        <div style={{ backgroundColor: "var(--color-admin-surface)", borderRadius: "8px", padding: "20px", border: "1px solid var(--color-admin-border)" }}>
-          <h3 style={{ fontSize: "14px", fontWeight: "600", marginBottom: "16px" }}>프로필</h3>
-          <p style={{ fontSize: "13px", color: "var(--color-admin-text-secondary)" }}>Slug: {learner.slug}</p>
-          <p style={{ fontSize: "13px", color: "var(--color-admin-text-secondary)", marginTop: "4px" }}>코호트: {learner.cohort ?? "-"}</p>
-          <p style={{ fontSize: "13px", color: "var(--color-admin-text-secondary)", marginTop: "4px" }}>기록 수: {lr.length}</p>
+      <div className="flex gap-4 items-center mb-6">
+        <Link to="/admin/learners" className="text-[13px] text-admin-text-secondary hover:text-admin-text">← 목록</Link>
+        <h2 className="text-xl font-semibold text-admin-text">{learner.displayName}</h2>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bg-admin-surface rounded-md p-4 border border-admin-border">
+          <h3 className="text-sm font-semibold mb-4">프로필</h3>
+          <p className="text-[13px] text-admin-text-secondary">Slug: {learner.slug}</p>
+          <p className="text-[13px] text-admin-text-secondary mt-1">코호트: {learner.cohort ?? "-"}</p>
+          <p className="text-[13px] text-admin-text-secondary mt-1">기록 수: {lr.length}</p>
         </div>
-        <div style={{ backgroundColor: "var(--color-admin-surface)", borderRadius: "8px", padding: "20px", border: "1px solid var(--color-admin-border)" }}>
-          <h3 style={{ fontSize: "14px", fontWeight: "600", marginBottom: "16px" }}>최근 기록</h3>
-          {lr.slice(0, 5).map((r) => (<div key={r.id} style={{ display: "flex", gap: "8px", padding: "6px 0", borderBottom: "1px solid var(--color-admin-border)" }}><span style={{ fontSize: "12px", color: "var(--color-admin-text)", flex: 1 }}>{r.title}</span><span style={{ fontSize: "11px", color: "var(--color-admin-text-secondary)" }}>{r.visibility}</span></div>))}
+        <div className="bg-admin-surface rounded-md p-4 border border-admin-border">
+          <h3 className="text-sm font-semibold mb-4">최근 기록</h3>
+          {lr.slice(0, 5).map((r) => (
+            <div key={r.id} className="flex gap-2 py-1.5 border-b border-admin-border last:border-b-0">
+              <span className="text-xs text-admin-text flex-1">{r.title}</span>
+              <span className="text-[11px] text-admin-text-secondary">{r.visibility}</span>
+            </div>
+          ))}
         </div>
       </div>
     </div>

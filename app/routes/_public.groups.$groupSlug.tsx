@@ -75,46 +75,21 @@ export default function GroupDetailPage({ loaderData }: Route.ComponentProps) {
         badge={STATUS[unit.status] ?? unit.status}
       >
         {unit.currentQuestion && (
-          <p
-            style={{
-              fontSize: "var(--font-size-lg)",
-              color: "var(--color-ocean-blue)",
-              fontStyle: "italic",
-            }}
-          >
+          <p className="text-lg text-ocean-blue italic">
             "{unit.currentQuestion}"
           </p>
         )}
       </HeroSection>
 
-      <div
-        style={{
-          maxWidth: "var(--max-content-width)",
-          margin: "0 auto",
-          padding: "var(--space-12) var(--space-4)",
-        }}
-      >
-        <section style={{ marginBottom: "var(--space-12)" }}>
-          <h2
-            style={{
-              fontSize: "var(--font-size-xl)",
-              fontWeight: "var(--font-weight-semibold)",
-              color: "var(--color-text-primary)",
-              marginBottom: "var(--space-6)",
-            }}
-          >
+      <div className="max-w-content mx-auto py-12 px-4 md:py-20">
+        <section className="mb-12">
+          <h2 className="text-xl font-semibold text-text-primary mb-6">
             팀원
           </h2>
           {members.length === 0 ? (
             <EmptyState variant="learners" message="팀원 정보가 없습니다." />
           ) : (
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
-                gap: "var(--space-4)",
-              }}
-            >
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {members.map(({ learner }) =>
                 learner ? <LearnerCard key={learner.userId} learner={learner} /> : null
               )}
@@ -123,26 +98,13 @@ export default function GroupDetailPage({ loaderData }: Route.ComponentProps) {
         </section>
 
         <section>
-          <h2
-            style={{
-              fontSize: "var(--font-size-xl)",
-              fontWeight: "var(--font-weight-semibold)",
-              color: "var(--color-text-primary)",
-              marginBottom: "var(--space-6)",
-            }}
-          >
+          <h2 className="text-xl font-semibold text-text-primary mb-6">
             기록
           </h2>
           {unitRecords.length === 0 ? (
             <EmptyState variant="records" />
           ) : (
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-                gap: "var(--space-4)",
-              }}
-            >
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {unitRecords.map(({ record, author }) => (
                 <SceneCard key={record.id} record={record} author={author ?? undefined} />
               ))}
@@ -156,26 +118,13 @@ export default function GroupDetailPage({ loaderData }: Route.ComponentProps) {
 
 export function ErrorBoundary() {
   return (
-    <div style={{ textAlign: "center", padding: "64px 16px" }}>
-      <p
-        style={{
-          fontSize: "20px",
-          fontWeight: "600",
-          color: "var(--color-text-primary)",
-        }}
-      >
+    <div className="text-center py-16 px-4">
+      <p className="text-xl font-semibold text-text-primary">
         협업 단위를 찾을 수 없습니다
       </p>
       <Link
         to="/"
-        style={{
-          marginTop: "16px",
-          display: "inline-block",
-          padding: "10px 20px",
-          borderRadius: "var(--radius-md)",
-          backgroundColor: "var(--color-ocean-blue)",
-          color: "white",
-        }}
+        className="mt-4 inline-block py-2.5 px-5 rounded-md bg-ocean-blue text-white"
       >
         홈으로
       </Link>

@@ -4,21 +4,19 @@
 @theme {
   --font-sans: system-ui, -apple-system, "Pretendard", sans-serif;
   
-  /* Colors - reference CSS custom properties */
   --color-bg: var(--color-bg);
   --color-surface: var(--color-surface);
+  --color-surface-secondary: var(--color-surface-secondary);
   --color-border: var(--color-border);
   --color-text-primary: var(--color-text-primary);
   --color-text-secondary: var(--color-text-secondary);
   --color-text-tertiary: var(--color-text-tertiary);
   
-  /* Ocean palette (배경/깊이감에만 사용) */
   --color-deep-ocean: var(--color-deep-ocean);
   --color-ocean-blue: var(--color-ocean-blue);
   --color-reef-cyan: var(--color-reef-cyan);
   --color-mist-blue: var(--color-mist-blue);
   
-  /* Stage accents */
   --color-prelude: var(--color-prelude);
   --color-prelude-bg: var(--color-prelude-bg);
   --color-bridge: var(--color-bridge);
@@ -28,41 +26,60 @@
   --color-epilogue: var(--color-epilogue);
   --color-epilogue-bg: var(--color-epilogue-bg);
   
-  /* Admin */
+  --color-link: var(--color-link);
+  --color-focus-ring: var(--color-focus-ring);
+  
   --color-admin-bg: var(--color-admin-bg);
   --color-admin-surface: var(--color-admin-surface);
   --color-admin-border: var(--color-admin-border);
   --color-admin-sidebar: var(--color-admin-sidebar);
   --color-admin-sidebar-text: var(--color-admin-sidebar-text);
   --color-admin-sidebar-active: var(--color-admin-sidebar-active);
+  --color-admin-sidebar-hover: var(--color-admin-sidebar-hover);
   --color-admin-text: var(--color-admin-text);
   --color-admin-text-secondary: var(--color-admin-text-secondary);
   --color-admin-accent: var(--color-admin-accent);
   
-  /* Semantic */
   --color-success: var(--color-success);
   --color-warning: var(--color-warning);
   --color-error: var(--color-error);
   --color-info: var(--color-info);
   
-  /* Border radius */
   --radius-sm: var(--radius-sm);
   --radius-md: var(--radius-md);
   --radius-lg: var(--radius-lg);
   --radius-full: var(--radius-full);
   
-  /* Shadows */
+  --shadow-xs: var(--shadow-xs);
   --shadow-sm: var(--shadow-sm);
   --shadow-md: var(--shadow-md);
   --shadow-lg: var(--shadow-lg);
   
-  /* Max widths */
   --max-reading-width: var(--max-reading-width);
   --max-content-width: var(--max-content-width);
+  --max-canvas-width: var(--max-canvas-width);
   
-  /* Motion */
   --duration-fast: var(--duration-fast);
   --duration-normal: var(--duration-normal);
   --duration-slow: var(--duration-slow);
   --ease-default: var(--ease-default);
+  --ease-out: var(--ease-out);
+  
+  --text-caption: 12px;
+  --text-meta: 13px;
+  --text-sm: 14px;
+  --text-base: 16px;
+  --text-lg: 18px;
+  --text-xl: 20px;
+  --text-2xl: 24px;
+  --text-3xl: 28px;
+  --text-4xl: 32px;
+  --text-5xl: 40px;
+  --text-6xl: 48px;
+  
+  --leading-hero: 1.1;
+  --leading-title: 1.2;
+  --leading-small: 1.5;
+  --leading-body: 1.6;
+  --leading-relaxed: 1.75;
 }

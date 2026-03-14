@@ -43,14 +43,14 @@ export default function LearnerDetailPage({ loaderData }: Route.ComponentProps) 
     <div>
       <HeroSection variant="learner" title={learner.displayName} subtitle={learner.bio ?? undefined} />
 
-      <div style={{ maxWidth: "var(--max-content-width)", margin: "0 auto", padding: "var(--space-12) var(--space-4)" }}>
+      <div className="max-w-content mx-auto py-12 px-4">
         {/* Questions FIRST — before records */}
         {learnerQuestions.length > 0 && (
-          <section style={{ marginBottom: "var(--space-12)" }}>
-            <h2 style={{ fontSize: "var(--font-size-xl)", fontWeight: "var(--font-weight-semibold)", color: "var(--color-text-primary)", marginBottom: "var(--space-6)" }}>
+          <section className="mb-12">
+            <h2 className="text-xl font-semibold text-text-primary mb-6">
               탐구 중인 질문들
             </h2>
-            <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
+            <div className="flex flex-col gap-4">
               {learnerQuestions.map(({ question, recordSlug, recordTitle }) => (
                 <QuestionCard key={question.id} question={question} record={recordSlug && recordTitle ? { slug: recordSlug, title: recordTitle } : undefined} />
               ))}
@@ -59,14 +59,14 @@ export default function LearnerDetailPage({ loaderData }: Route.ComponentProps) 
         )}
 
         {/* Records */}
-        <section style={{ marginBottom: "var(--space-12)" }}>
-          <h2 style={{ fontSize: "var(--font-size-xl)", fontWeight: "var(--font-weight-semibold)", color: "var(--color-text-primary)", marginBottom: "var(--space-6)" }}>
+        <section className="mb-12">
+          <h2 className="text-xl font-semibold text-text-primary mb-6">
             기록
           </h2>
           {learnerRecords.length === 0 ? (
             <EmptyState variant="records" />
           ) : (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "var(--space-4)" }}>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {learnerRecords.map(({ record }) => <SceneCard key={record.id} record={record} />)}
             </div>
           )}
@@ -75,10 +75,10 @@ export default function LearnerDetailPage({ loaderData }: Route.ComponentProps) 
         {/* Saved Sentences */}
         {learnerSentences.length > 0 && (
           <section>
-            <h2 style={{ fontSize: "var(--font-size-xl)", fontWeight: "var(--font-weight-semibold)", color: "var(--color-text-primary)", marginBottom: "var(--space-6)" }}>
+            <h2 className="text-xl font-semibold text-text-primary mb-6">
               남겨둔 문장들
             </h2>
-            <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
+            <div className="flex flex-col gap-4">
               {learnerSentences.map(({ sentence }) => <HighlightedSentenceCard key={sentence.id} sentence={sentence} />)}
             </div>
           </section>
@@ -90,9 +90,9 @@ export default function LearnerDetailPage({ loaderData }: Route.ComponentProps) 
 
 export function ErrorBoundary() {
   return (
-    <div style={{ textAlign: "center", padding: "64px 16px" }}>
-      <p style={{ fontSize: "20px", fontWeight: "600", color: "var(--color-text-primary)" }}>Learner를 찾을 수 없습니다</p>
-      <Link to="/learners" style={{ marginTop: "16px", display: "inline-block", padding: "10px 20px", borderRadius: "var(--radius-md)", backgroundColor: "var(--color-ocean-blue)", color: "white" }}>목록으로</Link>
+    <div className="text-center py-16 px-4">
+      <p className="text-xl font-semibold text-text-primary">Learner를 찾을 수 없습니다</p>
+      <Link to="/learners" className="mt-4 inline-block px-5 py-2.5 rounded-md bg-ocean-blue text-white">목록으로</Link>
     </div>
   );
 }

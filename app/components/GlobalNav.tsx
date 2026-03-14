@@ -39,13 +39,16 @@ export default function GlobalNav() {
     { to: "/me", label: "내 공간" },
   ];
 
+  // Shared focus ring classes for interactive elements
+  const focusRing = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2";
+
   return (
-    <header className="sticky top-0 z-50 bg-surface border-b border-border">
+    <header className="sticky top-0 z-50 bg-surface/80 backdrop-blur-sm border-b border-border">
       <div className="max-w-content mx-auto px-4 h-16 flex items-center justify-between">
         {/* Logo */}
         <Link
           to="/"
-          className="font-semibold text-lg text-text-primary hover:text-ocean-blue transition-colors"
+          className={`font-semibold text-lg text-text-primary hover:text-ocean-blue transition-colors ${focusRing}`}
         >
           divelog
         </Link>
@@ -56,7 +59,7 @@ export default function GlobalNav() {
             <Link
               key={link.to}
               to={link.to}
-              className="text-sm text-text-secondary hover:text-text-primary transition-colors"
+              className={`text-sm text-text-secondary hover:text-text-primary transition-colors ${focusRing}`}
             >
               {link.label}
             </Link>
@@ -68,14 +71,14 @@ export default function GlobalNav() {
                 <Link
                   key={link.to}
                   to={link.to}
-                  className="text-sm text-text-secondary hover:text-text-primary transition-colors"
+                  className={`text-sm text-text-secondary hover:text-text-primary transition-colors ${focusRing}`}
                 >
                   {link.label}
                 </Link>
               ))}
               <Link
                 to="/write"
-                className="text-sm px-4 py-2 rounded-lg bg-ocean-blue text-white hover:bg-deep-ocean transition-colors"
+                className={`text-sm px-4 py-2 rounded-md bg-ocean-blue text-white hover:bg-deep-ocean transition-colors ${focusRing}`}
               >
                 기록하기
               </Link>
@@ -93,7 +96,7 @@ export default function GlobalNav() {
               </div>
               <a
                 href={logoutUrl}
-                className="text-sm text-text-secondary hover:text-text-primary transition-colors"
+                className={`text-sm text-text-secondary hover:text-text-primary transition-colors ${focusRing}`}
               >
                 로그아웃
               </a>
@@ -101,7 +104,7 @@ export default function GlobalNav() {
           ) : (
             <a
               href={loginUrl}
-              className="text-sm px-4 py-2 rounded-lg bg-ocean-blue text-white hover:bg-deep-ocean transition-colors"
+              className={`text-sm px-4 py-2 rounded-md bg-ocean-blue text-white hover:bg-deep-ocean transition-colors ${focusRing}`}
             >
               로그인
             </a>
@@ -111,7 +114,7 @@ export default function GlobalNav() {
         {/* Mobile Menu Button */}
         <button
           type="button"
-          className="md:hidden p-2 rounded-lg text-text-secondary hover:bg-mist-blue transition-colors"
+          className={`md:hidden p-2 rounded-lg text-text-secondary hover:bg-mist-blue transition-colors ${focusRing}`}
           onClick={() => setIsMenuOpen(!isMenuOpen)}
           aria-label={isMenuOpen ? "메뉴 닫기" : "메뉴 열기"}
           aria-expanded={isMenuOpen}
@@ -145,13 +148,13 @@ export default function GlobalNav() {
 
       {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="md:hidden border-t border-border bg-surface">
+        <div className="md:hidden border-t border-border bg-surface/95 backdrop-blur-sm">
           <div className="max-w-content mx-auto px-4 py-4 flex flex-col gap-3">
             {navLinks.map((link) => (
               <Link
                 key={link.to}
                 to={link.to}
-                className="text-sm py-2 text-text-secondary hover:text-text-primary transition-colors"
+                className={`text-sm py-2 text-text-secondary hover:text-text-primary transition-colors ${focusRing}`}
               >
                 {link.label}
               </Link>
@@ -164,14 +167,14 @@ export default function GlobalNav() {
                   <Link
                     key={link.to}
                     to={link.to}
-                    className="text-sm py-2 text-text-secondary hover:text-text-primary transition-colors"
+                    className={`text-sm py-2 text-text-secondary hover:text-text-primary transition-colors ${focusRing}`}
                   >
                     {link.label}
                   </Link>
                 ))}
                 <Link
                   to="/write"
-                  className="text-sm py-2 px-4 rounded-lg bg-ocean-blue text-white text-center hover:bg-deep-ocean transition-colors"
+                  className={`text-sm py-2 px-4 rounded-md bg-ocean-blue text-white text-center hover:bg-deep-ocean transition-colors ${focusRing}`}
                 >
                   기록하기
                 </Link>
@@ -189,7 +192,7 @@ export default function GlobalNav() {
                 </div>
                 <a
                   href={logoutUrl}
-                  className="text-sm py-2 text-text-secondary hover:text-text-primary transition-colors"
+                  className={`text-sm py-2 text-text-secondary hover:text-text-primary transition-colors ${focusRing}`}
                 >
                   로그아웃
                 </a>
@@ -199,7 +202,7 @@ export default function GlobalNav() {
                 <div className="h-px bg-border my-1" />
                 <a
                   href={loginUrl}
-                  className="text-sm py-2 px-4 rounded-lg bg-ocean-blue text-white text-center hover:bg-deep-ocean transition-colors"
+                  className={`text-sm py-2 px-4 rounded-md bg-ocean-blue text-white text-center hover:bg-deep-ocean transition-colors ${focusRing}`}
                 >
                   로그인
                 </a>

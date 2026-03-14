@@ -20,17 +20,24 @@ export default function AdminRecordDetailPage({ loaderData }: Route.ComponentPro
   const { record } = loaderData;
   return (
     <div>
-      <div style={{ display: "flex", gap: "16px", alignItems: "center", marginBottom: "24px" }}><Link to="/admin/records" style={{ fontSize: "13px", color: "var(--color-admin-text-secondary)" }}>← 목록</Link><h2 style={{ fontSize: "20px", fontWeight: "600", color: "var(--color-admin-text)" }}>기록 검토</h2></div>
-      <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "24px" }}>
-        <div style={{ backgroundColor: "var(--color-admin-surface)", borderRadius: "8px", padding: "20px", border: "1px solid var(--color-admin-border)" }}>
-          <h3 style={{ fontSize: "16px", fontWeight: "600", marginBottom: "12px" }}>{record.title}</h3>
-          <p style={{ fontSize: "13px", color: "var(--color-admin-text-secondary)", whiteSpace: "pre-wrap", lineHeight: "1.6" }}>{record.content.substring(0, 500)}{record.content.length > 500 ? "..." : ""}</p>
+      <div className="flex gap-4 items-center mb-6">
+        <Link to="/admin/records" className="text-[13px] text-admin-text-secondary hover:text-admin-text">← 목록</Link>
+        <h2 className="text-xl font-semibold text-admin-text">기록 검토</h2>
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 bg-admin-surface rounded-md p-4 border border-admin-border">
+          <h3 className="text-base font-semibold mb-3">{record.title}</h3>
+          <p className="text-[13px] text-admin-text-secondary whitespace-pre-wrap leading-relaxed">{record.content.substring(0, 500)}{record.content.length > 500 ? "..." : ""}</p>
         </div>
-        <form method="post" style={{ backgroundColor: "var(--color-admin-surface)", borderRadius: "8px", padding: "16px", border: "1px solid var(--color-admin-border)", display: "flex", flexDirection: "column", gap: "8px", height: "fit-content" }}>
-          <label style={{ fontSize: "12px", color: "var(--color-admin-text-secondary)" }}>Moderation</label>
-          <select name="moderationStatus" defaultValue={record.moderationStatus ?? "clean"} style={{ padding: "6px 10px", borderRadius: "4px", border: "1px solid var(--color-admin-border)", fontSize: "13px" }}><option value="clean">Clean</option><option value="flagged">Flagged</option><option value="hidden">Hidden</option></select>
-          <textarea name="note" placeholder="메모 (선택)" rows={2} defaultValue={record.moderationNote ?? ""} style={{ padding: "6px 10px", borderRadius: "4px", border: "1px solid var(--color-admin-border)", fontSize: "13px", resize: "vertical", fontFamily: "inherit" }} />
-          <button type="submit" style={{ padding: "6px 12px", borderRadius: "4px", backgroundColor: "var(--color-admin-accent)", color: "white", border: "none", cursor: "pointer", fontSize: "13px" }}>저장</button>
+        <form method="post" className="bg-admin-surface rounded-md p-4 border border-admin-border flex flex-col gap-2 h-fit">
+          <label className="text-xs text-admin-text-secondary">Moderation</label>
+          <select name="moderationStatus" defaultValue={record.moderationStatus ?? "clean"} className="px-2.5 py-1.5 rounded-sm border border-admin-border text-[13px] outline-none">
+            <option value="clean">Clean</option>
+            <option value="flagged">Flagged</option>
+            <option value="hidden">Hidden</option>
+          </select>
+          <textarea name="note" placeholder="메모 (선택)" rows={2} defaultValue={record.moderationNote ?? ""} className="px-2.5 py-1.5 rounded-sm border border-admin-border text-[13px] resize-y outline-none" />
+          <button type="submit" className="px-3 py-1.5 rounded-sm bg-admin-accent text-white border-none cursor-pointer text-[13px] hover:opacity-90">저장</button>
         </form>
       </div>
     </div>

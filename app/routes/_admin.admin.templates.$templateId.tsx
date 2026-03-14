@@ -18,20 +18,57 @@ export async function action({ params, request, context }: Route.ActionArgs) {
 export function meta(_: Route.MetaArgs) { return [{ title: "템플릿 편집" }]; }
 export default function AdminTemplateEditPage({ loaderData }: Route.ComponentProps) {
   const { template } = loaderData;
+  const labelClass = "block text-caption text-admin-text-secondary mb-1.5";
+  const inputClass = "w-full px-3 py-2 rounded-md border border-admin-border text-sm font-sans focus:outline-none focus:ring-2 focus:ring-admin-accent focus:ring-offset-1";
   return (
     <div>
-      <div style={{ display: "flex", gap: "16px", alignItems: "center", marginBottom: "24px" }}><Link to="/admin/templates" style={{ fontSize: "13px", color: "var(--color-admin-text-secondary)" }}>← 목록</Link><h2 style={{ fontSize: "20px", fontWeight: "600", color: "var(--color-admin-text)" }}>템플릿 편집</h2></div>
-      <form method="post" style={{ display: "flex", flexDirection: "column", gap: "16px", maxWidth: "700px", backgroundColor: "var(--color-admin-surface)", borderRadius: "8px", padding: "24px", border: "1px solid var(--color-admin-border)" }}>
-        <div><label style={{ display: "block", fontSize: "12px", color: "var(--color-admin-text-secondary)", marginBottom: "6px" }}>이름</label><input name="name" defaultValue={template.name} required style={{ width: "100%", padding: "8px 12px", borderRadius: "6px", border: "1px solid var(--color-admin-border)", fontSize: "14px", fontFamily: "inherit" }} /></div>
-        <div><label style={{ display: "block", fontSize: "12px", color: "var(--color-admin-text-secondary)", marginBottom: "6px" }}>설명</label><input name="description" defaultValue={template.description ?? ""} style={{ width: "100%", padding: "8px 12px", borderRadius: "6px", border: "1px solid var(--color-admin-border)", fontSize: "14px", fontFamily: "inherit" }} /></div>
-        <div><label style={{ display: "block", fontSize: "12px", color: "var(--color-admin-text-secondary)", marginBottom: "6px" }}>프롬프트 본문</label><textarea name="promptBody" defaultValue={template.promptBody ?? ""} rows={6} style={{ width: "100%", padding: "8px 12px", borderRadius: "6px", border: "1px solid var(--color-admin-border)", fontSize: "14px", fontFamily: "inherit", resize: "vertical" }} /></div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px" }}>
-          <div><label style={{ display: "block", fontSize: "12px", color: "var(--color-admin-text-secondary)", marginBottom: "6px" }}>유형</label><select name="ctx" defaultValue={template.context ?? ""} style={{ width: "100%", padding: "8px 12px", borderRadius: "6px", border: "1px solid var(--color-admin-border)", fontSize: "14px" }}><option value="">전체</option><option value="personal">개인</option><option value="challenge">챌린지</option><option value="collaboration">협업</option></select></div>
-          <div><label style={{ display: "block", fontSize: "12px", color: "var(--color-admin-text-secondary)", marginBottom: "6px" }}>형식</label><select name="form" defaultValue={template.form ?? ""} style={{ width: "100%", padding: "8px 12px", borderRadius: "6px", border: "1px solid var(--color-admin-border)", fontSize: "14px" }}><option value="">전체</option><option value="note">노트</option><option value="article">글</option></select></div>
-          <div><label style={{ display: "block", fontSize: "12px", color: "var(--color-admin-text-secondary)", marginBottom: "6px" }}>리듬</label><select name="rhythm" defaultValue={template.rhythm ?? ""} style={{ width: "100%", padding: "8px 12px", borderRadius: "6px", border: "1px solid var(--color-admin-border)", fontSize: "14px" }}><option value="">전체</option><option value="sprint">스프린트</option><option value="weekly">주간</option><option value="monthly">월간</option><option value="free">자유</option></select></div>
+      <div className="flex gap-4 items-center mb-6">
+        <Link to="/admin/templates" className="text-meta text-admin-text-secondary hover:text-admin-text transition-colors">← 목록</Link>
+        <h2 className="text-xl font-semibold text-admin-text">템플릿 편집</h2>
+      </div>
+      <form method="post" className="flex flex-col gap-4 max-w-[700px] bg-admin-surface rounded-md p-6 border border-admin-border">
+        <div>
+          <label className={labelClass}>이름</label>
+          <input name="name" defaultValue={template.name} required className={inputClass} />
         </div>
-        <div><label style={{ display: "flex", gap: "8px", cursor: "pointer", fontSize: "14px" }}><input type="checkbox" name="active" defaultChecked={template.active ?? true} />활성화</label></div>
-        <div style={{ display: "flex", gap: "12px" }}><button type="submit" style={{ padding: "8px 20px", borderRadius: "6px", backgroundColor: "var(--color-admin-accent)", color: "white", border: "none", cursor: "pointer", fontSize: "14px" }}>저장</button><Link to="/admin/templates" style={{ padding: "8px 20px", borderRadius: "6px", border: "1px solid var(--color-admin-border)", color: "var(--color-admin-text-secondary)", fontSize: "14px" }}>취소</Link></div>
+        <div>
+          <label className={labelClass}>설명</label>
+          <input name="description" defaultValue={template.description ?? ""} className={inputClass} />
+        </div>
+        <div>
+          <label className={labelClass}>프롬프트 본문</label>
+          <textarea name="promptBody" defaultValue={template.promptBody ?? ""} rows={6} className={`${inputClass} resize-y`} />
+        </div>
+        <div className="grid grid-cols-3 gap-3">
+          <div>
+            <label className={labelClass}>유형</label>
+            <select name="ctx" defaultValue={template.context ?? ""} className={inputClass}>
+              <option value="">전체</option><option value="personal">개인</option><option value="challenge">챌린지</option><option value="collaboration">협업</option>
+            </select>
+          </div>
+          <div>
+            <label className={labelClass}>형식</label>
+            <select name="form" defaultValue={template.form ?? ""} className={inputClass}>
+              <option value="">전체</option><option value="note">노트</option><option value="article">글</option>
+            </select>
+          </div>
+          <div>
+            <label className={labelClass}>리듬</label>
+            <select name="rhythm" defaultValue={template.rhythm ?? ""} className={inputClass}>
+              <option value="">전체</option><option value="sprint">스프린트</option><option value="weekly">주간</option><option value="monthly">월간</option><option value="free">자유</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label className="flex gap-2 cursor-pointer text-sm">
+            <input type="checkbox" name="active" defaultChecked={template.active ?? true} className="w-4 h-4 rounded border-admin-border text-admin-accent focus:ring-admin-accent" />
+            활성화
+          </label>
+        </div>
+        <div className="flex gap-3">
+          <button type="submit" className="px-5 py-2 rounded-md bg-admin-accent text-white text-sm font-medium hover:opacity-90 transition-opacity focus-visible:ring-2 focus-visible:ring-admin-accent">저장</button>
+          <Link to="/admin/templates" className="px-5 py-2 rounded-md border border-admin-border text-admin-text-secondary text-sm hover:bg-admin-bg transition-colors">취소</Link>
+        </div>
       </form>
     </div>
   );

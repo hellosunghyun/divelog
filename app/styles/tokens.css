@@ -1,95 +1,132 @@
-/* Quiet Depth Design Tokens */
+/* Quiet Depth Design Tokens — design.md spec compliant */
 :root {
-  /* === Base Colors === */
+  /* === Base Colors (design.md 7.2) === */
   --color-bg: #F6F8FB;
   --color-surface: #FFFFFF;
+  --color-surface-secondary: #F2F5F8;
   --color-border: #E3E8EF;
   --color-text-primary: #1D1D1F;
   --color-text-secondary: #6E6E73;
-  --color-text-tertiary: #8E8E93;
+  --color-text-tertiary: #8C8C91;
 
-  /* === Deep Ocean (배경/깊이감에만 절제해서 사용) === */
+  /* === Deep Ocean Palette (design.md 7.2) === */
   --color-deep-ocean: #0B2447;
   --color-ocean-blue: #146C94;
   --color-reef-cyan: #6CC4D6;
   --color-mist-blue: #EAF4FA;
 
-  /* === Stage Type Accents === */
-  --color-prelude: #5B6AF0;       /* prelude: indigo/violet — 시작의 무게감 */
-  --color-prelude-bg: #F0F1FF;
-  --color-bridge: #0B9488;        /* bridge: teal — 전환과 연결 */
-  --color-bridge-bg: #EDFAF8;
-  --color-challenge: #DC6803;     /* challenge: amber — 긴장과 도전 */
-  --color-challenge-bg: #FFF8EB;
-  --color-epilogue: #7C3AED;      /* epilogue: violet — 마무리와 성찰 */
-  --color-epilogue-bg: #F5F3FF;
+  /* === Stage Tone Mapping (design.md 7.3) ===
+     Prelude=Mist, Bridge=Cyan, Challenge=Deep Ocean, Epilogue=Mist+Neutral
+     All stage colors derive from the ocean palette — no unrelated hues */
+  --color-prelude: #4A8DA8;           /* Mist-derived — 시작의 안개 */
+  --color-prelude-bg: #EAF4FA;        /* Mist Blue */
+  --color-bridge: #1A9EB4;            /* Cyan-derived — 전환과 연결 */
+  --color-bridge-bg: #E0F4F8;         /* Light Cyan */
+  --color-challenge: #0B2447;         /* Deep Ocean — 깊이와 도전 */
+  --color-challenge-bg: #E3EAF3;      /* Light Deep Ocean */
+  --color-epilogue: #7E8E9E;          /* Mist + Neutral — 마무리와 성찰 */
+  --color-epilogue-bg: #EFF2F6;       /* Light Neutral Mist */
 
-  /* === Admin (utilitarian, neutral) === */
+  /* === Semantic Colors === */
+  --color-link: var(--color-ocean-blue);
+  --color-focus-ring: var(--color-ocean-blue);
+  --color-success: #16A34A;
+  --color-warning: #D97706;
+  --color-error: #DC2626;
+  --color-info: #0284C7;
+
+  /* === Admin (utilitarian, neutral — design.md 25) === */
   --color-admin-bg: #F3F4F6;
   --color-admin-surface: #FFFFFF;
   --color-admin-border: #D1D5DB;
   --color-admin-sidebar: #111827;
   --color-admin-sidebar-text: #F9FAFB;
   --color-admin-sidebar-active: #374151;
+  --color-admin-sidebar-hover: #1F2937;
   --color-admin-text: #111827;
   --color-admin-text-secondary: #6B7280;
   --color-admin-accent: #2563EB;
 
-  /* === Semantic Colors === */
-  --color-success: #16A34A;
-  --color-warning: #D97706;
-  --color-error: #DC2626;
-  --color-info: #0284C7;
-
-  /* === Spacing (8px grid) === */
+  /* === Spacing — 4px multiples (design.md 6.1) === */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
   --space-4: 16px;
   --space-5: 20px;
   --space-6: 24px;
+  --space-7: 28px;
   --space-8: 32px;
   --space-10: 40px;
   --space-12: 48px;
   --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
 
-  /* === Typography === */
+  /* Section gaps (design.md 5.4) */
+  --section-gap-mobile: 48px;
+  --section-gap-tablet: 64px;
+  --section-gap-desktop: 96px;
+
+  /* === Typography (design.md 8) === */
   --font-sans: system-ui, -apple-system, 'Pretendard', sans-serif;
-  --font-size-sm: 14px;
-  --font-size-base: 16px;
-  --font-size-lg: 18px;
-  --font-size-xl: 20px;
-  --font-size-2xl: 24px;
-  --font-size-3xl: 30px;
-  --font-size-4xl: 36px;
-  --line-height-tight: 1.25;
-  --line-height-normal: 1.6;
-  --line-height-relaxed: 1.75;
-  --font-weight-normal: 400;
-  --font-weight-medium: 500;
-  --font-weight-semibold: 600;
-  --font-weight-bold: 700;
 
-  /* === Border Radius === */
-  --radius-sm: 8px;
-  --radius-md: 16px;
-  --radius-lg: 24px;
-  --radius-full: 9999px;
+  /* Font sizes (design.md 8.3) */
+  --font-size-caption: 12px;     /* Caption */
+  --font-size-meta: 13px;        /* Meta */
+  --font-size-sm: 14px;          /* Meta upper */
+  --font-size-base: 16px;        /* Body Default */
+  --font-size-lg: 18px;          /* Body Large / Card Title lower */
+  --font-size-xl: 20px;          /* Card Title upper */
+  --font-size-2xl: 24px;         /* Section Title lower */
+  --font-size-3xl: 28px;         /* Section Title upper */
+  --font-size-4xl: 32px;         /* Page Title lower */
+  --font-size-5xl: 40px;         /* Page Title upper */
+  --font-size-6xl: 48px;         /* Hero Title lower */
+  --font-size-7xl: 56px;         /* Hero Title mid */
+  --font-size-8xl: 64px;         /* Hero Title upper */
 
-  /* === Shadows (soft only) === */
-  --shadow-sm: 0 1px 3px 0 rgba(0,0,0,0.04), 0 1px 2px -1px rgba(0,0,0,0.04);
-  --shadow-md: 0 4px 16px 0 rgba(0,0,0,0.06), 0 2px 6px -1px rgba(0,0,0,0.04);
-  --shadow-lg: 0 10px 32px 0 rgba(0,0,0,0.08), 0 4px 12px -2px rgba(0,0,0,0.04);
+  /* Line heights (design.md 8.4) */
+  --line-height-hero: 1.1;       /* Hero / 큰 제목 lower */
+  --line-height-title: 1.2;      /* 제목 standard */
+  --line-height-small: 1.5;      /* 작은 설명, meta, caption */
+  --line-height-body: 1.6;       /* 본문 lower */
+  --line-height-relaxed: 1.75;   /* 본문 upper, 편안한 읽기 */
 
-  /* === Reading Width === */
-  --max-reading-width: 680px;
+  /* Font weights (design.md 8.3) */
+  --font-weight-normal: 400;     /* Body */
+  --font-weight-medium: 500;     /* Meta, Caption */
+  --font-weight-semibold: 600;   /* All titles — 제목은 semibold, bold 남발 금지 */
+  --font-weight-bold: 700;       /* 극히 제한적 사용 */
+
+  /* === Border Radius (design.md 9.2) === */
+  --radius-sm: 12px;             /* 입력창, 작은 요소 (카드보다 약간 작게) */
+  --radius-md: 20px;             /* 카드 하단 범위 */
+  --radius-lg: 24px;             /* 카드 상단 범위 — 기본 카드 radius */
+  --radius-full: 9999px;         /* 캡슐, 아바타 */
+
+  /* === Shadows — 매우 약하게 (design.md 9.2, 9.5) === */
+  --shadow-xs: 0 1px 2px 0 rgba(0,0,0,0.02);
+  --shadow-sm: 0 1px 3px 0 rgba(0,0,0,0.04), 0 1px 2px -1px rgba(0,0,0,0.03);
+  --shadow-md: 0 4px 16px 0 rgba(0,0,0,0.05), 0 2px 6px -1px rgba(0,0,0,0.03);
+  --shadow-lg: 0 10px 32px 0 rgba(0,0,0,0.07), 0 4px 12px -2px rgba(0,0,0,0.03);
+
+  /* === Card Padding (design.md 9.2: 20-28px) === */
+  --card-padding-sm: 20px;
+  --card-padding: 24px;
+  --card-padding-lg: 28px;
+
+  /* === Layout Widths (design.md 5.2) === */
+  --max-canvas-width: 1440px;
   --max-content-width: 1200px;
+  --max-reading-width: 720px;
+  --rail-width: 300px;
 
-  /* === Motion === */
+  /* === Motion (design.md 21) === */
   --duration-fast: 120ms;
   --duration-normal: 200ms;
   --duration-slow: 300ms;
   --ease-default: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -20,13 +20,35 @@ export default function AdminChallengeEditPage({ loaderData }: Route.ComponentPr
   const { challenge } = loaderData;
   return (
     <div>
-      <div style={{ display: "flex", gap: "16px", alignItems: "center", marginBottom: "24px" }}><Link to="/admin/challenges" style={{ fontSize: "13px", color: "var(--color-admin-text-secondary)" }}>← 목록</Link><h2 style={{ fontSize: "20px", fontWeight: "600", color: "var(--color-admin-text)" }}>챌린지 편집</h2></div>
-      <form method="post" style={{ display: "flex", flexDirection: "column", gap: "16px", maxWidth: "600px", backgroundColor: "var(--color-admin-surface)", borderRadius: "8px", padding: "24px", border: "1px solid var(--color-admin-border)" }}>
-        <div><label style={{ display: "block", fontSize: "12px", color: "var(--color-admin-text-secondary)", marginBottom: "6px" }}>이름</label><input name="name" defaultValue={challenge.name} required style={{ width: "100%", padding: "8px 12px", borderRadius: "6px", border: "1px solid var(--color-admin-border)", fontSize: "14px", fontFamily: "inherit" }} /></div>
-        <div><label style={{ display: "block", fontSize: "12px", color: "var(--color-admin-text-secondary)", marginBottom: "6px" }}>문제 정의</label><textarea name="problemDefinition" defaultValue={challenge.problemDefinition ?? ""} rows={3} style={{ width: "100%", padding: "8px 12px", borderRadius: "6px", border: "1px solid var(--color-admin-border)", fontSize: "14px", fontFamily: "inherit", resize: "vertical" }} /></div>
-        <div><label style={{ display: "block", fontSize: "12px", color: "var(--color-admin-text-secondary)", marginBottom: "6px" }}>현재 질문</label><input name="currentQuestion" defaultValue={challenge.currentQuestion ?? ""} style={{ width: "100%", padding: "8px 12px", borderRadius: "6px", border: "1px solid var(--color-admin-border)", fontSize: "14px", fontFamily: "inherit" }} /></div>
-        <div><label style={{ display: "block", fontSize: "12px", color: "var(--color-admin-text-secondary)", marginBottom: "6px" }}>상태</label><select name="status" defaultValue={challenge.status} style={{ width: "100%", padding: "8px 12px", borderRadius: "6px", border: "1px solid var(--color-admin-border)", fontSize: "14px" }}><option value="active">진행 중</option><option value="completed">완료</option><option value="archived">아카이브</option></select></div>
-        <div style={{ display: "flex", gap: "12px" }}><button type="submit" style={{ padding: "8px 20px", borderRadius: "6px", backgroundColor: "var(--color-admin-accent)", color: "white", border: "none", cursor: "pointer", fontSize: "14px" }}>저장</button><Link to="/admin/challenges" style={{ padding: "8px 20px", borderRadius: "6px", border: "1px solid var(--color-admin-border)", color: "var(--color-admin-text-secondary)", fontSize: "14px" }}>취소</Link></div>
+      <div className="flex gap-4 items-center mb-6">
+        <Link to="/admin/challenges" className="text-[13px] text-admin-text-secondary hover:text-admin-text">← 목록</Link>
+        <h2 className="text-xl font-semibold text-admin-text">챌린지 편집</h2>
+      </div>
+      <form method="post" className="flex flex-col gap-4 max-w-xl bg-admin-surface rounded-md p-6 border border-admin-border">
+        <div>
+          <label className="block text-xs text-admin-text-secondary mb-1.5">이름</label>
+          <input name="name" defaultValue={challenge.name} required className="w-full px-3 py-2 rounded-sm border border-admin-border bg-admin-surface text-sm focus:ring-2 focus:ring-admin-accent outline-none" />
+        </div>
+        <div>
+          <label className="block text-xs text-admin-text-secondary mb-1.5">문제 정의</label>
+          <textarea name="problemDefinition" defaultValue={challenge.problemDefinition ?? ""} rows={3} className="w-full px-3 py-2 rounded-sm border border-admin-border bg-admin-surface text-sm resize-y outline-none" />
+        </div>
+        <div>
+          <label className="block text-xs text-admin-text-secondary mb-1.5">현재 질문</label>
+          <input name="currentQuestion" defaultValue={challenge.currentQuestion ?? ""} className="w-full px-3 py-2 rounded-sm border border-admin-border bg-admin-surface text-sm outline-none" />
+        </div>
+        <div>
+          <label className="block text-xs text-admin-text-secondary mb-1.5">상태</label>
+          <select name="status" defaultValue={challenge.status} className="w-full px-3 py-2 rounded-sm border border-admin-border bg-admin-surface text-sm outline-none">
+            <option value="active">진행 중</option>
+            <option value="completed">완료</option>
+            <option value="archived">아카이브</option>
+          </select>
+        </div>
+        <div className="flex gap-3">
+          <button type="submit" className="px-5 py-2 rounded-sm bg-admin-accent text-white border-none cursor-pointer text-sm hover:opacity-90">저장</button>
+          <Link to="/admin/challenges" className="px-5 py-2 rounded-sm border border-admin-border text-admin-text-secondary text-sm hover:bg-admin-bg">취소</Link>
+        </div>
       </form>
     </div>
   );

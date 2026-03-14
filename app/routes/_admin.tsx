@@ -18,10 +18,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 
 export default function AdminLayout() {
   return (
-    <div
-      className="flex h-screen overflow-hidden"
-      style={{ backgroundColor: "var(--color-admin-bg)" }}
-    >
+    <div className="flex h-screen overflow-hidden bg-admin-bg">
       <AdminSidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <AdminContextBar />

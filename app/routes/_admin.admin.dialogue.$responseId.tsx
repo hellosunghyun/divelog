@@ -22,17 +22,29 @@ export default function AdminDialogueDetailPage({ loaderData }: Route.ComponentP
   const { response, record } = loaderData;
   return (
     <div>
-      <div style={{ display: "flex", gap: "16px", alignItems: "center", marginBottom: "24px" }}><Link to="/admin/dialogue" style={{ fontSize: "13px", color: "var(--color-admin-text-secondary)" }}>← 목록</Link><h2 style={{ fontSize: "20px", fontWeight: "600", color: "var(--color-admin-text)" }}>Dialogue 검토</h2></div>
-      {record && <div style={{ backgroundColor: "var(--color-admin-surface)", borderRadius: "8px", padding: "16px", border: "1px solid var(--color-admin-border)", marginBottom: "16px" }}><p style={{ fontSize: "12px", color: "var(--color-admin-text-secondary)", marginBottom: "4px" }}>원문 기록</p><p style={{ fontSize: "13px", color: "var(--color-admin-text)" }}>{record.title}</p></div>}
-      <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "24px" }}>
-        <div style={{ backgroundColor: "var(--color-admin-surface)", borderRadius: "8px", padding: "20px", border: "1px solid var(--color-admin-border)" }}>
-          <span style={{ fontSize: "12px", color: "var(--color-admin-text-secondary)" }}>{response.type}</span>
-          <p style={{ fontSize: "14px", color: "var(--color-admin-text)", marginTop: "8px", lineHeight: "1.6" }}>{response.content}</p>
+      <div className="flex gap-4 items-center mb-6">
+        <Link to="/admin/dialogue" className="text-[13px] text-admin-text-secondary hover:text-admin-text">← 목록</Link>
+        <h2 className="text-xl font-semibold text-admin-text">Dialogue 검토</h2>
+      </div>
+      {record && (
+        <div className="bg-admin-surface rounded-md p-4 border border-admin-border mb-4">
+          <p className="text-xs text-admin-text-secondary mb-1">원문 기록</p>
+          <p className="text-[13px] text-admin-text">{record.title}</p>
         </div>
-        <form method="post" style={{ backgroundColor: "var(--color-admin-surface)", borderRadius: "8px", padding: "16px", border: "1px solid var(--color-admin-border)", display: "flex", flexDirection: "column", gap: "8px", height: "fit-content" }}>
-          <label style={{ fontSize: "12px", color: "var(--color-admin-text-secondary)" }}>Moderation</label>
-          <select name="moderationStatus" defaultValue={response.moderationStatus ?? "clean"} style={{ padding: "6px 10px", borderRadius: "4px", border: "1px solid var(--color-admin-border)", fontSize: "13px" }}><option value="clean">Clean</option><option value="flagged">Flagged</option><option value="hidden">Hidden</option></select>
-          <button type="submit" style={{ padding: "6px 12px", borderRadius: "4px", backgroundColor: "var(--color-admin-accent)", color: "white", border: "none", cursor: "pointer", fontSize: "13px" }}>저장</button>
+      )}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 bg-admin-surface rounded-md p-4 border border-admin-border">
+          <span className="text-xs text-admin-text-secondary">{response.type}</span>
+          <p className="text-sm text-admin-text mt-2 leading-relaxed">{response.content}</p>
+        </div>
+        <form method="post" className="bg-admin-surface rounded-md p-4 border border-admin-border flex flex-col gap-2 h-fit">
+          <label className="text-xs text-admin-text-secondary">Moderation</label>
+          <select name="moderationStatus" defaultValue={response.moderationStatus ?? "clean"} className="px-2.5 py-1.5 rounded-sm border border-admin-border text-[13px] outline-none">
+            <option value="clean">Clean</option>
+            <option value="flagged">Flagged</option>
+            <option value="hidden">Hidden</option>
+          </select>
+          <button type="submit" className="px-3 py-1.5 rounded-sm bg-admin-accent text-white border-none cursor-pointer text-[13px] hover:opacity-90">저장</button>
         </form>
       </div>
     </div>

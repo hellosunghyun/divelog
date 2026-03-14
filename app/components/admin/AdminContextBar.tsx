@@ -31,18 +31,9 @@ export default function AdminContextBar() {
   const currentLabel = getCurrentLabel(location.pathname);
 
   return (
-    <header
-      className="h-14 px-6 flex items-center border-b flex-shrink-0"
-      style={{
-        backgroundColor: "var(--color-admin-surface)",
-        borderColor: "var(--color-admin-border)",
-      }}
-    >
+    <header className="h-14 px-6 flex items-center border-b border-admin-border flex-shrink-0 bg-admin-surface">
       <div>
-        <h1
-          className="text-sm font-semibold"
-          style={{ color: "var(--color-admin-text)" }}
-        >
+        <h1 className="text-sm font-semibold text-admin-text">
           {currentLabel}
         </h1>
       </div>

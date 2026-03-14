@@ -86,39 +86,18 @@ export default function SearchPage({ loaderData }: Route.ComponentProps) {
         subtitle="기록, 질문, Learner, 문장을 검색합니다"
       />
 
-      <div
-        style={{
-          maxWidth: "var(--max-content-width)",
-          margin: "0 auto",
-          padding: "var(--space-8) var(--space-4)",
-        }}
-      >
-        <Form style={{ marginBottom: "var(--space-8)", display: "flex", gap: "var(--space-3)" }}>
+      <div className="max-w-content mx-auto py-8 px-4">
+        <Form className="mb-8 flex gap-3">
           <input
             name="q"
             type="search"
             defaultValue={q}
             placeholder="검색어를 입력하세요..."
-            style={{
-              flex: 1,
-              padding: "10px 16px",
-              borderRadius: "var(--radius-md)",
-              border: "1px solid var(--color-border)",
-              fontSize: "var(--font-size-base)",
-              fontFamily: "inherit",
-            }}
+            className="flex-1 rounded-sm border border-border bg-surface px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-ocean-blue"
           />
           <button
             type="submit"
-            style={{
-              padding: "10px 20px",
-              borderRadius: "var(--radius-md)",
-              backgroundColor: "var(--color-ocean-blue)",
-              color: "white",
-              border: "none",
-              cursor: "pointer",
-              fontSize: "var(--font-size-base)",
-            }}
+            className="bg-ocean-blue text-white rounded-md px-5 py-3 text-base font-medium hover:bg-deep-ocean transition-colors"
           >
             검색
           </button>
@@ -133,28 +112,16 @@ export default function SearchPage({ loaderData }: Route.ComponentProps) {
           <EmptyState variant="search" message={`"${q}"에 대한 결과가 없습니다.`} />
         ) : (
           <div>
-            <div
-              style={{
-                display: "flex",
-                gap: "var(--space-2)",
-                marginBottom: "var(--space-6)",
-                borderBottom: "1px solid var(--color-border)",
-                paddingBottom: "var(--space-2)",
-              }}
-            >
+            <div className="flex gap-2 mb-6 border-b border-border pb-2">
               {["all", "records", "questions", "learners", "sentences"].map((t) => (
                 <a
                   key={t}
                   href={`?q=${encodeURIComponent(q)}&tab=${t}`}
-                  style={{
-                    padding: "6px 12px",
-                    borderRadius: "var(--radius-full)",
-                    fontSize: "13px",
-                    textDecoration: "none",
-                    backgroundColor: tab === t ? "var(--color-ocean-blue)" : "transparent",
-                    color:
-                      tab === t ? "white" : "var(--color-text-secondary)",
-                  }}
+                  className={`px-3 py-1.5 rounded-full text-meta no-underline ${
+                    tab === t
+                      ? "bg-ocean-blue text-white"
+                      : "bg-transparent text-text-secondary hover:text-text-primary"
+                  }`}
                 >
                   {t === "all"
                     ? "전체"
@@ -170,24 +137,11 @@ export default function SearchPage({ loaderData }: Route.ComponentProps) {
             </div>
 
             {(tab === "all" || tab === "records") && results.records.length > 0 && (
-              <section style={{ marginBottom: "var(--space-8)" }}>
-                <h3
-                  style={{
-                    fontSize: "var(--font-size-lg)",
-                    fontWeight: "var(--font-weight-semibold)",
-                    color: "var(--color-text-primary)",
-                    marginBottom: "var(--space-4)",
-                  }}
-                >
+              <section className="mb-8">
+                <h3 className="text-lg font-semibold text-text-primary mb-4">
                   기록
                 </h3>
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-                    gap: "var(--space-4)",
-                  }}
-                >
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {results.records.map(({ record, author }) => (
                     <SceneCard key={record.id} record={record} author={author ?? undefined} />
                   ))}
@@ -196,24 +150,11 @@ export default function SearchPage({ loaderData }: Route.ComponentProps) {
             )}
 
             {(tab === "all" || tab === "learners") && results.learners.length > 0 && (
-              <section style={{ marginBottom: "var(--space-8)" }}>
-                <h3
-                  style={{
-                    fontSize: "var(--font-size-lg)",
-                    fontWeight: "var(--font-weight-semibold)",
-                    color: "var(--color-text-primary)",
-                    marginBottom: "var(--space-4)",
-                  }}
-                >
+              <section className="mb-8">
+                <h3 className="text-lg font-semibold text-text-primary mb-4">
                   Learner
                 </h3>
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
-                    gap: "var(--space-4)",
-                  }}
-                >
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {results.learners.map((learner) => (
                     <LearnerCard key={learner.userId} learner={learner} />
                   ))}
@@ -222,28 +163,15 @@ export default function SearchPage({ loaderData }: Route.ComponentProps) {
             )}
 
             {(tab === "all" || tab === "questions") && results.questions.length > 0 && (
-              <section style={{ marginBottom: "var(--space-8)" }}>
-                <h3
-                  style={{
-                    fontSize: "var(--font-size-lg)",
-                    fontWeight: "var(--font-weight-semibold)",
-                    color: "var(--color-text-primary)",
-                    marginBottom: "var(--space-4)",
-                  }}
-                >
+              <section className="mb-8">
+                <h3 className="text-lg font-semibold text-text-primary mb-4">
                   질문
                 </h3>
-                <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
+                <div className="flex flex-col gap-3">
                   {results.questions.map((q2) => (
                     <p
                       key={q2.id}
-                      style={{
-                        padding: "var(--space-4)",
-                        backgroundColor: "var(--color-surface)",
-                        borderRadius: "var(--radius-md)",
-                        border: "1px solid var(--color-border)",
-                        color: "var(--color-text-primary)",
-                      }}
+                      className="p-4 bg-surface rounded-md border border-border text-text-primary"
                     >
                       {q2.content}
                     </p>

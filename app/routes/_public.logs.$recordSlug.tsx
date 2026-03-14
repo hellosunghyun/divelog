@@ -205,40 +205,40 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
   const isSubmittingSentence = navigation.state === "submitting" && submittingIntent === "save_sentence";
 
   return (
-    <div style={{ maxWidth: "var(--max-reading-width)", margin: "0 auto", padding: "var(--space-12) var(--space-4)" }}>
-      <header style={{ marginBottom: "var(--space-8)" }}>
-        <div style={{ display: "flex", gap: "var(--space-2)", marginBottom: "var(--space-4)", flexWrap: "wrap" }}>
-          <span style={{ fontSize: "12px", padding: "2px 8px", borderRadius: "var(--radius-full)", backgroundColor: "var(--color-border)", color: "var(--color-text-secondary)" }}>
+    <div className="max-w-reading mx-auto py-12 px-4 md:py-20">
+      <header className="mb-8">
+        <div className="flex gap-2 mb-4 flex-wrap">
+          <span className="text-caption px-2 py-0.5 rounded-full bg-border text-text-secondary">
             {record.format === "note" ? "노트" : "글"}
           </span>
-          <span style={{ fontSize: "12px", padding: "2px 8px", borderRadius: "var(--radius-full)", backgroundColor: "var(--color-border)", color: "var(--color-text-secondary)" }}>
+          <span className="text-caption px-2 py-0.5 rounded-full bg-border text-text-secondary">
             {record.type === "personal" ? "개인" : record.type === "challenge" ? "챌린지" : "협업"}
           </span>
         </div>
 
-        <h1 style={{ fontSize: "var(--font-size-3xl)", fontWeight: "var(--font-weight-bold)", color: "var(--color-text-primary)", lineHeight: "var(--line-height-tight)", marginBottom: "var(--space-4)" }}>
+        <h1 className="text-3xl font-semibold text-text-primary leading-tight mb-4">
           {record.title}
         </h1>
 
         {author?.slug ? (
-          <Link to={`/learners/${author.slug}`} style={{ fontSize: "14px", color: "var(--color-text-secondary)", textDecoration: "none" }}>
+          <Link to={`/learners/${author.slug}`} className="text-sm text-text-secondary no-underline">
             {author.displayName ?? "작성자"}
           </Link>
         ) : (
-          <p style={{ fontSize: "14px", color: "var(--color-text-secondary)" }}>{author?.displayName ?? "작성자"}</p>
+          <p className="text-sm text-text-secondary">{author?.displayName ?? "작성자"}</p>
         )}
       </header>
 
-      <section style={{ marginBottom: "var(--space-12)", fontSize: "var(--font-size-base)", lineHeight: "var(--line-height-relaxed)", color: "var(--color-text-primary)", whiteSpace: "pre-wrap" }}>
+      <section className="mb-12 text-base leading-relaxed text-text-primary whitespace-pre-wrap">
         {record.content}
       </section>
 
-      <section style={{ marginBottom: "var(--space-12)" }}>
-        <h2 style={{ fontSize: "var(--font-size-xl)", fontWeight: "var(--font-weight-semibold)", color: "var(--color-text-primary)", marginBottom: "var(--space-6)" }}>
+      <section className="mb-12">
+        <h2 className="text-xl font-semibold text-text-primary mb-6">
           남겨진 질문
         </h2>
         {recordQuestions.length > 0 ? (
-          <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
+          <div className="flex flex-col gap-4">
             {recordQuestions.map((question) => (
               <QuestionCard key={question.id} question={question} />
             ))}
@@ -249,29 +249,29 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
       </section>
 
       {record.responsePreference !== "closed" && (
-        <section style={{ marginBottom: "var(--space-12)" }}>
-          <h2 style={{ fontSize: "var(--font-size-xl)", fontWeight: "var(--font-weight-semibold)", color: "var(--color-text-primary)", marginBottom: "var(--space-4)" }}>
+        <section className="mb-12">
+          <h2 className="text-xl font-semibold text-text-primary mb-4">
             응답 남기기
           </h2>
 
           {actionData && "error" in actionData ? (
-            <p style={{ color: "var(--color-error)", marginBottom: "var(--space-4)", fontSize: "14px" }}>{actionData.error}</p>
+            <p className="text-error mb-4 text-sm">{actionData.error}</p>
           ) : null}
 
           {actionData && "success" in actionData ? (
-            <p style={{ color: "var(--color-success)", marginBottom: "var(--space-4)", fontSize: "14px" }}>{actionData.success}</p>
+            <p className="text-success mb-4 text-sm">{actionData.success}</p>
           ) : null}
 
-          <div style={{ display: "grid", gap: "var(--space-4)" }}>
-            <form method="post" style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)", backgroundColor: "var(--color-surface)", borderRadius: "var(--radius-lg)", border: "1px solid var(--color-border)", padding: "var(--space-6)" }}>
+          <div className="grid gap-4">
+            <form method="post" className="flex flex-col gap-4 bg-surface rounded-lg border border-border p-6">
               <input type="hidden" name="intent" value="create_response" />
               <input type="hidden" name="recordId" value={record.id} />
 
               <div>
-                <label htmlFor="response-type" style={{ fontSize: "13px", color: "var(--color-text-secondary)", display: "block", marginBottom: "var(--space-2)" }}>
+                <label htmlFor="response-type" className="text-meta text-text-secondary block mb-2">
                   응답 유형
                 </label>
-                <select id="response-type" name="type" required style={{ width: "100%", padding: "8px 12px", borderRadius: "var(--radius-md)", border: "1px solid var(--color-border)", fontSize: "var(--font-size-base)", backgroundColor: "var(--color-surface)" }}>
+                <select id="response-type" name="type" required className="w-full rounded-md border border-border bg-surface px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-ocean-blue">
                   {RESPONSE_TYPE_OPTIONS.map((option) => (
                     <option key={option.value} value={option.value}>
                       {option.label}
@@ -282,10 +282,10 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
 
               {recordQuestions.length > 0 ? (
                 <div>
-                  <label htmlFor="question-id" style={{ fontSize: "13px", color: "var(--color-text-secondary)", display: "block", marginBottom: "var(--space-2)" }}>
+                  <label htmlFor="question-id" className="text-meta text-text-secondary block mb-2">
                     연결할 질문 (선택)
                   </label>
-                  <select id="question-id" name="questionId" style={{ width: "100%", padding: "8px 12px", borderRadius: "var(--radius-md)", border: "1px solid var(--color-border)", fontSize: "var(--font-size-base)", backgroundColor: "var(--color-surface)" }}>
+                  <select id="question-id" name="questionId" className="w-full rounded-md border border-border bg-surface px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-ocean-blue">
                     <option value="">질문을 선택하지 않음</option>
                     {recordQuestions.map((question) => (
                       <option key={question.id} value={question.id}>
@@ -297,38 +297,38 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
               ) : null}
 
               <div>
-                <label htmlFor="response-content" style={{ fontSize: "13px", color: "var(--color-text-secondary)", display: "block", marginBottom: "var(--space-2)" }}>
+                <label htmlFor="response-content" className="text-meta text-text-secondary block mb-2">
                   내용
                 </label>
-                <textarea id="response-content" name="content" required rows={5} placeholder="이 기록에 응답해보세요." style={{ width: "100%", padding: "8px 12px", borderRadius: "var(--radius-md)", border: "1px solid var(--color-border)", fontSize: "var(--font-size-base)", resize: "vertical", fontFamily: "inherit" }} />
+                <textarea id="response-content" name="content" required rows={5} placeholder="이 기록에 응답해보세요." className="w-full rounded-md border border-border bg-surface px-3 py-2 text-base min-h-[120px] resize-y focus:outline-none focus:ring-2 focus:ring-ocean-blue" />
               </div>
 
-              <button type="submit" disabled={isSubmittingResponse} style={{ padding: "10px 20px", borderRadius: "var(--radius-md)", backgroundColor: "var(--color-ocean-blue)", color: "white", border: "none", cursor: "pointer", fontSize: "var(--font-size-base)", opacity: isSubmittingResponse ? 0.6 : 1, alignSelf: "flex-start" }}>
+              <button type="submit" disabled={isSubmittingResponse} className="rounded-md bg-ocean-blue text-white px-5 py-2.5 text-base font-medium hover:bg-deep-ocean transition-colors focus-visible:ring-2 focus-visible:ring-ocean-blue self-start disabled:opacity-60">
                 {isSubmittingResponse ? "등록 중..." : "응답 등록"}
               </button>
             </form>
 
-            <form method="post" style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)", backgroundColor: "var(--color-surface)", borderRadius: "var(--radius-lg)", border: "1px solid var(--color-border)", padding: "var(--space-6)" }}>
+            <form method="post" className="flex flex-col gap-4 bg-surface rounded-lg border border-border p-6">
               <input type="hidden" name="intent" value="save_sentence" />
               <input type="hidden" name="recordId" value={record.id} />
 
-              <h3 style={{ fontSize: "var(--font-size-lg)", fontWeight: "var(--font-weight-medium)", color: "var(--color-text-primary)" }}>문장 저장하기</h3>
+              <h3 className="text-lg font-medium text-text-primary">문장 저장하기</h3>
 
               <div>
-                <label htmlFor="sentence-content" style={{ fontSize: "13px", color: "var(--color-text-secondary)", display: "block", marginBottom: "var(--space-2)" }}>
+                <label htmlFor="sentence-content" className="text-meta text-text-secondary block mb-2">
                   남겨두고 싶은 문장
                 </label>
-                <textarea id="sentence-content" name="content" required rows={3} placeholder="기록에서 기억하고 싶은 문장을 남겨보세요." style={{ width: "100%", padding: "8px 12px", borderRadius: "var(--radius-md)", border: "1px solid var(--color-border)", fontSize: "var(--font-size-base)", resize: "vertical", fontFamily: "inherit" }} />
+                <textarea id="sentence-content" name="content" required rows={3} placeholder="기록에서 기억하고 싶은 문장을 남겨보세요." className="w-full rounded-md border border-border bg-surface px-3 py-2 text-base min-h-[80px] resize-y focus:outline-none focus:ring-2 focus:ring-ocean-blue" />
               </div>
 
               <div>
-                <label htmlFor="sentence-reason" style={{ fontSize: "13px", color: "var(--color-text-secondary)", display: "block", marginBottom: "var(--space-2)" }}>
+                <label htmlFor="sentence-reason" className="text-meta text-text-secondary block mb-2">
                   이유 (선택)
                 </label>
-                <textarea id="sentence-reason" name="reason" rows={2} placeholder="왜 이 문장을 남기고 싶은지 적어보세요." style={{ width: "100%", padding: "8px 12px", borderRadius: "var(--radius-md)", border: "1px solid var(--color-border)", fontSize: "var(--font-size-base)", resize: "vertical", fontFamily: "inherit" }} />
+                <textarea id="sentence-reason" name="reason" rows={2} placeholder="왜 이 문장을 남기고 싶은지 적어보세요." className="w-full rounded-md border border-border bg-surface px-3 py-2 text-base resize-y focus:outline-none focus:ring-2 focus:ring-ocean-blue" />
               </div>
 
-              <button type="submit" disabled={isSubmittingSentence} style={{ padding: "10px 20px", borderRadius: "var(--radius-md)", backgroundColor: "var(--color-deep-blue)", color: "white", border: "none", cursor: "pointer", fontSize: "var(--font-size-base)", opacity: isSubmittingSentence ? 0.6 : 1, alignSelf: "flex-start" }}>
+              <button type="submit" disabled={isSubmittingSentence} className="rounded-md bg-deep-ocean text-white px-5 py-2.5 text-base font-medium hover:bg-deep-ocean/90 transition-colors focus-visible:ring-2 focus-visible:ring-ocean-blue self-start disabled:opacity-60">
                 {isSubmittingSentence ? "저장 중..." : "문장 저장"}
               </button>
             </form>
@@ -336,12 +336,12 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
         </section>
       )}
 
-      <section style={{ marginBottom: "var(--space-12)" }}>
-        <h2 style={{ fontSize: "var(--font-size-xl)", fontWeight: "var(--font-weight-semibold)", color: "var(--color-text-primary)", marginBottom: "var(--space-6)" }}>
+      <section className="mb-12">
+        <h2 className="text-xl font-semibold text-text-primary mb-6">
           응답 {recordResponses.length}개
         </h2>
         {recordResponses.length > 0 ? (
-          <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
+          <div className="flex flex-col gap-4">
             {recordResponses.map(({ response, author: responseAuthor }) => (
               <ResponseCard key={response.id} response={response} author={responseAuthor ?? undefined} isSelfAnswer={response.type === "self_answer"} />
             ))}
@@ -351,20 +351,20 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
         )}
       </section>
 
-      <section style={{ marginBottom: "var(--space-12)" }}>
-        <h2 style={{ fontSize: "var(--font-size-xl)", fontWeight: "var(--font-weight-semibold)", color: "var(--color-text-primary)", marginBottom: "var(--space-6)" }}>
+      <section className="mb-12">
+        <h2 className="text-xl font-semibold text-text-primary mb-6">
           연결된 기록
         </h2>
         {linkedRecords.length > 0 ? (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "var(--space-4)" }}>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {linkedRecords.map(({ record: linkedRecord, author: linkedAuthor }) => (
-              <Link key={linkedRecord.id} to={`/logs/${linkedRecord.slug}`} style={{ textDecoration: "none", backgroundColor: "var(--color-surface)", borderRadius: "var(--radius-lg)", border: "1px solid var(--color-border)", padding: "var(--space-5)", display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
-                <p style={{ fontSize: "14px", color: "var(--color-text-secondary)" }}>{linkedRecord.format === "note" ? "노트" : "글"}</p>
-                <p style={{ fontSize: "var(--font-size-base)", color: "var(--color-text-primary)", fontWeight: "var(--font-weight-medium)", lineHeight: "var(--line-height-normal)" }}>
+              <Link key={linkedRecord.id} to={`/logs/${linkedRecord.slug}`} className="no-underline bg-surface rounded-lg border border-border p-5 flex flex-col gap-2">
+                <p className="text-sm text-text-secondary">{linkedRecord.format === "note" ? "노트" : "글"}</p>
+                <p className="text-base text-text-primary font-medium leading-normal">
                   {linkedRecord.title}
                 </p>
                 {linkedAuthor?.displayName ? (
-                  <p style={{ fontSize: "13px", color: "var(--color-text-tertiary)" }}>{linkedAuthor.displayName}</p>
+                  <p className="text-meta text-text-tertiary">{linkedAuthor.displayName}</p>
                 ) : null}
               </Link>
             ))}
@@ -375,11 +375,11 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
       </section>
 
       <section>
-        <h2 style={{ fontSize: "var(--font-size-xl)", fontWeight: "var(--font-weight-semibold)", color: "var(--color-text-primary)", marginBottom: "var(--space-6)" }}>
+        <h2 className="text-xl font-semibold text-text-primary mb-6">
           남겨두고 싶은 문장들
         </h2>
         {recordSentences.length > 0 ? (
-          <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
+          <div className="flex flex-col gap-4">
             {recordSentences.map(({ sentence, savedBy }) => (
               <HighlightedSentenceCard key={sentence.id} sentence={sentence} savedBy={savedBy ?? undefined} />
             ))}
@@ -394,9 +394,9 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
 
 export function ErrorBoundary() {
   return (
-    <div style={{ textAlign: "center", padding: "64px 16px" }}>
-      <p style={{ fontSize: "20px", fontWeight: "600", color: "var(--color-text-primary)" }}>기록을 찾을 수 없습니다.</p>
-      <Link to="/logs" style={{ marginTop: "16px", display: "inline-block", padding: "10px 20px", borderRadius: "var(--radius-md)", backgroundColor: "var(--color-ocean-blue)", color: "white", textDecoration: "none" }}>
+    <div className="text-center py-16 px-4">
+      <p className="text-xl font-semibold text-text-primary">기록을 찾을 수 없습니다.</p>
+      <Link to="/logs" className="mt-4 inline-block px-5 py-2.5 rounded-md bg-ocean-blue text-white no-underline">
         기록 목록으로
       </Link>
     </div>

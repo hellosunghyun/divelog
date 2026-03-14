@@ -12,13 +12,30 @@ export async function loader({ context }: Route.LoaderArgs) {
 export default function AdminMemoriesPage({ loaderData }: Route.ComponentProps) {
   return (
     <div>
-      <h2 style={{ fontSize: "20px", fontWeight: "600", color: "var(--color-admin-text)", marginBottom: "24px" }}>Collective Memory</h2>
+      <h2 className="text-xl font-semibold text-admin-text mb-6">Collective Memory</h2>
       {loaderData.memories.length === 0 ? (
         <EmptyState variant="generic" message="Collective Memory가 없습니다" />
       ) : (
-        <table style={{ width: "100%", borderCollapse: "collapse", backgroundColor: "var(--color-admin-surface)", borderRadius: "8px" }}>
-          <thead><tr style={{ borderBottom: "1px solid var(--color-admin-border)" }}>{["Stage", "상태", "코호트", "작업"].map((h) => <th key={h} style={{ textAlign: "left", padding: "10px 16px", fontSize: "12px", color: "var(--color-admin-text-secondary)", fontWeight: "600" }}>{h}</th>)}</tr></thead>
-          <tbody>{loaderData.memories.map(({ memory, stage }) => (<tr key={memory.id} style={{ borderBottom: "1px solid var(--color-admin-border)" }}><td style={{ padding: "10px 16px", fontSize: "13px", color: "var(--color-admin-text)" }}>{stage?.name ?? "-"}</td><td style={{ padding: "10px 16px", fontSize: "13px" }}>{memory.status}</td><td style={{ padding: "10px 16px", fontSize: "13px" }}>{memory.cohort ?? "-"}</td><td style={{ padding: "10px 16px" }}><Link to={`/admin/memories/${memory.id}`} style={{ fontSize: "12px", color: "var(--color-admin-accent)" }}>편집</Link></td></tr>))}</tbody>
+        <table className="w-full border-collapse bg-admin-surface rounded-md">
+          <thead>
+            <tr className="border-b border-admin-border">
+              {["Stage", "상태", "코호트", "작업"].map((h) => (
+                <th key={h} className="text-left px-3 py-2 text-xs text-admin-text-secondary font-semibold uppercase tracking-wide">{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {loaderData.memories.map(({ memory, stage }) => (
+              <tr key={memory.id} className="border-b border-admin-border hover:bg-admin-bg transition-colors">
+                <td className="px-3 py-2 text-[13px] text-admin-text">{stage?.name ?? "-"}</td>
+                <td className="px-3 py-2 text-[13px]">{memory.status}</td>
+                <td className="px-3 py-2 text-[13px]">{memory.cohort ?? "-"}</td>
+                <td className="px-3 py-2">
+                  <Link to={`/admin/memories/${memory.id}`} className="text-xs text-admin-accent hover:underline">편집</Link>
+                </td>
+              </tr>
+            ))}
+          </tbody>
         </table>
       )}
     </div>

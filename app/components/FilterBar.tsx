@@ -20,29 +20,22 @@ export default function FilterBar({ filters }: FilterBarProps) {
     } else {
       newParams.set(key, value);
     }
-    newParams.delete("page"); // reset pagination
+    newParams.delete("page");
     setSearchParams(newParams);
   };
 
   return (
-    <div style={{ display: "flex", gap: "var(--space-3)", flexWrap: "wrap", alignItems: "center" }}>
+    <div className="flex gap-3 flex-wrap items-center">
       {filters.map((filter) => (
-        <div key={filter.key} style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
-          <label htmlFor={`filter-${filter.key}`} style={{ fontSize: "13px", color: "var(--color-text-secondary)" }}>
+        <div key={filter.key} className="flex items-center gap-2">
+          <label htmlFor={`filter-${filter.key}`} className="text-meta text-text-secondary">
             {filter.label}
           </label>
           <select
             id={`filter-${filter.key}`}
             value={searchParams.get(filter.key) ?? ""}
             onChange={(e) => handleChange(filter.key, e.target.value)}
-            style={{
-              fontSize: "13px",
-              padding: "4px 8px",
-              borderRadius: "var(--radius-sm)",
-              border: "1px solid var(--color-border)",
-              backgroundColor: "var(--color-surface)",
-              color: "var(--color-text-primary)",
-            }}
+            className="text-meta px-2 py-1 rounded-sm border border-border bg-surface text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
           >
             <option value="">전체</option>
             {filter.values.map((v) => (
