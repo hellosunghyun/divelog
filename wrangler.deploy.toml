@@ -1,13 +1,15 @@
 name = "divelog"
+main = "build/server/index.js"
 compatibility_date = "2024-01-01"
 compatibility_flags = ["nodejs_compat"]
-pages_build_output_dir = "./build/client"
+
+[assets]
+directory = "build/client"
 
 [[d1_databases]]
 binding = "DB"
 database_name = "divelog-db"
 database_id = "12a8007b-d92c-45cf-8bab-2d5692d704c1"
-migrations_dir = "drizzle/migrations"
 
 [[r2_buckets]]
 binding = "R2"

@@ -1,5 +1,3 @@
-BEGIN TRANSACTION;
-
 DELETE FROM memory_questions;
 DELETE FROM memory_sentences;
 DELETE FROM memory_records;
@@ -325,6 +323,4 @@ INSERT INTO settings (id, key, value, updated_at) VALUES
   ('setting-004', 'home_show_learners', 'true', unixepoch()),
   ('setting-005', 'default_visibility', 'cohort', unixepoch()),
   ('setting-006', 'search_enabled', 'true', unixepoch()),
-  ('setting-007', 'templates_policy', 'optional', unixepoch());
-
-COMMIT;
+   ('setting-007', 'templates_policy', 'optional', unixepoch());
