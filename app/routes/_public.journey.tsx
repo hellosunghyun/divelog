@@ -72,16 +72,15 @@ export default function JourneyPage({ loaderData }: Route.ComponentProps) {
                 <Link
                   key={stage.id}
                   to={`/journey/${stage.slug}`}
-                  className="block bg-surface rounded-lg p-6 no-underline transition-all duration-normal hover:bg-surface-secondary hover:shadow-card-hover hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
-                  style={{
-                    border: isCurrent ? `1.5px solid ${accentColor}` : undefined,
-                    opacity: stage.status === "upcoming" ? 0.7 : 1,
-                  }}
+                  className={`block rounded-2xl p-7 no-underline transition-all hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2 ${
+                    isCurrent
+                      ? "quiet-depth-card shadow-md"
+                      : "bg-surface border border-border-subtle hover:bg-surface-secondary hover:shadow-card-hover"
+                  } ${stage.status === "upcoming" ? "opacity-60" : ""}`}
                 >
-                  <div className="flex items-start gap-4">
-                    {/* Stage number */}
+                  <div className="flex items-start gap-5">
                     <div
-                      className="w-8 h-8 rounded-full flex items-center justify-center text-meta font-semibold shrink-0"
+                      className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold shrink-0"
                       style={{
                         backgroundColor: `color-mix(in srgb, ${accentColor} 15%, transparent)`,
                         color: accentColor,
@@ -91,9 +90,9 @@ export default function JourneyPage({ loaderData }: Route.ComponentProps) {
                     </div>
 
                     <div className="flex-1">
-                      <div className="flex gap-2 mb-2 flex-wrap">
+                      <div className="flex gap-2 mb-3 flex-wrap">
                         <span
-                          className="text-caption px-2 py-0.5 rounded-full"
+                          className="text-caption font-medium px-2.5 py-0.5 rounded-full"
                           style={{
                             backgroundColor: `color-mix(in srgb, ${accentColor} 12%, transparent)`,
                             color: accentColor,
@@ -101,23 +100,23 @@ export default function JourneyPage({ loaderData }: Route.ComponentProps) {
                         >
                           {STAGE_TYPE_LABELS[stage.type] ?? stage.type}
                         </span>
-                        <span className="text-caption px-2 py-0.5 rounded-full bg-border text-text-secondary">
+                        <span className="text-caption font-medium px-2.5 py-0.5 rounded-full bg-surface-secondary text-text-secondary">
                           {STATUS_LABELS[stage.status] ?? stage.status}
                         </span>
                         {isCurrent && (
                           <span
-                            className="text-caption px-2 py-0.5 rounded-full text-white"
+                            className="text-caption font-bold px-2.5 py-0.5 rounded-full text-white"
                             style={{ backgroundColor: accentColor }}
                           >
                             현재
                           </span>
                         )}
                       </div>
-                      <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-2">
+                      <h2 className="text-xl font-bold text-deep-ocean tracking-tight mb-2">
                         {stage.name}
                       </h2>
                       {stage.description && (
-                        <p className="text-base text-text-secondary leading-body">
+                        <p className="text-base text-text-secondary leading-relaxed">
                           {stage.description}
                         </p>
                       )}
