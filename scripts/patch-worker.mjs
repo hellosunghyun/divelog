@@ -1,4 +1,4 @@
-import { appendFileSync } from "node:fs";
+import { appendFileSync, copyFileSync } from "node:fs";
 
 const workerEntry = `
 import { createRequestHandler } from "react-router";
@@ -17,3 +17,6 @@ export default {
 
 appendFileSync("build/server/index.js", workerEntry);
 console.log("[patch-worker] default export appended to build/server/index.js");
+
+copyFileSync("build/server/index.js", "build/client/_worker.js");
+console.log("[patch-worker] copied to build/client/_worker.js for Cloudflare Pages");
