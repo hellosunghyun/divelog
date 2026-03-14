@@ -11,7 +11,7 @@ interface PublicLoaderData {
 }
 
 export default function GlobalNav() {
-  const data = useRouteLoaderData("_public") as PublicLoaderData | undefined;
+  const data = useRouteLoaderData("routes/_public") as PublicLoaderData | undefined;
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [currentUrl, setCurrentUrl] = useState("/");
