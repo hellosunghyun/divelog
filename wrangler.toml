@@ -16,6 +16,3 @@ bucket_name = "divelog-r2"
 [[queues.producers]]
 binding = "QUEUE"
 queue = "divelog-queue"
-
-[[queues.consumers]]
-queue = "divelog-queue"
