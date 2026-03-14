@@ -8,7 +8,7 @@ import { nanoid } from "./utils.server";
 import { getAuth } from "./auth.server";
 
 function getLoginRedirectUrl(request: Request): string {
-  return `https://ada-kr-pos.com/login?returnUrl=${encodeURIComponent(request.url)}`;
+  return `https://ada-kr-pos.com/login?callbackUrl=${encodeURIComponent(request.url)}`;
 }
 
 export async function getOptionalUser(request: Request, context: AppLoadContext) {

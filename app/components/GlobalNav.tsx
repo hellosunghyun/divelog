@@ -25,7 +25,7 @@ export default function GlobalNav() {
     setIsMenuOpen(false);
   }, [location.pathname]);
 
-  const loginUrl = `https://ada-kr-pos.com/login?returnUrl=${encodeURIComponent(currentUrl)}`;
+  const loginUrl = `https://ada-kr-pos.com/login?callbackUrl=${encodeURIComponent(currentUrl)}`;
 
   const navLinks = [
     { to: "/journey", label: "여정" },

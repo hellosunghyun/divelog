@@ -161,7 +161,36 @@ Authorization: Bearer <API_KEY>
 - 404: 세션 또는 사용자를 찾을 수 없음
 - 429: 요청 한도 초과
 
+## 로그인 리다이렉트 (callbackUrl)
+미인증 사용자를 로그인 페이지로 보낼 때 `callbackUrl` 파라미터를 사용하면 로그인 후 원래 페이지로 돌아옵니다.
+
+```
+https://ada-kr-pos.com/login?callbackUrl=https://your-app.ada-kr-pos.com/current-page
+```
+
+- callbackUrl은 `https://` + `*.ada-kr-pos.com` 도메인만 허용 (Open Redirect 방지)
+- callbackUrl이 없거나 유효하지 않으면 기본 /mypage로 이동
+- Apple 로그인, 매직링크 모두 지원
+
+### 예시 (Hono)
+```typescript
+if (!auth.isAuthenticated) {
+  const loginUrl = new URL("https://ada-kr-pos.com/login");
+  loginUrl.searchParams.set("callbackUrl", c.req.url);
+  return c.redirect(loginUrl.toString());
+}
+```
+
+### 예시 (Express)
+```typescript
+if (!auth.isAuthenticated) {
+  const loginUrl = new URL("https://ada-kr-pos.com/login");
+  loginUrl.searchParams.set("callbackUrl", `${req.protocol}://${req.get("host")}${req.originalUrl}`);
+  return res.redirect(loginUrl.toString());
+}
+```
+
 ## 참고
 - SDK는 401/403 응답 시 해당 API 키를 30초간 무효로 캐시합니다.
 - 키 교체 후 즉시 반영하려면: `import { clearApiKeyCache } from "@adakrpos/auth"; clearApiKeyCache();`
-- 미인증 사용자는 https://ada-kr-pos.com/login 으로 리다이렉트하세요.
+- 미인증 사용자는 `https://ada-kr-pos.com/login?callbackUrl=<현재URL>` 로 리다이렉트하세요.
