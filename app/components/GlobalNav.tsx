@@ -26,6 +26,7 @@ export default function GlobalNav() {
   }, [location.pathname]);
 
   const loginUrl = `https://ada-kr-pos.com/login?callbackUrl=${encodeURIComponent(currentUrl)}`;
+  const logoutUrl = `https://ada-kr-pos.com/api/auth/logout?callbackUrl=${encodeURIComponent(currentUrl)}`;
 
   const navLinks = [
     { to: "/journey", label: "여정" },
@@ -90,6 +91,12 @@ export default function GlobalNav() {
                   {data.user?.name}
                 </span>
               </div>
+              <a
+                href={logoutUrl}
+                className="text-sm text-text-secondary hover:text-text-primary transition-colors"
+              >
+                로그아웃
+              </a>
             </>
           ) : (
             <a
@@ -180,6 +187,12 @@ export default function GlobalNav() {
                     {data.user?.name}
                   </span>
                 </div>
+                <a
+                  href={logoutUrl}
+                  className="text-sm py-2 text-text-secondary hover:text-text-primary transition-colors"
+                >
+                  로그아웃
+                </a>
               </>
             ) : (
               <>

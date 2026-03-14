@@ -18,8 +18,12 @@ export async function loader({ request, context }: Route.LoaderArgs) {
       auth.isAuthenticated && auth.user
         ? {
             id: auth.user.id,
-            name: auth.user.name ?? auth.user.nickname ?? "익명",
-            profilePhotoUrl: auth.user.profilePhotoUrl ?? null,
+            name: auth.user.nickname ?? auth.user.name ?? "익명",
+            profilePhotoUrl: auth.user.profilePhotoUrl
+              ? auth.user.profilePhotoUrl.startsWith("http")
+                ? auth.user.profilePhotoUrl
+                : `https://ada-kr-pos.com${auth.user.profilePhotoUrl}`
+              : null,
           }
         : null,
   };
