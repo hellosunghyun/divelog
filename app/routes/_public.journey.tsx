@@ -55,7 +55,9 @@ export default function JourneyPage({ loaderData }: Route.ComponentProps) {
       {/* Stage Strip */}
       {allStages.length > 0 && (
         <div className="bg-surface border-b border-border">
-          <StageStrip stages={allStages} currentStageSlug={currentStage?.slug} />
+          <div className="max-w-content mx-auto px-6">
+            <StageStrip stages={allStages} currentStageSlug={currentStage?.slug} />
+          </div>
         </div>
       )}
 
