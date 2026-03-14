@@ -17,27 +17,29 @@ export default function AdminCollaborationPage({ loaderData }: Route.ComponentPr
       {loaderData.units.length === 0 ? (
         <EmptyState variant="generic" message="Collaboration Unit이 없습니다" />
       ) : (
-        <table className="w-full border-collapse bg-admin-surface rounded-md">
-          <thead>
-            <tr className="border-b border-admin-border">
-              {["이름", "상태", "Slug", "작업"].map((h) => (
-                <th key={h} className="text-left px-3 py-2 text-xs text-admin-text-secondary font-semibold uppercase tracking-wide">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {loaderData.units.map((u) => (
-              <tr key={u.id} className="border-b border-admin-border hover:bg-admin-bg transition-colors">
-                <td className="px-3 py-2 text-[13px] text-admin-text">{u.name}</td>
-                <td className="px-3 py-2 text-[13px]">{STATUS[u.status] ?? u.status}</td>
-                <td className="px-3 py-2 text-[13px] text-admin-text-secondary">{u.slug}</td>
-                <td className="px-3 py-2">
-                  <Link to={`/admin/collaboration/${u.id}`} className="text-xs text-admin-accent hover:underline">관리</Link>
-                </td>
+        <div className="bg-admin-surface rounded-lg border border-admin-border overflow-hidden">
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="bg-admin-bg">
+                {["이름", "상태", "Slug", "작업"].map((h) => (
+                  <th key={h} className="text-left px-4 py-3 text-caption font-semibold text-admin-text-secondary uppercase tracking-wide">{h}</th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {loaderData.units.map((u) => (
+                <tr key={u.id} className="border-t border-admin-border hover:bg-admin-bg/50 transition-colors">
+                  <td className="px-4 py-3 text-meta text-admin-text">{u.name}</td>
+                  <td className="px-4 py-3 text-meta text-admin-text-secondary">{STATUS[u.status] ?? u.status}</td>
+                  <td className="px-4 py-3 text-meta text-admin-text-secondary">{u.slug}</td>
+                  <td className="px-4 py-3">
+                    <Link to={`/admin/collaboration/${u.id}`} className="text-caption text-admin-accent hover:underline">관리</Link>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

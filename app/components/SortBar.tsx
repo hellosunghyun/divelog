@@ -28,7 +28,7 @@ export default function SortBar({ options = DEFAULT_SORT_OPTIONS }: SortBarProps
           newParams.set("sort", e.target.value);
           setSearchParams(newParams);
         }}
-        className="text-meta px-2 py-1 rounded-sm border border-border bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
+        className="text-meta px-2 py-1 rounded-lg border border-border bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
       >
         {options.map((opt) => (
           <option key={opt.value} value={opt.value}>{opt.label}</option>

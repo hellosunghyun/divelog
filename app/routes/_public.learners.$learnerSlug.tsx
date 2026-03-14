@@ -43,14 +43,14 @@ export default function LearnerDetailPage({ loaderData }: Route.ComponentProps) 
     <div>
       <HeroSection variant="learner" title={learner.displayName} subtitle={learner.bio ?? undefined} />
 
-      <div className="max-w-content mx-auto py-12 px-4">
+      <div className="max-w-content mx-auto py-16 px-6">
         {/* Questions FIRST — before records */}
         {learnerQuestions.length > 0 && (
           <section className="mb-12">
-            <h2 className="text-xl font-semibold text-text-primary mb-6">
+            <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-8">
               탐구 중인 질문들
             </h2>
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-5">
               {learnerQuestions.map(({ question, recordSlug, recordTitle }) => (
                 <QuestionCard key={question.id} question={question} record={recordSlug && recordTitle ? { slug: recordSlug, title: recordTitle } : undefined} />
               ))}
@@ -60,13 +60,13 @@ export default function LearnerDetailPage({ loaderData }: Route.ComponentProps) 
 
         {/* Records */}
         <section className="mb-12">
-          <h2 className="text-xl font-semibold text-text-primary mb-6">
+          <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-8">
             기록
           </h2>
           {learnerRecords.length === 0 ? (
             <EmptyState variant="records" />
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {learnerRecords.map(({ record }) => <SceneCard key={record.id} record={record} />)}
             </div>
           )}
@@ -75,10 +75,10 @@ export default function LearnerDetailPage({ loaderData }: Route.ComponentProps) 
         {/* Saved Sentences */}
         {learnerSentences.length > 0 && (
           <section>
-            <h2 className="text-xl font-semibold text-text-primary mb-6">
+            <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-8">
               남겨둔 문장들
             </h2>
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-5">
               {learnerSentences.map(({ sentence }) => <HighlightedSentenceCard key={sentence.id} sentence={sentence} />)}
             </div>
           </section>
@@ -92,7 +92,7 @@ export function ErrorBoundary() {
   return (
     <div className="text-center py-16 px-4">
       <p className="text-xl font-semibold text-text-primary">Learner를 찾을 수 없습니다</p>
-      <Link to="/learners" className="mt-4 inline-block px-5 py-2.5 rounded-md bg-ocean-blue text-white">목록으로</Link>
+      <Link to="/learners" className="mt-4 inline-block rounded-full bg-deep-ocean text-white px-7 py-3 text-[15px] font-medium hover:bg-ocean-blue transition-all shadow-sm hover:shadow-md no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2">목록으로</Link>
     </div>
   );
 }

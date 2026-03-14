@@ -57,7 +57,7 @@ export default function AdminSidebar() {
       <div className="px-4 py-4 border-t border-admin-sidebar-hover">
         <Link
           to="/"
-          className="text-xs text-admin-text-secondary hover:text-admin-sidebar-text hover:underline transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-admin-accent focus-visible:ring-offset-2 focus-visible:ring-offset-admin-sidebar"
+          className="text-caption text-admin-text-secondary hover:text-admin-sidebar-text hover:underline transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-admin-accent focus-visible:ring-offset-2 focus-visible:ring-offset-admin-sidebar"
         >
           ← 사이트로 돌아가기
         </Link>

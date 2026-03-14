@@ -18,13 +18,13 @@ export default function QuestionCard({ question, record, onRespond }: QuestionCa
   return (
     <article
       data-testid="question-card"
-      className="rounded-lg border border-border bg-surface p-6 lg:p-7 shadow-sm"
+      className="rounded-2xl border border-border bg-surface p-7 lg:p-8 shadow-card"
     >
-      <div className="text-sm text-ocean-blue mb-4 font-medium">
+      <div className="text-[11px] font-medium tracking-widest uppercase text-ocean-blue/70 mb-4">
         {question.direction === "inward" ? "나에게 묻다" : "함께 생각해볼 질문"}
       </div>
 
-      <p className="text-xl leading-relaxed text-text-primary font-semibold mb-6">
+      <p className="text-xl md:text-2xl leading-relaxed text-text-primary font-semibold mb-6 tracking-tight">
         {question.content}
       </p>
 
@@ -43,7 +43,7 @@ export default function QuestionCard({ question, record, onRespond }: QuestionCa
         <button
           type="button"
           onClick={onRespond}
-          className="rounded-md px-4 py-2 text-sm border border-border bg-transparent text-text-secondary cursor-pointer transition-all duration-fast"
+          className="rounded-full px-5 py-2.5 text-sm border border-border bg-transparent text-text-secondary cursor-pointer transition-all duration-normal hover:border-ocean-blue/30 hover:bg-mist-blue/30 hover:text-ocean-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
         >
           이 질문에 응답하기
         </button>

@@ -21,13 +21,13 @@ export default function AdminCollaborationDetailPage({ loaderData }: Route.Compo
   return (
     <div>
       <div className="flex gap-4 items-center mb-6">
-        <Link to="/admin/collaboration" className="text-[13px] text-admin-text-secondary hover:text-admin-text">← 목록</Link>
+        <Link to="/admin/collaboration" className="text-meta text-admin-text-secondary hover:text-admin-text transition-colors">← 목록</Link>
         <h2 className="text-xl font-semibold text-admin-text">{unit.name}</h2>
       </div>
-      <form method="post" className="flex flex-col gap-4 max-w-md bg-admin-surface rounded-md p-6 border border-admin-border">
+      <form method="post" className="flex flex-col gap-5 max-w-md bg-admin-surface rounded-lg p-6 border border-admin-border">
         <div>
-          <label className="block text-xs text-admin-text-secondary mb-1.5">상태</label>
-          <select name="status" defaultValue={unit.status} className="w-full px-3 py-2 rounded-sm border border-admin-border bg-admin-surface text-sm outline-none">
+          <label htmlFor="status" className="block text-caption font-medium text-admin-text-secondary mb-2">상태</label>
+          <select id="status" name="status" defaultValue={unit.status} className="w-full px-3 py-2.5 rounded-md border border-admin-border bg-admin-surface text-sm text-admin-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-admin-accent focus-visible:ring-offset-2">
             <option value="forming">구성 중</option>
             <option value="active">탐구 중</option>
             <option value="restructured">재편성됨</option>
@@ -35,12 +35,12 @@ export default function AdminCollaborationDetailPage({ loaderData }: Route.Compo
           </select>
         </div>
         <div>
-          <label className="block text-xs text-admin-text-secondary mb-1.5">현재 질문</label>
-          <input name="currentQuestion" defaultValue={unit.currentQuestion ?? ""} className="w-full px-3 py-2 rounded-sm border border-admin-border bg-admin-surface text-sm outline-none" />
+          <label htmlFor="currentQuestion" className="block text-caption font-medium text-admin-text-secondary mb-2">현재 질문</label>
+          <input id="currentQuestion" name="currentQuestion" defaultValue={unit.currentQuestion ?? ""} className="w-full px-3 py-2.5 rounded-md border border-admin-border bg-admin-surface text-sm text-admin-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-admin-accent focus-visible:ring-offset-2" />
         </div>
         <div className="flex gap-3">
-          <button type="submit" className="px-5 py-2 rounded-sm bg-admin-accent text-white border-none cursor-pointer text-sm hover:opacity-90">저장</button>
-          <Link to="/admin/collaboration" className="px-5 py-2 rounded-sm border border-admin-border text-admin-text-secondary text-sm hover:bg-admin-bg">취소</Link>
+          <button type="submit" className="px-5 py-2.5 rounded-lg bg-admin-accent text-white text-sm font-medium hover:opacity-90 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-admin-accent focus-visible:ring-offset-2">저장</button>
+          <Link to="/admin/collaboration" className="px-5 py-2.5 rounded-lg border border-admin-border text-admin-text-secondary text-sm font-medium hover:bg-admin-bg transition-colors no-underline">취소</Link>
         </div>
       </form>
     </div>

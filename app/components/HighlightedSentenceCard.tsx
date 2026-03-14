@@ -20,9 +20,10 @@ export default function HighlightedSentenceCard({ sentence, savedBy, record }: H
   return (
     <blockquote
       data-testid="sentence-card"
-      className="rounded-lg border border-border bg-surface p-6 shadow-sm border-l-[3px] border-l-reef-cyan flex flex-col gap-3"
+      className="rounded-2xl border border-border bg-surface p-6 shadow-card flex flex-col gap-3 transition-all duration-normal hover:shadow-card-hover hover:-translate-y-0.5"
     >
-      <p className="text-lg leading-relaxed text-text-primary italic">
+      <div className="h-0.5 rounded-full bg-reef-cyan/40 w-12" />
+      <p className="text-xl md:text-2xl leading-relaxed text-text-primary italic tracking-tight">
         "{sentence.content}"
       </p>
       {sentence.reason && (
@@ -31,8 +32,8 @@ export default function HighlightedSentenceCard({ sentence, savedBy, record }: H
         </p>
       )}
       <div className="flex gap-4 text-meta text-text-tertiary">
-        {savedBy && <Link to={`/learners/${savedBy.slug}`}>{savedBy.displayName}</Link>}
-        {record && <Link to={`/logs/${record.slug}`}>← {record.title}</Link>}
+        {savedBy && <Link to={`/learners/${savedBy.slug}`} className="no-underline hover:text-ocean-blue transition-colors">{savedBy.displayName}</Link>}
+        {record && <Link to={`/logs/${record.slug}`} className="no-underline hover:text-ocean-blue transition-colors">← {record.title}</Link>}
       </div>
     </blockquote>
   );

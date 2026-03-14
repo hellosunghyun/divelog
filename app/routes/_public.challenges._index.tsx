@@ -28,19 +28,19 @@ export default function ChallengesPage({ loaderData }: Route.ComponentProps) {
   return (
     <div>
       <HeroSection variant="challenge" title="챌린지" subtitle="함께 탐구하는 공동의 도전들" />
-      <div className="max-w-content mx-auto py-12 px-4">
+      <div className="max-w-content mx-auto py-16 px-6">
         {allChallenges.length === 0 ? (
           <EmptyState variant="generic" message="아직 진행 중인 챌린지가 없습니다." />
         ) : (
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-5">
             {allChallenges.map((challenge) => (
-              <Link key={challenge.id} to={`/challenges/${challenge.slug}`} className="block no-underline bg-surface rounded-lg border border-border p-6 shadow-sm">
+              <Link key={challenge.id} to={`/challenges/${challenge.slug}`} className="block no-underline bg-surface rounded-lg border border-border p-6 shadow-sm transition-all duration-normal hover:shadow-card-hover hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2">
                 {challenge.currentQuestion && (
                   <p className="text-base text-ocean-blue italic mb-3">
                     "{challenge.currentQuestion}"
                   </p>
                 )}
-                <h2 className="text-xl font-semibold text-text-primary mb-2">
+                <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-2">
                   {challenge.name}
                 </h2>
                 {challenge.problemDefinition && (

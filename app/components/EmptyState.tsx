@@ -51,7 +51,7 @@ export default function EmptyState({ variant = "generic", action, message }: Emp
       {action && (
         <Link
           to={action.href}
-          className="mt-4 px-5 py-2.5 rounded-md bg-ocean-blue text-white text-sm font-medium hover:bg-deep-ocean transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
+          className="mt-4 px-5 py-2.5 rounded-full bg-ocean-blue text-white text-sm font-medium hover:bg-deep-ocean transition-all duration-normal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
         >
           {action.label}
         </Link>

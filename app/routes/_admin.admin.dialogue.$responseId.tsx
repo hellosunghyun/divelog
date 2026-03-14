@@ -23,28 +23,28 @@ export default function AdminDialogueDetailPage({ loaderData }: Route.ComponentP
   return (
     <div>
       <div className="flex gap-4 items-center mb-6">
-        <Link to="/admin/dialogue" className="text-[13px] text-admin-text-secondary hover:text-admin-text">← 목록</Link>
+        <Link to="/admin/dialogue" className="text-meta text-admin-text-secondary hover:text-admin-text transition-colors">← 목록</Link>
         <h2 className="text-xl font-semibold text-admin-text">Dialogue 검토</h2>
       </div>
       {record && (
-        <div className="bg-admin-surface rounded-md p-4 border border-admin-border mb-4">
-          <p className="text-xs text-admin-text-secondary mb-1">원문 기록</p>
-          <p className="text-[13px] text-admin-text">{record.title}</p>
+        <div className="bg-admin-surface rounded-lg p-5 border border-admin-border mb-4">
+          <p className="text-caption text-admin-text-secondary mb-1">원문 기록</p>
+          <p className="text-meta text-admin-text">{record.title}</p>
         </div>
       )}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-admin-surface rounded-md p-4 border border-admin-border">
-          <span className="text-xs text-admin-text-secondary">{response.type}</span>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <div className="lg:col-span-2 bg-admin-surface rounded-lg p-5 border border-admin-border">
+          <span className="text-caption text-admin-text-secondary">{response.type}</span>
           <p className="text-sm text-admin-text mt-2 leading-relaxed">{response.content}</p>
         </div>
-        <form method="post" className="bg-admin-surface rounded-md p-4 border border-admin-border flex flex-col gap-2 h-fit">
-          <label className="text-xs text-admin-text-secondary">Moderation</label>
-          <select name="moderationStatus" defaultValue={response.moderationStatus ?? "clean"} className="px-2.5 py-1.5 rounded-sm border border-admin-border text-[13px] outline-none">
+        <form method="post" className="bg-admin-surface rounded-lg p-5 border border-admin-border flex flex-col gap-3 h-fit">
+          <label htmlFor="moderationStatus" className="text-caption font-medium text-admin-text-secondary">Moderation</label>
+          <select id="moderationStatus" name="moderationStatus" defaultValue={response.moderationStatus ?? "clean"} className="w-full px-3 py-2.5 rounded-md border border-admin-border text-meta focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-admin-accent focus-visible:ring-offset-2">
             <option value="clean">Clean</option>
             <option value="flagged">Flagged</option>
             <option value="hidden">Hidden</option>
           </select>
-          <button type="submit" className="px-3 py-1.5 rounded-sm bg-admin-accent text-white border-none cursor-pointer text-[13px] hover:opacity-90">저장</button>
+          <button type="submit" className="px-5 py-2.5 rounded-lg bg-admin-accent text-white text-sm font-medium hover:opacity-90 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-admin-accent focus-visible:ring-offset-2">저장</button>
         </form>
       </div>
     </div>

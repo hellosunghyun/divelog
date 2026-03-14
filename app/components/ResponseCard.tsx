@@ -34,7 +34,7 @@ export default function ResponseCard({ response, author, isSelfAnswer }: Respons
   return (
     <article
       data-testid="response-card"
-      className={`rounded-lg border p-5 flex flex-col gap-3 shadow-xs ${
+      className={`rounded-2xl border p-5 flex flex-col gap-3 shadow-card transition-all duration-normal hover:shadow-card-hover hover:-translate-y-0.5 ${
         isSelfAnswer ? "bg-mist-blue border-reef-cyan" : "bg-surface border-border"
       }`}
     >

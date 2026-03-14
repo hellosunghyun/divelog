@@ -23,7 +23,7 @@ export default function LearnerCard({ learner, recentRecord, stage }: LearnerCar
   return (
     <article
       data-testid="learner-card"
-      className="bg-surface rounded-lg border border-border shadow-sm p-6 flex flex-col gap-4"
+      className="bg-surface rounded-2xl border border-border shadow-card p-6 flex flex-col gap-4 transition-all duration-normal hover:shadow-card-hover hover:-translate-y-0.5"
     >
       {/* Question FIRST — before profile (DOM order matters) */}
       {learner.currentQuestion && (
@@ -47,7 +47,7 @@ export default function LearnerCard({ learner, recentRecord, stage }: LearnerCar
         <div>
           <Link 
             to={`/learners/${learner.slug}`} 
-            className="font-semibold text-text-primary text-base hover:text-ocean-blue transition-colors"
+            className="font-semibold text-text-primary text-base tracking-tight no-underline hover:text-ocean-blue transition-colors"
           >
             {learner.displayName}
           </Link>
@@ -66,7 +66,7 @@ export default function LearnerCard({ learner, recentRecord, stage }: LearnerCar
       {recentRecord && (
         <Link 
           to={`/logs/${recentRecord.slug}`} 
-          className="text-meta text-text-tertiary hover:text-ocean-blue transition-colors"
+          className="text-meta text-text-tertiary no-underline hover:text-ocean-blue transition-colors"
         >
           최근: {recentRecord.title}
         </Link>

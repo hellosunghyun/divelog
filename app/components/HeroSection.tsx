@@ -33,7 +33,7 @@ export default function HeroSection({ variant, title, subtitle, accentTone, badg
             <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" aria-hidden="true" />
             {badge ?? "REFLECTIVE ARCHIVING"}
           </div>
-          <h1 className="text-5xl md:text-7xl font-semibold text-white mb-8 leading-[1.1] tracking-tight text-glow">
+          <h1 className="text-5xl md:text-7xl font-extrabold text-white mb-8 leading-[1.1] tracking-tight text-glow">
             {title}
           </h1>
           {subtitle && (

@@ -13,7 +13,7 @@ function SkeletonBox({ width = "w-full", height = "h-5", rounded = false }: { wi
 
 function CardSkeleton() {
   return (
-    <div className="bg-surface rounded-lg border border-border p-6 flex flex-col gap-3">
+    <div className="bg-surface rounded-2xl border border-border p-6 flex flex-col gap-3">
       <SkeletonBox width="w-[30%]" height="h-[18px]" rounded />
       <SkeletonBox width="w-[70%]" height="h-[22px]" />
       <SkeletonBox height="h-4" />

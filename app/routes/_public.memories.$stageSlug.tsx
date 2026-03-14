@@ -89,10 +89,10 @@ export default function MemoryPage({ loaderData }: Route.ComponentProps) {
         accentTone={stage.type}
       />
 
-      <div className="max-w-reading mx-auto py-12 px-4 md:py-20">
+      <div className="max-w-reading mx-auto py-16 px-6 md:py-24">
         {memQuestions.length > 0 && (
-          <section className="mb-10">
-            <h2 className="text-xl font-semibold text-text-primary mb-6">
+          <section className="mb-12">
+            <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-8">
               오래 남은 질문들
             </h2>
             {memQuestions.map(({ question }) =>
@@ -102,8 +102,8 @@ export default function MemoryPage({ loaderData }: Route.ComponentProps) {
         )}
 
         {memSentences.length > 0 && (
-          <section className="mb-10">
-            <h2 className="text-xl font-semibold text-text-primary mb-6">
+          <section className="mb-12">
+            <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-8">
               오래 남은 문장들
             </h2>
             {memSentences.map(({ sentence }) =>
@@ -115,7 +115,7 @@ export default function MemoryPage({ loaderData }: Route.ComponentProps) {
         )}
 
         {memory.carryForwardQuestion && (
-          <section className="mb-10 p-8 bg-mist-blue rounded-lg">
+          <section className="mb-12 p-8 bg-mist-blue rounded-lg">
             <p className="text-meta text-text-tertiary mb-3">
               다음으로 이어가는 질문
             </p>
@@ -127,10 +127,10 @@ export default function MemoryPage({ loaderData }: Route.ComponentProps) {
 
         {memRecords.length > 0 && (
           <section>
-            <h2 className="text-xl font-semibold text-text-primary mb-6">
+            <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-8">
               대표 기록들
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {memRecords.map(({ record }) =>
                 record ? <SceneCard key={record.id} record={record} /> : null
               )}
@@ -150,7 +150,7 @@ export function ErrorBoundary() {
       </p>
       <Link
         to="/journey"
-        className="mt-4 inline-block py-2.5 px-5 rounded-md bg-ocean-blue text-white"
+        className="mt-4 inline-block rounded-full bg-deep-ocean text-white px-7 py-3 text-[15px] font-medium hover:bg-ocean-blue transition-all shadow-sm hover:shadow-md no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
       >
         여정으로
       </Link>

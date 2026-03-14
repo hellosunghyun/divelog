@@ -27,7 +27,7 @@ export default function CollaborationUnitCard({ unit, memberCount, challenge }: 
   return (
     <article
       data-testid="collaboration-card"
-      className="bg-surface rounded-lg border border-border shadow-sm p-6 flex flex-col gap-4"
+      className="bg-surface rounded-2xl border border-border shadow-card p-6 flex flex-col gap-4 transition-all duration-normal hover:shadow-card-hover hover:-translate-y-0.5"
     >
       <div>
         <span className={
@@ -49,7 +49,7 @@ export default function CollaborationUnitCard({ unit, memberCount, challenge }: 
 
       <Link 
         to={`/groups/${unit.slug}`} 
-        className="font-semibold text-text-primary text-lg hover:text-ocean-blue transition-colors"
+        className="font-semibold text-text-primary text-lg tracking-tight no-underline hover:text-ocean-blue transition-colors"
       >
         {unit.name}
       </Link>
@@ -65,7 +65,7 @@ export default function CollaborationUnitCard({ unit, memberCount, challenge }: 
         {challenge && (
           <Link 
             to={`/challenges/${challenge.slug}`}
-            className="hover:text-ocean-blue transition-colors"
+            className="no-underline hover:text-ocean-blue transition-colors"
           >
             {challenge.name}
           </Link>

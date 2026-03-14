@@ -35,7 +35,7 @@ export default function FilterBar({ filters }: FilterBarProps) {
             id={`filter-${filter.key}`}
             value={searchParams.get(filter.key) ?? ""}
             onChange={(e) => handleChange(filter.key, e.target.value)}
-            className="text-meta px-2 py-1 rounded-sm border border-border bg-surface text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
+            className="text-meta px-2 py-1 rounded-lg border border-border bg-surface text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
           >
             <option value="">전체</option>
             {filter.values.map((v) => (

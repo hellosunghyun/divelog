@@ -16,27 +16,29 @@ export default function AdminChallengesPage({ loaderData }: Route.ComponentProps
       {loaderData.challenges.length === 0 ? (
         <EmptyState variant="generic" message="등록된 챌린지가 없습니다" />
       ) : (
-        <table className="w-full border-collapse bg-admin-surface rounded-md">
-          <thead>
-            <tr className="border-b border-admin-border">
-              {["이름", "상태", "코호트", "작업"].map((h) => (
-                <th key={h} className="text-left px-3 py-2 text-xs text-admin-text-secondary font-semibold uppercase tracking-wide">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {loaderData.challenges.map((c) => (
-              <tr key={c.id} className="border-b border-admin-border hover:bg-admin-bg transition-colors">
-                <td className="px-3 py-2 text-[13px] text-admin-text">{c.name}</td>
-                <td className="px-3 py-2 text-[13px]">{c.status}</td>
-                <td className="px-3 py-2 text-[13px]">{c.cohort ?? "-"}</td>
-                <td className="px-3 py-2">
-                  <Link to={`/admin/challenges/${c.id}`} className="text-xs text-admin-accent hover:underline">편집</Link>
-                </td>
+        <div className="bg-admin-surface rounded-lg border border-admin-border overflow-hidden">
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="bg-admin-bg">
+                {["이름", "상태", "코호트", "작업"].map((h) => (
+                  <th key={h} className="text-left px-4 py-3 text-caption font-semibold text-admin-text-secondary uppercase tracking-wide">{h}</th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {loaderData.challenges.map((c) => (
+                <tr key={c.id} className="border-t border-admin-border hover:bg-admin-bg/50 transition-colors">
+                  <td className="px-4 py-3 text-meta text-admin-text">{c.name}</td>
+                  <td className="px-4 py-3 text-meta text-admin-text-secondary">{c.status}</td>
+                  <td className="px-4 py-3 text-meta text-admin-text-secondary">{c.cohort ?? "-"}</td>
+                  <td className="px-4 py-3">
+                    <Link to={`/admin/challenges/${c.id}`} className="text-caption text-admin-accent hover:underline">편집</Link>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

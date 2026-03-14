@@ -50,7 +50,7 @@ export default function SceneCard({
   return (
     <article
       data-testid="scene-card"
-      className="rounded-lg border border-border bg-surface p-6 shadow-sm transition-transform duration-fast hover:-translate-y-px flex flex-col gap-4"
+      className="rounded-2xl border border-border bg-surface p-6 shadow-card transition-all duration-normal hover:shadow-card-hover hover:-translate-y-0.5 flex flex-col gap-4"
     >
       {/* Stage + Format badges */}
       <div className="flex gap-2 flex-wrap">
@@ -74,7 +74,7 @@ export default function SceneCard({
         to={`/logs/${record.slug}`}
         className="text-lg font-semibold text-text-primary leading-title no-underline"
       >
-        <h3>{record.title}</h3>
+        <h3 className="tracking-tight">{record.title}</h3>
       </Link>
 
       {/* Snippet */}
@@ -83,11 +83,11 @@ export default function SceneCard({
       </p>
 
       {/* Footer */}
-      <div className="flex items-center justify-between mt-2">
+      <div className="flex items-center justify-between mt-2 border-t border-border-subtle pt-4">
         {author && (
           <Link
             to={`/learners/${author.slug}`}
-            className="text-meta text-text-secondary no-underline"
+            className="text-meta text-text-secondary no-underline hover:text-ocean-blue transition-colors"
           >
             {author.displayName}
           </Link>

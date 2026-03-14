@@ -28,24 +28,24 @@ export default function AdminAnalyticsPage({ loaderData }: Route.ComponentProps)
   return (
     <div>
       <h2 className="text-xl font-semibold text-admin-text mb-6">애널리틱스</h2>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-5 mb-8">
         {[
           { label: "전체 기록", value: stats.records },
           { label: "전체 질문", value: stats.questions },
           { label: "전체 응답", value: stats.responses },
           { label: "전체 Learner", value: stats.learners },
         ].map((item) => (
-          <div key={item.label} className="bg-admin-surface border border-admin-border rounded-md p-4">
-            <p className="text-xs text-admin-text-secondary mb-2">{item.label}</p>
+          <div key={item.label} className="bg-admin-surface border border-admin-border rounded-lg p-5">
+            <p className="text-caption text-admin-text-secondary mb-2">{item.label}</p>
             <p className="text-3xl font-semibold text-admin-text">{item.value}</p>
           </div>
         ))}
       </div>
       {currentStage && (
-        <div className="bg-admin-surface border border-admin-border rounded-md p-4">
+        <div className="bg-admin-surface border border-admin-border rounded-lg p-5">
           <h3 className="text-sm font-semibold mb-3 text-admin-text">현재 Stage</h3>
           <p className="text-base text-admin-text">{currentStage.name}</p>
-          <p className="text-[13px] text-admin-text-secondary mt-1">{currentStage.description}</p>
+          <p className="text-meta text-admin-text-secondary mt-1">{currentStage.description}</p>
         </div>
       )}
     </div>

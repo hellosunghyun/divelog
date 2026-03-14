@@ -87,7 +87,7 @@ export default function StageDetailPage({ loaderData }: Route.ComponentProps) {
         <StageStrip stages={allStages} currentStageSlug={stage.slug} />
       </div>
 
-      <div className="max-w-content mx-auto px-4 py-12 md:py-20">
+      <div className="max-w-content mx-auto px-6 py-16 md:py-24">
         {stage.heroContent && (
           <section className="mb-12 p-8 bg-surface rounded-lg border border-border">
             <p className="text-meta text-text-tertiary mb-3">
@@ -101,10 +101,10 @@ export default function StageDetailPage({ loaderData }: Route.ComponentProps) {
 
         {stageQuestions.length > 0 && (
           <section className="mb-12">
-            <h2 className="text-xl font-semibold text-text-primary mb-6">
+            <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-8">
               이 Stage의 열린 질문들
             </h2>
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-5">
               {stageQuestions.map(({ question, recordSlug, recordTitle }) => (
                 <QuestionCard
                   key={question.id}
@@ -121,7 +121,7 @@ export default function StageDetailPage({ loaderData }: Route.ComponentProps) {
         )}
 
         <section className="mb-12">
-          <h2 className="text-xl font-semibold text-text-primary mb-6">
+          <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-8">
             협업
           </h2>
           {stageCollaborations.length === 0 ? (
@@ -134,7 +134,7 @@ export default function StageDetailPage({ loaderData }: Route.ComponentProps) {
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {stageCollaborations.map((unit) => (
                 <CollaborationUnitCard key={unit.id} unit={unit} />
               ))}
@@ -143,13 +143,13 @@ export default function StageDetailPage({ loaderData }: Route.ComponentProps) {
         </section>
 
         <section>
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-text-primary">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-xl font-semibold text-text-primary tracking-tight">
               기록
             </h2>
             <Link
               to={`/logs?stage=${stage.id}`}
-              className="text-sm text-text-tertiary hover:text-text-secondary transition-colors"
+              className="text-sm text-text-tertiary hover:text-ocean-blue transition-colors no-underline"
             >
               전체 보기 →
             </Link>
@@ -160,7 +160,7 @@ export default function StageDetailPage({ loaderData }: Route.ComponentProps) {
               action={{ label: "이 Stage에 기록하기", href: "/write" }}
             />
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {stageRecords.map(({ record, author }) => (
                 <SceneCard key={record.id} record={record} author={author ?? undefined} />
               ))}
@@ -183,7 +183,7 @@ export function ErrorBoundary() {
       </p>
       <Link
         to="/journey"
-        className="mt-4 inline-block px-5 py-2.5 rounded-md bg-ocean-blue text-white font-medium hover:bg-deep-ocean transition-colors"
+        className="mt-4 inline-block rounded-full bg-deep-ocean text-white px-7 py-3 text-[15px] font-medium hover:bg-ocean-blue transition-all shadow-sm hover:shadow-md no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
       >
         여정으로 돌아가기
       </Link>

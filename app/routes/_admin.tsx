@@ -22,7 +22,7 @@ export default function AdminLayout() {
       <AdminSidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <AdminContextBar />
-        <main className="flex-1 overflow-y-auto p-6">
+        <main className="flex-1 overflow-y-auto p-5">
           <Outlet />
         </main>
       </div>

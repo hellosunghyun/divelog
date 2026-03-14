@@ -27,13 +27,13 @@ export default function StageStrip({ stages, currentStageSlug }: StageStripProps
     <nav
       data-testid="stage-strip"
       aria-label="여정 Stage 목록"
-      className="flex gap-3 overflow-x-auto p-4 scrollbar-thin"
+      className="flex gap-3 overflow-x-auto py-5 px-4 md:px-6 scrollbar-thin"
     >
       {stages.map((stage) => {
         const isCurrent = stage.isCurrent || stage.slug === currentStageSlug;
         const accentClasses = STAGE_ACCENT_CLASSES[stage.type] ?? STAGE_ACCENT_CLASSES.challenge;
 
-        let stageClasses = "flex-shrink-0 px-5 py-3 rounded-full text-sm whitespace-nowrap no-underline transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2";
+        let stageClasses = "flex-shrink-0 px-5 py-3 rounded-full text-sm whitespace-nowrap no-underline transition-all duration-normal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2";
 
         if (isCurrent) {
           stageClasses += ` ${accentClasses.bg} ${accentClasses.text} border-1.5 ${accentClasses.border} font-semibold`;

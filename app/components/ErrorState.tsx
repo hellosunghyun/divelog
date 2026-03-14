@@ -34,7 +34,7 @@ export default function ErrorState({ type = "system", message, onRetry }: ErrorS
         <button
           type="button"
           onClick={onRetry}
-          className="mt-4 px-5 py-2.5 rounded-md border border-border bg-transparent text-text-secondary text-sm font-medium cursor-base hover:bg-surface-secondary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
+          className="mt-4 px-5 py-2.5 rounded-full border border-border bg-transparent text-text-secondary text-sm font-medium cursor-base hover:bg-surface-secondary transition-all duration-normal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
         >
           다시 시도
         </button>

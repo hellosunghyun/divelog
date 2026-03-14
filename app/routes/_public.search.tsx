@@ -86,18 +86,18 @@ export default function SearchPage({ loaderData }: Route.ComponentProps) {
         subtitle="기록, 질문, Learner, 문장을 검색합니다"
       />
 
-      <div className="max-w-content mx-auto py-8 px-4">
+      <div className="max-w-content mx-auto py-12 px-6">
         <Form className="mb-8 flex gap-3">
           <input
             name="q"
             type="search"
             defaultValue={q}
             placeholder="검색어를 입력하세요..."
-            className="flex-1 rounded-sm border border-border bg-surface px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-ocean-blue"
+            className="flex-1 rounded-lg border border-border bg-surface px-4 py-3 text-base text-text-primary placeholder:text-text-tertiary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
           />
           <button
             type="submit"
-            className="bg-ocean-blue text-white rounded-md px-5 py-3 text-base font-medium hover:bg-deep-ocean transition-colors"
+            className="rounded-full bg-deep-ocean text-white px-7 py-3 text-[15px] font-medium hover:bg-ocean-blue transition-all shadow-sm hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
           >
             검색
           </button>
@@ -112,15 +112,15 @@ export default function SearchPage({ loaderData }: Route.ComponentProps) {
           <EmptyState variant="search" message={`"${q}"에 대한 결과가 없습니다.`} />
         ) : (
           <div>
-            <div className="flex gap-2 mb-6 border-b border-border pb-2">
+            <div className="flex gap-2 mb-8 border-b border-border pb-3">
               {["all", "records", "questions", "learners", "sentences"].map((t) => (
                 <a
                   key={t}
                   href={`?q=${encodeURIComponent(q)}&tab=${t}`}
-                  className={`px-3 py-1.5 rounded-full text-meta no-underline ${
+                  className={`px-4 py-2 rounded-full text-sm no-underline transition-colors ${
                     tab === t
-                      ? "bg-ocean-blue text-white"
-                      : "bg-transparent text-text-secondary hover:text-text-primary"
+                      ? "bg-deep-ocean text-white font-medium"
+                      : "text-text-secondary hover:bg-mist-blue/30"
                   }`}
                 >
                   {t === "all"
@@ -137,11 +137,11 @@ export default function SearchPage({ loaderData }: Route.ComponentProps) {
             </div>
 
             {(tab === "all" || tab === "records") && results.records.length > 0 && (
-              <section className="mb-8">
-                <h3 className="text-lg font-semibold text-text-primary mb-4">
+              <section className="mb-10">
+                <h3 className="text-lg font-semibold text-text-primary tracking-tight mb-6">
                   기록
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                   {results.records.map(({ record, author }) => (
                     <SceneCard key={record.id} record={record} author={author ?? undefined} />
                   ))}
@@ -150,11 +150,11 @@ export default function SearchPage({ loaderData }: Route.ComponentProps) {
             )}
 
             {(tab === "all" || tab === "learners") && results.learners.length > 0 && (
-              <section className="mb-8">
-                <h3 className="text-lg font-semibold text-text-primary mb-4">
+              <section className="mb-10">
+                <h3 className="text-lg font-semibold text-text-primary tracking-tight mb-6">
                   Learner
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                   {results.learners.map((learner) => (
                     <LearnerCard key={learner.userId} learner={learner} />
                   ))}
@@ -163,15 +163,15 @@ export default function SearchPage({ loaderData }: Route.ComponentProps) {
             )}
 
             {(tab === "all" || tab === "questions") && results.questions.length > 0 && (
-              <section className="mb-8">
-                <h3 className="text-lg font-semibold text-text-primary mb-4">
+              <section className="mb-10">
+                <h3 className="text-lg font-semibold text-text-primary tracking-tight mb-6">
                   질문
                 </h3>
-                <div className="flex flex-col gap-3">
+                <div className="flex flex-col gap-4">
                   {results.questions.map((q2) => (
                     <p
                       key={q2.id}
-                      className="p-4 bg-surface rounded-md border border-border text-text-primary"
+                      className="p-5 bg-surface rounded-lg border border-border text-text-primary"
                     >
                       {q2.content}
                     </p>

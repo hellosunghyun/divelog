@@ -81,15 +81,15 @@ export default function GroupDetailPage({ loaderData }: Route.ComponentProps) {
         )}
       </HeroSection>
 
-      <div className="max-w-content mx-auto py-12 px-4 md:py-20">
+      <div className="max-w-content mx-auto py-16 px-6 md:py-24">
         <section className="mb-12">
-          <h2 className="text-xl font-semibold text-text-primary mb-6">
+          <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-8">
             팀원
           </h2>
           {members.length === 0 ? (
             <EmptyState variant="learners" message="팀원 정보가 없습니다." />
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {members.map(({ learner }) =>
                 learner ? <LearnerCard key={learner.userId} learner={learner} /> : null
               )}
@@ -98,13 +98,13 @@ export default function GroupDetailPage({ loaderData }: Route.ComponentProps) {
         </section>
 
         <section>
-          <h2 className="text-xl font-semibold text-text-primary mb-6">
+          <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-8">
             기록
           </h2>
           {unitRecords.length === 0 ? (
             <EmptyState variant="records" />
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {unitRecords.map(({ record, author }) => (
                 <SceneCard key={record.id} record={record} author={author ?? undefined} />
               ))}
@@ -124,7 +124,7 @@ export function ErrorBoundary() {
       </p>
       <Link
         to="/"
-        className="mt-4 inline-block py-2.5 px-5 rounded-md bg-ocean-blue text-white"
+        className="mt-4 inline-block rounded-full bg-deep-ocean text-white px-7 py-3 text-[15px] font-medium hover:bg-ocean-blue transition-all shadow-sm hover:shadow-md no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
       >
         홈으로
       </Link>

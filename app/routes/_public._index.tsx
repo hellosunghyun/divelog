@@ -38,7 +38,7 @@ export async function loader({ context }: Route.LoaderArgs) {
       .leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
       .where(sql`${records.visibility} != 'draft'`)
       .orderBy(desc(records.createdAt))
-      .limit(6),
+      .limit(9),
     database
       .select({
         questionId: questions.id,
@@ -55,7 +55,7 @@ export async function loader({ context }: Route.LoaderArgs) {
       .leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
       .where(and(eq(questions.isOpen, true), sql`${records.visibility} != 'draft'`))
       .orderBy(desc(questions.createdAt))
-      .limit(6),
+      .limit(8),
     database
       .select({
         sentenceId: sentences.id,
@@ -115,7 +115,7 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
       >
         <Link
           to="/journey"
-          className="bg-white text-deep-ocean px-10 py-4 rounded-full font-semibold hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2.5 text-md shadow-xl no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
+          className="bg-white text-deep-ocean px-10 py-4 rounded-full font-bold hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2.5 text-md shadow-xl no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
         >
           <span>여정 시작하기</span>
           <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -125,7 +125,7 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
         </Link>
         <Link
           to="/logs"
-          className="border border-white/20 bg-white/5 backdrop-blur-xl text-white px-10 py-4 rounded-full font-semibold hover:bg-white/10 transition-all text-md no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
+          className="border border-white/20 bg-white/5 backdrop-blur-xl text-white px-10 py-4 rounded-full font-bold hover:bg-white/10 transition-all text-md no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
         >
           공유된 기록 읽기
         </Link>
@@ -138,8 +138,8 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
               <div className="absolute top-0 left-0 w-1.5 h-full bg-ocean-blue/10" aria-hidden="true" />
               <div className="flex flex-col lg:flex-row items-center gap-10">
                 <div className="lg:w-1/4">
-                  <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-ocean-blue/60 block mb-1">현재 여정</span>
-                  <h2 className="text-xl font-semibold text-deep-ocean mb-3">모든 러너가 함께 걷는 길</h2>
+                  <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-ocean-blue/60 block mb-1">현재 여정</span>
+                  <h2 className="text-xl font-bold text-deep-ocean mb-3">모든 러너가 함께 걷는 길</h2>
                   {currentStage && (
                     <div className="bg-ocean-blue/5 border border-ocean-blue/10 rounded-2xl p-4">
                       <div className="flex items-center gap-2 mb-2">
@@ -147,7 +147,7 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
                           <circle cx="12" cy="12" r="10" />
                           <path d="M12 6v6l4 2" />
                         </svg>
-                        <span className="text-xs font-semibold text-ocean-blue">현재 구간</span>
+                        <span className="text-xs font-bold text-ocean-blue">현재 구간</span>
                       </div>
                       <p className="text-[13px] text-text-secondary leading-snug">{currentStage.name}</p>
                     </div>
@@ -177,7 +177,7 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
                             aria-label={`${stage.name}${isCurrent ? " (현재)" : ""}`}
                           />
                           <span className={`text-[11px] font-medium whitespace-nowrap ${
-                            isCurrent ? "text-ocean-blue font-semibold" : "text-text-tertiary"
+                            isCurrent ? "text-ocean-blue font-bold" : "text-text-tertiary"
                           }`}>
                             {stage.name}
                           </span>
@@ -197,8 +197,8 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
             <div className="lg:col-span-4 sticky top-24">
               <div className="quiet-depth-card p-10 rounded-[40px]">
-                <span className="text-ocean-blue font-semibold text-[10px] tracking-[0.2em] uppercase mb-4 block">현재 구간</span>
-                <h3 className="text-3xl font-semibold text-deep-ocean mb-6">{currentStage.name}</h3>
+                <span className="text-ocean-blue font-bold text-[10px] tracking-[0.2em] uppercase mb-4 block">현재 구간</span>
+                <h3 className="text-3xl font-bold text-deep-ocean mb-6">{currentStage.name}</h3>
                 {currentStage.description && (
                   <p className="text-text-secondary text-[17px] leading-relaxed mb-8 font-light italic">
                     &ldquo;{currentStage.description}&rdquo;
@@ -211,13 +211,13 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
                         l.profilePhotoUrl ? (
                           <img key={l.userId} src={l.profilePhotoUrl} alt="" className="w-9 h-9 rounded-full border-2 border-white object-cover" />
                         ) : (
-                          <div key={l.userId} className="w-9 h-9 rounded-full border-2 border-white bg-mist-blue flex items-center justify-center text-xs font-semibold text-ocean-blue">
+                          <div key={l.userId} className="w-9 h-9 rounded-full border-2 border-white bg-mist-blue flex items-center justify-center text-xs font-bold text-ocean-blue">
                             {l.displayName[0]}
                           </div>
                         )
                       ))}
                       {learnerCount > 2 && (
-                        <div className="w-9 h-9 rounded-full border-2 border-white bg-ocean-blue flex items-center justify-center text-[9px] text-white font-semibold">
+                        <div className="w-9 h-9 rounded-full border-2 border-white bg-ocean-blue flex items-center justify-center text-[9px] text-white font-bold">
                           +{learnerCount - 2}
                         </div>
                       )}
@@ -229,17 +229,20 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
             </div>
             <div className="lg:col-span-8">
               <div className="flex items-center justify-between mb-8">
-                <h4 className="text-2xl font-semibold flex items-center gap-3 text-deep-ocean">이번 구간의 열린 질문들</h4>
-                <Link to="/logs" className="text-ocean-blue font-semibold hover:underline text-[13px] no-underline">모두 보기</Link>
+                <h4 className="text-2xl font-bold flex items-center gap-3 text-deep-ocean">
+                    <svg className="w-7 h-7 text-ocean-blue" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                    이번 구간의 열린 질문들
+                  </h4>
+                <Link to="/logs" className="text-ocean-blue font-bold hover:underline text-[13px] no-underline">모두 보기</Link>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {openQuestions.map((row) => (
-                  <article
-                    key={row.questionId}
-                    className="quiet-depth-card p-5 rounded-2xl group cursor-pointer hover:border-ocean-blue/30"
-                  >
-                    <span className="text-[9px] font-semibold text-ocean-blue tracking-widest mb-2 block uppercase">QUESTION</span>
-                    <p className="text-[15px] font-semibold leading-tight group-hover:text-ocean-blue transition-colors text-text-primary">
+                  {openQuestions.map((row, idx) => (
+                    <article
+                      key={row.questionId}
+                      className="quiet-depth-card p-5 rounded-2xl group cursor-pointer hover:border-ocean-blue/30"
+                    >
+                      <span className="text-[9px] font-bold text-ocean-blue tracking-widest mb-2 block uppercase">QUESTION {String(idx + 1).padStart(2, "0")}</span>
+                    <p className="text-[15px] font-bold leading-tight group-hover:text-ocean-blue transition-colors text-text-primary">
                       {row.questionContent}
                     </p>
                     <div className="flex items-center justify-between mt-4">
@@ -248,7 +251,7 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
                       </span>
                       <Link
                         to={row.recordSlug ? `/logs/${row.recordSlug}` : "/logs"}
-                        className="text-ocean-blue text-[11px] font-semibold px-3 py-1.5 rounded-lg border border-ocean-blue/20 hover:bg-ocean-blue/5 no-underline"
+                        className="text-ocean-blue text-[11px] font-bold px-3 py-1.5 rounded-lg border border-ocean-blue/20 hover:bg-ocean-blue hover:text-white transition-all no-underline"
                       >
                         답변하기
                       </Link>
@@ -265,8 +268,8 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
         <div className="max-w-canvas mx-auto px-6">
           <div className="flex items-end justify-between mb-12">
             <div>
-              <span className="text-[10px] font-semibold tracking-[0.3em] text-ocean-blue/50 mb-2 block uppercase">최근 기록</span>
-              <h2 className="text-3xl font-semibold text-deep-ocean">코호트 아카이브: 최근의 기록들</h2>
+              <span className="text-[10px] font-bold tracking-[0.3em] text-ocean-blue/50 mb-2 block uppercase">최근 기록</span>
+              <h2 className="text-3xl font-bold text-deep-ocean">코호트 아카이브: 최근의 기록들</h2>
               <p className="text-text-secondary mt-2 text-md font-light">러너들이 깊은 곳에서 건져 올린 새로운 성찰 조각들.</p>
             </div>
           </div>
@@ -282,13 +285,13 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
                       className="quiet-depth-card p-7 rounded-[28px] flex flex-col min-h-[320px]"
                     >
                       <div className="flex items-center justify-between mb-5">
-                        <span className="bg-ocean-blue/10 text-ocean-blue text-[9px] font-semibold uppercase tracking-wider px-2.5 py-0.5 rounded-full">
+                        <span className="bg-ocean-blue/10 text-ocean-blue text-[9px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full">
                           {FORMAT_LABELS[row.format] ?? row.format}
                         </span>
                         <span className="text-[11px] text-text-tertiary font-medium">{formatRelativeTime(row.createdAt)}</span>
                       </div>
                       <Link to={`/logs/${row.slug}`} className="no-underline group">
-                        <h3 className="text-lg font-semibold mb-3 leading-tight text-deep-ocean line-clamp-2 group-hover:text-ocean-blue transition-colors">
+                        <h3 className="text-lg font-bold mb-3 leading-tight text-deep-ocean line-clamp-2 group-hover:text-ocean-blue transition-colors">
                           {row.title}
                         </h3>
                       </Link>
@@ -302,13 +305,13 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
                               className="w-7 h-7 rounded-full object-cover"
                             />
                           ) : (
-                            <div className="w-7 h-7 rounded-full bg-mist-blue flex items-center justify-center text-[10px] font-semibold text-ocean-blue">
+                            <div className="w-7 h-7 rounded-full bg-mist-blue flex items-center justify-center text-[10px] font-bold text-ocean-blue">
                               {initial}
                             </div>
                           )}
                           <Link
                             to={row.authorSlug ? `/learners/${row.authorSlug}` : "#"}
-                            className="text-[12px] font-semibold text-text-secondary no-underline hover:text-ocean-blue transition-colors"
+                            className="text-[12px] font-bold text-text-secondary no-underline hover:text-ocean-blue transition-colors"
                           >
                             {row.authorDisplayName ?? "익명"}
                           </Link>
@@ -321,7 +324,7 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
               <div className="mt-12 text-center">
                 <Link
                   to="/logs"
-                  className="bg-white border border-border px-8 py-3 rounded-full text-sm font-semibold text-text-secondary hover:border-ocean-blue hover:text-ocean-blue transition-all no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
+                  className="bg-white border border-border px-8 py-3 rounded-full text-sm font-bold text-text-secondary hover:border-ocean-blue hover:text-ocean-blue transition-all no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
                 >
                   더 많은 기록 탐색하기
                 </Link>
@@ -332,7 +335,7 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
               <p className="text-text-secondary mb-6">아직 공개된 기록이 없습니다.</p>
               <Link
                 to="/write"
-                className="bg-white border border-border px-8 py-3 rounded-full text-sm font-semibold text-text-secondary hover:border-ocean-blue hover:text-ocean-blue transition-all no-underline"
+                className="bg-white border border-border px-8 py-3 rounded-full text-sm font-bold text-text-secondary hover:border-ocean-blue hover:text-ocean-blue transition-all no-underline"
               >
                 첫 기록 남기기
               </Link>
@@ -351,7 +354,7 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
           </blockquote>
           <div className="flex items-center justify-center gap-6 mt-10">
             <div className="h-px w-12 bg-ocean-blue/20" aria-hidden="true" />
-            <span className="text-[10px] font-semibold tracking-[0.3em] uppercase text-ocean-blue/50">
+            <span className="text-[10px] font-bold tracking-[0.3em] uppercase text-ocean-blue/50">
               {recentSentences[0].savedByDisplayName ?? "익명"}
             </span>
             <div className="h-px w-12 bg-ocean-blue/20" aria-hidden="true" />
@@ -363,10 +366,13 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
         <section className="max-w-canvas mx-auto px-6 py-24 border-t border-border-subtle" data-testid="learners-section">
           <div className="flex items-end justify-between mb-12">
             <div>
-              <span className="text-[10px] font-semibold tracking-[0.3em] text-ocean-blue/50 mb-2 block uppercase">LEARNER SPOTLIGHT</span>
-              <h2 className="text-3xl font-semibold text-deep-ocean">함께 잠수하는 러너들</h2>
+              <span className="text-[10px] font-bold tracking-[0.3em] text-ocean-blue/50 mb-2 block uppercase">LEARNER SPOTLIGHT</span>
+              <h2 className="text-3xl font-bold text-deep-ocean flex items-center gap-3">
+                <svg className="w-9 h-9 text-ocean-blue" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M18 21a8 8 0 0 0-16 0"/><circle cx="10" cy="8" r="5"/><path d="M22 20c0-3.37-2-6.5-4-8a5 5 0 0 0-.45-8.3"/></svg>
+                함께 잠수하는 러너들
+              </h2>
             </div>
-            <Link to="/learners" className="text-ocean-blue font-semibold hover:underline text-[13px] no-underline">전체 러너 보기</Link>
+            <Link to="/learners" className="text-ocean-blue font-bold hover:underline text-[13px] no-underline">전체 러너 보기 ({learnerCount})</Link>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {spotlightLearners.map((learner) => (
@@ -382,14 +388,14 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
                       className="w-11 h-11 rounded-xl object-cover border border-white shrink-0"
                     />
                   ) : (
-                    <div className="w-11 h-11 rounded-xl bg-mist-blue flex items-center justify-center text-md font-semibold text-ocean-blue border border-white shrink-0">
+                    <div className="w-11 h-11 rounded-xl bg-mist-blue flex items-center justify-center text-md font-bold text-ocean-blue border border-white shrink-0">
                       {learner.displayName[0]}
                     </div>
                   )}
                   <div>
                     <Link
                       to={`/learners/${learner.slug}`}
-                      className="font-semibold text-md text-deep-ocean leading-none mb-1.5 no-underline hover:text-ocean-blue transition-colors"
+                      className="font-bold text-md text-deep-ocean leading-none mb-1.5 no-underline hover:text-ocean-blue transition-colors"
                     >
                       {learner.displayName}
                     </Link>

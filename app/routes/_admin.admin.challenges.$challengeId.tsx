@@ -21,33 +21,33 @@ export default function AdminChallengeEditPage({ loaderData }: Route.ComponentPr
   return (
     <div>
       <div className="flex gap-4 items-center mb-6">
-        <Link to="/admin/challenges" className="text-[13px] text-admin-text-secondary hover:text-admin-text">← 목록</Link>
+        <Link to="/admin/challenges" className="text-meta text-admin-text-secondary hover:text-admin-text transition-colors">← 목록</Link>
         <h2 className="text-xl font-semibold text-admin-text">챌린지 편집</h2>
       </div>
-      <form method="post" className="flex flex-col gap-4 max-w-xl bg-admin-surface rounded-md p-6 border border-admin-border">
+      <form method="post" className="flex flex-col gap-5 max-w-xl bg-admin-surface rounded-lg p-6 border border-admin-border">
         <div>
-          <label className="block text-xs text-admin-text-secondary mb-1.5">이름</label>
-          <input name="name" defaultValue={challenge.name} required className="w-full px-3 py-2 rounded-sm border border-admin-border bg-admin-surface text-sm focus:ring-2 focus:ring-admin-accent outline-none" />
+          <label htmlFor="name" className="block text-caption font-medium text-admin-text-secondary mb-2">이름</label>
+          <input id="name" name="name" defaultValue={challenge.name} required className="w-full px-3 py-2.5 rounded-md border border-admin-border bg-admin-surface text-sm text-admin-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-admin-accent focus-visible:ring-offset-2" />
         </div>
         <div>
-          <label className="block text-xs text-admin-text-secondary mb-1.5">문제 정의</label>
-          <textarea name="problemDefinition" defaultValue={challenge.problemDefinition ?? ""} rows={3} className="w-full px-3 py-2 rounded-sm border border-admin-border bg-admin-surface text-sm resize-y outline-none" />
+          <label htmlFor="problemDefinition" className="block text-caption font-medium text-admin-text-secondary mb-2">문제 정의</label>
+          <textarea id="problemDefinition" name="problemDefinition" defaultValue={challenge.problemDefinition ?? ""} rows={3} className="w-full px-3 py-2.5 rounded-md border border-admin-border bg-admin-surface text-sm text-admin-text resize-y focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-admin-accent focus-visible:ring-offset-2" />
         </div>
         <div>
-          <label className="block text-xs text-admin-text-secondary mb-1.5">현재 질문</label>
-          <input name="currentQuestion" defaultValue={challenge.currentQuestion ?? ""} className="w-full px-3 py-2 rounded-sm border border-admin-border bg-admin-surface text-sm outline-none" />
+          <label htmlFor="currentQuestion" className="block text-caption font-medium text-admin-text-secondary mb-2">현재 질문</label>
+          <input id="currentQuestion" name="currentQuestion" defaultValue={challenge.currentQuestion ?? ""} className="w-full px-3 py-2.5 rounded-md border border-admin-border bg-admin-surface text-sm text-admin-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-admin-accent focus-visible:ring-offset-2" />
         </div>
         <div>
-          <label className="block text-xs text-admin-text-secondary mb-1.5">상태</label>
-          <select name="status" defaultValue={challenge.status} className="w-full px-3 py-2 rounded-sm border border-admin-border bg-admin-surface text-sm outline-none">
+          <label htmlFor="status" className="block text-caption font-medium text-admin-text-secondary mb-2">상태</label>
+          <select id="status" name="status" defaultValue={challenge.status} className="w-full px-3 py-2.5 rounded-md border border-admin-border bg-admin-surface text-sm text-admin-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-admin-accent focus-visible:ring-offset-2">
             <option value="active">진행 중</option>
             <option value="completed">완료</option>
             <option value="archived">아카이브</option>
           </select>
         </div>
         <div className="flex gap-3">
-          <button type="submit" className="px-5 py-2 rounded-sm bg-admin-accent text-white border-none cursor-pointer text-sm hover:opacity-90">저장</button>
-          <Link to="/admin/challenges" className="px-5 py-2 rounded-sm border border-admin-border text-admin-text-secondary text-sm hover:bg-admin-bg">취소</Link>
+          <button type="submit" className="px-5 py-2.5 rounded-lg bg-admin-accent text-white text-sm font-medium hover:opacity-90 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-admin-accent focus-visible:ring-offset-2">저장</button>
+          <Link to="/admin/challenges" className="px-5 py-2.5 rounded-lg border border-admin-border text-admin-text-secondary text-sm font-medium hover:bg-admin-bg transition-colors no-underline">취소</Link>
         </div>
       </form>
     </div>

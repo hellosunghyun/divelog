@@ -130,8 +130,8 @@ export default function LogsPage({ loaderData }: Route.ComponentProps) {
         subtitle="Learner들이 남긴 탐구의 기록들"
       />
 
-      <div className="max-w-content mx-auto px-4 py-8 md:py-12">
-        <div className="mb-6 flex flex-wrap gap-4 items-center justify-between">
+      <div className="max-w-content mx-auto px-6 py-12 md:py-16">
+        <div className="mb-8 flex flex-wrap gap-4 items-center justify-between">
           <FilterBar filters={allFilters} />
           <SortBar />
         </div>
@@ -139,7 +139,7 @@ export default function LogsPage({ loaderData }: Route.ComponentProps) {
         {filteredRecords.length === 0 ? (
           <EmptyState variant="records" message="조건에 맞는 기록이 없습니다." />
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {filteredRecords.map((record) => (
               <SceneCard
                 key={record.id}

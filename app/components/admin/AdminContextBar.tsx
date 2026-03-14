@@ -33,7 +33,7 @@ export default function AdminContextBar() {
   return (
     <header className="h-14 px-6 flex items-center border-b border-admin-border flex-shrink-0 bg-admin-surface">
       <div>
-        <h1 className="text-sm font-semibold text-admin-text">
+        <h1 className="text-base font-semibold text-admin-text">
           {currentLabel}
         </h1>
       </div>

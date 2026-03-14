@@ -59,11 +59,11 @@ export default function JourneyPage({ loaderData }: Route.ComponentProps) {
         </div>
       )}
 
-      <div className="max-w-content mx-auto px-4 py-12 md:py-20">
+      <div className="max-w-content mx-auto px-6 py-16 md:py-24">
         {allStages.length === 0 ? (
           <EmptyState variant="generic" message="아직 Stage가 등록되지 않았습니다." />
         ) : (
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-5">
             {allStages.map((stage, index) => {
               const accentColor = STAGE_ACCENTS[stage.type] ?? "var(--color-ocean-blue)";
               const isCurrent = stage.isCurrent;
@@ -72,7 +72,7 @@ export default function JourneyPage({ loaderData }: Route.ComponentProps) {
                 <Link
                   key={stage.id}
                   to={`/journey/${stage.slug}`}
-                  className="block bg-surface rounded-lg p-6 hover:bg-surface-secondary transition-colors"
+                  className="block bg-surface rounded-lg p-6 no-underline transition-all duration-normal hover:bg-surface-secondary hover:shadow-card-hover hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
                   style={{
                     border: isCurrent ? `1.5px solid ${accentColor}` : undefined,
                     opacity: stage.status === "upcoming" ? 0.7 : 1,
@@ -113,7 +113,7 @@ export default function JourneyPage({ loaderData }: Route.ComponentProps) {
                           </span>
                         )}
                       </div>
-                      <h2 className="text-xl font-semibold text-text-primary mb-2">
+                      <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-2">
                         {stage.name}
                       </h2>
                       {stage.description && (

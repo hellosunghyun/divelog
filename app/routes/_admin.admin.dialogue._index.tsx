@@ -16,28 +16,30 @@ export default function AdminDialoguePage({ loaderData }: Route.ComponentProps) 
       {loaderData.responses.length === 0 ? (
         <EmptyState variant="generic" message="응답이 없습니다" />
       ) : (
-        <table className="w-full border-collapse bg-admin-surface rounded-md">
-          <thead>
-            <tr className="border-b border-admin-border">
-              {["유형", "내용", "작성자", "moderation", "작업"].map((h) => (
-                <th key={h} className="text-left px-3 py-2 text-xs text-admin-text-secondary font-semibold uppercase tracking-wide">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {loaderData.responses.map(({ response, author }) => (
-              <tr key={response.id} className="border-b border-admin-border hover:bg-admin-bg transition-colors">
-                <td className="px-3 py-2 text-[13px]">{response.type}</td>
-                <td className="px-3 py-2 text-[13px] max-w-[300px] truncate">{response.content}</td>
-                <td className="px-3 py-2 text-[13px]">{author?.displayName ?? "-"}</td>
-                <td className={`px-3 py-2 text-[13px] ${response.moderationStatus === "flagged" ? "text-error" : ""}`}>{response.moderationStatus}</td>
-                <td className="px-3 py-2">
-                  <Link to={`/admin/dialogue/${response.id}`} className="text-xs text-admin-accent hover:underline">검토</Link>
-                </td>
+        <div className="bg-admin-surface rounded-lg border border-admin-border overflow-hidden">
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="bg-admin-bg">
+                {["유형", "내용", "작성자", "moderation", "작업"].map((h) => (
+                  <th key={h} className="text-left px-4 py-3 text-caption font-semibold text-admin-text-secondary uppercase tracking-wide">{h}</th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {loaderData.responses.map(({ response, author }) => (
+                <tr key={response.id} className="border-t border-admin-border hover:bg-admin-bg/50 transition-colors">
+                  <td className="px-4 py-3 text-meta text-admin-text">{response.type}</td>
+                  <td className="px-4 py-3 text-meta text-admin-text max-w-[300px] truncate">{response.content}</td>
+                  <td className="px-4 py-3 text-meta text-admin-text-secondary">{author?.displayName ?? "-"}</td>
+                  <td className={`px-4 py-3 text-meta ${response.moderationStatus === "flagged" ? "text-error" : "text-admin-text-secondary"}`}>{response.moderationStatus}</td>
+                  <td className="px-4 py-3">
+                    <Link to={`/admin/dialogue/${response.id}`} className="text-caption text-admin-accent hover:underline">검토</Link>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

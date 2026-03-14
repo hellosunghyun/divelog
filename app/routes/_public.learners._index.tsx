@@ -21,11 +21,11 @@ export default function LearnersPage({ loaderData }: Route.ComponentProps) {
   return (
     <div>
       <HeroSection variant="learner" title="Learner" subtitle="탐구하는 사람들을 만나보세요" />
-      <div className="max-w-content mx-auto py-12 px-4">
+      <div className="max-w-content mx-auto py-16 px-6">
         {learners.length === 0 ? (
           <EmptyState variant="learners" />
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {learners.map((learner) => <LearnerCard key={learner.userId} learner={learner} />)}
           </div>
         )}
