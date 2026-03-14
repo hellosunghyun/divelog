@@ -5,9 +5,9 @@
   /* Spacing: 4px base (design.md 6.1 — 4px multiples) */
   --spacing: 4px;
 
-  /* Typography — Pretendard Variable for Korean, refined system stack */
-  --font-sans: "Pretendard Variable", "Pretendard", system-ui, -apple-system, sans-serif;
-  --font-display: "Pretendard Variable", "Pretendard", system-ui, -apple-system, sans-serif;
+  /* Typography — Wanted Sans Variable + system fallback */
+  --font-sans: "Wanted Sans Variable", "Wanted Sans", -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+  --font-display: "Wanted Sans Variable", "Wanted Sans", -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
 
   --text-caption: 12px;
   --text-meta: 13px;
