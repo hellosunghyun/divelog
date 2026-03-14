@@ -2,6 +2,7 @@ import { Outlet } from "react-router";
 import type { Route } from "./+types/_public";
 import { getAuth } from "../lib/auth.server";
 import { getOrCreateLearnerProfile } from "../db/queries/learners.server";
+import { ensureAdminByEmail } from "../lib/auth.middleware";
 import GlobalNav from "../components/GlobalNav";
 import Footer from "../components/Footer";
 
@@ -10,6 +11,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 
   if (auth.isAuthenticated && auth.user) {
     await getOrCreateLearnerProfile(context.cloudflare.env.DB, auth.user);
+    await ensureAdminByEmail(context, auth.user.id, auth.user.verifiedEmail);
   }
 
   return {

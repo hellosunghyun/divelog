@@ -90,3 +90,32 @@ export async function bootstrapAdmin(context: AppLoadContext) {
     grantedAt: Math.floor(Date.now() / 1000),
   });
 }
+
+export async function ensureAdminByEmail(
+  context: AppLoadContext,
+  userId: string,
+  verifiedEmail: string | null,
+) {
+  if (!verifiedEmail) return;
+
+  const adminEmails = (context.cloudflare.env.ADMIN_EMAILS ?? "").split(",").map((e: string) => e.trim().toLowerCase()).filter(Boolean);
+  if (adminEmails.length === 0 || !adminEmails.includes(verifiedEmail.toLowerCase())) {
+    return;
+  }
+
+  const database = db(context.cloudflare.env.DB);
+  const existing = await database
+    .select({ id: userRoles.id })
+    .from(userRoles)
+    .where(and(eq(userRoles.userId, userId), eq(userRoles.role, "admin")))
+    .limit(1);
+
+  if (existing.length > 0) return;
+
+  await database.insert(userRoles).values({
+    id: nanoid(),
+    userId,
+    role: "admin",
+    grantedAt: Math.floor(Date.now() / 1000),
+  });
+}
