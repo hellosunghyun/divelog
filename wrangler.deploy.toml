@@ -7,6 +7,10 @@ routes = [
   { pattern = "divelog.ada-kr-pos.com", custom_domain = true }
 ]
 
+[vars]
+ADAKRPOS_API_KEY = "ak_550edb2a-a67c-4d4a-be62-2e0affcf1bfd"
+ADMIN_USER_ID = "usr_placeholder_replace_with_real_admin_id"
+
 [assets]
 directory = "build/client"
 
