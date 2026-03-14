@@ -1,0 +1,227 @@
+import { relations } from "drizzle-orm";
+import {
+  auditLogs,
+  challengeStages,
+  challenges,
+  collaborationMembers,
+  collaborationUnits,
+  collectiveMemories,
+  curationSlots,
+  learnerProfiles,
+  memoryQuestions,
+  memoryRecords,
+  memorySentences,
+  notifications,
+  questions,
+  records,
+  responses,
+  selfAnswers,
+  sentences,
+  settings,
+  stages,
+  templates,
+  userRoles,
+} from "./schema.server";
+
+export const learnerProfilesRelations = relations(learnerProfiles, ({ many, one }) => ({
+  currentStage: one(stages, {
+    fields: [learnerProfiles.currentStageId],
+    references: [stages.id],
+  }),
+  records: many(records),
+  responses: many(responses),
+  sentences: many(sentences),
+  notifications: many(notifications),
+  collaborationMembers: many(collaborationMembers),
+  selfAnswers: many(selfAnswers),
+}));
+
+export const stagesRelations = relations(stages, ({ many }) => ({
+  records: many(records),
+  challengeStages: many(challengeStages),
+  collaborationUnits: many(collaborationUnits),
+  collectiveMemories: many(collectiveMemories),
+  learnersAtStage: many(learnerProfiles),
+}));
+
+export const challengesRelations = relations(challenges, ({ many }) => ({
+  challengeStages: many(challengeStages),
+  collaborationUnits: many(collaborationUnits),
+  records: many(records),
+}));
+
+export const challengeStagesRelations = relations(challengeStages, ({ one }) => ({
+  challenge: one(challenges, {
+    fields: [challengeStages.challengeId],
+    references: [challenges.id],
+  }),
+  stage: one(stages, {
+    fields: [challengeStages.stageId],
+    references: [stages.id],
+  }),
+}));
+
+export const collaborationUnitsRelations = relations(collaborationUnits, ({ many, one }) => ({
+  members: many(collaborationMembers),
+  records: many(records),
+  challenge: one(challenges, {
+    fields: [collaborationUnits.challengeId],
+    references: [challenges.id],
+  }),
+  stage: one(stages, {
+    fields: [collaborationUnits.stageId],
+    references: [stages.id],
+  }),
+}));
+
+export const collaborationMembersRelations = relations(collaborationMembers, ({ one }) => ({
+  unit: one(collaborationUnits, {
+    fields: [collaborationMembers.unitId],
+    references: [collaborationUnits.id],
+  }),
+  learner: one(learnerProfiles, {
+    fields: [collaborationMembers.learnerId],
+    references: [learnerProfiles.userId],
+  }),
+}));
+
+export const recordsRelations = relations(records, ({ many, one }) => ({
+  author: one(learnerProfiles, {
+    fields: [records.authorId],
+    references: [learnerProfiles.userId],
+  }),
+  stage: one(stages, {
+    fields: [records.stageId],
+    references: [stages.id],
+  }),
+  challenge: one(challenges, {
+    fields: [records.challengeId],
+    references: [challenges.id],
+  }),
+  collaborationUnit: one(collaborationUnits, {
+    fields: [records.collaborationUnitId],
+    references: [collaborationUnits.id],
+  }),
+  questions: many(questions),
+  responses: many(responses),
+  sentences: many(sentences),
+  memoryRecords: many(memoryRecords),
+}));
+
+export const questionsRelations = relations(questions, ({ many, one }) => ({
+  record: one(records, {
+    fields: [questions.recordId],
+    references: [records.id],
+  }),
+  responses: many(responses),
+  selfAnswers: many(selfAnswers),
+  memoryQuestions: many(memoryQuestions),
+}));
+
+export const selfAnswersRelations = relations(selfAnswers, ({ one }) => ({
+  question: one(questions, {
+    fields: [selfAnswers.questionId],
+    references: [questions.id],
+  }),
+  author: one(learnerProfiles, {
+    fields: [selfAnswers.authorId],
+    references: [learnerProfiles.userId],
+  }),
+}));
+
+export const responsesRelations = relations(responses, ({ one }) => ({
+  record: one(records, {
+    fields: [responses.recordId],
+    references: [records.id],
+  }),
+  question: one(questions, {
+    fields: [responses.questionId],
+    references: [questions.id],
+  }),
+  author: one(learnerProfiles, {
+    fields: [responses.authorId],
+    references: [learnerProfiles.userId],
+  }),
+}));
+
+export const sentencesRelations = relations(sentences, ({ many, one }) => ({
+  record: one(records, {
+    fields: [sentences.recordId],
+    references: [records.id],
+  }),
+  savedBy: one(learnerProfiles, {
+    fields: [sentences.savedById],
+    references: [learnerProfiles.userId],
+  }),
+  memorySentences: many(memorySentences),
+}));
+
+export const notificationsRelations = relations(notifications, ({ one }) => ({
+  recipient: one(learnerProfiles, {
+    fields: [notifications.recipientId],
+    references: [learnerProfiles.userId],
+  }),
+  record: one(records, {
+    fields: [notifications.recordId],
+    references: [records.id],
+  }),
+  question: one(questions, {
+    fields: [notifications.questionId],
+    references: [questions.id],
+  }),
+}));
+
+export const collectiveMemoriesRelations = relations(collectiveMemories, ({ many, one }) => ({
+  stage: one(stages, {
+    fields: [collectiveMemories.stageId],
+    references: [stages.id],
+  }),
+  memoryQuestions: many(memoryQuestions),
+  memorySentences: many(memorySentences),
+  memoryRecords: many(memoryRecords),
+}));
+
+export const memoryQuestionsRelations = relations(memoryQuestions, ({ one }) => ({
+  memory: one(collectiveMemories, {
+    fields: [memoryQuestions.memoryId],
+    references: [collectiveMemories.id],
+  }),
+  question: one(questions, {
+    fields: [memoryQuestions.questionId],
+    references: [questions.id],
+  }),
+}));
+
+export const memorySentencesRelations = relations(memorySentences, ({ one }) => ({
+  memory: one(collectiveMemories, {
+    fields: [memorySentences.memoryId],
+    references: [collectiveMemories.id],
+  }),
+  sentence: one(sentences, {
+    fields: [memorySentences.sentenceId],
+    references: [sentences.id],
+  }),
+}));
+
+export const memoryRecordsRelations = relations(memoryRecords, ({ one }) => ({
+  memory: one(collectiveMemories, {
+    fields: [memoryRecords.memoryId],
+    references: [collectiveMemories.id],
+  }),
+  record: one(records, {
+    fields: [memoryRecords.recordId],
+    references: [records.id],
+  }),
+}));
+
+export const userRolesRelations = relations(userRoles, ({ one }) => ({
+  learner: one(learnerProfiles, {
+    fields: [userRoles.userId],
+    references: [learnerProfiles.userId],
+  }),
+}));
+
+export const templatesRelations = relations(templates, () => ({}));
+export const curationSlotsRelations = relations(curationSlots, () => ({}));
+export const auditLogsRelations = relations(auditLogs, () => ({}));
+export const settingsRelations = relations(settings, () => ({}));

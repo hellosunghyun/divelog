@@ -1,0 +1,3 @@
+=== T20 evidence ===
+=== File created ===
+-rw-r--r--  1 hellosunghyun  staff  6229 Mar 14 17:34 app/routes/_public.logs._index.tsx

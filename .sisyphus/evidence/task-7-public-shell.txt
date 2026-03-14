@@ -1,0 +1,16 @@
+=== T7 Public Shell Evidence ===
+
+=== Files Created ===
+-rw-r--r--  1 hellosunghyun  staff  1051 Mar 14 17:13 /Users/hellosunghyun/Documents/Github/divelog/app/components/Footer.tsx
+-rw-r--r--  1 hellosunghyun  staff  6436 Mar 14 17:14 /Users/hellosunghyun/Documents/Github/divelog/app/components/GlobalNav.tsx
+-rw-r--r--  1 hellosunghyun  staff   691 Mar 14 17:14 /Users/hellosunghyun/Documents/Github/divelog/app/routes/_public._index.tsx
+-rw-r--r--  1 hellosunghyun  staff  1116 Mar 14 17:13 /Users/hellosunghyun/Documents/Github/divelog/app/routes/_public.tsx
+
+=== Login URL Check ===
+  const loginUrl = `https://ada-kr-pos.com/login?returnUrl=${encodeURIComponent(currentUrl)}`;
+
+=== Type Check ===
+Type check passed (no output)
+
+=== Build Check ===
+Build passed successfully

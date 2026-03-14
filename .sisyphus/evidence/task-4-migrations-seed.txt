@@ -1,0 +1,147 @@
+=== T4 Migration+Seed Evidence ===
+--- Migration files ---
+0000_empty_mister_sinister.sql
+meta
+--- DB counts ---
+⛅️ wrangler 4.69.0 (update available 4.73.0)
+─────────────────────────────────────────────
+Resource location: local 
+
+Use --remote if you want to access the remote instance.
+
+🌀 Executing on local database DB (local-divelog-db) from .wrangler/state/v3/d1:
+🌀 To execute on your remote database, add a --remote flag to your wrangler command.
+🚣 1 command executed successfully.
+[
+  {
+    "results": [
+      {
+        "table_name": "stages",
+        "count": 5
+      },
+      {
+        "table_name": "records",
+        "count": 25
+      },
+      {
+        "table_name": "learner_profiles",
+        "count": 6
+      }
+    ],
+    "success": true,
+    "meta": {
+      "duration": 1
+    }
+  }
+]
+--- Stage QA check ---
+⛅️ wrangler 4.69.0 (update available 4.73.0)
+─────────────────────────────────────────────
+Resource location: local 
+
+Use --remote if you want to access the remote instance.
+
+🌀 Executing on local database DB (local-divelog-db) from .wrangler/state/v3/d1:
+🌀 To execute on your remote database, add a --remote flag to your wrangler command.
+🚣 1 command executed successfully.
+[
+  {
+    "results": [
+      {
+        "slug": "prelude-1",
+        "status": "active",
+        "is_current": 1,
+        "cohort": "cohort-2026"
+      },
+      {
+        "slug": "bridge-1",
+        "status": "completed",
+        "is_current": 0,
+        "cohort": "cohort-2026"
+      },
+      {
+        "slug": "challenge-1",
+        "status": "active",
+        "is_current": 0,
+        "cohort": "cohort-2026"
+      },
+      {
+        "slug": "bridge-2",
+        "status": "upcoming",
+        "is_current": 0,
+        "cohort": "cohort-2026"
+      },
+      {
+        "slug": "epilogue-1",
+        "status": "upcoming",
+        "is_current": 0,
+        "cohort": "cohort-2026"
+      }
+    ],
+    "success": true,
+    "meta": {
+      "duration": 0
+    }
+  }
+]
+--- Required slugs ---
+⛅️ wrangler 4.69.0 (update available 4.73.0)
+─────────────────────────────────────────────
+Resource location: local 
+
+Use --remote if you want to access the remote instance.
+
+🌀 Executing on local database DB (local-divelog-db) from .wrangler/state/v3/d1:
+🌀 To execute on your remote database, add a --remote flag to your wrangler command.
+🚣 1 command executed successfully.
+[
+  {
+    "results": [
+      {
+        "slug": "challenge-article"
+      },
+      {
+        "slug": "first-note"
+      },
+      {
+        "slug": "solo-challenge"
+      },
+      {
+        "slug": "team-challenge"
+      },
+      {
+        "slug": "collab-alpha"
+      },
+      {
+        "slug": "learner-hana"
+      }
+    ],
+    "success": true,
+    "meta": {
+      "duration": 1
+    }
+  }
+]
+--- Learner Hana record count ---
+⛅️ wrangler 4.69.0 (update available 4.73.0)
+─────────────────────────────────────────────
+Resource location: local 
+
+Use --remote if you want to access the remote instance.
+
+🌀 Executing on local database DB (local-divelog-db) from .wrangler/state/v3/d1:
+🌀 To execute on your remote database, add a --remote flag to your wrangler command.
+🚣 1 command executed successfully.
+[
+  {
+    "results": [
+      {
+        "count": 7
+      }
+    ],
+    "success": true,
+    "meta": {
+      "duration": 0
+    }
+  }
+]

@@ -1,0 +1,14 @@
+=== T48: SEO Check ===
+Routes with meta function:
+      39
+=== Build Check ===
+Route file count:
+      41
+No KV namespaces:
+PASS
+No better-auth:
+PASS
+pnpm build:
+build/server/assets/server-build-n5bBMwgW.css
+
+✓ built in 182ms

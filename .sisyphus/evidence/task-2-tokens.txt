@@ -1,0 +1,119 @@
+=== T2 Tokens Evidence ===
+Date: 2026-03-14
+
+--- Files Created ---
+app/styles/tokens.css (2904 bytes)
+app/styles/global.css (1496 bytes)
+
+--- Files Updated ---
+app/app.css (Tailwind v4 @theme with token references)
+app/root.tsx (removed Inter font, lang="ko")
+tailwind.config.ts (extended with all design tokens)
+
+--- Verification ---
+✓ tsc --noEmit: passed (no errors)
+✓ Stage accents found: 8 occurrences (prelude, bridge, challenge, epilogue + bg variants)
+✓ Admin tokens found: 9 occurrences
+
+--- tokens.css content ---
+/* Quiet Depth Design Tokens */
+:root {
+  /* === Base Colors === */
+  --color-bg: #F6F8FB;
+  --color-surface: #FFFFFF;
+  --color-border: #E3E8EF;
+  --color-text-primary: #1D1D1F;
+  --color-text-secondary: #6E6E73;
+  --color-text-tertiary: #8E8E93;
+
+  /* === Deep Ocean (배경/깊이감에만 절제해서 사용) === */
+  --color-deep-ocean: #0B2447;
+  --color-ocean-blue: #146C94;
+  --color-reef-cyan: #6CC4D6;
+  --color-mist-blue: #EAF4FA;
+
+  /* === Stage Type Accents === */
+  --color-prelude: #5B6AF0;       /* prelude: indigo/violet — 시작의 무게감 */
+  --color-prelude-bg: #F0F1FF;
+  --color-bridge: #0B9488;        /* bridge: teal — 전환과 연결 */
+  --color-bridge-bg: #EDFAF8;
+  --color-challenge: #DC6803;     /* challenge: amber — 긴장과 도전 */
+  --color-challenge-bg: #FFF8EB;
+  --color-epilogue: #7C3AED;      /* epilogue: violet — 마무리와 성찰 */
+  --color-epilogue-bg: #F5F3FF;
+
+  /* === Admin (utilitarian, neutral) === */
+  --color-admin-bg: #F3F4F6;
+  --color-admin-surface: #FFFFFF;
+  --color-admin-border: #D1D5DB;
+  --color-admin-sidebar: #111827;
+  --color-admin-sidebar-text: #F9FAFB;
+  --color-admin-sidebar-active: #374151;
+  --color-admin-text: #111827;
+  --color-admin-text-secondary: #6B7280;
+  --color-admin-accent: #2563EB;
+
+  /* === Semantic Colors === */
+  --color-success: #16A34A;
+  --color-warning: #D97706;
+  --color-error: #DC2626;
+  --color-info: #0284C7;
+
+  /* === Spacing (8px grid) === */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* === Typography === */
+  --font-sans: system-ui, -apple-system, 'Pretendard', sans-serif;
+  --font-size-sm: 14px;
+  --font-size-base: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 20px;
+  --font-size-2xl: 24px;
+  --font-size-3xl: 30px;
+  --font-size-4xl: 36px;
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.6;
+  --line-height-relaxed: 1.75;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* === Border Radius === */
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-full: 9999px;
+
+  /* === Shadows (soft only) === */
+  --shadow-sm: 0 1px 3px 0 rgba(0,0,0,0.04), 0 1px 2px -1px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 16px 0 rgba(0,0,0,0.06), 0 2px 6px -1px rgba(0,0,0,0.04);
+  --shadow-lg: 0 10px 32px 0 rgba(0,0,0,0.08), 0 4px 12px -2px rgba(0,0,0,0.04);
+
+  /* === Reading Width === */
+  --max-reading-width: 680px;
+  --max-content-width: 1200px;
+
+  /* === Motion === */
+  --duration-fast: 120ms;
+  --duration-normal: 200ms;
+  --duration-slow: 300ms;
+  --ease-default: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0ms;
+    --duration-normal: 0ms;
+    --duration-slow: 0ms;
+  }
+}

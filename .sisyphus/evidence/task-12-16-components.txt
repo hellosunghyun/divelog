@@ -1,0 +1,14 @@
+=== T12-16 Evidence ===
+
+Component files created:
+      16
+
+TypeScript check:
+
+Verification:
+- data-testid="sentence-card": 1
+- data-testid="stage-strip": 1
+- useSearchParams in FilterBar: 2
+- No popularity sort in SortBar: verified
+- Korean guidance in EmptyState: 9 occurrences
+- Retry button in ErrorState: verified

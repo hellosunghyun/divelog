@@ -1,0 +1,9 @@
+=== T23 evidence ===
+Date: Sat Mar 14 17:36:21 KST 2026
+
+Files created:
+-rw-r--r--  1 hellosunghyun  staff  5008 Mar 14 17:35 app/routes/_public.learners.$learnerSlug.tsx
+-rw-r--r--  1 hellosunghyun  staff  1434 Mar 14 17:35 app/routes/_public.learners._index.tsx
+
+TypeScript check:
+SUCCESS: No type errors

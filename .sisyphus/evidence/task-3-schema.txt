@@ -1,0 +1,46 @@
+=== T3 Schema Evidence ===
+
+--- Table count ---
+21
+
+--- learner_profiles required fields ---
+display_name: present
+profile_photo_url: present
+cohort: present
+
+--- Better Auth table check ---
+No matches for password/auth_token/session*Table/account*Table/verification*Table in schema.server.ts
+
+--- Junction table check (primaryKey) ---
+challenge_stages: composite PK(challenge_id, stage_id)
+collaboration_members: composite PK(unit_id, learner_id)
+memory_questions: composite PK(memory_id, question_id)
+memory_sentences: composite PK(memory_id, sentence_id)
+memory_records: composite PK(memory_id, record_id)
+
+--- Exported tables ---
+learner_profiles
+stages
+challenges
+challenge_stages
+collaboration_units
+collaboration_members
+records
+questions
+self_answers
+responses
+sentences
+notifications
+collective_memories
+memory_questions
+memory_sentences
+memory_records
+templates
+curation_slots
+audit_logs
+settings
+user_roles
+
+--- tsc result ---
+pnpm exec tsc --noEmit
+OK (no output, exit code 0)

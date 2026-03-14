@@ -1,0 +1,18 @@
+=== T11 Evidence: LearnerCard + CollaborationUnitCard ===
+
+## TypeScript Check
+```
+PASS (no errors)
+```
+
+## Files Created
+- app/components/LearnerCard.tsx
+- app/components/CollaborationUnitCard.tsx
+
+## Test IDs Verified
+      data-testid="learner-card"
+      data-testid="collaboration-card"
+
+## DOM Order Verified (Question Before Profile/Intro)
+LearnerCard: currentQuestion → profilePhotoUrl/displayName → bio → recentRecord
+CollaborationUnitCard: status → currentQuestion → name → description → meta

@@ -1,0 +1,6 @@
+=== T22 evidence ===
+TypeScript: `pnpm exec tsc --noEmit` 통과 (출력 없음)
+Build: `npx react-router build` 통과
+LSP: `app/routes/_public.write.tsx` 진단 오류 없음
+✓ No rich text
+✓ No autosave

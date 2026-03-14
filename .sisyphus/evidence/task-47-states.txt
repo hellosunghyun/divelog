@@ -1,0 +1,21 @@
+=== T47: State Completeness ===
+EmptyState usage:
+      13
+Files using EmptyState:
+app/routes/_public._index.tsx
+app/routes/_public.challenges._index.tsx
+app/routes/_public.me.tsx
+app/routes/_public.logs.$recordSlug.tsx
+app/routes/_public.journey.tsx
+app/routes/_public.challenges.$challengeSlug.tsx
+app/routes/_public.learners._index.tsx
+app/routes/_public.inbox.tsx
+app/routes/_public.learners.$learnerSlug.tsx
+app/routes/_public.search.tsx
+app/routes/_public.journey.$stageSlug.tsx
+app/routes/_public.groups.$groupSlug.tsx
+app/routes/_public.logs._index.tsx
+ErrorBoundary/ErrorState usage:
+       6
+LoadingSkeleton usage:
+       0

@@ -1,0 +1,15 @@
+=== T25-31 evidence ===
+Created: Sat Mar 14 17:48:21 KST 2026
+
+Files created:
+-rw-r--r--  1 hellosunghyun  staff  5474 Mar 14 17:46 app/routes/_public.groups.$groupSlug.tsx
+-rw-r--r--  1 hellosunghyun  staff  7018 Mar 14 17:47 app/routes/_public.guide.tsx
+-rw-r--r--  1 hellosunghyun  staff  7022 Mar 14 17:46 app/routes/_public.inbox.tsx
+-rw-r--r--  1 hellosunghyun  staff  7127 Mar 14 17:47 app/routes/_public.me.tsx
+-rw-r--r--  1 hellosunghyun  staff  6560 Mar 14 17:46 app/routes/_public.memories.$stageSlug.tsx
+-rw-r--r--  1 hellosunghyun  staff  8736 Mar 14 17:48 app/routes/_public.search.tsx
+-rw-r--r--  1 hellosunghyun  staff  6265 Mar 14 17:48 app/routes/_public.settings.tsx
+
+Type check result:
+
+Exit code: 0

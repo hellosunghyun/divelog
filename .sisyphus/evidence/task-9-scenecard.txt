@@ -1,0 +1,19 @@
+=== T9 SceneCard Evidence ===
+
+## File Verification
+-rw-r--r--  1 hellosunghyun  staff  5061 Mar 14 17:19 app/components/SceneCard.tsx
+
+## data-testid Check
+      data-testid="scene-card"
+
+## No Likes/Recommendations Check
+✓ PASS: No likes/recommendations/popularity
+
+## TypeScript Check
+Running: pnpm exec tsc --noEmit
+
+## Component Features
+- Shows: title, snippet (~120 chars), author, Stage label, format badge, rhythm indicator
+- Icons: hasQuestions (?), hasSelfAnswers (↩), hasLinkedRecord (→)
+- Card radius: var(--radius-lg) (24px)
+- NO likes/recommendations/popularity

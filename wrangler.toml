@@ -1,0 +1,21 @@
+name = "divelog"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = "./build/client"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "divelog-db"
+database_id = "local-divelog-db"
+migrations_dir = "drizzle/migrations"
+
+[[r2_buckets]]
+binding = "R2"
+bucket_name = "divelog-r2"
+
+[[queues.producers]]
+binding = "QUEUE"
+queue = "divelog-queue"
+
+[[queues.consumers]]
+queue = "divelog-queue"

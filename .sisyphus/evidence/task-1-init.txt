@@ -1,0 +1,50 @@
+=== T1 Init Evidence ===
+--- wrangler.toml ---
+name = "divelog"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = "./build/client"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "divelog-db"
+database_id = "local-divelog-db"
+
+[[r2_buckets]]
+binding = "R2"
+bucket_name = "divelog-r2"
+
+[[queues.producers]]
+binding = "QUEUE"
+queue = "divelog-queue"
+
+[[queues.consumers]]
+queue = "divelog-queue"
+
+--- package.json deps ---
+  "dependencies": {
+    "@adakrpos/auth": "^0.0.2",
+    "drizzle-kit": "^0.31.9",
+    "drizzle-orm": "^0.45.1",
+    "isbot": "^5.1.31",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "react-router": "7.12.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "^1.13.7",
+    "@react-router/dev": "7.12.0",
+    "@tailwindcss/vite": "^4.1.13",
+    "@types/node": "^22",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "tailwindcss": "^4.1.13",
+    "typescript": "^5.9.2",
+    "vite": "^7.1.7",
+    "vite-tsconfig-paths": "^5.1.4",
+    "wrangler": "^4.40.2"
+  }
+}
+
+--- tsc --noEmit ---

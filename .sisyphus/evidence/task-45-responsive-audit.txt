@@ -1,0 +1,7 @@
+=== T45: Responsive Audit ===
+      18
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+    setIsMenuOpen(false);
+          className="md:hidden p-2 rounded-lg text-text-secondary hover:bg-mist-blue transition-colors"
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+        <div className="md:hidden border-t border-border bg-surface">

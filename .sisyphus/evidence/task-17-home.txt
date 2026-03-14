@@ -1,0 +1,4 @@
+=== T17 evidence (updated) ===
+
+TypeScript check passed (no errors)
+Sections: Hero → StageStrip → Current Dive → Open Questions → Recent Scenes → Sentences → Learner Spotlight → CTA

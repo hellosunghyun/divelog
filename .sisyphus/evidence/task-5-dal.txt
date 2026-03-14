@@ -1,0 +1,34 @@
+=== T5 DAL Evidence ===
+app/db/queries/
+- admin/
+- challenges.server.ts
+- collaboration.server.ts
+- learners.server.ts
+- memories.server.ts
+- notifications.server.ts
+- questions.server.ts
+- records.server.ts
+- responses.server.ts
+- search.server.ts
+- sentences.server.ts
+- stages.server.ts
+
+--- Query module count ---
+11
+
+--- getOrCreateLearnerProfile ---
+app/db/queries/learners.server.ts:60 export async function getOrCreateLearnerProfile(d1: D1Database, user: AdakrposUser) {
+
+--- cohort usage (sample) ---
+app/db/queries/stages.server.ts
+app/db/queries/records.server.ts
+app/db/queries/search.server.ts
+app/db/queries/learners.server.ts
+app/db/queries/questions.server.ts
+
+--- db.batch usage ---
+app/db/queries/search.server.ts
+
+--- Type check ---
+pnpm exec tsc --noEmit
+Result: PASS (no diagnostics)

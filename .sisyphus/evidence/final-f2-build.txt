@@ -1,0 +1,8 @@
+pnpm run build 2>&1 | tail -5
+
+build/server/index.js                          345.01 kB
+
+✓ 1 asset cleaned from React Router server build.
+build/server/assets/server-build-n5bBMwgW.css
+
+✓ built in 177ms

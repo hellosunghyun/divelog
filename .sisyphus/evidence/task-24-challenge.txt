@@ -1,0 +1,8 @@
+=== T24 evidence ===
+Created: Sat Mar 14 17:37:53 KST 2026
+
+Files created:
+-rw-r--r--  1 hellosunghyun  staff  4918 Mar 14 17:37 app/routes/_public.challenges.$challengeSlug.tsx
+-rw-r--r--  1 hellosunghyun  staff  3071 Mar 14 17:36 app/routes/_public.challenges._index.tsx
+
+TypeScript check:

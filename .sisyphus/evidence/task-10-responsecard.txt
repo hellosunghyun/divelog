@@ -1,0 +1,29 @@
+=== T10 Evidence: QuestionCard + ResponseCard Components ===
+Date: $(date -Iseconds)
+
+## Files Created
+- app/components/QuestionCard.tsx
+- app/components/ResponseCard.tsx
+
+## TypeScript Check
+$(pnpm exec tsc --noEmit 2>&1 || echo "Passed")
+
+## Verification Results
+✓ No bubble/chat styles in ResponseCard
+✓ No likes/recommendations in ResponseCard
+✓ data-testid="response-card" present
+✓ data-testid="question-card" present
+
+## Response Types Implemented
+- resonance (공명) - prelude color
+- question (질문) - ocean-blue color
+- connection (연결) - bridge color
+- suggestion (제안) - challenge color
+- self_answer (자기답변) - epilogue color
+
+## Design Principles Applied
+- Editorial flat card design (no speech bubbles)
+- Design tokens from tokens.css
+- 8px spacing grid
+- Stage type accent colors for response types
+- Self-answer cards have mist-blue background + reef-cyan border

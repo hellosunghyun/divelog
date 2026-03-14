@@ -1,0 +1,30 @@
+# Decisions — divelog-fullbuild
+
+## Architectural Decisions
+- Auth: @adakrpos/auth/generic (NOT hono/express)
+- No self-hosted login/register UI
+- learner_profiles caches: display_name, profile_photo_url, cohort from AdakrposUser
+- cohort stored as TEXT string (NOT a separate cohorts table)
+- M:N relationships via junction tables (NOT JSON arrays)
+- Global DB instance: FORBIDDEN (create from binding per request)
+
+## Seed Data Fixed Slugs
+- Stage: prelude-1 (active, is_current=true), bridge-1 (completed), challenge-1 (active)
+- Record: first-note (Note, Public), challenge-article (Article)
+- Learner: learner-hana (3+ records, has questions)
+- Challenge: team-challenge (has collaboration), solo-challenge (no collaboration)
+- Collaboration Unit: collab-alpha (active)
+- All cohort values: "cohort-2026"
+
+## [2026-03-14] T21 Decisions
+-  action 인증 정책은 수동 체크 대신  공통 미들웨어를 사용해 일관성 유지
+- 기록 상세 로더의 다중 조회는 개별 await 대신 db.batch()로 고정해 페이지 로딩 패턴 통일
+
+## [2026-03-14] T21 Decisions
+- /logs/:recordSlug action 인증 정책은 수동 체크 대신 requireVerified 공통 미들웨어를 사용해 일관성 유지
+- 기록 상세 로더의 다중 조회는 개별 await 대신 db.batch()로 고정해 페이지 로딩 패턴 통일
+
+## [2026-03-14] T22 Decisions
+- `/write` 접근 정책은 route loader/action 모두 `requireVerified`를 사용해 인증/검증 조건을 서버에서 강제
+- 템플릿은 Phase 1에서 본문 자동주입 없이 선택 UI만 제공하고, 작성 본문은 사용자가 `textarea`에서 직접 입력하도록 유지
+- 선택 질문은 record 생성 성공 이후에만 생성하며, 빈 문자열은 저장하지 않음
