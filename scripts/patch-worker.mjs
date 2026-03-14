@@ -1,24 +1,7 @@
-import { mkdirSync, writeFileSync } from "node:fs";
+import { execSync } from "node:child_process";
 
-const createWorkerEntry = (serverBuildPath) => `
-import { createRequestHandler } from "react-router";
-import * as build from "${serverBuildPath}";
-
-const requestHandler = createRequestHandler(build, "production");
-
-export default {
-  async fetch(request, env, ctx) {
-    return requestHandler(request, {
-      cloudflare: { env, ctx },
-    });
-  },
-};
-`;
-
-mkdirSync("build/client", { recursive: true });
-
-writeFileSync("build/worker.js", createWorkerEntry("./server/index.js"));
-console.log("[patch-worker] wrote build/worker.js for Worker deployments");
-
-writeFileSync("build/client/_worker.js", createWorkerEntry("../server/index.js"));
-console.log("[patch-worker] wrote build/client/_worker.js for Cloudflare Pages");
+execSync(
+  "npx esbuild build/server/index.js --bundle --format=esm --platform=neutral --conditions=workerd --outfile=build/client/_worker.js --external:node:* --external:cloudflare:*",
+  { stdio: "inherit" }
+);
+console.log("[patch-worker] bundled build/client/_worker.js for Cloudflare Pages");
