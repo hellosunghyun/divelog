@@ -1,6 +1,6 @@
 name = "divelog"
-main = "build/server/index.js"
-compatibility_date = "2024-01-01"
+main = "build/worker.js"
+compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
 
 routes = [

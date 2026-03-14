@@ -1,11 +1,11 @@
-import { appendFileSync, copyFileSync } from "node:fs";
+import { mkdirSync, writeFileSync } from "node:fs";
 
-const workerEntry = `
+const createWorkerEntry = (serverBuildPath) => `
 import { createRequestHandler } from "react-router";
-const requestHandler = createRequestHandler(
-  () => ({ assets: serverManifest, entry, routes, basename, future, isSpaMode, publicPath, ssr, prerender, routeDiscovery }),
-  "production"
-);
+import * as build from "${serverBuildPath}";
+
+const requestHandler = createRequestHandler(build, "production");
+
 export default {
   async fetch(request, env, ctx) {
     return requestHandler(request, {
@@ -15,8 +15,10 @@ export default {
 };
 `;
 
-appendFileSync("build/server/index.js", workerEntry);
-console.log("[patch-worker] default export appended to build/server/index.js");
+mkdirSync("build/client", { recursive: true });
 
-copyFileSync("build/server/index.js", "build/client/_worker.js");
-console.log("[patch-worker] copied to build/client/_worker.js for Cloudflare Pages");
+writeFileSync("build/worker.js", createWorkerEntry("./server/index.js"));
+console.log("[patch-worker] wrote build/worker.js for Worker deployments");
+
+writeFileSync("build/client/_worker.js", createWorkerEntry("../server/index.js"));
+console.log("[patch-worker] wrote build/client/_worker.js for Cloudflare Pages");
