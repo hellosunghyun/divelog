@@ -2,7 +2,7 @@ import type { Route } from "./+types/_public._index";
 import { Link } from "react-router";
 import { db } from "../db/client.server";
 import { stages, records, questions, sentences, learnerProfiles } from "../db/schema.server";
-import { eq, desc, and, sql } from "drizzle-orm";
+import { eq, desc, and, sql, count } from "drizzle-orm";
 import HeroSection from "../components/HeroSection";
 
 export function meta(_args: Route.MetaArgs) {
@@ -17,7 +17,7 @@ export function meta(_args: Route.MetaArgs) {
 export async function loader({ context }: Route.LoaderArgs) {
   const database = db(context.cloudflare.env.DB);
 
-  const [allStages, currentStageResult, recentRecords, openQuestions, recentSentences, spotlightLearners] = await database.batch([
+  const [allStages, currentStageResult, recentRecords, openQuestions, recentSentences, spotlightLearners, learnerCountResult] = await database.batch([
     database.select().from(stages).orderBy(stages.order),
     database.select().from(stages).where(eq(stages.isCurrent, true)).limit(1),
     database
@@ -72,11 +72,13 @@ export async function loader({ context }: Route.LoaderArgs) {
       .orderBy(desc(sentences.createdAt))
       .limit(4),
     database.select().from(learnerProfiles).limit(4),
+    database.select({ total: count() }).from(learnerProfiles),
   ]);
 
   const currentStage = currentStageResult[0] ?? null;
+  const learnerCount = learnerCountResult[0]?.total ?? 0;
 
-  return { allStages, currentStage, recentRecords, openQuestions, recentSentences, spotlightLearners };
+  return { allStages, currentStage, recentRecords, openQuestions, recentSentences, spotlightLearners, learnerCount };
 }
 
 function formatRelativeTime(timestamp: number | null): string {
@@ -101,7 +103,7 @@ const FORMAT_LABELS: Record<string, string> = {
 };
 
 export default function HomePage({ loaderData }: Route.ComponentProps) {
-  const { allStages, currentStage, recentRecords, openQuestions, recentSentences, spotlightLearners } = loaderData;
+  const { allStages, currentStage, recentRecords, openQuestions, recentSentences, spotlightLearners, learnerCount } = loaderData;
 
   return (
     <div>
@@ -198,7 +200,30 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
                 <span className="text-ocean-blue font-semibold text-[10px] tracking-[0.2em] uppercase mb-4 block">현재 구간</span>
                 <h3 className="text-3xl font-semibold text-deep-ocean mb-6">{currentStage.name}</h3>
                 {currentStage.description && (
-                  <p className="text-text-secondary text-[17px] leading-relaxed font-light italic">{currentStage.description}</p>
+                  <p className="text-text-secondary text-[17px] leading-relaxed mb-8 font-light italic">
+                    &ldquo;{currentStage.description}&rdquo;
+                  </p>
+                )}
+                {learnerCount > 0 && (
+                  <div className="flex items-center gap-4 pt-8 border-t border-border-subtle">
+                    <div className="flex -space-x-3">
+                      {spotlightLearners.slice(0, 2).map((l) => (
+                        l.profilePhotoUrl ? (
+                          <img key={l.userId} src={l.profilePhotoUrl} alt="" className="w-9 h-9 rounded-full border-2 border-white object-cover" />
+                        ) : (
+                          <div key={l.userId} className="w-9 h-9 rounded-full border-2 border-white bg-mist-blue flex items-center justify-center text-xs font-semibold text-ocean-blue">
+                            {l.displayName[0]}
+                          </div>
+                        )
+                      ))}
+                      {learnerCount > 2 && (
+                        <div className="w-9 h-9 rounded-full border-2 border-white bg-ocean-blue flex items-center justify-center text-[9px] text-white font-semibold">
+                          +{learnerCount - 2}
+                        </div>
+                      )}
+                    </div>
+                    <span className="text-[13px] font-medium text-text-secondary">{learnerCount}명의 러너가 잠수 중</span>
+                  </div>
                 )}
               </div>
             </div>
