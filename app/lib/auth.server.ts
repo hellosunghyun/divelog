@@ -1,6 +1,7 @@
 import type { AuthContext } from "@adakrpos/auth";
 
 const authCache = new WeakMap<Request, AuthContext>();
+const debugCache = new WeakMap<Request, string>();
 
 const unauthenticatedContext: AuthContext = {
   isAuthenticated: false,
@@ -19,14 +20,17 @@ function getSessionIdFromCookie(request: Request): string | null {
   }
 }
 
+export function getAuthDebug(request: Request): string {
+  return debugCache.get(request) ?? "not-yet";
+}
+
 export async function getAuth(request: Request, apiKey: string): Promise<AuthContext> {
   const cached = authCache.get(request);
   if (cached) return cached;
 
   const sessionId = getSessionIdFromCookie(request);
-  const rawCookie = request.headers.get("cookie") ?? "(none)";
-  console.log("[auth]", { hasSession: !!sessionId, cookieLength: rawCookie.length, url: request.url });
   if (!sessionId) {
+    debugCache.set(request, "no-cookie");
     authCache.set(request, unauthenticatedContext);
     return unauthenticatedContext;
   }
@@ -42,21 +46,23 @@ export async function getAuth(request: Request, apiKey: string): Promise<AuthCon
     });
 
     if (!res.ok) {
-      console.error("[auth] verify-session failed", { status: res.status, sessionId: sessionId.substring(0, 8) });
+      debugCache.set(request, `api-${res.status}`);
       authCache.set(request, unauthenticatedContext);
       return unauthenticatedContext;
     }
 
     const data = (await res.json()) as { user: NonNullable<AuthContext["user"]>; session: NonNullable<AuthContext["session"]> };
     if (!data.user || !data.session) {
+      debugCache.set(request, "no-user-data");
       authCache.set(request, unauthenticatedContext);
       return unauthenticatedContext;
     }
+    debugCache.set(request, `ok:${data.user.nickname ?? data.user.name}`);
     const auth: AuthContext = { user: data.user, session: data.session, isAuthenticated: true };
     authCache.set(request, auth);
     return auth;
   } catch (e) {
-    console.error("[auth] verify-session error", { error: e instanceof Error ? e.message : String(e) });
+    debugCache.set(request, `err:${e instanceof Error ? e.message : String(e)}`);
     authCache.set(request, unauthenticatedContext);
     return unauthenticatedContext;
   }

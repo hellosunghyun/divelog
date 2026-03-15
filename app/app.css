@@ -150,7 +150,9 @@
 }
 
 .deep-ocean-hero {
-  background: radial-gradient(circle at 50% 120%, #146C94 0%, #0B2447 100%);
+  background: 
+    linear-gradient(to bottom, transparent 70%, var(--color-bg, #F6F8FB) 100%),
+    radial-gradient(circle at 50% 40%, #146C94 0%, #0B2447 80%);
   position: relative;
   overflow: hidden;
 }
