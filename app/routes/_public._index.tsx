@@ -160,9 +160,9 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
                     </div>
                   )}
                 </div>
-                <div className="lg:w-3/4 w-full relative py-8 px-4 overflow-x-auto">
-                  <div className="absolute left-10 right-10 h-0.5 bg-border top-[36px]" aria-hidden="true" />
-                  <div className="flex items-start justify-between gap-4 min-w-max">
+                <div className="lg:w-3/4 w-full py-8 px-4 overflow-x-auto">
+                  <div className="flex items-start justify-between gap-4 min-w-max relative">
+                    <div className="absolute left-0 right-0 h-0.5 bg-border top-[7px] pointer-events-none" aria-hidden="true" />
                     {allStages.map((stage, index) => {
                       const isCurrent = stage.isCurrent || stage.slug === currentStage?.slug;
                       const isPast = currentStage && stage.order < currentStage.order;
