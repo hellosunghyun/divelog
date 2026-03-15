@@ -161,7 +161,7 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
                   )}
                 </div>
                 <div className="lg:w-3/4 w-full relative py-8 px-4 overflow-x-auto">
-                  <div className="absolute left-10 right-10 h-0.5 bg-border top-[40px]" aria-hidden="true" />
+                  <div className="absolute left-10 right-10 h-0.5 bg-border top-[36px]" aria-hidden="true" />
                   <div className="flex items-start justify-between gap-4 min-w-max">
                     {allStages.map((stage, index) => {
                       const isCurrent = stage.isCurrent || stage.slug === currentStage?.slug;
