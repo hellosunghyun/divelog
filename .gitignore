@@ -13,3 +13,5 @@ node_modules/
 .wrangler/
 worker-configuration.d.ts
 divelog-homepage.png
+*.png
+head
