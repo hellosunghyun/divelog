@@ -22,17 +22,15 @@ export async function getAuth(request: Request, apiKey: string): Promise<AuthCon
 
   try {
     const auth = await verifyRequest(request, { apiKey });
+    if (!auth.isAuthenticated && hasSessionCookie(request)) {
+      clearApiKeyCache();
+      const retry = await verifyRequest(request, { apiKey });
+      authCache.set(request, retry);
+      return retry;
+    }
     authCache.set(request, auth);
     return auth;
   } catch {
-    if (hasSessionCookie(request)) {
-      clearApiKeyCache();
-      try {
-        const retry = await verifyRequest(request, { apiKey });
-        authCache.set(request, retry);
-        return retry;
-      } catch {}
-    }
     authCache.set(request, unauthenticatedContext);
     return unauthenticatedContext;
   }
