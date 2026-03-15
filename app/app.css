@@ -150,11 +150,20 @@
 }
 
 .deep-ocean-hero {
-  background: 
-    linear-gradient(to bottom, transparent 70%, var(--color-bg, #F6F8FB) 100%),
-    radial-gradient(circle at 50% 40%, #146C94 0%, #0B2447 80%);
+  background: radial-gradient(circle at 50% 120%, #146C94 0%, #0B2447 100%);
   position: relative;
   overflow: hidden;
+}
+
+.deep-ocean-hero::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 40%;
+  background: linear-gradient(to bottom, transparent 0%, #F6F8FB 100%);
+  pointer-events: none;
 }
 
 .hero-caustics {
