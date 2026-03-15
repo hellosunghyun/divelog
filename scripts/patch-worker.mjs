@@ -6,7 +6,7 @@ await build({
   format: "esm",
   platform: "neutral",
   conditions: ["workerd"],
-  outfile: "build/client/_worker.js",
+  outfile: "build/worker.js",
   external: ["node:*", "cloudflare:*"],
   logLevel: "info",
 });
