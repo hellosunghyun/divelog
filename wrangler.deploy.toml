@@ -8,7 +8,7 @@ routes = [
 ]
 
 [vars]
-ADAKRPOS_API_KEY = "ak_550edb2a-a67c-4d4a-be62-2e0affcf1bfd"
+ADAKRPOS_API_KEY = "ak_277c6498-ee78-4f04-a09c-808d241f7d2c"
 ADMIN_USER_ID = "usr_placeholder_replace_with_real_admin_id"
 ADMIN_EMAILS = "sunkima26@pos.idserve.net"
 

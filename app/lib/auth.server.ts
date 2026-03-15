@@ -19,7 +19,14 @@ export async function getAuth(request: Request, apiKey: string): Promise<AuthCon
     const auth = await verifyRequest(request, { apiKey });
     authCache.set(request, auth);
     return auth;
-  } catch {
+  } catch (error) {
+    const cookieHeader = request.headers.get("cookie") ?? "";
+    const hasSession = cookieHeader.includes("adakrpos_session");
+    console.error("[auth] verifyRequest failed", {
+      hasSessionCookie: hasSession,
+      apiKeyPrefix: apiKey?.substring(0, 6) ?? "MISSING",
+      error: error instanceof Error ? error.message : String(error),
+    });
     authCache.set(request, unauthenticatedContext);
     return unauthenticatedContext;
   }
