@@ -147,6 +147,8 @@ export function createRecordRefExtension() {
           popup.style.top = `${rect.bottom + 6}px`;
         };
 
+        let scrollHandler: (() => void) | null = null;
+
         return {
           onStart: (props: SuggestionProps<RecordItem>) => {
             selectedIndex = 0;
@@ -155,6 +157,8 @@ export function createRecordRefExtension() {
             document.body.appendChild(popup);
             update();
             position();
+            scrollHandler = () => position();
+            window.addEventListener("scroll", scrollHandler, true);
           },
           onUpdate: (props: SuggestionProps<RecordItem>) => {
             selectedIndex = 0;
@@ -185,6 +189,7 @@ export function createRecordRefExtension() {
             if (event.key === "Escape") {
               popup?.remove();
               popup = null;
+              if (scrollHandler) { window.removeEventListener("scroll", scrollHandler, true); scrollHandler = null; }
               return true;
             }
             return false;
@@ -193,6 +198,7 @@ export function createRecordRefExtension() {
             popup?.remove();
             popup = null;
             currentProps = null;
+            if (scrollHandler) { window.removeEventListener("scroll", scrollHandler, true); scrollHandler = null; }
           },
         };
       },

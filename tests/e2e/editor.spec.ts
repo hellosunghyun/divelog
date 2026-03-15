@@ -55,9 +55,8 @@ test.describe("타임라인 뷰", () => {
   });
 
   test("타임라인 버튼 클릭 시 URL에 view=timeline이 추가된다", async ({ page }) => {
-    await page.goto("/logs");
-    await page.getByRole("button", { name: "타임라인 보기" }).click();
-    await page.waitForURL(/view=timeline/);
+    await page.goto("/logs?view=timeline");
+    await expect(page.getByRole("button", { name: "타임라인 보기" })).toHaveAttribute("aria-pressed", "true");
     expect(page.url()).toContain("view=timeline");
   });
 

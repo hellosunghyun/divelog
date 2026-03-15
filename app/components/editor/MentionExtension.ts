@@ -165,6 +165,8 @@ export function createUserMentionExtension() {
           popup.style.top = `${rect.bottom + 6}px`;
         };
 
+        let scrollHandler: (() => void) | null = null;
+
         return {
           onStart: (props: SuggestionProps<MentionItem>) => {
             selectedIndex = 0;
@@ -173,6 +175,8 @@ export function createUserMentionExtension() {
             document.body.appendChild(popup);
             update();
             position();
+            scrollHandler = () => position();
+            window.addEventListener("scroll", scrollHandler, true);
           },
           onUpdate: (props: SuggestionProps<MentionItem>) => {
             selectedIndex = 0;
@@ -203,6 +207,7 @@ export function createUserMentionExtension() {
             if (event.key === "Escape") {
               popup?.remove();
               popup = null;
+              if (scrollHandler) { window.removeEventListener("scroll", scrollHandler, true); scrollHandler = null; }
               return true;
             }
             return false;
@@ -211,6 +216,7 @@ export function createUserMentionExtension() {
             popup?.remove();
             popup = null;
             currentProps = null;
+            if (scrollHandler) { window.removeEventListener("scroll", scrollHandler, true); scrollHandler = null; }
           },
         };
       },

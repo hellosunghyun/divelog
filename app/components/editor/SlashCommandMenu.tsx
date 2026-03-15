@@ -1,5 +1,8 @@
 import { Extension, type Editor, type Range } from "@tiptap/core";
+import { PluginKey } from "@tiptap/pm/state";
 import Suggestion, { type SuggestionOptions, type SuggestionProps } from "@tiptap/suggestion";
+
+const slashCommandPluginKey = new PluginKey("slashCommand");
 
 interface SlashCommandContext {
   editor: Editor;
@@ -190,6 +193,7 @@ export function createSlashCommandExtension(
         onError: options.onError,
         suggestion: {
           char: "/",
+          pluginKey: slashCommandPluginKey,
           items: ({ query }) => filterItems(getSlashItems(options), query).slice(0, 9),
           command: ({ editor, range, props }) => {
             void props.command({
@@ -201,18 +205,40 @@ export function createSlashCommandExtension(
           },
           render: () => {
             let menu: HTMLDivElement | null = null;
-            let list: HTMLUListElement | null = null;
+            let buttons: HTMLButtonElement[] = [];
             let selectedIndex = 0;
             let currentProps: SuggestionProps<SlashCommandItem> | null = null;
+            let scrollHandler: (() => void) | null = null;
 
-            const renderList = () => {
-              if (!list || !currentProps) {
+            const highlightSelected = () => {
+              buttons.forEach((btn, i) => {
+                btn.style.background = i === selectedIndex ? "#F2F5F8" : "transparent";
+              });
+            };
+
+            const buildList = () => {
+              if (!menu || !currentProps) return;
+
+              menu.innerHTML = "";
+              buttons = [];
+
+              const list = document.createElement("ul");
+              list.style.margin = "0";
+              list.style.padding = "0";
+              list.style.maxHeight = "340px";
+              list.style.overflowY = "auto";
+
+              if (currentProps.items.length === 0) {
+                const empty = document.createElement("li");
+                empty.style.listStyle = "none";
+                empty.style.padding = "12px";
+                empty.style.fontSize = "13px";
+                empty.style.color = "#8C8C91";
+                empty.textContent = "결과가 없습니다";
+                list.appendChild(empty);
+                menu.appendChild(list);
                 return;
               }
-
-              const targetList = list;
-
-              targetList.innerHTML = "";
 
               currentProps.items.forEach((item, index) => {
                 const entry = document.createElement("li");
@@ -232,6 +258,7 @@ export function createSlashCommandExtension(
                 button.style.textAlign = "left";
                 button.style.background = index === selectedIndex ? "#F2F5F8" : "transparent";
                 button.style.color = "#1D1D1F";
+                button.style.transition = "background 80ms";
 
                 const icon = document.createElement("span");
                 icon.textContent = item.icon;
@@ -264,38 +291,52 @@ export function createSlashCommandExtension(
 
                 button.addEventListener("mouseenter", () => {
                   selectedIndex = index;
-                  renderList();
+                  highlightSelected();
                 });
 
-                button.addEventListener("mousedown", (event) => {
-                  event.preventDefault();
+                button.addEventListener("mousedown", (e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
                 });
 
-                button.addEventListener("click", () => {
-                  if (!currentProps) {
-                    return;
+                button.addEventListener("click", (e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  if (currentProps) {
+                    const capturedProps = currentProps;
+                    const capturedItem = item;
+                    requestAnimationFrame(() => {
+                      capturedProps.command(capturedItem);
+                    });
                   }
-
-                  currentProps.command(item);
                 });
 
                 entry.appendChild(button);
-                targetList.appendChild(entry);
+                list.appendChild(entry);
+                buttons.push(button);
               });
+
+              menu.appendChild(list);
             };
 
             const updatePosition = () => {
-              if (!menu || !currentProps?.clientRect) {
-                return;
-              }
-
+              if (!menu || !currentProps?.clientRect) return;
               const rect = currentProps.clientRect();
-              if (!rect) {
-                return;
-              }
-
+              if (!rect) return;
               menu.style.left = `${rect.left}px`;
               menu.style.top = `${rect.bottom + 8}px`;
+            };
+
+            const attachScrollListener = () => {
+              scrollHandler = () => updatePosition();
+              window.addEventListener("scroll", scrollHandler, true);
+            };
+
+            const detachScrollListener = () => {
+              if (scrollHandler) {
+                window.removeEventListener("scroll", scrollHandler, true);
+                scrollHandler = null;
+              }
             };
 
             return {
@@ -303,21 +344,18 @@ export function createSlashCommandExtension(
                 selectedIndex = 0;
                 currentProps = props;
                 menu = createMenuContainer();
-                list = document.createElement("ul");
-                list.style.margin = "0";
-                list.style.padding = "0";
-                menu.appendChild(list);
                 document.body.appendChild(menu);
-                renderList();
+                buildList();
                 updatePosition();
+                attachScrollListener();
               },
               onUpdate: (props: SuggestionProps<SlashCommandItem>) => {
                 selectedIndex = 0;
                 currentProps = props;
-                renderList();
+                buildList();
                 updatePosition();
               },
-              onKeyDown: ({ event }) => {
+              onKeyDown: ({ event }: { event: KeyboardEvent }) => {
                 if (!currentProps || currentProps.items.length === 0) {
                   return false;
                 }
@@ -326,14 +364,16 @@ export function createSlashCommandExtension(
                   event.preventDefault();
                   selectedIndex =
                     (selectedIndex + currentProps.items.length - 1) % currentProps.items.length;
-                  renderList();
+                  highlightSelected();
+                  buttons[selectedIndex]?.scrollIntoView({ block: "nearest" });
                   return true;
                 }
 
                 if (event.key === "ArrowDown") {
                   event.preventDefault();
                   selectedIndex = (selectedIndex + 1) % currentProps.items.length;
-                  renderList();
+                  highlightSelected();
+                  buttons[selectedIndex]?.scrollIntoView({ block: "nearest" });
                   return true;
                 }
 
@@ -347,23 +387,21 @@ export function createSlashCommandExtension(
                 }
 
                 if (event.key === "Escape") {
-                  if (menu) {
-                    menu.remove();
-                  }
+                  menu?.remove();
                   menu = null;
-                  list = null;
+                  buttons = [];
+                  detachScrollListener();
                   return true;
                 }
 
                 return false;
               },
               onExit: () => {
-                if (menu) {
-                  menu.remove();
-                }
+                menu?.remove();
                 menu = null;
-                list = null;
+                buttons = [];
                 currentProps = null;
+                detachScrollListener();
               },
             };
           },
