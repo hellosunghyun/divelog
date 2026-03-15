@@ -24,6 +24,8 @@ export async function getAuth(request: Request, apiKey: string): Promise<AuthCon
   if (cached) return cached;
 
   const sessionId = getSessionIdFromCookie(request);
+  const rawCookie = request.headers.get("cookie") ?? "(none)";
+  console.log("[auth]", { hasSession: !!sessionId, cookieLength: rawCookie.length, url: request.url });
   if (!sessionId) {
     authCache.set(request, unauthenticatedContext);
     return unauthenticatedContext;
