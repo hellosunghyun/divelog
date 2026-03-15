@@ -46,7 +46,14 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
 
   const recordData = recordResult[0];
 
-  if (!recordData || recordData.record.visibility === "draft") {
+  if (!recordData) {
+    throw data("기록을 찾을 수 없습니다.", { status: 404 });
+  }
+
+  const currentUserId = optionalAuth?.isAuthenticated ? optionalAuth.user.id : null;
+  const isAuthor = currentUserId === recordData.record.authorId;
+
+  if (recordData.record.visibility === "draft" && !isAuthor) {
     throw data("기록을 찾을 수 없습니다.", { status: 404 });
   }
 
@@ -100,7 +107,7 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
     linkedRecords,
     selfAnswers: selfAnswersData,
     tags: recordTags,
-    currentUserId: optionalAuth?.isAuthenticated ? optionalAuth.user.id : null,
+    currentUserId,
     contentHtml,
     plainTextContent,
   };
@@ -424,6 +431,13 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
 
   return (
     <div className="max-w-reading mx-auto py-16 px-6 md:py-24">
+      {record.visibility === "draft" && (
+        <div className="mb-6 rounded-xl border border-warning/30 bg-warning/5 px-5 py-4">
+          <p className="text-base font-medium text-warning">임시저장 상태입니다</p>
+          <p className="text-sm text-text-secondary mt-1">이 기록은 나만 볼 수 있습니다. 준비가 되면 공개 범위를 변경해보세요.</p>
+        </div>
+      )}
+
       <header className="mb-10">
         <div className="flex gap-2 mb-4 flex-wrap">
           <span className="text-caption px-2 py-0.5 rounded-full bg-border text-text-secondary">
@@ -432,6 +446,11 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
           <span className="text-caption px-2 py-0.5 rounded-full bg-border text-text-secondary">
             {record.type === "personal" ? "개인" : record.type === "challenge" ? "챌린지" : "협업"}
           </span>
+          {record.visibility === "draft" && (
+            <span className="text-caption px-2 py-0.5 rounded-full bg-warning/10 text-warning font-medium">
+              임시저장
+            </span>
+          )}
         </div>
 
         <h1 className="text-3xl font-semibold text-text-primary leading-tight tracking-tight mb-4">

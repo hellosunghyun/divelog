@@ -238,12 +238,15 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
             id="rhythm"
             name="rhythm"
             defaultValue={record.rhythm}
-            className="rounded-md border border-border bg-surface px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-ocean-blue"
+            className="rounded-md border border-border bg-surface px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-ocean-blue"
           >
-            <option value="free">자유</option>
-            <option value="sprint">스프린트</option>
-            <option value="weekly">주간</option>
-            <option value="monthly">월간</option>
+            <option value="free">자유 형식</option>
+            <option value="moment">순간의 기록</option>
+            <option value="weekly">이번 주 메모</option>
+            <option value="sprint">스프린트 로그</option>
+            <option value="monthly">월간 회고</option>
+            <option value="stage">구간 회고</option>
+            <option value="reflection">개인 회고</option>
           </select>
         </div>
 

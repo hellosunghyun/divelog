@@ -36,7 +36,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   if (type && (type === "personal" || type === "challenge" || type === "collaboration")) {
     conditions.push(eq(records.type, type));
   }
-  if (rhythm && (rhythm === "sprint" || rhythm === "weekly" || rhythm === "monthly" || rhythm === "free")) {
+  if (rhythm && ["moment", "sprint", "weekly", "monthly", "stage", "reflection", "free"].includes(rhythm)) {
     conditions.push(eq(records.rhythm, rhythm));
   }
 
@@ -129,9 +129,12 @@ const FILTER_OPTIONS = [
     key: "rhythm",
     label: "리듬",
     values: [
-      { value: "sprint", label: "스프린트" },
+      { value: "moment", label: "순간" },
       { value: "weekly", label: "주간" },
+      { value: "sprint", label: "스프린트" },
       { value: "monthly", label: "월간" },
+      { value: "stage", label: "구간 회고" },
+      { value: "reflection", label: "개인 회고" },
       { value: "free", label: "자유" },
     ],
   },

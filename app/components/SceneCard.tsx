@@ -30,9 +30,12 @@ const FORMAT_LABELS: Record<string, string> = {
 };
 
 const RHYTHM_LABELS: Record<string, string> = {
+  moment: "순간",
   sprint: "스프린트",
   weekly: "주간",
   monthly: "월간",
+  stage: "구간 회고",
+  reflection: "개인 회고",
   free: "자유",
 };
 
