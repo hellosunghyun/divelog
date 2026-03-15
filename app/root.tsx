@@ -40,19 +40,22 @@ export default function App() {
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
-  let message = "Oops!";
-  let details = "An unexpected error occurred.";
+  let message = "오류가 발생했습니다";
+  let details = "예상치 못한 오류가 발생했습니다.";
   let stack: string | undefined;
 
   if (isRouteErrorResponse(error)) {
-    message = error.status === 404 ? "404" : "Error";
+    message = error.status === 404 ? "404" : "오류";
     details =
       error.status === 404
-        ? "The requested page could not be found."
-        : error.statusText || details;
+        ? "요청하신 페이지를 찾을 수 없습니다."
+        : error.statusText || "예상치 못한 오류가 발생했습니다.";
   } else if (import.meta.env.DEV && error && error instanceof Error) {
     details = error.message;
     stack = error.stack;
+  } else {
+    message = "오류";
+    details = "예상치 못한 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
   }
 
   return (

@@ -20,8 +20,12 @@ export default function QuestionCard({ question, record, onRespond }: QuestionCa
       data-testid="question-card"
       className="rounded-2xl border border-border bg-surface p-7 lg:p-8 shadow-card"
     >
-      <div className="text-[11px] font-medium tracking-widest uppercase text-ocean-blue/70 mb-4">
-        {question.direction === "inward" ? "나에게 묻다" : "함께 생각해볼 질문"}
+      <div className="text-caption font-medium tracking-widest uppercase text-ocean-blue/70 mb-4">
+        {question.direction === "inward"
+          ? "스스로에게 묻다"
+          : question.direction === "next_stage"
+          ? "다음 구간으로 가져갈 질문"
+          : "함께 생각해볼 질문"}
       </div>
 
       <p className="text-xl md:text-2xl leading-relaxed text-text-primary font-semibold mb-6 tracking-tight">

@@ -342,17 +342,17 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
             htmlFor="responsePreference"
             className="block text-meta font-medium text-text-secondary mb-2"
           >
-            응답 설정
+            어떤 응답을 원하시나요?
           </label>
           <select
             id="responsePreference"
             name="responsePreference"
             defaultValue={record.responsePreference}
-            className="rounded-md border border-border bg-surface px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-ocean-blue"
+            className="w-full rounded-md border border-border bg-surface px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-ocean-blue"
           >
-            <option value="open">모든 응답 허용</option>
-            <option value="question_only">질문만 허용</option>
-            <option value="closed">응답 닫기</option>
+            <option value="open">모든 응답을 환영합니다</option>
+            <option value="question_only">질문은 환영해요</option>
+            <option value="closed">그냥 읽어줘도 괜찮아요</option>
           </select>
         </div>
 

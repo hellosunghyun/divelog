@@ -80,10 +80,14 @@ export async function action({ request, context }: Route.ActionArgs) {
 
   const questionRaw = formData.get("question");
   const questionContent = typeof questionRaw === "string" ? questionRaw.trim() : "";
+  const questionDirectionRaw = formData.get("questionDirection");
+  const questionDirection = typeof questionDirectionRaw === "string" && ["inward", "outward", "next_stage"].includes(questionDirectionRaw)
+    ? questionDirectionRaw
+    : "outward";
   if (questionContent.length > 0) {
     const parsedQuestion = createQuestionSchema.safeParse({
       content: questionContent,
-      direction: "outward",
+      direction: questionDirection,
       recordId: "pending",
     });
 
@@ -127,7 +131,7 @@ export async function action({ request, context }: Route.ActionArgs) {
       id: nanoid(),
       recordId: id,
       content: questionContent,
-      direction: "outward",
+      direction: questionDirection,
       isOpen: true,
       createdAt: now,
     });
@@ -157,16 +161,35 @@ export default function WritePage({ loaderData }: Route.ComponentProps) {
   const navigation = useNavigation();
   const [selectedFormat, setSelectedFormat] = useState<"note" | "article">("note");
   const [articleContent, setArticleContent] = useState("");
+  const [noteContent, setNoteContent] = useState("");
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
   const [title, setTitle] = useState("");
   const [question, setQuestion] = useState("");
+  const [appliedTemplateId, setAppliedTemplateId] = useState<string>("");
   const isSubmitting = navigation.state === "submitting";
 
   const hasChanges =
     title.length > 0 ||
     articleContent.length > 0 ||
+    noteContent.length > 0 ||
     question.length > 0 ||
     selectedTags.size > 0;
+
+  function handleTemplateChange(templateId: string) {
+    setAppliedTemplateId(templateId);
+    if (!templateId) return;
+    const tmpl = availableTemplates.find((t) => t.id === templateId);
+    if (!tmpl?.promptBody) return;
+    if (selectedFormat === "note") {
+      setNoteContent(tmpl.promptBody);
+    }
+    if (tmpl.rhythm) {
+      const rhythmSelect = document.getElementById("rhythm") as HTMLSelectElement | null;
+      if (rhythmSelect && ["free", "sprint", "weekly", "monthly"].includes(tmpl.rhythm)) {
+        rhythmSelect.value = tmpl.rhythm;
+      }
+    }
+  }
 
   useUnsavedWarning(hasChanges);
 
@@ -257,6 +280,8 @@ export default function WritePage({ loaderData }: Route.ComponentProps) {
             <select
               id="templateId"
               name="templateId"
+              value={appliedTemplateId}
+              onChange={(e) => handleTemplateChange(e.target.value)}
               className="w-full rounded-md border border-border bg-surface px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-ocean-blue"
             >
               <option value="">템플릿 없이 시작</option>
@@ -321,6 +346,8 @@ export default function WritePage({ loaderData }: Route.ComponentProps) {
           {selectedFormat === "note" ? (
             <NoteEditor
               name="content"
+              defaultValue={noteContent}
+              onChange={setNoteContent}
               placeholder="짧은 생각, 메모, 기록을 남겨보세요..."
               error={contentError}
               htmlProps={{ required: true }}
@@ -336,23 +363,49 @@ export default function WritePage({ loaderData }: Route.ComponentProps) {
           {contentError ? <p className="text-error text-meta mt-1">{contentError}</p> : null}
         </div>
 
-        <div>
+        <div className="bg-surface-secondary rounded-xl p-5 border border-border">
           <label
             htmlFor="question"
-            className="block text-meta font-medium text-text-secondary mb-2"
+            className="block text-base font-medium text-text-primary mb-1"
           >
             남겨둘 질문 (선택)
           </label>
-          <input
+          <p className="text-meta text-text-tertiary mb-3">
+            기록의 끝을 결론이 아니라 질문으로 열어둘 수 있습니다.
+          </p>
+          <textarea
             id="question"
             name="question"
-            type="text"
+            rows={2}
             placeholder="이 기록에 남기고 싶은 질문이 있다면..."
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
-            className="w-full rounded-md border border-border bg-surface-secondary px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-ocean-blue focus:ring-offset-1"
+            className="w-full rounded-md border border-border bg-surface px-4 py-3 text-base resize-y min-h-[60px] focus:outline-none focus:ring-2 focus:ring-ocean-blue focus:ring-offset-1"
           />
           {questionError ? <p className="text-error text-meta mt-1">{questionError}</p> : null}
+
+          {question.trim().length > 0 && (
+            <fieldset className="mt-3 border-0 m-0 p-0">
+              <legend className="block text-meta font-medium text-text-secondary mb-2">
+                질문 방향
+              </legend>
+              <div className="flex gap-3 flex-wrap">
+                {[
+                  { value: "inward", label: "스스로에게" },
+                  { value: "outward", label: "동료에게" },
+                  { value: "next_stage", label: "다음 구간으로" },
+                ].map((opt) => (
+                  <label
+                    key={opt.value}
+                    className="flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <input type="radio" name="questionDirection" value={opt.value} defaultChecked={opt.value === "outward"} />
+                    <span className="text-base">{opt.label}</span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+          )}
         </div>
 
         <div>
@@ -360,16 +413,16 @@ export default function WritePage({ loaderData }: Route.ComponentProps) {
             htmlFor="responsePreference"
             className="block text-meta font-medium text-text-secondary mb-2"
           >
-            응답 설정
+            어떤 응답을 원하시나요?
           </label>
           <select
             id="responsePreference"
             name="responsePreference"
-            className="rounded-md border border-border bg-surface px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-ocean-blue"
+            className="w-full rounded-md border border-border bg-surface px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-ocean-blue"
           >
-            <option value="open">모든 응답 허용</option>
-            <option value="question_only">질문만 허용</option>
-            <option value="closed">응답 닫기</option>
+            <option value="open">모든 응답을 환영합니다</option>
+            <option value="question_only">질문은 환영해요</option>
+            <option value="closed">그냥 읽어줘도 괜찮아요</option>
           </select>
         </div>
 

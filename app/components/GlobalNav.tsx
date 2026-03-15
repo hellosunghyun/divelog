@@ -186,7 +186,11 @@ export default function GlobalNav() {
     </header>
 
       {isMenuOpen && (
-        <div className="lg:hidden fixed inset-x-0 top-16 bottom-0 z-[9999] bg-white overflow-y-auto">
+        <div
+          className="lg:hidden fixed inset-x-0 top-16 bottom-0 z-[9999] bg-white overflow-y-auto"
+          role="navigation"
+          aria-label="메인 메뉴"
+        >
           <div className="border-t border-border-subtle" />
           <div className="max-w-content mx-auto px-6 py-8 flex flex-col gap-1">
             <form onSubmit={handleSearchSubmit} className="relative mb-4">

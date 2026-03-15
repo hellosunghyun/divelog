@@ -20,15 +20,16 @@ export default function SortBar({ options = DEFAULT_SORT_OPTIONS }: SortBarProps
 
   return (
     <div className="flex gap-2 items-center">
-      <span className="text-meta text-text-secondary">정렬</span>
+      <label htmlFor="sort-select" className="text-sm text-text-secondary">정렬</label>
       <select
+        id="sort-select"
         value={searchParams.get("sort") ?? "recent"}
         onChange={(e) => {
           const newParams = new URLSearchParams(searchParams);
           newParams.set("sort", e.target.value);
           setSearchParams(newParams);
         }}
-        className="text-meta px-2 py-1 rounded-lg border border-border bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
+        className="text-sm px-3 py-2.5 rounded-lg border border-border bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
       >
         {options.map((opt) => (
           <option key={opt.value} value={opt.value}>{opt.label}</option>

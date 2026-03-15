@@ -28,14 +28,14 @@ export default function FilterBar({ filters }: FilterBarProps) {
     <div className="flex gap-3 flex-wrap items-center">
       {filters.map((filter) => (
         <div key={filter.key} className="flex items-center gap-2">
-          <label htmlFor={`filter-${filter.key}`} className="text-meta text-text-secondary">
+          <label htmlFor={`filter-${filter.key}`} className="text-sm text-text-secondary">
             {filter.label}
           </label>
           <select
             id={`filter-${filter.key}`}
             value={searchParams.get(filter.key) ?? ""}
             onChange={(e) => handleChange(filter.key, e.target.value)}
-            className="text-meta px-2 py-1 rounded-lg border border-border bg-surface text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
+            className="text-sm px-3 py-2.5 rounded-lg border border-border bg-surface text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
           >
             <option value="">전체</option>
             {filter.values.map((v) => (

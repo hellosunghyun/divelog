@@ -125,6 +125,23 @@ export async function action({ request, context }: Route.ActionArgs) {
       return { error: parsed.error.issues[0]?.message ?? "입력값을 확인해주세요." };
     }
 
+    // 응답 선호도에 따른 서버사이드 검증
+    const targetRecord = await database
+      .select({ responsePreference: records.responsePreference })
+      .from(records)
+      .where(eq(records.id, parsed.data.recordId))
+      .limit(1);
+
+    if (targetRecord.length > 0) {
+      const pref = targetRecord[0].responsePreference;
+      if (pref === "closed") {
+        return { error: "이 기록은 응답이 닫혀 있습니다." };
+      }
+      if (pref === "question_only" && parsed.data.type !== "question") {
+        return { error: "이 기록은 질문만 허용합니다." };
+      }
+    }
+
     const id = nanoid();
     const now = Math.floor(Date.now() / 1000);
 
@@ -212,12 +229,25 @@ export function meta({ data: loaderData }: Route.MetaArgs) {
   ];
 }
 
-const RESPONSE_TYPE_OPTIONS = [
-  { value: "resonance", label: "공명 - 이 기록이 와닿았습니다" },
-  { value: "question", label: "질문 - 궁금한 것을 남깁니다" },
-  { value: "connection", label: "연결 - 내 경험과 연결됩니다" },
-  { value: "suggestion", label: "제안 - 한 가지 제안합니다" },
+const ALL_RESPONSE_TYPE_OPTIONS = [
+  { value: "resonance", label: "공명 — 이 기록에서 무엇이 남았는지 말합니다" },
+  { value: "question", label: "질문 — 더 듣고 싶은 지점을 엽니다" },
+  { value: "connection", label: "연결 — 내 경험이나 다른 기록과 이어봅니다" },
+  { value: "suggestion", label: "제안 — 다음 시도를 조심스럽게 제안합니다" },
 ];
+
+const RESPONSE_PREFERENCE_LABELS: Record<string, string> = {
+  open: "모든 응답을 환영합니다",
+  question_only: "질문은 환영해요",
+  closed: "그냥 읽어줘도 괜찮아요",
+};
+
+function getResponseTypeOptions(preference: string) {
+  if (preference === "question_only") {
+    return ALL_RESPONSE_TYPE_OPTIONS.filter((opt) => opt.value === "question");
+  }
+  return ALL_RESPONSE_TYPE_OPTIONS;
+}
 
 const MIN_SELECTED_SENTENCE_LENGTH = 10;
 const MAX_SELECTED_SENTENCE_LENGTH = 500;
@@ -559,9 +589,12 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
 
       {record.responsePreference !== "closed" && (
         <section className="mb-12">
-          <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-6">
+          <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-4">
             응답 남기기
           </h2>
+          <p className="text-base text-text-secondary mb-6">
+            {RESPONSE_PREFERENCE_LABELS[record.responsePreference] ?? "이 기록에 응답해보세요."}
+          </p>
 
           {actionData && "error" in actionData ? (
             <p className="text-error mb-4 text-sm">{actionData.error}</p>
@@ -581,7 +614,7 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
                   응답 유형
                 </label>
                 <select id="response-type" name="type" required className="w-full rounded-lg border border-border bg-surface px-4 py-3 text-base text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2">
-                  {RESPONSE_TYPE_OPTIONS.map((option) => (
+                  {getResponseTypeOptions(record.responsePreference).map((option) => (
                     <option key={option.value} value={option.value}>
                       {option.label}
                     </option>

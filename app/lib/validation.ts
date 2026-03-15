@@ -48,7 +48,7 @@ export type CreateRecordInput = z.infer<typeof createRecordSchema>;
 
 export const createQuestionSchema = z.object({
   content: z.string().min(1, "질문을 입력해주세요").max(500),
-  direction: z.enum(["outward", "inward"]).default("outward"),
+  direction: z.enum(["outward", "inward", "next_stage"]).default("outward"),
   recordId: z.string().min(1),
 });
 
