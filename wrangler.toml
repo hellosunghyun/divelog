@@ -19,3 +19,8 @@ bucket_name = "divelog-r2"
 [[queues.producers]]
 binding = "QUEUE"
 queue = "divelog-queue"
+
+[observability]
+[observability.logs]
+enabled = true
+invocation_logs = true
