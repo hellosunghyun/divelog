@@ -30,10 +30,17 @@ export async function requireAuth(request: Request, context: AppLoadContext) {
 
   if (!auth.isAuthenticated) {
     const url = new URL(request.url);
-    if (url.searchParams.has("auth_retry")) {
+    const retryCount = parseInt(url.searchParams.get("auth_retry") ?? "0", 10);
+
+    if (retryCount >= 3) {
       throw redirect("/guide?auth_error=1");
     }
-    throw redirect(getLoginRedirectUrl(request));
+
+    const loginUrl = new URL(`https://ada-kr-pos.com/login`);
+    const callbackUrl = new URL(url.toString());
+    callbackUrl.searchParams.set("auth_retry", String(retryCount + 1));
+    loginUrl.searchParams.set("callbackUrl", callbackUrl.toString());
+    throw redirect(loginUrl.toString());
   }
 
   return auth;

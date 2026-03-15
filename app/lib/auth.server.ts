@@ -41,36 +41,50 @@ export async function getAuth(request: Request, apiKey: string): Promise<AuthCon
     return unauthenticatedContext;
   }
 
-  try {
-    const res = await fetch("https://ada-kr-pos.com/api/sdk/verify-session", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ sessionId }),
-    });
+  const maxRetries = 2;
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      const res = await fetch("https://ada-kr-pos.com/api/sdk/verify-session", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ sessionId }),
+      });
 
-    if (!res.ok) {
-      debugCache.set(request, `api-${res.status}`);
+      if (!res.ok) {
+        if (attempt < maxRetries && res.status >= 500) {
+          await new Promise((r) => setTimeout(r, 300 * (attempt + 1)));
+          continue;
+        }
+        debugCache.set(request, `api-${res.status}`);
+        authCache.set(request, unauthenticatedContext);
+        return unauthenticatedContext;
+      }
+
+      const data = (await res.json()) as { user: NonNullable<AuthContext["user"]>; session: NonNullable<AuthContext["session"]> };
+      if (!data.user || !data.session) {
+        debugCache.set(request, "no-user-data");
+        authCache.set(request, unauthenticatedContext);
+        return unauthenticatedContext;
+      }
+
+      debugCache.set(request, `ok:${data.user.nickname ?? data.user.name}`);
+      const auth: AuthContext = { user: data.user, session: data.session, isAuthenticated: true };
+      authCache.set(request, auth);
+      return auth;
+    } catch (e) {
+      if (attempt < maxRetries) {
+        await new Promise((r) => setTimeout(r, 300 * (attempt + 1)));
+        continue;
+      }
+      debugCache.set(request, `err:${e instanceof Error ? e.message : String(e)}`);
       authCache.set(request, unauthenticatedContext);
       return unauthenticatedContext;
     }
-
-    const data = (await res.json()) as { user: NonNullable<AuthContext["user"]>; session: NonNullable<AuthContext["session"]> };
-    if (!data.user || !data.session) {
-      debugCache.set(request, "no-user-data");
-      authCache.set(request, unauthenticatedContext);
-      return unauthenticatedContext;
-    }
-
-    debugCache.set(request, `ok:${data.user.nickname ?? data.user.name}`);
-    const auth: AuthContext = { user: data.user, session: data.session, isAuthenticated: true };
-    authCache.set(request, auth);
-    return auth;
-  } catch (e) {
-    debugCache.set(request, `err:${e instanceof Error ? e.message : String(e)}`);
-    authCache.set(request, unauthenticatedContext);
-    return unauthenticatedContext;
   }
+
+  authCache.set(request, unauthenticatedContext);
+  return unauthenticatedContext;
 }
