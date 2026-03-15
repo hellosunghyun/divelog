@@ -13,6 +13,12 @@ interface AdakrposUser {
   isVerified: boolean;
 }
 
+function normalizePhotoUrl(url: string | null | undefined): string | null {
+  if (!url) return null;
+  if (url.startsWith("http")) return url;
+  return `https://ada-kr-pos.com${url.startsWith("/") ? "" : "/"}${url}`;
+}
+
 function generateSlug(base: string, suffix?: number): string {
   const clean =
     base
@@ -72,7 +78,7 @@ export async function getOrCreateLearnerProfile(d1: D1Database, user: AdakrposUs
       .update(learnerProfiles)
       .set({
         displayName,
-        profilePhotoUrl: user.profilePhotoUrl ?? null,
+        profilePhotoUrl: normalizePhotoUrl(user.profilePhotoUrl),
         cohort: user.cohort ?? null,
         updatedAt: now,
       })
@@ -115,7 +121,7 @@ export async function getOrCreateLearnerProfile(d1: D1Database, user: AdakrposUs
     userId: user.id,
     slug,
     displayName,
-    profilePhotoUrl: user.profilePhotoUrl ?? null,
+    profilePhotoUrl: normalizePhotoUrl(user.profilePhotoUrl),
     cohort: user.cohort ?? null,
     createdAt: now,
     updatedAt: now,
