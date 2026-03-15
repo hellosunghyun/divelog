@@ -279,6 +279,12 @@ export function NoteEditor({
             </kbd>{" "}
             링크
           </span>
+          <span style={{ fontSize: "12px", color: "var(--color-text-tertiary)" }}>
+            @이름 태그
+          </span>
+          <span style={{ fontSize: "12px", color: "var(--color-text-tertiary)" }}>
+            [[제목]] 참조
+          </span>
         </div>
       )}
     </div>

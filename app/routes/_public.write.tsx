@@ -160,7 +160,7 @@ export async function action({ request, context }: Route.ActionArgs) {
         context.cloudflare.env.DB,
         id,
         auth.user.id,
-        mentionedUsers.map((m) => m.userId),
+        mentionedUsers.map((m) => m.slug),
       );
     }
 
@@ -203,6 +203,8 @@ export default function WritePage({ loaderData }: Route.ComponentProps) {
     if (!tmpl?.promptBody) return;
     if (selectedFormat === "note") {
       setNoteContent(tmpl.promptBody);
+    } else if (selectedFormat === "article") {
+      setArticleContent(tmpl.promptBody);
     }
     if (tmpl.rhythm) {
       const rhythmSelect = document.getElementById("rhythm") as HTMLSelectElement | null;

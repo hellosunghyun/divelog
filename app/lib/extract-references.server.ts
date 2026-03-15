@@ -6,6 +6,7 @@ type TiptapNode = {
 
 export interface ExtractedMention {
   userId: string;
+  slug: string;
   displayName: string;
 }
 
@@ -38,11 +39,12 @@ export function extractUserMentions(jsonStr: string): ExtractedMention[] {
 
   walkNodes(jsonStr, (node) => {
     if ((node.type === "userMention" || node.type === "mention") && node.attrs?.id) {
-      const userId = String(node.attrs.id);
-      if (!seen.has(userId)) {
-        seen.add(userId);
+      const idOrSlug = String(node.attrs.id);
+      if (!seen.has(idOrSlug)) {
+        seen.add(idOrSlug);
         results.push({
-          userId,
+          userId: idOrSlug,
+          slug: idOrSlug,
           displayName: String(node.attrs.label ?? ""),
         });
       }

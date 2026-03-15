@@ -7,17 +7,25 @@ export async function syncMentionsForRecord(
   d1: D1Database,
   recordId: string,
   authorId: string,
-  mentionedUserIds: string[],
+  mentionedSlugs: string[],
 ) {
   const database = db(d1);
   await database.delete(mentions).where(eq(mentions.recordId, recordId));
 
   const now = Math.floor(Date.now() / 1000);
-  for (const userId of mentionedUserIds) {
+  for (const slugOrId of mentionedSlugs) {
+    const learnerResult = await database
+      .select({ userId: learnerProfiles.userId })
+      .from(learnerProfiles)
+      .where(eq(learnerProfiles.slug, slugOrId))
+      .limit(1);
+
+    const resolvedUserId = learnerResult[0]?.userId ?? slugOrId;
+
     await database.insert(mentions).values({
       id: nanoid(),
       recordId,
-      mentionedUserId: userId,
+      mentionedUserId: resolvedUserId,
       mentionedById: authorId,
       createdAt: now,
     });

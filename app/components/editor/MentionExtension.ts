@@ -135,11 +135,12 @@ export function createUserMentionExtension() {
       items: async ({ query }: { query: string }) => fetchLearners(query),
       command: ({ editor, range, props }: { editor: any; range: any; props: any }) => {
         const label = props.displayName ?? props.label ?? props.id;
+        const slug = props.slug ?? props.id;
         editor
           .chain()
           .focus()
           .insertContentAt(range, [
-            { type: "userMention", attrs: { id: props.id, label } },
+            { type: "userMention", attrs: { id: slug, label } },
             { type: "text", text: " " },
           ])
           .run();

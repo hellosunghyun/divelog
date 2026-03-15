@@ -196,7 +196,22 @@ function extractPlainText(node: TiptapNode): string {
 }
 
 function renderPlainText(content: string): string {
-  return `<div class="whitespace-pre-wrap">${escapeHtml(content)}</div>`;
+  let html = escapeHtml(content);
+
+  html = html.replace(/@([\wㄱ-ㅎ가-힣]+)/g, (_match, name) => {
+    return `<a href="/learners/${name}" class="user-mention">@${name}</a>`;
+  });
+
+  html = html.replace(/\[\[(.+?)\]\]/g, (_match, title) => {
+    const slug = title
+      .toLowerCase()
+      .replace(/[^a-z0-9ㄱ-ㅎ가-힣]/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "");
+    return `<a href="/logs/${slug}" class="record-ref">${title}</a>`;
+  });
+
+  return `<div class="whitespace-pre-wrap">${html}</div>`;
 }
 
 function escapeHtml(text: string): string {
