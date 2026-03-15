@@ -137,6 +137,17 @@ function renderNode(node: TiptapNode): string {
       const alt = escapeHtml((node.attrs?.alt as string) ?? "");
       return `<img src="${src}" alt="${alt}" class="editor-image">`;
     }
+    case "userMention":
+    case "mention": {
+      const mentionId = escapeHtml((node.attrs?.id as string) ?? "");
+      const mentionLabel = escapeHtml((node.attrs?.label as string) ?? "");
+      return `<a href="/learners/${mentionId}" class="user-mention" data-user-id="${mentionId}">@${mentionLabel}</a>`;
+    }
+    case "recordRef": {
+      const refSlug = escapeHtml((node.attrs?.slug as string) ?? (node.attrs?.id as string) ?? "");
+      const refLabel = escapeHtml((node.attrs?.label as string) ?? "");
+      return `<a href="/logs/${refSlug}" class="record-ref" data-record-id="${escapeHtml((node.attrs?.id as string) ?? "")}">${refLabel}</a>`;
+    }
     default:
       return children;
   }

@@ -65,3 +65,37 @@
   background: var(--color-border);
   border-radius: var(--radius-full);
 }
+
+.user-mention {
+  background: var(--color-mist-blue);
+  color: var(--color-ocean-blue);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-default);
+}
+
+.user-mention:hover {
+  background: var(--color-mist-blue-deep);
+  text-decoration: none;
+}
+
+.record-ref {
+  background: var(--color-surface-secondary);
+  color: var(--color-ocean-blue);
+  padding: 1px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--color-border);
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-default);
+}
+
+.record-ref:hover {
+  border-color: var(--color-reef-cyan);
+  background: var(--color-mist-blue);
+  text-decoration: none;
+}

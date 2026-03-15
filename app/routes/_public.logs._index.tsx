@@ -1,10 +1,13 @@
 import type { Route } from "./+types/_public.logs._index";
+import { useSearchParams } from "react-router";
 import { db } from "../db/client.server";
 import { records, stages, learnerProfiles } from "../db/schema.server";
 import { eq, and, desc, sql, ne } from "drizzle-orm";
 import SceneCard from "../components/SceneCard";
 import FilterBar from "../components/FilterBar";
 import SortBar from "../components/SortBar";
+import ViewToggle from "../components/ViewToggle";
+import TimelineView from "../components/TimelineView";
 import EmptyState from "../components/EmptyState";
 import HeroSection from "../components/HeroSection";
 import { getPlainText } from "../lib/content.server";
@@ -142,6 +145,10 @@ const FILTER_OPTIONS = [
 
 export default function LogsPage({ loaderData }: Route.ComponentProps) {
   const { records: filteredRecords, allStages } = loaderData;
+  const [searchParams] = useSearchParams();
+
+  const viewParam = searchParams.get("view");
+  const currentView = viewParam === "timeline" ? "timeline" : "grid";
 
   const stageFilterOptions = allStages.map((s) => ({ value: s.id, label: s.name }));
 
@@ -161,45 +168,52 @@ export default function LogsPage({ loaderData }: Route.ComponentProps) {
       <div className="max-w-content mx-auto px-6 py-12 md:py-16">
         <div className="mb-8 flex flex-wrap gap-4 items-center justify-between">
           <FilterBar filters={allFilters} />
-          <SortBar />
+          <div className="flex items-center gap-3">
+            <SortBar />
+            <ViewToggle currentView={currentView} />
+          </div>
         </div>
 
         {filteredRecords.length === 0 ? (
           <EmptyState variant="records" message="조건에 맞는 기록이 없습니다." />
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {filteredRecords.map((record) => (
-              <SceneCard
-                key={record.id}
-                record={{
-                  slug: record.slug,
-                  title: record.title,
-                  content: record.content,
-                  format: record.format as "note" | "article",
-                  type: record.type as "personal" | "challenge" | "collaboration",
-                  rhythm: record.rhythm ?? undefined,
-                  createdAt: record.createdAt,
-                }}
-                contentSnippet={record.contentSnippet}
-                author={
-                  record.author?.displayName
-                    ? {
-                        displayName: record.author.displayName,
-                        slug: record.author.slug ?? "",
-                      }
-                    : undefined
-                }
-                stage={
-                  record.stage?.name
-                    ? {
-                        name: record.stage.name,
-                        type: record.stage.type ?? "",
-                      }
-                    : undefined
-                }
-              />
-            ))}
-          </div>
+          currentView === "timeline" ? (
+            <TimelineView records={filteredRecords} />
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {filteredRecords.map((record) => (
+                <SceneCard
+                  key={record.id}
+                  record={{
+                    slug: record.slug,
+                    title: record.title,
+                    content: record.content,
+                    format: record.format as "note" | "article",
+                    type: record.type as "personal" | "challenge" | "collaboration",
+                    rhythm: record.rhythm ?? undefined,
+                    createdAt: record.createdAt,
+                  }}
+                  contentSnippet={record.contentSnippet}
+                  author={
+                    record.author?.displayName
+                      ? {
+                          displayName: record.author.displayName,
+                          slug: record.author.slug ?? "",
+                        }
+                      : undefined
+                  }
+                  stage={
+                    record.stage?.name
+                      ? {
+                          name: record.stage.name,
+                          type: record.stage.type ?? "",
+                        }
+                      : undefined
+                  }
+                />
+              ))}
+            </div>
+          )
         )}
       </div>
     </div>

@@ -11,6 +11,8 @@ import { common, createLowlight } from "lowlight";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { createSlashCommandExtension } from "./SlashCommandMenu";
+import { createUserMentionExtension } from "./MentionExtension";
+import { createRecordRefExtension } from "./RecordRefExtension";
 
 const lowlight = createLowlight(common);
 const MAX_CONTENT_SIZE = 100 * 1024;
@@ -102,6 +104,9 @@ export function ArticleEditor({
     [],
   );
 
+  const userMentionExtension = useMemo(() => createUserMentionExtension(), []);
+  const recordRefExtension = useMemo(() => createRecordRefExtension(), []);
+
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
@@ -109,7 +114,7 @@ export function ArticleEditor({
       Placeholder.configure({
         placeholder:
           placeholder ??
-          "여기에 글을 쓰세요. `/`를 입력하면 블록을 추가할 수 있습니다.",
+          "여기에 글을 쓰세요. `@`로 러너를 태그하고, `[[`로 기록을 참조할 수 있습니다.",
       }),
       Underline,
       CodeBlockLowlight.configure({
@@ -120,6 +125,8 @@ export function ArticleEditor({
       }),
       slashCommandExtension,
       formSubmitExtension,
+      userMentionExtension,
+      recordRefExtension,
     ],
     content: parsedContent,
     editorProps: {

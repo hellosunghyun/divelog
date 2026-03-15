@@ -12,6 +12,9 @@ import { getPlainText } from "../lib/content.server";
 import { createQuestionSchema, createRecordSchema } from "../lib/validation";
 import { nanoid } from "../lib/utils.server";
 import { getAllTags } from "../db/queries/tags.server";
+import { extractUserMentions, extractRecordRefs } from "../lib/extract-references.server";
+import { syncMentionsForRecord } from "../db/queries/mentions.server";
+import { syncRecordLinksForRecord } from "../db/queries/recordLinks.server";
 import { useUnsavedWarning } from "../hooks/useUnsavedWarning";
 
 export function meta(_args: Route.MetaArgs) {
@@ -145,6 +148,24 @@ export async function action({ request, context }: Route.ActionArgs) {
         tagId,
         createdAt: now,
       });
+    }
+  }
+
+  if (format === "article") {
+    const mentionedUsers = extractUserMentions(content);
+    const recordRefs = extractRecordRefs(content);
+
+    if (mentionedUsers.length > 0) {
+      await syncMentionsForRecord(
+        context.cloudflare.env.DB,
+        id,
+        auth.user.id,
+        mentionedUsers.map((m) => m.userId),
+      );
+    }
+
+    if (recordRefs.length > 0) {
+      await syncRecordLinksForRecord(context.cloudflare.env.DB, id, recordRefs);
     }
   }
 
