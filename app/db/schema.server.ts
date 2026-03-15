@@ -320,3 +320,33 @@ export const recordTags = sqliteTable(
   },
   (table) => [primaryKey({ columns: [table.recordId, table.tagId] })],
 );
+
+export const mentions = sqliteTable("mentions", {
+  id: text("id").primaryKey(),
+  recordId: text("record_id")
+    .notNull()
+    .references(() => records.id, { onDelete: "cascade" }),
+  mentionedUserId: text("mentioned_user_id")
+    .notNull()
+    .references(() => learnerProfiles.userId, { onDelete: "cascade" }),
+  mentionedById: text("mentioned_by_id")
+    .notNull()
+    .references(() => learnerProfiles.userId, { onDelete: "cascade" }),
+  createdAt: integer("created_at").notNull().default(now()),
+});
+
+export const recordLinks = sqliteTable(
+  "record_links",
+  {
+    id: text("id").primaryKey(),
+    sourceRecordId: text("source_record_id")
+      .notNull()
+      .references(() => records.id, { onDelete: "cascade" }),
+    targetRecordId: text("target_record_id")
+      .notNull()
+      .references(() => records.id, { onDelete: "cascade" }),
+    linkType: text("link_type").notNull().default("reference"),
+    quotedText: text("quoted_text"),
+    createdAt: integer("created_at").notNull().default(now()),
+  },
+);
