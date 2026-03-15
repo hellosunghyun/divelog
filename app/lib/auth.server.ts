@@ -28,7 +28,8 @@ export function getAuthDebug(request: Request): string {
   return debugCache.get(request) ?? "not-yet";
 }
 
-function isApiKeyConfigured(apiKey: string): boolean {
+function isApiKeyConfigured(apiKey: string | undefined): boolean {
+  if (!apiKey) return false;
   const trimmed = apiKey.trim();
   if (trimmed.length === 0) return false;
   if (trimmed.includes("placeholder")) return false;
