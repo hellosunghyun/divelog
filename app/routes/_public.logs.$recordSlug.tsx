@@ -735,7 +735,17 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
             ))}
           </div>
         ) : (
-          <EmptyState variant="generic" message="아직 연결된 기록이 없습니다." />
+          <div className="flex flex-col items-center text-center py-12 px-4 gap-4">
+            <p className="text-base text-text-secondary leading-body">아직 연결된 기록이 없습니다.</p>
+            {isRecordAuthor && (
+              <Link
+                to={`/write`}
+                className="mt-2 px-5 py-2.5 rounded-full bg-ocean-blue text-white text-sm font-medium hover:bg-deep-ocean transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2 no-underline"
+              >
+                이어서 기록하기
+              </Link>
+            )}
+          </div>
         )}
       </section>
 

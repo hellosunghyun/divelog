@@ -191,11 +191,29 @@ export default function MySpacePage({ loaderData }: Route.ComponentProps) {
             </Link>
           </div>
           {drafts.length === 0 ? (
-            <EmptyState variant="records" message="임시저장된 기록이 없습니다." />
+            <EmptyState variant="records" message="임시저장된 기록이 없습니다. 완성되지 않은 생각도 기록해보세요." />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {drafts.map(({ record }) => (
-                <SceneCard key={record.id} record={record} />
+                <div key={record.id} className="relative">
+                  <SceneCard
+                    record={{
+                      slug: record.slug,
+                      title: record.title,
+                      content: record.content,
+                      format: record.format as "note" | "article",
+                      type: record.type as "personal" | "challenge" | "collaboration",
+                      rhythm: record.rhythm ?? undefined,
+                      createdAt: record.createdAt,
+                    }}
+                  />
+                  <Link
+                    to={`/logs/${record.slug}/edit`}
+                    className="absolute top-4 right-4 text-caption px-2.5 py-1 rounded-full bg-ocean-blue/10 text-ocean-blue font-medium no-underline hover:bg-ocean-blue/20 transition-colors"
+                  >
+                    이어 쓰기
+                  </Link>
+                </div>
               ))}
             </div>
           )}
@@ -244,7 +262,7 @@ export default function MySpacePage({ loaderData }: Route.ComponentProps) {
             미답변 질문들
           </h2>
           {unansweredQuestions.length === 0 ? (
-            <EmptyState variant="questions" message="미답변 질문이 없습니다." />
+            <EmptyState variant="questions" message="아직 답하지 않은 질문이 없습니다. 기록에 질문을 남기면 나중에 스스로 답해볼 수 있습니다." />
           ) : (
             <div className="flex flex-col gap-5">
               {unansweredQuestions.map(({ question, recordSlug, recordTitle }) => (
