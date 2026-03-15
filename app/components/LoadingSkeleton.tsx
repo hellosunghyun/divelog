@@ -7,6 +7,7 @@ function SkeletonBox({ width = "w-full", height = "h-5", rounded = false }: { wi
   return (
     <div
       className={`bg-surface-secondary animate-pulse ${width} ${height} ${rounded ? "rounded-full" : "rounded-sm"}`}
+      aria-hidden="true"
     />
   );
 }
@@ -28,6 +29,7 @@ export default function LoadingSkeleton({ variant = "card", count = 3 }: Loading
       className="flex flex-col gap-4"
       role="status"
       aria-busy="true"
+      aria-label="콘텐츠 로딩 중"
     >
       {Array.from({ length: count }).map((_, i) => (
         <CardSkeleton key={i} />

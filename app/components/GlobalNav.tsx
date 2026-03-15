@@ -186,9 +186,8 @@ export default function GlobalNav() {
     </header>
 
       {isMenuOpen && (
-        <div
+        <nav
           className="lg:hidden fixed inset-x-0 top-16 bottom-0 z-[9999] bg-white overflow-y-auto"
-          role="navigation"
           aria-label="메인 메뉴"
         >
           <div className="border-t border-border-subtle" />
@@ -199,9 +198,11 @@ export default function GlobalNav() {
                 <path d="m21 21-4.3-4.3" />
               </svg>
               <input
+                ref={searchInputRef}
                 type="text"
                 placeholder="기록, 질문, 러너 검색..."
-                className={`w-full bg-text-tertiary/10 border-none rounded-full pl-10 pr-4 py-2.5 text-sm placeholder:text-text-tertiary ${focusRing}`}
+                aria-label="검색"
+                className={`w-full bg-text-tertiary/10 border-none rounded-full pl-10 pr-4 py-2.5 text-base placeholder:text-text-tertiary ${focusRing}`}
               />
             </form>
 
@@ -285,7 +286,7 @@ export default function GlobalNav() {
               </>
             )}
           </div>
-        </div>
+        </nav>
       )}
     </>
   );
