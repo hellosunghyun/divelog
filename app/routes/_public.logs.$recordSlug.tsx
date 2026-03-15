@@ -722,7 +722,7 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
               <div key={linkedRecord.record.id} className="relative">
                 <SceneCard
                   record={linkedRecord.record}
-                  contentSnippet={linkedRecord.record.content.substring(0, 100)}
+                  contentSnippet={getPlainText(linkedRecord.record.content, normalizeContentFormat(linkedRecord.record.format)).substring(0, 100)}
                   author={linkedRecord.author?.displayName ? {
                     displayName: linkedRecord.author.displayName,
                     slug: linkedRecord.author.slug ?? "",
