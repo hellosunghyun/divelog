@@ -8,9 +8,9 @@ import HeroSection from "../components/HeroSection";
 export function meta(_args: Route.MetaArgs) {
   return [
     { title: "divelog — ADA Learner 여정 아카이브" },
-    { name: "description", content: "ADA Learner의 아홉 달을 기록하는 Journey-first 아카이브" },
+    { name: "description", content: "ADA Learner의 아홉 달을 기록하는 여정 중심 아카이브" },
     { property: "og:title", content: "divelog" },
-    { property: "og:description", content: "ADA Learner의 여정을 함께 기록합니다" },
+    { property: "og:description", content: "ADA Learner의 아홉 달을 기록하는 여정 중심 아카이브" },
   ];
 }
 
@@ -29,12 +29,15 @@ export async function loader({ context }: Route.LoaderArgs) {
         format: records.format,
         type: records.type,
         rhythm: records.rhythm,
+        stageName: stages.name,
+        stageSlug: stages.slug,
         createdAt: records.createdAt,
         authorDisplayName: learnerProfiles.displayName,
         authorSlug: learnerProfiles.slug,
         authorProfilePhotoUrl: learnerProfiles.profilePhotoUrl,
       })
       .from(records)
+      .leftJoin(stages, eq(records.stageId, stages.id))
       .leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
       .where(sql`${records.visibility} != 'draft'`)
       .orderBy(desc(records.createdAt))
@@ -102,6 +105,11 @@ const FORMAT_LABELS: Record<string, string> = {
   article: "글",
 };
 
+const TYPE_LABELS: Record<string, string> = {
+  personal: "개인",
+  challenge: "챌린지",
+};
+
 export default function HomePage({ loaderData }: Route.ComponentProps) {
   const { allStages, currentStage, recentRecords, openQuestions, recentSentences, spotlightLearners, learnerCount } = loaderData;
 
@@ -109,25 +117,25 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
     <div>
       <HeroSection
         variant="home"
-        title={<>나를 발견하는 <br /><span className="text-mist-blue/90">성찰적 아카이빙</span></>}
-        subtitle="떠다니는 생각의 깊은 곳으로 잠수하여 당신의 여정을 보존하세요. 질문이 머물고 지혜가 서서히 깊어지는 조용한 공간입니다."
-        badge="REFLECTIVE ARCHIVING"
+        title={<>수면 아래, <br /><span className="text-mist-blue/90">기록이 깊어지는 곳</span></>}
+        subtitle="완성된 글이 아니어도 괜찮습니다. 질문을 남기고, 조용히 깊어지는 여정의 아카이브입니다."
+        badge="성찰적 다이빙"
       >
         <Link
           to="/journey"
           className="bg-white text-deep-ocean px-10 py-4 rounded-full font-bold hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2.5 text-md shadow-xl no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
         >
-          <span>여정 시작하기</span>
+          <span>여정 보기</span>
           <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M5 12h14" />
             <path d="m12 5 7 7-7 7" />
           </svg>
         </Link>
         <Link
-          to="/logs"
+          to="/write"
           className="border border-white/20 bg-white/5 backdrop-blur-xl text-white px-10 py-4 rounded-full font-bold hover:bg-white/10 transition-all text-md no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
         >
-          공유된 기록 읽기
+          기록 남기기
         </Link>
       </HeroSection>
 
@@ -138,8 +146,8 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
               <div className="absolute top-0 left-0 w-1.5 h-full bg-ocean-blue/10" aria-hidden="true" />
               <div className="flex flex-col lg:flex-row items-center gap-10">
                 <div className="lg:w-1/4">
-                  <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-ocean-blue/60 block mb-1">현재 여정</span>
-                  <h2 className="text-xl font-bold text-deep-ocean mb-3">모든 러너가 함께 걷는 길</h2>
+                  <span className="text-xs font-bold uppercase tracking-[0.2em] text-ocean-blue/60 block mb-1">코호트 여정</span>
+                  <h2 className="text-xl font-bold text-deep-ocean mb-3">아홉 달의 여정</h2>
                   {currentStage && (
                     <div className="bg-ocean-blue/5 border border-ocean-blue/10 rounded-2xl p-4">
                       <div className="flex items-center gap-2 mb-2">
@@ -176,7 +184,7 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
                             role="img"
                             aria-label={`${stage.name}${isCurrent ? " (현재)" : ""}`}
                           />
-                          <span className={`text-[11px] font-medium whitespace-nowrap ${
+                          <span className={`text-xs font-medium whitespace-nowrap ${
                             isCurrent ? "text-ocean-blue font-bold" : "text-text-tertiary"
                           }`}>
                             {stage.name}
@@ -192,12 +200,12 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
         </section>
       )}
 
-      {currentStage && openQuestions.length > 0 && (
+      {currentStage && (
         <section className="max-w-canvas mx-auto px-6 py-16" data-testid="questions-section">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
             <div className="lg:col-span-4 sticky top-24">
               <div className="quiet-depth-card p-10 rounded-[40px]">
-                <span className="text-ocean-blue font-bold text-[10px] tracking-[0.2em] uppercase mb-4 block">현재 구간</span>
+                <span className="text-ocean-blue font-bold text-xs tracking-[0.2em] uppercase mb-4 block">현재 구간</span>
                 <h3 className="text-3xl font-bold text-deep-ocean mb-6">{currentStage.name}</h3>
                 {currentStage.description && (
                   <p className="text-text-secondary text-[17px] leading-relaxed mb-8 font-light italic">
@@ -217,48 +225,63 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
                         )
                       ))}
                       {learnerCount > 2 && (
-                        <div className="w-9 h-9 rounded-full border-2 border-white bg-ocean-blue flex items-center justify-center text-[9px] text-white font-bold">
+                        <div className="w-9 h-9 rounded-full border-2 border-white bg-ocean-blue flex items-center justify-center text-xs text-white font-bold">
                           +{learnerCount - 2}
                         </div>
                       )}
                     </div>
-                    <span className="text-[13px] font-medium text-text-secondary">{learnerCount}명의 러너가 잠수 중</span>
+                    <span className="text-[13px] font-medium text-text-secondary">{learnerCount}명의 러너가 함께 다이빙하는 중</span>
                   </div>
                 )}
+                <div className="mt-6 pt-6 border-t border-border-subtle">
+                  <p className="text-xs text-text-tertiary leading-relaxed">지금은 개인 다이빙 중심입니다. 협업이 시작되면 이곳에 함께 나타납니다.</p>
+                </div>
               </div>
             </div>
             <div className="lg:col-span-8">
               <div className="flex items-center justify-between mb-8">
-                <h4 className="text-2xl font-bold flex items-center gap-3 text-deep-ocean">
+                <h2 className="text-3xl font-bold flex items-center gap-3 text-deep-ocean">
                     <svg className="w-7 h-7 text-ocean-blue" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
                     이번 구간의 열린 질문들
-                  </h4>
-                <Link to="/logs" className="text-ocean-blue font-bold hover:underline text-[13px] no-underline">모두 보기</Link>
+                  </h2>
+                <Link to="/journey" className="text-ocean-blue font-bold hover:underline text-[13px] no-underline">모두 보기</Link>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {openQuestions.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {openQuestions.map((row, idx) => (
                     <article
                       key={row.questionId}
                       className="quiet-depth-card p-5 rounded-2xl group cursor-pointer hover:border-ocean-blue/30"
                     >
-                      <span className="text-[9px] font-bold text-ocean-blue tracking-widest mb-2 block uppercase">QUESTION {String(idx + 1).padStart(2, "0")}</span>
+                      <span className="text-xs font-bold text-ocean-blue tracking-widest mb-2 block">질문 {String(idx + 1).padStart(2, "0")}</span>
                     <p className="text-[15px] font-bold leading-tight group-hover:text-ocean-blue transition-colors text-text-primary">
                       {row.questionContent}
                     </p>
                     <div className="flex items-center justify-between mt-4">
-                      <span className="text-[11px] text-text-tertiary font-medium">
+                      <span className="text-xs text-text-tertiary font-medium">
                         {row.authorDisplayName} • {formatRelativeTime(row.questionCreatedAt)}
                       </span>
                       <Link
                         to={row.recordSlug ? `/logs/${row.recordSlug}` : "/logs"}
-                        className="text-ocean-blue text-[11px] font-bold px-3 py-1.5 rounded-lg border border-ocean-blue/20 hover:bg-ocean-blue hover:text-white transition-all no-underline"
+                        className="text-ocean-blue text-xs font-bold px-4 py-2 rounded-lg border border-ocean-blue/20 hover:bg-ocean-blue hover:text-white transition-all no-underline"
                       >
-                        답변하기
+                        응답하기
                       </Link>
                     </div>
                   </article>
                 ))}
-              </div>
+                </div>
+              ) : (
+                <article className="quiet-depth-card p-8 rounded-3xl">
+                  <p className="text-base text-text-secondary mb-6">이 구간의 첫 질문을 남겨보세요.</p>
+                  <Link
+                    to="/write"
+                    className="inline-flex items-center gap-2 bg-deep-ocean text-white px-6 py-3 rounded-full text-sm font-semibold hover:bg-ocean-blue transition-all no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
+                  >
+                    질문 남기기
+                  </Link>
+                </article>
+              )}
             </div>
           </div>
         </section>
@@ -268,9 +291,9 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
         <div className="max-w-canvas mx-auto px-6">
           <div className="flex items-end justify-between mb-12">
             <div>
-              <span className="text-[10px] font-bold tracking-[0.3em] text-ocean-blue/50 mb-2 block uppercase">최근 기록</span>
-              <h2 className="text-3xl font-bold text-deep-ocean">코호트 아카이브: 최근의 기록들</h2>
-              <p className="text-text-secondary mt-2 text-md font-light">러너들이 깊은 곳에서 건져 올린 새로운 성찰 조각들.</p>
+              <span className="text-xs font-bold tracking-[0.3em] text-ocean-blue/50 mb-2 block uppercase">최근 장면</span>
+              <h2 className="text-3xl font-bold text-deep-ocean">최근 장면들</h2>
+              <p className="text-text-secondary mt-2 text-md font-light">수면 아래에서 남겨진 최근 기록과 질문들</p>
             </div>
           </div>
           {recentRecords.length > 0 ? (
@@ -282,20 +305,33 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
                   return (
                     <article
                       key={row.id}
-                      className="quiet-depth-card p-7 rounded-[28px] flex flex-col min-h-[320px]"
+                      className="quiet-depth-card p-7 rounded-[28px] flex flex-col"
                     >
                       <div className="flex items-center justify-between mb-5">
-                        <span className="bg-ocean-blue/10 text-ocean-blue text-[9px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full">
-                          {FORMAT_LABELS[row.format] ?? row.format}
-                        </span>
-                        <span className="text-[11px] text-text-tertiary font-medium">{formatRelativeTime(row.createdAt)}</span>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="bg-ocean-blue/10 text-ocean-blue text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full">
+                            {FORMAT_LABELS[row.format] ?? row.format}
+                          </span>
+                          <span className="bg-mist-blue text-ocean-blue text-xs font-semibold px-2.5 py-0.5 rounded-full">
+                            {TYPE_LABELS[row.type] ?? row.type}
+                          </span>
+                          {row.stageName && (
+                            <Link
+                              to={row.stageSlug ? `/journey/${row.stageSlug}` : "/journey"}
+                              className="bg-surface-secondary text-text-secondary text-xs font-semibold px-2.5 py-0.5 rounded-full no-underline hover:text-ocean-blue transition-colors"
+                            >
+                              {row.stageName}
+                            </Link>
+                          )}
+                        </div>
+                        <span className="text-xs text-text-tertiary font-medium">{formatRelativeTime(row.createdAt)}</span>
                       </div>
                       <Link to={`/logs/${row.slug}`} className="no-underline group">
                         <h3 className="text-lg font-bold mb-3 leading-tight text-deep-ocean line-clamp-2 group-hover:text-ocean-blue transition-colors">
                           {row.title}
                         </h3>
                       </Link>
-                      <p className="text-text-secondary text-[14px] font-light leading-relaxed mb-6 flex-grow line-clamp-4">{snippet}</p>
+                      <p className="text-text-secondary text-base font-light leading-relaxed mb-6 flex-grow line-clamp-4">{snippet}</p>
                       <div className="pt-5 border-t border-border-subtle flex items-center justify-between">
                         <div className="flex items-center gap-2.5">
                           {row.authorProfilePhotoUrl ? (
@@ -311,7 +347,7 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
                           )}
                           <Link
                             to={row.authorSlug ? `/learners/${row.authorSlug}` : "#"}
-                            className="text-[12px] font-bold text-text-secondary no-underline hover:text-ocean-blue transition-colors"
+                            className="text-xs font-bold text-text-secondary no-underline hover:text-ocean-blue transition-colors"
                           >
                             {row.authorDisplayName ?? "익명"}
                           </Link>
@@ -332,7 +368,7 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
             </>
           ) : (
             <div className="text-center py-12">
-              <p className="text-text-secondary mb-6">아직 공개된 기록이 없습니다.</p>
+              <p className="text-text-secondary mb-6">아직 기록이 시작되지 않았습니다. 완성된 글이 아니어도 괜찮습니다.</p>
               <Link
                 to="/write"
                 className="bg-white border border-border px-8 py-3 rounded-full text-sm font-bold text-text-secondary hover:border-ocean-blue hover:text-ocean-blue transition-all no-underline"
@@ -344,29 +380,43 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
         </div>
       </section>
 
-      {recentSentences.length > 0 && (
-        <section className="max-w-4xl mx-auto px-6 py-24 text-center" data-testid="sentence-section">
-          <svg className="w-12 h-12 mx-auto text-ocean-blue/20 mb-8" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-            <path d="M6 17h3l2-4V7H5v6h3zm8 0h3l2-4V7h-6v6h3z" />
-          </svg>
-          <blockquote className="text-2xl md:text-[38px] font-light italic leading-[1.2] text-deep-ocean tracking-tight">
-            "{recentSentences[0].sentenceContent}"
-          </blockquote>
-          <div className="flex items-center justify-center gap-6 mt-10">
-            <div className="h-px w-12 bg-ocean-blue/20" aria-hidden="true" />
-            <span className="text-[10px] font-bold tracking-[0.3em] uppercase text-ocean-blue/50">
-              {recentSentences[0].savedByDisplayName ?? "익명"}
-            </span>
-            <div className="h-px w-12 bg-ocean-blue/20" aria-hidden="true" />
+      <section className="max-w-canvas mx-auto px-6 py-24" data-testid="sentence-section">
+        <div className="flex items-center justify-between mb-8">
+          <h2 className="text-3xl font-bold text-deep-ocean">남겨둔 문장</h2>
+        </div>
+        {recentSentences.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+            {recentSentences.map((sentence) => (
+              <article key={sentence.sentenceId} className="quiet-depth-card p-6 rounded-2xl flex flex-col">
+                <blockquote className="text-xl font-semibold leading-snug text-deep-ocean mb-4">
+                  &ldquo;{sentence.sentenceContent}&rdquo;
+                </blockquote>
+                <p className="text-sm text-text-secondary leading-relaxed mb-4">
+                  {sentence.sentenceReason ? sentence.sentenceReason : "남긴 이유를 적지 않았습니다."}
+                </p>
+                <div className="mt-auto pt-4 border-t border-border-subtle flex items-center justify-between gap-2">
+                  <span className="text-xs font-semibold text-text-tertiary">{sentence.savedByDisplayName ?? "익명"}</span>
+                  <Link
+                    to={sentence.recordSlug ? `/logs/${sentence.recordSlug}` : "/logs"}
+                    className="text-xs font-semibold text-ocean-blue no-underline hover:underline"
+                  >
+                    원문 보기
+                  </Link>
+                </div>
+              </article>
+            ))}
           </div>
-        </section>
-      )}
+        ) : (
+          <article className="quiet-depth-card p-8 rounded-3xl text-center">
+            <p className="text-base text-text-secondary">아직 남겨둔 문장이 없습니다.</p>
+          </article>
+        )}
+      </section>
 
-      {spotlightLearners.length > 0 && (
-        <section className="max-w-canvas mx-auto px-6 py-24 border-t border-border-subtle" data-testid="learners-section">
+      <section className="max-w-canvas mx-auto px-6 py-24 border-t border-border-subtle" data-testid="learners-section">
           <div className="flex items-end justify-between mb-12">
             <div>
-              <span className="text-[10px] font-bold tracking-[0.3em] text-ocean-blue/50 mb-2 block uppercase">LEARNER SPOTLIGHT</span>
+              <span className="text-xs font-bold tracking-[0.3em] text-ocean-blue/50 mb-2 block uppercase">러너 스포트라이트</span>
               <h2 className="text-3xl font-bold text-deep-ocean flex items-center gap-3">
                 <svg className="w-9 h-9 text-ocean-blue" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M18 21a8 8 0 0 0-16 0"/><circle cx="10" cy="8" r="5"/><path d="M22 20c0-3.37-2-6.5-4-8a5 5 0 0 0-.45-8.3"/></svg>
                 함께 잠수하는 러너들
@@ -374,13 +424,21 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
             </div>
             <Link to="/learners" className="text-ocean-blue font-bold hover:underline text-[13px] no-underline">전체 러너 보기 ({learnerCount})</Link>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {spotlightLearners.map((learner) => (
+          {spotlightLearners.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+              {spotlightLearners.map((learner) => (
               <article
                 key={learner.userId}
                 className="quiet-depth-card p-6 rounded-2xl flex flex-col hover:bg-white transition-all"
               >
-                <div className="flex items-center gap-3 mb-6">
+                <div className="mb-6 min-h-[52px]">
+                  {learner.currentQuestion ? (
+                    <p className="text-sm font-medium italic text-text-secondary leading-relaxed line-clamp-3">&ldquo;{learner.currentQuestion}&rdquo;</p>
+                  ) : (
+                    <p className="text-sm text-text-tertiary leading-relaxed">현재 질문을 탐색하는 중입니다.</p>
+                  )}
+                </div>
+                <div className="flex items-center gap-3 mt-auto">
                   {learner.profilePhotoUrl ? (
                     <img
                       src={learner.profilePhotoUrl}
@@ -399,19 +457,31 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
                     >
                       {learner.displayName}
                     </Link>
-                    <p className="text-[10px] text-text-tertiary font-medium uppercase tracking-wider">러너</p>
+                    <p className="text-xs text-text-tertiary font-medium uppercase tracking-wider">러너</p>
                   </div>
                 </div>
-                {learner.currentQuestion && (
-                  <div className="mt-auto">
-                    <p className="text-[12px] font-medium italic text-text-secondary leading-relaxed line-clamp-2">"{learner.currentQuestion}"</p>
-                  </div>
-                )}
               </article>
-            ))}
-          </div>
-        </section>
-      )}
+              ))}
+            </div>
+          ) : (
+            <article className="quiet-depth-card p-8 rounded-3xl text-center">
+              <p className="text-base text-text-secondary">아직 소개할 러너가 없습니다.</p>
+            </article>
+          )}
+      </section>
+
+      <section className="bg-mist-blue/40 py-20 text-center" data-testid="start-cta-section">
+        <div className="max-w-2xl mx-auto px-6">
+          <h2 className="text-3xl font-bold text-deep-ocean mb-4">더 깊은 곳에서, 기록은 시작됩니다</h2>
+          <p className="text-text-secondary text-lg mb-8">완성된 글이 아니어도 괜찮습니다. 지금 떠오른 생각부터 남겨보세요.</p>
+          <Link
+            to="/write"
+            className="inline-flex items-center gap-2 bg-deep-ocean text-white px-8 py-3.5 rounded-full text-base font-semibold hover:bg-ocean-blue transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
+          >
+            기록 남기기
+          </Link>
+        </div>
+      </section>
     </div>
   );
 }

@@ -102,7 +102,7 @@ export default function GlobalNav() {
             <input
               ref={searchInputRef}
               type="text"
-              placeholder="깊은 곳 탐색..."
+              placeholder="기록, 질문, 러너 검색..."
               className={`bg-text-tertiary/10 border-none rounded-full pl-10 pr-4 py-1.5 text-xs w-48 transition-all placeholder:text-text-tertiary ${focusRing}`}
             />
           </form>
@@ -128,7 +128,7 @@ export default function GlobalNav() {
                   <path d="M12 20h9" />
                   <path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z" />
                 </svg>
-                <span>기록 시작하기</span>
+                <span>기록 남기기</span>
               </Link>
               <div className="flex items-center gap-2 pl-1">
                 {data.user?.profilePhotoUrl ? (
@@ -159,7 +159,7 @@ export default function GlobalNav() {
                 <path d="M12 20h9" />
                 <path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z" />
               </svg>
-              <span>기록 시작하기</span>
+              <span>기록 남기기</span>
             </Link>
           )}
         </div>
@@ -192,7 +192,7 @@ export default function GlobalNav() {
               </svg>
               <input
                 type="text"
-                placeholder="깊은 곳 탐색..."
+                placeholder="기록, 질문, 러너 검색..."
                 className={`w-full bg-text-tertiary/10 border-none rounded-full pl-10 pr-4 py-2.5 text-sm placeholder:text-text-tertiary ${focusRing}`}
               />
             </form>
@@ -236,7 +236,7 @@ export default function GlobalNav() {
                       <path d="M12 20h9" />
                       <path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z" />
                     </svg>
-                    기록 시작하기
+                    기록 남기기
                   </Link>
                 </div>
                 <div className="flex items-center gap-3 py-4 mt-2">
@@ -265,7 +265,7 @@ export default function GlobalNav() {
                       <path d="M12 20h9" />
                       <path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z" />
                     </svg>
-                    기록 시작하기
+                    기록 남기기
                   </Link>
                   <a
                     href={loginUrl}

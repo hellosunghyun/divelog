@@ -13,7 +13,7 @@ const communityLinks = [
 
 const supportLinks = [
   { to: "/search", label: "검색" },
-  { to: "/write", label: "기록 시작하기" },
+  { to: "/write", label: "기록 남기기" },
   { to: "/inbox", label: "인박스" },
 ];
 
@@ -36,7 +36,7 @@ export default function Footer() {
               <span className="text-2xl font-bold tracking-tight text-white">divelog</span>
             </Link>
             <p className="text-mist-blue/60 text-[15px] leading-relaxed max-w-sm">
-              성찰적 아카이빙과 철학적 잠수를 위한 협력적 공간입니다. 조용한 깊이를 지향하는 마음으로 운영됩니다.
+              ADA Learner의 아홉 달을 조용한 깊이에서 기록하고 돌아보는 아카이브입니다.
             </p>
           </div>
 
@@ -56,7 +56,7 @@ export default function Footer() {
           </div>
 
           <div className="lg:col-span-2">
-            <h4 className="text-[11px] font-bold uppercase tracking-[0.2em] text-mist-blue/40 mb-5">커뮤니티</h4>
+            <h4 className="text-[11px] font-bold uppercase tracking-[0.2em] text-mist-blue/40 mb-5">러너</h4>
             <nav className="flex flex-col gap-3">
               {communityLinks.map((link) => (
                 <Link
