@@ -1,17 +1,48 @@
 import { z } from "zod";
 
-export const createRecordSchema = z.object({
-  title: z.string().min(1, "제목을 입력해주세요").max(200, "제목이 너무 깁니다"),
-  content: z.string().min(1, "내용을 입력해주세요").max(50000),
-  format: z.enum(["note", "article"]).default("note"),
-  type: z.enum(["personal", "challenge", "collaboration"]).default("personal"),
-  rhythm: z.enum(["sprint", "weekly", "monthly", "free"]).default("free"),
-  visibility: z.enum(["draft", "cohort", "public"]).default("cohort"),
-  responsePreference: z.enum(["open", "question_only", "closed"]).default("open"),
-  stageId: z.string().optional(),
-  challengeId: z.string().optional(),
-  collaborationUnitId: z.string().optional(),
-});
+export const createRecordSchema = z
+  .object({
+    title: z.string().min(1, "제목을 입력해주세요").max(200, "제목이 너무 깁니다"),
+    content: z.string().min(1, "내용을 입력해주세요").max(50000),
+    contentText: z.string().max(50000).optional(),
+    format: z.enum(["note", "article"]).default("note"),
+    type: z.enum(["personal", "challenge", "collaboration"]).default("personal"),
+    rhythm: z.enum(["sprint", "weekly", "monthly", "free"]).default("free"),
+    visibility: z.enum(["draft", "cohort", "public"]).default("cohort"),
+    responsePreference: z.enum(["open", "question_only", "closed"]).default("open"),
+    stageId: z.string().optional(),
+    challengeId: z.string().optional(),
+    collaborationUnitId: z.string().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.format !== "article") {
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(data.content) as unknown;
+
+      if (
+        !parsed ||
+        typeof parsed !== "object" ||
+        Array.isArray(parsed) ||
+        !("type" in parsed) ||
+        parsed.type !== "doc"
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["content"],
+          message: "글 형식 본문은 올바른 에디터 JSON이어야 합니다",
+        });
+      }
+    } catch {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["content"],
+        message: "글 형식 본문은 올바른 에디터 JSON이어야 합니다",
+      });
+    }
+  });
 
 export type CreateRecordInput = z.infer<typeof createRecordSchema>;
 

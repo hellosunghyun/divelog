@@ -1,0 +1,57 @@
+T2: Drizzle 스키마에 `content_text` 컬럼 추가 및 마이그레이션
+================================================================
+
+COMPLETED TASKS:
+================
+
+1. ✅ Schema Update
+   - File: app/db/schema.server.ts
+   - Added: contentText: text("content_text").default("")
+   - Position: After content field in records table
+   - Type: TEXT, nullable, default empty string
+
+2. ✅ Migration Generation
+   - Command: npx drizzle-kit generate
+   - Generated: drizzle/migrations/0001_dear_jamie_braddock.sql
+   - SQL: ALTER TABLE `records` ADD `content_text` text DEFAULT '';
+
+3. ✅ Local Migration Applied
+   - Command: wrangler d1 migrations apply DB --local
+   - Status: ✅ 2 commands executed successfully
+   - Migration: 0001_dear_jamie_braddock.sql applied
+
+4. ✅ Column Verification
+   - Command: wrangler d1 execute DB --local --command="PRAGMA table_info(records);"
+   - Result: content_text column exists at position 20
+   - Type: TEXT
+   - Not Null: 0 (nullable)
+   - Default: '' (empty string)
+
+5. ✅ Validation Schema Update
+   - File: app/lib/validation.ts
+   - Added: contentText: z.string().max(50000).optional()
+   - Type: CreateRecordInput now includes contentText field
+
+6. ✅ Query Function Update
+   - File: app/db/queries/records.server.ts
+   - Updated: createRecord() function
+   - Added: contentText: data.contentText ?? ""
+   - Behavior: Optional field, defaults to empty string
+
+7. ✅ TypeScript Compilation
+   - Command: npx tsc --noEmit
+   - Result: No errors
+   - All type definitions valid
+
+VERIFICATION SUMMARY:
+====================
+- Database schema: ✅ content_text column added
+- Migration file: ✅ Generated and applied
+- Type safety: ✅ TypeScript clean
+- Query functions: ✅ Updated with contentText support
+- Backward compatibility: ✅ Default empty string for existing records
+
+NEXT STEPS:
+===========
+- T3: Implement editor UI with contentText enrichment
+- T4: Add markdown preview functionality

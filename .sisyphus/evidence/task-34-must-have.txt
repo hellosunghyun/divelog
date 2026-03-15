@@ -1,0 +1,71 @@
+T34 Must Have 전수 검증 (10개)
+작업 디렉터리: /Users/hellosunghyun/Documents/Github/divelog
+검증 일시: 2026-03-15
+
+[1] Tiptap 블록 에디터 (heading, bold/italic, lists, code blocks, images, blockquote) — PASS
+- 파일 존재: app/components/editor/ArticleEditor.tsx, app/components/editor/SlashCommandMenu.tsx
+- 증거: ArticleEditor.tsx
+  - 3: import { CodeBlockLowlight } from "@tiptap/extension-code-block-lowlight";
+  - 4: import { Image } from "@tiptap/extension-image";
+  - 9: import { StarterKit } from "@tiptap/starter-kit";
+  - 295: toggleHeading({ level: 1 })
+
+[2] 슬래시 명령 (/heading, /code, /image, /quote, /list) — PASS
+- 증거: SlashCommandMenu.tsx
+  - 69: title: "제목 1"
+  - 96: title: "글머리 기호"
+  - 114: title: "인용구"
+  - 135: keywords: ["코드", "code", "snippet"]
+  - 144: keywords: ["이미지", "사진", "image"]
+
+[3] R2 이미지 업로드 (드래그&드롭 + 클립보드) — PASS
+- 파일 존재: app/routes/api.upload.tsx, app/routes/api.images.$.tsx
+- 증거: ArticleEditor.tsx
+  - 55: const uploadImage = useCallback(...)
+  - 377: onDrop={(event) => {
+  - 388: onPaste={(event) => {
+
+[4] 듀얼 모드 (Note=textarea, Article=Tiptap) — PASS
+- 증거: _public.write.tsx
+  - 7: import NoteEditor from "../components/editor/NoteEditor";
+  - 6: import { ArticleEditor } from "../components/editor/ArticleEditor";
+  - 158: selectedFormat state(note|article)
+  - 321: selectedFormat === "note" ? <NoteEditor ...> : <ArticleEditor ...>
+
+[5] 기록 수정 페이지 — PASS
+- 파일 존재: app/routes/_public.logs.$recordSlug.edit.tsx
+- 증거:
+  - 13: import { requireVerified } from "../lib/auth.middleware";
+  - 111: await updateRecord(...)
+
+[6] content_text 컬럼 + 검색 연동 — PASS
+- 증거:
+  - app/db/schema.server.ts:109 -> contentText: text("content_text").default("")
+  - app/routes/_public.search.tsx:47 -> like(records.contentText, pattern)
+
+[7] Self-answer 생성 UI — PASS
+- 파일 존재: app/components/SelfAnswerCard.tsx, app/db/queries/selfAnswers.server.ts
+- 증거: _public.logs.$recordSlug.tsx
+  - 163: if (intent === "create_self_answer")
+  - 546: "답변하기"
+
+[8] 태그 시스템 (admin-curated) — PASS
+- 파일 존재:
+  - app/routes/_admin.admin.tags.tsx
+  - app/routes/_public.tags.tsx
+  - app/routes/_public.tags.$tagSlug.tsx
+
+[9] 개인 여정 타임라인 — PASS
+- 증거: _public.me.tsx
+  - 17: STAGE_TONE_MAP
+  - 124: "나의 여정"
+  - 128: const stageRecords = ...
+
+[10] 여정 활동 피드 — PASS
+- 파일 존재: app/components/ActivityFeed.tsx, app/db/queries/activity.server.ts
+- 증거: _public._index.tsx
+  - 7: import ActivityFeed ...
+  - 210: "여정에서 일어나는 일"
+  - 214: <ActivityFeed activities={recentActivity} />
+
+집계: Must Have PASS 10/10

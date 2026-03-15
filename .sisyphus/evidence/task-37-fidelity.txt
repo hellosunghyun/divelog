@@ -1,0 +1,63 @@
+Task 37 - Scope Fidelity Evidence
+Date: 2026-03-15
+Workspace: /Users/hellosunghyun/Documents/Github/divelog
+
+[T1] Vitest 핵심 파일
+- PASS: vitest.config.ts
+- PASS: app/lib/__tests__/example.test.ts
+
+[T5-T8] Tiptap Editor 핵심 파일
+- PASS: app/lib/editor-config.ts
+- PASS: app/styles/editor.css
+- PASS: app/components/editor/ArticleEditor.tsx
+- PASS: app/components/editor/NoteEditor.tsx
+- PASS: app/components/editor/SlashCommandMenu.tsx
+
+[T4] Content Layer
+- PASS: app/lib/content.server.ts
+- PASS: app/components/ContentRenderer.tsx
+
+[T10] R2 API
+- PASS: app/routes/api.upload.tsx
+- PASS: app/routes/api.images.$.tsx
+
+[T14] Self-answer
+- PASS: app/components/SelfAnswerCard.tsx
+- PASS: app/db/queries/selfAnswers.server.ts
+
+[T15] Write dual mode
+- Command: grep -c "NoteEditor|ArticleEditor" app/routes/_public.write.tsx
+- Result: 4
+- PASS: Note/Article 에디터 참조 확인
+
+[T16] Edit page
+- PASS: app/routes/_public.logs.$recordSlug.edit.tsx
+
+[T22] Tag Admin
+- PASS: app/routes/_admin.admin.tags.tsx
+- PASS: app/db/queries/tags.server.ts
+
+[T24] Tag Browse
+- PASS: app/routes/_public.tags.tsx
+- PASS: app/routes/_public.tags.$tagSlug.tsx
+
+[T25] /me timeline
+- Command: grep -c "나의 여정|STAGE_TONE" app/routes/_public.me.tsx
+- Result: 3
+- PASS: timeline 관련 문자열/상수 참조 확인
+
+[T28] Activity Feed
+- PASS: app/components/ActivityFeed.tsx
+- PASS: app/db/queries/activity.server.ts
+
+[T30] R2 cleanup
+- PASS: app/lib/r2-cleanup.server.ts
+
+[T31] beforeunload
+- PASS: app/hooks/useUnsavedWarning.ts
+
+[T33] Integration tests
+- PASS: app/lib/__tests__/r2-cleanup.test.ts
+- PASS: app/lib/__tests__/content.integration.test.ts
+
+Fidelity Check Result: 14/14 task groups compliant

@@ -1,0 +1,57 @@
+T31: Write 페이지와 Edit 페이지에 미저장 변경사항 이탈 경고 (beforeunload)
+
+COMPLETED: 2026-03-15
+
+=== IMPLEMENTATION SUMMARY ===
+
+1. Created custom hook: app/hooks/useUnsavedWarning.ts
+   - Manages beforeunload event listener
+   - Tracks unsaved changes via ref
+   - Clears warning on successful form submission
+   - Uses React Router's useNavigation to detect navigation
+
+2. Modified app/routes/_public.write.tsx
+   - Added state tracking for title, question, articleContent, selectedTags
+   - Implemented hasChanges calculation
+   - Integrated useUnsavedWarning hook
+   - Updated form inputs to use controlled components
+
+3. Modified app/routes/_public.logs.$recordSlug.edit.tsx
+   - Added state tracking for title, articleContent, selectedTags
+   - Implemented hasChanges calculation comparing to original values
+   - Integrated useUnsavedWarning hook
+   - Updated form inputs to use controlled components
+
+=== BEHAVIOR ===
+
+Write Page:
+- Shows browser warning when user tries to leave with unsaved changes
+- Tracks: title, question, article content, selected tags
+- Clears warning after successful form submission
+
+Edit Page:
+- Shows browser warning when user tries to leave with unsaved changes
+- Compares current state to original record values
+- Tracks: title, format, article content, selected tags
+- Clears warning after successful form submission
+
+=== BUILD VERIFICATION ===
+
+✓ pnpm build succeeded
+✓ No TypeScript errors
+✓ All chunks generated successfully
+✓ Client and server builds completed
+
+=== FILES MODIFIED ===
+
+1. app/hooks/useUnsavedWarning.ts (NEW)
+2. app/routes/_public.write.tsx
+3. app/routes/_public.logs.$recordSlug.edit.tsx
+
+=== NOTES ===
+
+- Uses browser's native beforeunload dialog (not custom modal)
+- Respects React Router 7 navigation state
+- Properly cleans up event listeners on unmount
+- No auto-save functionality (per AGENTS.md constraints)
+- Handles both note and article formats

@@ -1,0 +1,55 @@
+# T13: content.server.ts Unit Tests - Evidence
+
+## Test File Created
+✓ app/lib/__tests__/content.server.test.ts
+
+## Test Coverage
+
+### getPlainText (13 tests)
+✓ Plain text passthrough for note format
+✓ Empty string handling
+✓ Single paragraph extraction from Tiptap JSON
+✓ Multiple paragraphs extraction
+✓ Heading and paragraph extraction
+✓ Multiple newline collapsing
+✓ Invalid JSON graceful fallback
+✓ Non-Tiptap JSON handling
+✓ Nested formatting marks preservation
+✓ Hard break handling
+✓ Bullet list extraction
+✓ Empty document handling
+✓ Whitespace trimming
+
+### detectContentFormat (10 tests)
+✓ Valid Tiptap JSON detection
+✓ Plain text detection
+✓ Invalid JSON detection
+✓ Non-Tiptap JSON detection
+✓ Empty Tiptap document detection
+✓ JSON array detection
+✓ JSON without type field detection
+✓ JSON with wrong type value detection
+✓ Empty string detection
+✓ Multiline plain text detection
+
+### renderContentToHtml (11 tests)
+✓ Plain text wrapping with whitespace-pre-wrap
+✓ HTML special character escaping (<, >, &, ", ')
+✓ Ampersand escaping
+✓ Quote escaping
+✓ Single quote escaping
+✓ Tiptap JSON to HTML rendering
+✓ Invalid JSON fallback
+✓ Non-Tiptap JSON fallback
+✓ Empty note handling
+✓ Empty Tiptap document handling
+✓ Newline preservation
+
+## Test Results
+Test Files: 1 passed
+Tests: 34 passed
+Duration: 416ms
+
+Command: pnpm vitest run app/lib/__tests__/content.server.test.ts --reporter=verbose
+
+All tests PASS ✓

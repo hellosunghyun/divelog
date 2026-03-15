@@ -1,0 +1,99 @@
+# T32: ArticleEditor 키보드 단축키 + UX 폴리시
+
+## 완료 항목
+
+### 1. Cmd+Enter 폼 제출 단축키
+- `formSubmitExtension` Tiptap Extension 추가
+- `Mod-Enter` (Mac: Cmd+Enter, Windows: Ctrl+Enter) 키 조합 감지
+- 가장 가까운 form의 submit 버튼 클릭 트리거
+- 구현 위치: `app/components/editor/ArticleEditor.tsx` lines 44-57
+
+```typescript
+const formSubmitExtension = useMemo(
+  () =>
+    Extension.create({
+      name: "formSubmit",
+      addKeyboardShortcuts() {
+        return {
+          "Mod-Enter": () => {
+            const editorEl = this.editor.view.dom;
+            const form = editorEl.closest("form");
+            if (form) {
+              const submitButton = form.querySelector('button[type="submit"]') as HTMLButtonElement | null;
+              submitButton?.click();
+            }
+            return true;
+          },
+        };
+      },
+    }),
+  [],
+);
+```
+
+### 2. 에디터 포커스 시 border 색상 전환 (Quiet Depth)
+- `isFocused` 상태 추가 (useState)
+- `onFocus`/`onBlur` 핸들러로 상태 관리
+- `.article-editor--focused` 클래스로 포커스 스타일 적용
+- CSS: `app/styles/editor.css` lines 3-7
+
+```css
+.article-editor--focused .ProseMirror {
+  border-color: var(--color-ocean-blue);
+  box-shadow: 0 0 0 2px var(--color-mist-blue);
+}
+```
+
+### 3. 접근성 개선
+
+#### 3.1 44px+ 터치 타겟 확보
+- BubbleMenu 버튼: `h-8` → `min-h-11 min-w-11` (44px)
+- Tailwind `min-h-11` = 2.75rem = 44px
+
+#### 3.2 툴팁 (title 속성) 추가
+- Bold: "굵게 (⌘B)"
+- Italic: "기울임 (⌘I)"
+- Underline: "밑줄 (⌘U)"
+- H1/H2: "제목 1" / "제목 2"
+- Code: "인라인 코드"
+- CodeBlock: "코드 블록"
+
+#### 3.3 aria-label 유지
+- 기존 aria-label 속성 모두 유지
+
+## 검증 결과
+
+### TypeScript
+```
+$ pnpm exec tsc --noEmit
+(no errors)
+```
+
+### Build
+```
+$ pnpm build
+✓ 495 client modules transformed
+✓ 601 server modules transformed
+✓ built in 2.03s (client)
+✓ built in 2.65s (server)
+```
+
+## 파일 변경 사항
+
+1. `app/components/editor/ArticleEditor.tsx`
+   - Extension import 추가
+   - isFocused state 추가
+   - formSubmitExtension 추가
+   - BubbleMenu 버튼 min-h-11, title 속성 추가
+   - EditorContent onFocus/onBlur 추가
+   - rootClassName에 focused 클래스 추가
+
+2. `app/styles/editor.css`
+   - `.article-editor--focused .ProseMirror` 규칙 추가
+
+## 기존 Tiptap StarterKit 단축키 (변경 없음)
+- Cmd+B: Bold
+- Cmd+I: Italic
+- Cmd+Shift+H: Heading toggle
+
+이미 StarterKit에 내장되어 있어 추가 구현 불필요.

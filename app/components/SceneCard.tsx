@@ -10,6 +10,7 @@ interface SceneCardProps {
     rhythm?: string;
     createdAt: number;
   };
+  contentSnippet?: string;
   author?: {
     displayName: string;
     slug: string;
@@ -37,6 +38,7 @@ const RHYTHM_LABELS: Record<string, string> = {
 
 export default function SceneCard({
   record,
+  contentSnippet,
   author,
   stage,
   hasQuestions,
@@ -44,8 +46,8 @@ export default function SceneCard({
   hasLinkedRecord,
 }: SceneCardProps) {
   const snippet =
-    record.content.substring(0, 120) +
-    (record.content.length > 120 ? "…" : "");
+    contentSnippet ??
+    (record.content.substring(0, 120) + (record.content.length > 120 ? "…" : ""));
 
   return (
     <article

@@ -1,0 +1,222 @@
+═══════════════════════════════════════════════════════════════════════════════
+TASK 3 COMPLETION SUMMARY: Add tags and record_tags tables to Drizzle schema
+═══════════════════════════════════════════════════════════════════════════════
+
+TASK OBJECTIVE:
+Add admin-curated tags system to divelog with proper database schema, relations,
+and migrations. Tags are linked to records via junction table (recordTags).
+
+═══════════════════════════════════════════════════════════════════════════════
+DELIVERABLES CHECKLIST
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ SCHEMA ADDITIONS (app/db/schema.server.ts)
+   ✓ tags table with 8 columns (id, name, slug, description, color, createdBy, createdAt, updatedAt)
+   ✓ recordTags junction table with composite primary key (recordId, tagId)
+   ✓ Foreign key constraints with cascade delete
+   ✓ Unique indexes on tags.name and tags.slug
+
+✅ RELATIONS DEFINITIONS (app/db/relations.server.ts)
+   ✓ tagsRelations: many(recordTags)
+   ✓ recordTagsRelations: one(records), one(tags)
+   ✓ recordsRelations: added recordTags: many(recordTags)
+   ✓ Imports updated: tags, recordTags added to import list
+
+✅ MIGRATION GENERATION & APPLICATION
+   ✓ Migration file: drizzle/migrations/0002_majestic_bastion.sql
+   ✓ Migration applied successfully to local D1 database
+   ✓ Status: 5 commands executed successfully
+
+✅ DATABASE VERIFICATION
+   ✓ PRAGMA table_info(tags): 8 columns verified
+   ✓ PRAGMA table_info(record_tags): 3 columns verified
+   ✓ Unique indexes created on tags.name and tags.slug
+   ✓ Foreign key constraints with cascade delete configured
+
+✅ TYPE SAFETY
+   ✓ npx tsc --noEmit: No errors
+   ✓ All TypeScript types properly inferred from schema
+
+✅ BUILD VERIFICATION
+   ✓ pnpm build: Successful (exit code 0)
+   ✓ Client bundle: 190.41 kB (gzip: 59.94 kB)
+   ✓ Server bundle: 1,143.28 kB
+   ✓ Total worker size: 1.4 MB
+
+═══════════════════════════════════════════════════════════════════════════════
+SCHEMA DETAILS
+═══════════════════════════════════════════════════════════════════════════════
+
+TABLE: tags
+─────────────────────────────────────────────────────────────────────────────
+Column          Type      Constraints                    Default
+─────────────────────────────────────────────────────────────────────────────
+id              TEXT      PRIMARY KEY                    (auto)
+name            TEXT      NOT NULL, UNIQUE               (required)
+slug            TEXT      NOT NULL, UNIQUE               (required)
+description     TEXT      nullable                       ''
+color           TEXT      nullable                       '#6E6E73'
+created_by      TEXT      nullable (admin user ID)       (optional)
+created_at      INTEGER   NOT NULL                       unixepoch()
+updated_at      INTEGER   NOT NULL                       unixepoch()
+─────────────────────────────────────────────────────────────────────────────
+
+TABLE: record_tags (junction table)
+─────────────────────────────────────────────────────────────────────────────
+Column          Type      Constraints                    Default
+─────────────────────────────────────────────────────────────────────────────
+record_id       TEXT      NOT NULL, FK→records.id        (required)
+tag_id          TEXT      NOT NULL, FK→tags.id          (required)
+created_at      INTEGER   NOT NULL                       unixepoch()
+─────────────────────────────────────────────────────────────────────────────
+Primary Key: (record_id, tag_id)
+Foreign Keys: cascade delete on both references
+
+═══════════════════════════════════════════════════════════════════════════════
+RELATIONS STRUCTURE
+═══════════════════════════════════════════════════════════════════════════════
+
+tags
+  └─ recordTags: many(recordTags)
+
+recordTags
+  ├─ record: one(records)
+  └─ tag: one(tags)
+
+records (updated)
+  ├─ author: one(learnerProfiles)
+  ├─ stage: one(stages)
+  ├─ challenge: one(challenges)
+  ├─ collaborationUnit: one(collaborationUnits)
+  ├─ questions: many(questions)
+  ├─ responses: many(responses)
+  ├─ sentences: many(sentences)
+  ├─ memoryRecords: many(memoryRecords)
+  └─ recordTags: many(recordTags) ← NEW
+
+═══════════════════════════════════════════════════════════════════════════════
+DESIGN DECISIONS
+═══════════════════════════════════════════════════════════════════════════════
+
+1. ADMIN-CURATED TAGS ONLY
+   - No user-generated tags in Phase 1
+   - createdBy field tracks which admin created the tag
+   - Ensures quality and consistency of tag taxonomy
+
+2. COLOR FIELD
+   - Defaults to Quiet Depth text secondary color (#6E6E73)
+   - Allows future UI customization per tag
+   - Stored as hex string for simplicity
+
+3. JUNCTION TABLE PATTERN
+   - recordTags uses proper junction table (not JSON array)
+   - Follows AGENTS.md constraint: "JSON 배열로 M:N 관계 저장 금지"
+   - Enables efficient querying and filtering
+
+4. TIMESTAMPS
+   - Uses unixepoch() for consistency with existing schema
+   - created_at: when tag was created
+   - updated_at: when tag was last modified
+
+5. UNIQUE CONSTRAINTS
+   - name: unique across all tags (prevents duplicates)
+   - slug: unique across all tags (URL-safe identifier)
+   - Composite PK on recordTags: prevents duplicate tag assignments
+
+═══════════════════════════════════════════════════════════════════════════════
+MIGRATION FILE
+═══════════════════════════════════════════════════════════════════════════════
+
+File: drizzle/migrations/0002_majestic_bastion.sql
+Size: 22 lines
+Status: ✅ Applied successfully
+
+Key SQL:
+- CREATE TABLE `tags` with 8 columns
+- CREATE TABLE `record_tags` with composite primary key
+- CREATE UNIQUE INDEX on tags.name
+- CREATE UNIQUE INDEX on tags.slug
+- Foreign key constraints with ON DELETE cascade
+
+═══════════════════════════════════════════════════════════════════════════════
+VERIFICATION RESULTS
+═══════════════════════════════════════════════════════════════════════════════
+
+Database Verification:
+✅ wrangler d1 migrations apply DB --local: 5 commands executed successfully
+✅ PRAGMA table_info(tags): 8 columns, 2 unique indexes
+✅ PRAGMA table_info(record_tags): 3 columns, composite PK, 2 FKs
+
+Type Safety:
+✅ npx tsc --noEmit: No errors (0 exit code)
+✅ Schema types properly inferred
+✅ Relations types properly inferred
+
+Build Verification:
+✅ pnpm build: Successful (0 exit code)
+✅ Client bundle: 190.41 kB (gzip: 59.94 kB)
+✅ Server bundle: 1,143.28 kB
+✅ Total worker: 1.4 MB
+
+═══════════════════════════════════════════════════════════════════════════════
+FILES MODIFIED
+═══════════════════════════════════════════════════════════════════════════════
+
+1. app/db/schema.server.ts
+   - Added: tags table definition (lines 299-308)
+   - Added: recordTags junction table definition (lines 310-325)
+
+2. app/db/relations.server.ts
+   - Updated: imports to include tags, recordTags
+   - Updated: recordsRelations to include recordTags: many(recordTags)
+   - Added: tagsRelations definition
+   - Added: recordTagsRelations definition
+
+3. drizzle/migrations/0002_majestic_bastion.sql (generated)
+   - CREATE TABLE `record_tags`
+   - CREATE TABLE `tags`
+   - CREATE UNIQUE INDEX `tags_name_unique`
+   - CREATE UNIQUE INDEX `tags_slug_unique`
+
+═══════════════════════════════════════════════════════════════════════════════
+NEXT STEPS (Future Tasks)
+═══════════════════════════════════════════════════════════════════════════════
+
+T4: Create tag query functions (app/db/queries/tags.server.ts)
+    - getTags()
+    - getTagBySlug(slug)
+    - createTag(name, slug, description, color, createdBy)
+    - updateTag(id, updates)
+    - deleteTag(id)
+    - getRecordTags(recordId)
+    - addTagToRecord(recordId, tagId)
+    - removeTagFromRecord(recordId, tagId)
+
+T22: Admin tags management page (/admin/tags)
+     - List all tags
+     - Create new tag
+     - Edit tag (name, slug, description, color)
+     - Delete tag
+     - View records with tag
+
+T24: Public tags browsing (/tags, /tags/:tagSlug)
+     - List all tags
+     - View records with specific tag
+     - Filter records by tag
+
+═══════════════════════════════════════════════════════════════════════════════
+EVIDENCE
+═══════════════════════════════════════════════════════════════════════════════
+
+Evidence file: .sisyphus/evidence/task-3-tables.txt
+Learnings updated: .sisyphus/notepads/editor-and-enrichment/learnings.md
+
+═══════════════════════════════════════════════════════════════════════════════
+COMPLETION STATUS: ✅ COMPLETE
+═══════════════════════════════════════════════════════════════════════════════
+
+All deliverables completed successfully.
+All verification checks passed.
+Ready for next task (T4: Tag query functions).
+
+Timestamp: 2026-03-15

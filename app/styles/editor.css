@@ -1,0 +1,244 @@
+/* ProseMirror Editor Styles — Quiet Depth Design System */
+
+/* === Article Editor Container Focus === */
+.article-editor--focused .ProseMirror {
+  border-color: var(--color-ocean-blue);
+  box-shadow: 0 0 0 2px var(--color-mist-blue);
+}
+
+/* === Base Editor Container === */
+.ProseMirror {
+  outline: none;
+  font-family: var(--font-sans);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-body);
+  color: var(--color-text-primary);
+  background-color: var(--color-surface);
+  padding: var(--space-5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  transition: border-color var(--duration-fast) var(--ease-default),
+              box-shadow var(--duration-fast) var(--ease-default);
+}
+
+/* Focus state — Quiet Depth focus ring */
+.ProseMirror:focus {
+  border-color: var(--color-ocean-blue);
+  box-shadow: 0 0 0 2px var(--color-mist-blue);
+}
+
+/* Empty state placeholder */
+.ProseMirror.is-editor-empty::before {
+  content: attr(data-placeholder);
+  color: var(--color-text-tertiary);
+  font-style: italic;
+  pointer-events: none;
+  height: 0;
+}
+
+/* === Paragraph === */
+.ProseMirror p {
+  margin: var(--space-4) 0;
+  line-height: var(--line-height-body);
+}
+
+.ProseMirror p:first-child {
+  margin-top: 0;
+}
+
+.ProseMirror p:last-child {
+  margin-bottom: 0;
+}
+
+/* === Headings === */
+.ProseMirror h1,
+.ProseMirror h2,
+.ProseMirror h3,
+.ProseMirror h4,
+.ProseMirror h5,
+.ProseMirror h6 {
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-title);
+  color: var(--color-text-primary);
+  margin: var(--space-6) 0 var(--space-4) 0;
+}
+
+.ProseMirror h1 {
+  font-size: var(--font-size-5xl);
+}
+
+.ProseMirror h2 {
+  font-size: var(--font-size-4xl);
+}
+
+.ProseMirror h3 {
+  font-size: var(--font-size-3xl);
+}
+
+.ProseMirror h4 {
+  font-size: var(--font-size-2xl);
+}
+
+.ProseMirror h5 {
+  font-size: var(--font-size-xl);
+}
+
+.ProseMirror h6 {
+  font-size: var(--font-size-lg);
+}
+
+/* === Inline Formatting === */
+.ProseMirror strong {
+  font-weight: var(--font-weight-semibold);
+}
+
+.ProseMirror em {
+  font-style: italic;
+}
+
+.ProseMirror u {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+.ProseMirror s {
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
+
+.ProseMirror code {
+  background-color: var(--color-surface-secondary);
+  color: var(--color-text-primary);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 0.9em;
+}
+
+/* === Links === */
+.ProseMirror a {
+  color: var(--color-ocean-blue);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+  transition: color var(--duration-fast) var(--ease-default);
+}
+
+.ProseMirror a:hover {
+  color: var(--color-deep-ocean);
+}
+
+/* === Lists === */
+.ProseMirror ul,
+.ProseMirror ol {
+  margin: var(--space-4) 0;
+  padding-left: var(--space-8);
+}
+
+.ProseMirror li {
+  margin: var(--space-2) 0;
+  line-height: var(--line-height-body);
+}
+
+.ProseMirror ul li {
+  list-style-type: disc;
+}
+
+.ProseMirror ol li {
+  list-style-type: decimal;
+}
+
+/* Nested lists */
+.ProseMirror ul ul,
+.ProseMirror ol ol,
+.ProseMirror ul ol,
+.ProseMirror ol ul {
+  margin: var(--space-2) 0;
+  padding-left: var(--space-8);
+}
+
+/* === Blockquote === */
+.ProseMirror blockquote {
+  border-left: 3px solid var(--color-ocean-blue);
+  margin: var(--space-6) 0;
+  padding: var(--space-4) var(--space-6);
+  background-color: var(--color-surface-secondary);
+  border-radius: 4px;
+  color: var(--color-text-secondary);
+  font-style: italic;
+}
+
+.ProseMirror blockquote p {
+  margin: 0;
+}
+
+/* === Code Block === */
+.ProseMirror pre {
+  background-color: var(--color-surface-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-5);
+  margin: var(--space-6) 0;
+  overflow-x: auto;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.ProseMirror pre code {
+  background-color: transparent;
+  color: var(--color-text-primary);
+  padding: 0;
+  border-radius: 0;
+  font-size: inherit;
+}
+
+/* === Horizontal Rule === */
+.ProseMirror hr {
+  border: none;
+  border-top: 1px solid var(--color-border);
+  margin: var(--space-8) 0;
+}
+
+/* === Images === */
+.ProseMirror img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius-sm);
+  margin: var(--space-6) 0;
+  display: block;
+}
+
+.editor-image {
+  border: 1px solid var(--color-border);
+  padding: 2px;
+}
+
+/* === Selection === */
+.ProseMirror ::selection {
+  background-color: var(--color-mist-blue);
+  color: var(--color-text-primary);
+}
+
+/* === Placeholder Text === */
+.ProseMirror.is-editor-empty::before {
+  content: attr(data-placeholder);
+  color: var(--color-text-tertiary);
+  font-style: italic;
+  pointer-events: none;
+  height: 0;
+}
+
+/* === Accessibility === */
+.ProseMirror:focus-visible {
+  outline: 2px solid var(--color-ocean-blue);
+  outline-offset: 2px;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .ProseMirror {
+    transition: none;
+  }
+}

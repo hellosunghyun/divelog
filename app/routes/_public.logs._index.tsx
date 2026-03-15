@@ -7,11 +7,13 @@ import FilterBar from "../components/FilterBar";
 import SortBar from "../components/SortBar";
 import EmptyState from "../components/EmptyState";
 import HeroSection from "../components/HeroSection";
+import { getPlainText } from "../lib/content.server";
+import { normalizeContentFormat } from "../lib/editor-extensions";
 
-export function meta(_args: Route.MetaArgs) {
+export function meta({ data: loaderData }: Route.MetaArgs) {
   return [
     { title: "기록 — divelog" },
-    { name: "description", content: "ADA Learner들의 기록 모음" },
+    { name: "description", content: loaderData?.metaDescription ?? "ADA Learner들의 기록 모음" },
   ];
 }
 
@@ -79,7 +81,30 @@ export async function loader({ request, context }: Route.LoaderArgs) {
       .orderBy(sql`"order" ASC`),
   ]);
 
-  return { records: filteredRecords, allStages, page, filters: { stageId, format, type, rhythm, sort } };
+  const recordsWithSnippets = filteredRecords.map((record) => {
+    const plainTextContent = getPlainText(record.content, normalizeContentFormat(record.format));
+
+    return {
+      ...record,
+      contentSnippet:
+        plainTextContent.substring(0, 120) + (plainTextContent.length > 120 ? "…" : ""),
+    };
+  });
+
+  const firstRecordPlainText = filteredRecords[0]
+    ? getPlainText(filteredRecords[0].content, normalizeContentFormat(filteredRecords[0].format))
+    : null;
+  const metaDescription = firstRecordPlainText
+    ? firstRecordPlainText.substring(0, 150) + (firstRecordPlainText.length > 150 ? "…" : "")
+    : "ADA Learner들의 기록 모음";
+
+  return {
+    records: recordsWithSnippets,
+    allStages,
+    page,
+    filters: { stageId, format, type, rhythm, sort },
+    metaDescription,
+  };
 }
 
 const FILTER_OPTIONS = [
@@ -152,8 +177,9 @@ export default function LogsPage({ loaderData }: Route.ComponentProps) {
                   rhythm: record.rhythm ?? undefined,
                   createdAt: record.createdAt,
                 }}
+                contentSnippet={record.contentSnippet}
                 author={
-                  record.author.displayName
+                  record.author?.displayName
                     ? {
                         displayName: record.author.displayName,
                         slug: record.author.slug ?? "",
@@ -161,7 +187,7 @@ export default function LogsPage({ loaderData }: Route.ComponentProps) {
                     : undefined
                 }
                 stage={
-                  record.stage.name
+                  record.stage?.name
                     ? {
                         name: record.stage.name,
                         type: record.stage.type ?? "",

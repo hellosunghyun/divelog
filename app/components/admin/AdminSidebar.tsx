@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { label: "큐레이션", href: "/admin/curation" },
   { label: "Collective Memory", href: "/admin/memories" },
   { label: "템플릿", href: "/admin/templates" },
+  { label: "태그 관리", href: "/admin/tags" },
   { label: "애널리틱스", href: "/admin/analytics" },
   { label: "시스템 설정", href: "/admin/settings" },
   { label: "역할 & 권한", href: "/admin/roles" },

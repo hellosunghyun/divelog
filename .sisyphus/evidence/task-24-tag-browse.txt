@@ -1,0 +1,81 @@
+# T24: 태그 브라우징 페이지 구현
+
+## 완료 항목
+
+### 1. `app/routes/_public.tags.tsx` 생성
+- 전체 태그 목록 페이지
+- `getAllTags()` 호출로 태그 + 사용 횟수 조회
+- 태그를 chip/pill 형태로 표시 (각 태그에 기록 수 표시)
+- 태그 클릭 시 `/tags/:tagSlug`로 이동
+- EmptyState로 태그 없음 처리
+- Quiet Depth 스타일 적용 (얇은 border, 부드러운 hover 효과)
+
+### 2. `app/routes/_public.tags.$tagSlug.tsx` 생성
+- 특정 태그의 기록 목록 페이지
+- `getTagBySlug()`로 태그 조회 (없으면 404)
+- `getRecordsByTag()`로 해당 태그의 기록 목록 조회
+- SceneCard 리스트로 기록 표시
+- contentSnippet 계산 (120자 + 말줄임)
+- ErrorBoundary로 404 처리
+- EmptyState로 기록 없음 처리
+
+### 3. `app/routes.ts` 수정
+```typescript
+route("tags", "routes/_public.tags.tsx"),
+route("tags/:tagSlug", "routes/_public.tags.$tagSlug.tsx"),
+```
+Public 레이아웃 내에 추가됨
+
+### 4. `app/db/queries/tags.server.ts` 확장
+추가된 함수:
+- `getRecordsByTag(d1, tagId)` - 특정 태그의 기록 목록 조회
+  - record_tags JOIN records JOIN learner_profiles JOIN stages
+  - draft 기록 제외
+  - 최신순 정렬
+- `getTagsByRecord(d1, recordId)` - 특정 기록의 태그 목록 조회
+
+### 5. 기록 상세 페이지 태그 링크
+`app/routes/_public.logs.$recordSlug.tsx` 수정:
+- `getTagsByRecord()`로 기록의 태그 조회
+- 헤더에 태그 chip 표시 (작성자 정보 옆)
+- 각 태그 클릭 시 `/tags/:tagSlug`로 이동
+
+## 검증 결과
+
+### 빌드
+```
+pnpm build
+✓ built in 2.60s (client)
+✓ built in 2.01s (server)
+```
+
+### 타입 체크
+```
+pnpm tsc --noEmit
+(에러 없음)
+```
+
+## 디자인 특징
+
+- Quiet Depth 스타일 준수
+- 태그 chip: rounded-full, border, bg-surface, hover 시 reef-cyan/mist-blue 톤
+- 기록 수는 text-tertiary로 표시
+- 인기도/랭킹 표시 없음 (Guardrails 준수)
+- 태그 클라우드(크기로 인기도 표시) 미사용
+
+## 파일 변경 요약
+
+| 파일 | 상태 |
+|------|------|
+| app/routes/_public.tags.tsx | 생성 |
+| app/routes/_public.tags.$tagSlug.tsx | 생성 |
+| app/routes.ts | 수정 |
+| app/db/queries/tags.server.ts | 수정 |
+| app/routes/_public.logs.$recordSlug.tsx | 수정 |
+
+## 라우트 구조
+
+```
+/tags              → 전체 태그 목록
+/tags/:tagSlug     → 특정 태그의 기록 목록
+```

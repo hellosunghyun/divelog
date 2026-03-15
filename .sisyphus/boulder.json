@@ -1,11 +1,10 @@
 {
-  "active_plan": "/Users/hellosunghyun/Documents/Github/divelog/.sisyphus/plans/divelog-fullbuild.md",
-  "started_at": "2026-03-14T07:30:34.596Z",
+  "active_plan": "/Users/hellosunghyun/Documents/Github/divelog/.sisyphus/plans/editor-and-enrichment.md",
+  "started_at": "2026-03-15T09:26:48.427Z",
   "session_ids": [
-    "ses_314bef45bffexHRQeJEQGpAMUT",
-    "ses_31459b9ceffe6AX8T2T1bbXDcC"
+    "ses_30f33a888ffetj0SnlZGbKCJik"
   ],
-  "plan_name": "divelog-fullbuild",
+  "plan_name": "editor-and-enrichment",
   "agent": "atlas",
   "worktree_path": "/Users/hellosunghyun/Documents/Github/divelog"
 }

@@ -1,0 +1,44 @@
+T34 Must NOT Have 전수 검증 (12개)
+작업 디렉터리: /Users/hellosunghyun/Documents/Github/divelog
+검증 일시: 2026-03-15
+
+[1] as any / @ts-ignore / @ts-expect-error — PASS (0)
+- grep -r "as any\|@ts-ignore\|@ts-expect-error" app/ --include="*.ts" --include="*.tsx" | wc -l
+- 결과: 0
+
+[2] 자동 저장(autoSave/autosave/debounce save) — PASS (0)
+- 결과: 0
+
+[3] AI 글쓰기(extension-ai/@tiptap/ai/openai/generateText) — PASS (0)
+- 결과: 0
+
+[4] Note에 Rich text 사용 금지 — PASS
+- 파일 존재: app/components/editor/NoteEditor.tsx
+- grep "useEditor\|Tiptap" app/components/editor/NoteEditor.tsx | wc -l
+- 결과: 0
+
+[5] 알고리즘 추천(similarity/recommend/유사한 기록) — PASS (0)
+- 결과: 0
+
+[6] 개인 랭킹(leaderboard/ranking) — PASS (0)
+- 결과: 0
+
+[7] 실시간 업데이트(WebSocket/EventSource/setInterval) — PASS (0)
+- test/spec/__tests__ 제외 결과: 0
+
+[8] 게임형 UI(progress%/streak/achievement/gamif) — PASS (0)
+- 결과: 0
+
+[9] 사용자 생성 태그(createTag user) — PASS (0)
+- 결과: 0
+
+[10] 좋아요/추천 버튼 — PASS (0)
+- comment 제외 결과: 0
+
+[11] 말풍선 UI — PASS (0)
+- 결과: 0
+
+[12] base64 이미지(data:image 포함) — PASS (0)
+- test/spec/comment 제외 결과: 0
+
+집계: Must NOT Have PASS 12/12

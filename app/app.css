@@ -1,5 +1,6 @@
 @import "tailwindcss" source(".");
 @import "./styles/global.css";
+@import "./styles/editor.css";
 
 @theme {
   /* Spacing: 4px base (design.md 6.1 — 4px multiples) */

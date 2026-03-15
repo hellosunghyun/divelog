@@ -9,13 +9,26 @@
     "dev": "react-router dev",
     "postinstall": "npm run cf-typegen",
     "preview": "npm run build && vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "typecheck": "npm run cf-typegen && react-router typegen && tsc -b"
   },
   "dependencies": {
     "@adakrpos/auth": "^0.0.2",
+    "@tiptap/core": "^3.20.1",
+    "@tiptap/extension-code-block-lowlight": "^3.20.1",
+    "@tiptap/extension-image": "^3.20.1",
+    "@tiptap/extension-placeholder": "^3.20.1",
+    "@tiptap/extension-underline": "^3.20.1",
+    "@tiptap/html": "^3.20.1",
+    "@tiptap/pm": "^3.20.1",
+    "@tiptap/react": "^3.20.1",
+    "@tiptap/starter-kit": "^3.20.1",
+    "@tiptap/suggestion": "^3.20.1",
     "drizzle-kit": "^0.31.9",
     "drizzle-orm": "^0.45.1",
     "isbot": "^5.1.31",
+    "lowlight": "^3.3.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-router": "7.12.0",
@@ -23,6 +36,7 @@
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.13.7",
+    "@cloudflare/vitest-pool-workers": "^0.13.0",
     "@react-router/dev": "7.12.0",
     "@tailwindcss/vite": "^4.1.13",
     "@types/node": "^22",
@@ -33,6 +47,7 @@
     "typescript": "^5.9.2",
     "vite": "^7.1.7",
     "vite-tsconfig-paths": "^5.1.4",
+    "vitest": "^4.1.0",
     "wrangler": "^4.40.2"
   }
 }

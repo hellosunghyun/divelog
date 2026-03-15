@@ -1,0 +1,40 @@
+Task 37 - Must NOT Do Compliance Evidence
+Date: 2026-03-15
+Workspace: /Users/hellosunghyun/Documents/Github/divelog
+
+[1] 자동 저장 금지
+- Command: grep -r "autoSave|auto_save|autosave" app/ --include="*.ts" --include="*.tsx" | wc -l
+- Result: 0
+- PASS
+
+[2] AI 글쓰기 금지
+- Command: grep -r "@tiptap/ai|extension-ai|openai" app/ --include="*.ts" --include="*.tsx" | wc -l
+- Result: 0
+- PASS
+
+[3] Note에 Tiptap 사용 금지
+- Command: grep -n "useEditor|Tiptap" app/components/editor/NoteEditor.tsx | wc -l
+- Result: 0
+- PASS
+
+[4] 사용자 생성 태그 금지 (admin-curated only)
+- Command: grep -r "createTag" app/routes/ --include="*.tsx" | grep -v "admin" | wc -l
+- Result: 0
+- PASS
+
+[5] base64 이미지 금지
+- Command: grep -r "data:image|base64" app/components/editor/ app/routes/ --include="*.tsx" --include="*.ts" | wc -l
+- Result: 0
+- PASS
+
+[6] 실시간 기능 금지
+- Command: grep -r "setInterval|WebSocket|EventSource" app/ --include="*.tsx" --include="*.ts" | grep -v "test|__tests__" | wc -l
+- Result: 0
+- PASS
+
+[7] 랭킹/leaderboard 금지
+- Command: grep -r "leaderboard|ranking" app/ --include="*.tsx" | grep -v "// NO|comment" | wc -l
+- Result: 0
+- PASS
+
+Must NOT Do Result: CLEAN/7 checks, 0 issues

@@ -1,0 +1,105 @@
+T23: Write 페이지와 Edit 페이지에 태그 선택 UI 추가
+=====================================================
+
+TASK COMPLETION SUMMARY
+=======================
+
+✅ COMPLETED ITEMS:
+
+1. Modified app/routes/_public.write.tsx
+   - Added imports: getAllTags, recordTags
+   - Updated loader: Added getAllTags() call, returned tags in loaderData
+   - Updated action: Added tag insertion logic (loop through tagIds, insert into recordTags)
+   - Updated component: 
+     * Added selectedTags state (Set<string>)
+     * Added tag selection UI with chip styling
+     * Hidden checkboxes with visible span elements
+     * Selected tags show ocean-blue border and mist-blue background
+     * Unselected tags show border-border with hover effect
+
+2. Modified app/routes/_public.logs.$recordSlug.edit.tsx
+   - Added imports: getAllTags, getTagsByRecord, recordTags
+   - Updated loader: 
+     * Added getAllTags() call
+     * Added getTagsByRecord() call to load current tags
+     * Returned both tags and currentTags in loaderData
+   - Updated action:
+     * Delete existing record_tags for the record
+     * Insert new tags from form submission
+   - Updated component:
+     * Added selectedTags state initialized with currentTags
+     * Added tag selection UI (identical to write page)
+     * Displays previously selected tags as checked
+
+3. Tag Selection UI Implementation
+   - Fieldset with legend for accessibility
+   - Flex layout with gap-2 for spacing
+   - Hidden checkbox inputs (name="tagIds", value=tag.id)
+   - Visible span elements styled as chips
+   - Conditional styling based on selectedTags state
+   - Smooth transitions on hover/selection
+   - Color scheme: ocean-blue border + mist-blue background when selected
+
+4. Database Integration
+   - Tags loaded from getAllTags() query
+   - Current tags loaded from getTagsByRecord() for edit page
+   - New tags inserted into record_tags table on save
+   - Existing tags deleted before inserting new ones (replace pattern)
+   - Proper timestamp (createdAt) set for new associations
+
+BUILD VERIFICATION
+===================
+
+✅ pnpm tsc --noEmit: PASSED (no errors)
+✅ pnpm build: PASSED
+   - Client build: 494 modules transformed
+   - SSR build: 599 modules transformed
+   - Worker bundle: 2.8mb
+   - All chunks generated successfully
+
+TECHNICAL DETAILS
+=================
+
+Tag Selection Flow:
+1. User clicks on tag chip (span element)
+2. onChange handler on hidden checkbox updates selectedTags state
+3. Span styling updates based on selectedTags.has(tag.id)
+4. On form submit, all checked tagIds are sent as form data
+5. Server-side: tagIds extracted from formData.getAll("tagIds")
+6. For new records: tags inserted after record creation
+7. For edits: existing tags deleted, new tags inserted
+
+Styling:
+- Selected: border-ocean-blue bg-mist-blue text-ocean-blue
+- Unselected: border-border bg-surface text-text-secondary hover:border-ocean-blue
+- Transition: smooth color transitions on state change
+- Padding: px-3 py-1 (compact chip style)
+- Border radius: rounded-full (pill shape)
+
+Files Modified:
+- app/routes/_public.write.tsx (added 50+ lines)
+- app/routes/_public.logs.$recordSlug.edit.tsx (added 50+ lines)
+
+No changes needed to:
+- app/db/schema.server.ts (recordTags already defined)
+- app/db/queries/tags.server.ts (getAllTags and getTagsByRecord already exist)
+- app/db/queries/records.server.ts (no changes needed)
+
+VALIDATION CHECKLIST
+====================
+
+✅ Type safety: No `as any`, `@ts-ignore`, or `@ts-expect-error`
+✅ Accessibility: Fieldset/legend for tag section, hidden inputs with visible labels
+✅ Form handling: Proper formData.getAll() for multiple checkbox values
+✅ Database: Proper cascade delete on record deletion (via schema)
+✅ UI/UX: Clear visual feedback for selected/unselected tags
+✅ Build: No errors, all modules transformed successfully
+✅ TypeScript: No type errors (pnpm tsc --noEmit passed)
+
+NEXT STEPS (T24+)
+=================
+
+T24: Add getTagsByRecord() function to tags.server.ts (if not already present)
+     - Already exists in current codebase
+T25: Add tag display to record detail page
+T26: Add tag filtering to logs page

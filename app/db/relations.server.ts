@@ -13,12 +13,14 @@ import {
   memorySentences,
   notifications,
   questions,
+  recordTags,
   records,
   responses,
   selfAnswers,
   sentences,
   settings,
   stages,
+  tags,
   templates,
   userRoles,
 } from "./schema.server";
@@ -106,6 +108,7 @@ export const recordsRelations = relations(records, ({ many, one }) => ({
   responses: many(responses),
   sentences: many(sentences),
   memoryRecords: many(memoryRecords),
+  recordTags: many(recordTags),
 }));
 
 export const questionsRelations = relations(questions, ({ many, one }) => ({
@@ -218,6 +221,21 @@ export const userRolesRelations = relations(userRoles, ({ one }) => ({
   learner: one(learnerProfiles, {
     fields: [userRoles.userId],
     references: [learnerProfiles.userId],
+  }),
+}));
+
+export const tagsRelations = relations(tags, ({ many }) => ({
+  recordTags: many(recordTags),
+}));
+
+export const recordTagsRelations = relations(recordTags, ({ one }) => ({
+  record: one(records, {
+    fields: [recordTags.recordId],
+    references: [records.id],
+  }),
+  tag: one(tags, {
+    fields: [recordTags.tagId],
+    references: [tags.id],
   }),
 }));
 

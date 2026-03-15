@@ -1,0 +1,66 @@
+T30: R2 이미지 orphan 정리 — 기록 수정 시 제거된 이미지를 R2에서 삭제
+
+COMPLETED: 2026-03-15
+
+=== DELIVERABLES ===
+
+1. ✅ app/lib/r2-cleanup.server.ts 생성
+   - extractImageKeys(tiptapJsonString): Tiptap JSON에서 이미지 R2 키 추출
+     * JSON 파싱 try/catch 처리
+     * doc.content 재귀 순회
+     * type === "image" 노드의 attrs.src에서 키 추출
+     * /api/images/ 프리픽스 제거 (예: "/api/images/records/abc123.jpg" → "records/abc123.jpg")
+   
+   - cleanupRemovedImages(r2, oldJson, newJson): 기록 수정 시 제거된 이미지 R2 삭제
+     * 수정 전 이미지 키 추출
+     * 수정 후 이미지 키 추출
+     * old에는 있고 new에는 없는 키만 필터링
+     * Promise.all로 병렬 삭제
+
+2. ✅ app/routes/_public.logs.$recordSlug.edit.tsx 수정
+   - import { cleanupRemovedImages } from "../lib/r2-cleanup.server" 추가
+   - action에서 updateRecord 후 cleanupRemovedImages 호출
+   - article format에만 이미지 정리 (note format은 이미지 없음)
+   - 호출 위치: updateRecord 직후, 태그 처리 전
+
+3. ✅ pnpm build 성공
+   - 494 modules transformed (client)
+   - 600 modules transformed (ssr)
+   - No TypeScript errors
+   - Build completed in 2.11s
+
+4. ✅ tsc --noEmit 에러 없음
+   - 타입 체크 통과
+
+=== IMPLEMENTATION DETAILS ===
+
+R2 Key Format (from T10):
+- Upload 응답: { url: "/api/images/records/abc123.jpg", key: "records/abc123.jpg" }
+- 이미지 src: /api/images/records/abc123.jpg
+- R2 key: records/abc123.jpg
+
+Tiptap JSON Structure:
+- doc.content: 노드 배열
+- 각 노드: { type, attrs, content }
+- 이미지 노드: { type: "image", attrs: { src: "/api/images/records/abc123.jpg" } }
+
+Cleanup Logic:
+1. 기록 수정 시 oldJson과 newJson 비교
+2. 제거된 이미지만 R2에서 삭제
+3. 새로 추가된 이미지는 유지
+4. 변경 없는 이미지는 유지
+
+=== NOTES ===
+
+- Note format 기록은 이미지 미지원이므로 article format만 처리
+- 각 기록별 독립 이미지 (다른 기록에서 같은 이미지 참조 없음)
+- 현재 기록 삭제 경로 없으므로 삭제 시 cleanup 미구현
+- 주기적 GC 배치 작업 미구현 (필요 시 별도 작업)
+
+=== VERIFICATION ===
+
+✅ Build: pnpm build (success)
+✅ Type Check: tsc --noEmit (no errors)
+✅ Code Review: No as any, @ts-ignore, empty catch blocks
+✅ Import: cleanupRemovedImages correctly imported and used
+✅ Logic: Correct Tiptap JSON traversal and key extraction

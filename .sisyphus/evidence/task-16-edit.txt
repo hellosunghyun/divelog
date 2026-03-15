@@ -1,0 +1,40 @@
+T16 `/logs/:recordSlug/edit` 구현 증빙
+
+작업 일시: 2026-03-15
+
+1) 구현 파일
+- 생성: app/routes/_public.logs.$recordSlug.edit.tsx
+  - loader: requireVerified + getRecordBySlug + 작성자 권한(403) 확인
+  - loader: templates/currentStage/collaborations 로드
+  - action: format(note/article)별 content/contentText 처리 후 updateRecord 호출
+  - 성공 시 redirect(`/logs/:recordSlug`)
+  - UI: NoteEditor/ArticleEditor 기존 내용 주입, 형식 변경 경고 문구 노출
+
+- 수정: app/routes/_public.logs.$recordSlug.tsx
+  - 작성자 본인에게만 `수정` 링크 노출
+  - 링크 경로: `/logs/${record.slug}/edit`
+
+- 수정: app/routes.ts
+  - public 라우트에 아래 항목 등록
+    route("logs/:recordSlug/edit", "routes/_public.logs.$recordSlug.edit.tsx")
+
+- 수정: .sisyphus/notepads/editor-and-enrichment/learnings.md
+  - T16 구현/학습 내용 추가
+
+2) 검증 결과
+- LSP diagnostics
+  - app/routes/_public.logs.$recordSlug.edit.tsx: No diagnostics found
+  - app/routes/_public.logs.$recordSlug.tsx: No diagnostics found
+  - app/routes.ts: No diagnostics found
+
+- Build
+  - 명령: `pnpm build`
+  - 결과: 성공 (client/server build 완료, worker bundle 완료)
+
+- Type check
+  - 명령: `pnpm exec tsc --noEmit`
+  - 결과: 성공
+
+3) 범위 확인
+- 미구현(의도): 버전 히스토리, 동시 편집 충돌 감지, 삭제 기능, 자동 저장
+- 준수: `as any`, `@ts-ignore` 미사용

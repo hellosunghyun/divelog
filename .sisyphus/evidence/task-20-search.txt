@@ -1,0 +1,51 @@
+T20: 검색 쿼리를 content_text 컬럼 기반으로 전환
+======================================================
+
+TASK COMPLETED: ✓
+
+CHANGES MADE:
+=============
+
+1. app/routes/_public.search.tsx (line 47)
+   - BEFORE: like(records.content, pattern)
+   - AFTER:  like(records.contentText, pattern)
+   - Impact: Records search now uses content_text column instead of content
+
+2. app/db/queries/search.server.ts (lines 17, 22)
+   - Line 17: snippet field changed from records.content to records.contentText
+   - Line 22: Search condition changed from like(records.content, pattern) to like(records.contentText, pattern)
+   - Impact: searchAll() function now searches and returns snippets from content_text
+
+3. app/db/queries/records.server.ts (line 151)
+   - BEFORE: like(records.content, pattern)
+   - AFTER:  like(records.contentText, pattern)
+   - Impact: searchRecordsByKeyword() function now uses content_text column
+
+VERIFICATION:
+==============
+
+✓ pnpm build: SUCCESS
+  - Client build: 213 modules transformed
+  - Server build: 363 modules transformed
+  - No build errors
+  - Worker bundle: 2.1mb
+
+✓ Type checking: No TypeScript errors detected
+
+✓ All search functions updated:
+  - _public.search.tsx loader: Uses contentText for records search
+  - search.server.ts searchAll(): Uses contentText for snippet and search
+  - records.server.ts searchRecordsByKeyword(): Uses contentText for search
+
+SCHEMA CONFIRMATION:
+====================
+- records table has contentText: text("content_text").default("") (line 109 of schema.server.ts)
+- createRecord() already handles contentText parameter (line 107 of records.server.ts)
+- updateRecord() supports contentText via Partial<CreateRecordInput>
+
+NOTES:
+======
+- No FTS5 implementation (LIKE queries maintained as per requirements)
+- No ranking/scoring system added
+- No type assertions or @ts-ignore used
+- All changes are type-safe and compile without errors

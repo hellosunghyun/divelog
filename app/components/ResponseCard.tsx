@@ -5,7 +5,7 @@ type ResponseType = "resonance" | "question" | "connection" | "suggestion" | "se
 interface ResponseCardProps {
   response: {
     id: string;
-    type: ResponseType;
+    type: string;
     content: string;
     createdAt: number;
   };
@@ -24,12 +24,18 @@ const TYPE_LABELS: Record<ResponseType, { label: string; color: string; bgClass:
   self_answer: { label: "자기답변", color: "text-epilogue", bgClass: "bg-epilogue-bg" },
 };
 
+function isResponseType(type: string): type is ResponseType {
+  return type in TYPE_LABELS;
+}
+
 export default function ResponseCard({ response, author, isSelfAnswer }: ResponseCardProps) {
-  const typeInfo = TYPE_LABELS[response.type] ?? {
-    label: response.type,
-    color: "text-text-secondary",
-    bgClass: "bg-border",
-  };
+  const typeInfo = isResponseType(response.type)
+    ? TYPE_LABELS[response.type]
+    : {
+        label: response.type,
+        color: "text-text-secondary",
+        bgClass: "bg-border",
+      };
 
   return (
     <article

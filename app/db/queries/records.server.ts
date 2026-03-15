@@ -104,6 +104,7 @@ export async function createRecord(d1: D1Database, authorId: string, data: Creat
     authorId,
     title: data.title,
     content: data.content,
+    contentText: data.contentText ?? "",
     format: data.format ?? "note",
     type: data.type ?? "personal",
     rhythm: data.rhythm ?? "free",
@@ -147,7 +148,7 @@ export async function searchRecordsByKeyword(d1: D1Database, keyword: string, co
   const database = db(d1);
   const pattern = `%${keyword}%`;
   const conditions = [
-    or(like(records.title, pattern), like(records.content, pattern)),
+    or(like(records.title, pattern), like(records.contentText, pattern)),
     sql`${records.visibility} != 'draft'`,
   ];
 
@@ -161,4 +162,113 @@ export async function searchRecordsByKeyword(d1: D1Database, keyword: string, co
     .where(and(...conditions))
     .orderBy(desc(records.createdAt))
     .limit(20);
+}
+
+export type LinkedRecordDirection = "outgoing" | "incoming";
+
+export interface LinkedRecord {
+  record: {
+    id: string;
+    slug: string;
+    title: string;
+    content: string;
+    format: "note" | "article";
+    type: "personal" | "challenge" | "collaboration";
+    createdAt: number;
+  };
+  author: {
+    displayName: string | null;
+    slug: string | null;
+  } | null;
+  direction: LinkedRecordDirection;
+}
+
+export async function getLinkedRecords(
+  d1: D1Database,
+  recordId: string,
+  linkedRecordId: string | null,
+): Promise<LinkedRecord[]> {
+  const database = db(d1);
+  const results: LinkedRecord[] = [];
+
+  if (linkedRecordId) {
+    const outgoing = await database
+      .select({
+        record: {
+          id: records.id,
+          slug: records.slug,
+          title: records.title,
+          content: records.content,
+          format: records.format,
+          type: records.type,
+          createdAt: records.createdAt,
+        },
+        author: {
+          displayName: learnerProfiles.displayName,
+          slug: learnerProfiles.slug,
+        },
+      })
+      .from(records)
+      .leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
+      .where(
+        and(
+          eq(records.id, linkedRecordId),
+          sql`${records.visibility} != 'draft'`,
+        ),
+      )
+      .limit(1);
+
+    for (const row of outgoing) {
+      results.push({
+        record: {
+          ...row.record,
+          format: row.record.format as "note" | "article",
+          type: row.record.type as "personal" | "challenge" | "collaboration",
+        },
+        author: row.author,
+        direction: "outgoing",
+      });
+    }
+  }
+
+  const incoming = await database
+    .select({
+      record: {
+        id: records.id,
+        slug: records.slug,
+        title: records.title,
+        content: records.content,
+        format: records.format,
+        type: records.type,
+        createdAt: records.createdAt,
+      },
+      author: {
+        displayName: learnerProfiles.displayName,
+        slug: learnerProfiles.slug,
+      },
+    })
+    .from(records)
+    .leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
+    .where(
+      and(
+        eq(records.linkedRecordId, recordId),
+        sql`${records.visibility} != 'draft'`,
+      ),
+    )
+    .orderBy(desc(records.createdAt))
+    .limit(5);
+
+  for (const row of incoming) {
+    results.push({
+      record: {
+        ...row.record,
+        format: row.record.format as "note" | "article",
+        type: row.record.type as "personal" | "challenge" | "collaboration",
+      },
+      author: row.author,
+      direction: "incoming",
+    });
+  }
+
+  return results;
 }

@@ -1,0 +1,48 @@
+VITEST SETUP - TASK 1 EVIDENCE
+==============================
+
+TASK: Vitest 테스트 인프라 세팅 (editor-and-enrichment 플랜, T1)
+
+COMPLETION STATUS: ✅ PASSED
+
+FILES CREATED:
+1. vitest.config.ts - Vitest configuration with node environment
+2. app/lib/__tests__/example.test.ts - Smoke test with 3 passing tests
+3. Updated package.json - Added "test" and "test:watch" scripts
+
+PACKAGE.JSON SCRIPTS ADDED:
+- "test": "vitest run"
+- "test:watch": "vitest"
+
+DEPENDENCIES INSTALLED:
+- vitest@^4.1.0
+- @cloudflare/vitest-pool-workers@^0.13.0
+
+TEST RUN OUTPUT:
+===============
+ RUN  v4.1.0 /Users/hellosunghyun/Documents/Github/divelog
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  18:29:46
+   Duration  142ms (transform 13ms, setup 0ms, import 18ms, tests 1ms, environment 0ms)
+
+EXIT CODE: 0 (SUCCESS)
+
+TESTS PASSING:
+✓ example smoke test > should pass basic arithmetic
+✓ example smoke test > should handle string concatenation
+✓ example smoke test > should work with arrays
+
+VERIFICATION:
+- pnpm vitest run executed successfully
+- Exit code 0 (success)
+- 1 test file found and executed
+- 3 tests passed
+- No failures or errors
+
+CONFIGURATION DETAILS:
+- Test glob pattern: app/**/*.test.ts, app/**/*.test.tsx
+- Environment: node
+- Globals enabled: true
+- tsconfig paths plugin enabled for path resolution

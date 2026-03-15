@@ -1,0 +1,40 @@
+Task: T8 (T9 + T11 + T17 통합) — ArticleEditor 확장
+Date: 2026-03-15
+
+Changed files
+- app/components/editor/SlashCommandMenu.tsx (new)
+- app/components/editor/ArticleEditor.tsx (updated)
+- .sisyphus/notepads/editor-and-enrichment/learnings.md (updated)
+- package.json / pnpm-lock.yaml (dependency update: @tiptap/core, @tiptap/suggestion)
+
+Implemented
+- Slash command menu extension (Tiptap suggestion)
+  - 명령: 제목 1/2/3, 글머리 기호, 번호 매기기, 인용구, 구분선, 코드 블록, 이미지
+  - 필터링: 입력 쿼리 기반 (`/제` 등)
+  - 키보드: ArrowUp, ArrowDown, Enter, Escape
+  - 스타일: #FFFFFF surface, #E3E8EF border, 4px radius, 0 2px 8px shadow
+- ArticleEditor extensions
+  - CodeBlockLowlight + lowlight(common)
+  - Image extension (`allowBase64: false`)
+  - Slash command extension 연결
+- 이미지 처리
+  - `/api/upload` POST 핸들러 연동
+  - Drop/Paste 이미지 파일 업로드 후 `setImage({ src })` 삽입
+  - 업로드 실패 시 사용자 에러 메시지 표시
+- 붙여넣기 정화
+  - `handlePaste`에서 HTML `style` 속성 제거 후 삽입
+- 크기 제한
+  - `onUpdate`에서 JSON 직렬화 바이트 크기 검사
+  - 100KB 초과 시 경고 메시지 표시 및 onChange 전파 차단
+- BubbleMenu 확장
+  - 코드 블록 토글 버튼 추가
+
+Verification
+- LSP diagnostics (changed files): clean
+  - app/components/editor/ArticleEditor.tsx
+  - app/components/editor/SlashCommandMenu.tsx
+- Type check: `pnpm exec tsc --noEmit` passed
+- Build: `pnpm build` passed
+
+Build note
+- Output includes existing warning: `build/worker.js 2.1mb ⚠️` (known bundle size warning, build success)

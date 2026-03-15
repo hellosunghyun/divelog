@@ -1,0 +1,61 @@
+# T28: Activity Feed Component — Evidence
+
+## Task Summary
+Created journey-level activity feed component and integrated into homepage.
+
+## Files Created/Modified
+
+### 1. app/db/queries/activity.server.ts (NEW)
+- `getRecentActivity(d1, options)` function
+- Queries records, questions, responses, collaboration_units tables
+- Groups by time period: today (24h), this_week (7d), last_week (14d)
+- Returns ActivityItem[] with type, summary, count, timestamp, period
+- IMPORTANT: Never exposes individual user names — only aggregated counts
+
+### 2. app/components/ActivityFeed.tsx (NEW)
+- React component displaying activity items grouped by period
+- Period labels: "오늘", "이번 주", "지난 주"
+- Type icons: 📝 (record), ❓ (question), 💬 (response), 🤝 (collaboration)
+- Empty state: "여정이 조용합니다"
+- data-testid="activity-feed"
+- Quiet Depth styling: rounded-xl cards, subtle borders, text-secondary
+
+### 3. app/routes/_public._index.tsx (MODIFIED)
+- Added imports: ActivityFeed, getRecentActivity
+- Loader calls getRecentActivity(context.cloudflare.env.DB, { limit: 8 })
+- Returns recentActivity in loader data
+- Added "여정에서 일어나는 일" section with ActivityFeed component
+- Section placed between journey timeline and questions section
+
+## Design Decisions
+
+1. **Journey-level aggregation**: No individual user names exposed
+   - "N개의 새 기록이 남겨졌습니다" format
+   - Complies with FRD: no "likes", no "popular", no comparison
+
+2. **Time grouping**: Three periods for clarity
+   - today: last 24 hours
+   - this_week: 7 days (excluding today)
+   - last_week: 14 days (previous week only)
+
+3. **Quiet Depth styling**: 
+   - bg-surface with border-border-subtle
+   - text-text-secondary for summaries
+   - Small emoji icons (no complex icon library needed)
+
+4. **Korean text**: All UI text in Korean per AGENTS.md requirement
+
+## Verification
+
+- [x] `pnpm exec tsc --noEmit` — No errors
+- [x] `pnpm build` — Success
+- [x] No `as any`, `@ts-ignore`, `@ts-expect-error`
+- [x] data-testid="activity-feed" present
+- [x] data-testid="activity-section" present on section
+
+## Key Learnings
+
+1. Activity feed uses aggregated counts, never individual user attribution
+2. Time boundaries use Unix epoch seconds (consistent with DB schema)
+3. Component uses simple emoji icons instead of complex icon library
+4. Loader query runs after batch query to avoid blocking

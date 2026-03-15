@@ -1,0 +1,23 @@
+T12 콘텐츠 소비 지점 plaintext/render 업데이트 증거
+
+- 수정 파일
+  - app/components/SceneCard.tsx
+  - app/components/ResponseCard.tsx
+  - app/lib/editor-extensions.ts
+  - app/routes/_public.logs.$recordSlug.tsx
+  - app/routes/_public.logs._index.tsx
+  - app/routes/_admin.admin.records.$recordId.tsx
+  - app/routes/_public.search.tsx
+  - .sisyphus/notepads/editor-and-enrichment/learnings.md
+
+구현 메모
+- `SceneCard`는 optional `contentSnippet`을 받아 서버에서 계산한 plain text snippet을 우선 사용하고, 기존 `record.content.substring(...)` fallback은 유지함
+- `app/routes/_public.logs.$recordSlug.tsx`는 loader에서 `renderContentToHtml()`/`getPlainText()`를 미리 계산하고, 본문 렌더링은 `ContentRenderer`로 전환함
+- `app/routes/_public.logs.$recordSlug.tsx`와 `app/routes/_public.logs._index.tsx` meta description은 raw content 대신 `getPlainText()` 기반 텍스트를 사용함
+- `app/routes/_admin.admin.records.$recordId.tsx` admin preview와 `app/routes/_public.search.tsx` 검색 결과 snippet도 `getPlainText()` 기반으로 변경함
+- `app/lib/editor-extensions.ts`에 `normalizeContentFormat()`을 추가해 DB string 값을 content helper가 기대하는 `note | article`로 안전하게 정규화함
+
+검증 결과
+- changed files LSP diagnostics: clean
+- `pnpm exec tsc --noEmit` 성공 (출력 없음)
+- `pnpm build` 성공

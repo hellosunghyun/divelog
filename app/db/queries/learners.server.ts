@@ -1,8 +1,8 @@
-import { asc, eq } from "drizzle-orm";
+import { asc, desc, eq, isNotNull, sql } from "drizzle-orm";
 
 import { nanoid } from "../../lib/utils.server";
 import { db } from "../client.server";
-import { learnerProfiles } from "../schema.server";
+import { learnerProfiles, records, stages } from "../schema.server";
 
 interface AdakrposUser {
   id: string;
@@ -130,4 +130,123 @@ export async function getOrCreateLearnerProfile(d1: D1Database, user: AdakrposUs
     .limit(1);
 
   return created[0] ?? newProfile;
+}
+
+export interface LearnerWithActivity {
+  userId: string;
+  slug: string;
+  displayName: string;
+  profilePhotoUrl: string | null;
+  cohort: string | null;
+  bio: string | null;
+  currentQuestion: string | null;
+  currentStageId: string | null;
+  recentRecord: { slug: string; title: string; createdAt: number } | null;
+  stage: { name: string } | null;
+  lastActivityAt: number | null;
+}
+
+export async function getLearnersWithActivity(
+  d1: D1Database,
+  cohort?: string,
+): Promise<LearnerWithActivity[]> {
+  const database = db(d1);
+
+  const learnersQuery = cohort
+    ? database
+        .select()
+        .from(learnerProfiles)
+        .where(eq(learnerProfiles.cohort, cohort))
+    : database.select().from(learnerProfiles);
+
+  const learners = await learnersQuery;
+
+  if (learners.length === 0) {
+    return [];
+  }
+
+  const userIds = learners.map((l) => l.userId);
+
+  const allRecords = await database
+    .select({
+      authorId: records.authorId,
+      slug: records.slug,
+      title: records.title,
+      createdAt: records.createdAt,
+    })
+    .from(records)
+    .where(sql`${records.authorId} IN ${userIds}`)
+    .orderBy(desc(records.createdAt));
+
+  const mostRecentRecordByAuthor = new Map<
+    string,
+    { slug: string; title: string; createdAt: number }
+  >();
+  for (const record of allRecords) {
+    if (!mostRecentRecordByAuthor.has(record.authorId)) {
+      mostRecentRecordByAuthor.set(record.authorId, {
+        slug: record.slug,
+        title: record.title,
+        createdAt: record.createdAt,
+      });
+    }
+  }
+
+  const stageIds = [
+    ...new Set(
+      learners
+        .filter((l) => l.currentStageId !== null)
+        .map((l) => l.currentStageId),
+    ),
+  ];
+
+  const stageMap = new Map<string, { name: string }>();
+  if (stageIds.length > 0) {
+    const stagesData = await database
+      .select({ id: stages.id, name: stages.name })
+      .from(stages)
+      .where(sql`${stages.id} IN ${stageIds}`);
+
+    for (const stage of stagesData) {
+      stageMap.set(stage.id, { name: stage.name });
+    }
+  }
+
+  const learnersWithActivity: LearnerWithActivity[] = learners.map((learner) => {
+    const recentRecord = mostRecentRecordByAuthor.get(learner.userId) ?? null;
+
+    return {
+      userId: learner.userId,
+      slug: learner.slug,
+      displayName: learner.displayName,
+      profilePhotoUrl: learner.profilePhotoUrl,
+      cohort: learner.cohort,
+      bio: learner.bio,
+      currentQuestion: learner.currentQuestion,
+      currentStageId: learner.currentStageId,
+      recentRecord,
+      stage: learner.currentStageId ? (stageMap.get(learner.currentStageId) ?? null) : null,
+      lastActivityAt: recentRecord?.createdAt ?? null,
+    };
+  });
+
+  learnersWithActivity.sort((a, b) => {
+    if (a.lastActivityAt === null && b.lastActivityAt === null) return 0;
+    if (a.lastActivityAt === null) return 1;
+    if (b.lastActivityAt === null) return -1;
+    return b.lastActivityAt - a.lastActivityAt;
+  });
+
+  return learnersWithActivity;
+}
+
+export async function getDistinctCohorts(d1: D1Database): Promise<string[]> {
+  const database = db(d1);
+
+  const result = await database
+    .selectDistinct({ cohort: learnerProfiles.cohort })
+    .from(learnerProfiles)
+    .where(isNotNull(learnerProfiles.cohort));
+
+  return result.map((r) => r.cohort as string).sort();
 }

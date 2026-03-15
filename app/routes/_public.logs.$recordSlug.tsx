@@ -1,21 +1,33 @@
-import { and, desc, eq, ne, or, sql } from "drizzle-orm";
-import { data, Link, redirect, useActionData, useNavigation } from "react-router";
+import { and, desc, eq } from "drizzle-orm";
+import { data, Link, redirect, useActionData, useNavigation, useSubmit } from "react-router";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import EmptyState from "../components/EmptyState";
 import HighlightedSentenceCard from "../components/HighlightedSentenceCard";
 import QuestionCard from "../components/QuestionCard";
 import ResponseCard from "../components/ResponseCard";
+import SelfAnswerCard from "../components/SelfAnswerCard";
+import SceneCard from "../components/SceneCard";
+import { ContentRenderer } from "../components/ContentRenderer";
 import { db } from "../db/client.server";
+import { saveSentence } from "../db/queries/sentences.server";
 import { learnerProfiles, questions, records, responses, sentences } from "../db/schema.server";
+import { createSelfAnswer, getSelfAnswersByRecord } from "../db/queries/selfAnswers.server";
+import { getLinkedRecords } from "../db/queries/records.server";
+import { getTagsByRecord } from "../db/queries/tags.server";
 import { requireVerified } from "../lib/auth.middleware";
+import { getPlainText, renderContentToHtml } from "../lib/content.server";
+import { normalizeContentFormat } from "../lib/editor-extensions";
 import { nanoid } from "../lib/utils.server";
 import { createResponseSchema, saveSentenceSchema } from "../lib/validation";
+import { getOptionalUser } from "../lib/auth.middleware";
 
 import type { Route } from "./+types/_public.logs.$recordSlug";
 
-export async function loader({ params, context }: Route.LoaderArgs) {
+export async function loader({ params, context, request }: Route.LoaderArgs) {
   const { recordSlug } = params;
   const database = db(context.cloudflare.env.DB);
+  const optionalAuth = await getOptionalUser(request, context);
 
   const recordResult = await database
     .select({
@@ -38,12 +50,7 @@ export async function loader({ params, context }: Route.LoaderArgs) {
     throw data("기록을 찾을 수 없습니다.", { status: 404 });
   }
 
-  const linkedToCurrent = eq(records.linkedRecordId, recordData.record.id);
-  const currentLinkedToOther = recordData.record.linkedRecordId
-    ? eq(records.id, recordData.record.linkedRecordId)
-    : sql`0 = 1`;
-
-  const [recordQuestions, recordResponses, recordSentences, linkedRecords] = await database.batch([
+  const [recordQuestions, recordResponses, recordSentences] = await database.batch([
     database.select().from(questions).where(eq(questions.recordId, recordData.record.id)).orderBy(desc(questions.createdAt)),
     database
       .select({
@@ -70,34 +77,19 @@ export async function loader({ params, context }: Route.LoaderArgs) {
       .leftJoin(learnerProfiles, eq(sentences.savedById, learnerProfiles.userId))
       .where(eq(sentences.recordId, recordData.record.id))
       .orderBy(desc(sentences.createdAt)),
-    database
-      .select({
-        record: {
-          id: records.id,
-          slug: records.slug,
-          title: records.title,
-          content: records.content,
-          format: records.format,
-          type: records.type,
-          createdAt: records.createdAt,
-        },
-        author: {
-          displayName: learnerProfiles.displayName,
-          slug: learnerProfiles.slug,
-        },
-      })
-      .from(records)
-      .leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
-      .where(
-        and(
-          ne(records.id, recordData.record.id),
-          sql`${records.visibility} != 'draft'`,
-          or(linkedToCurrent, currentLinkedToOther),
-        ),
-      )
-      .orderBy(desc(records.createdAt))
-      .limit(6),
   ]);
+
+  const linkedRecords = await getLinkedRecords(
+    context.cloudflare.env.DB,
+    recordData.record.id,
+    recordData.record.linkedRecordId,
+  );
+
+  const selfAnswersData = await getSelfAnswersByRecord(context.cloudflare.env.DB, recordData.record.id);
+  const recordTags = await getTagsByRecord(context.cloudflare.env.DB, recordData.record.id);
+  const recordFormat = normalizeContentFormat(recordData.record.format);
+  const contentHtml = renderContentToHtml(recordData.record.content, recordFormat);
+  const plainTextContent = getPlainText(recordData.record.content, recordFormat);
 
   return {
     record: recordData.record,
@@ -106,6 +98,11 @@ export async function loader({ params, context }: Route.LoaderArgs) {
     responses: recordResponses,
     sentences: recordSentences,
     linkedRecords,
+    selfAnswers: selfAnswersData,
+    tags: recordTags,
+    currentUserId: optionalAuth?.isAuthenticated ? optionalAuth.user.id : null,
+    contentHtml,
+    plainTextContent,
   };
 }
 
@@ -158,18 +155,44 @@ export async function action({ request, context }: Route.ActionArgs) {
       return { error: parsed.error.issues[0]?.message ?? "문장을 확인해주세요." };
     }
 
-    const id = nanoid();
-
-    await database.insert(sentences).values({
-      id,
-      recordId: parsed.data.recordId,
-      savedById: auth.user.id,
-      content: parsed.data.content,
-      reason: parsed.data.reason ?? null,
-      createdAt: Math.floor(Date.now() / 1000),
-    });
+    await saveSentence(context.cloudflare.env.DB, auth.user.id, parsed.data);
 
     return { success: "문장이 저장되었습니다." };
+  }
+
+  if (intent === "create_self_answer") {
+    const questionId = formData.get("questionId");
+    const content = formData.get("content");
+    const recordId = formData.get("recordId");
+
+    if (typeof questionId !== "string" || !questionId) {
+      return { error: "질문을 선택해주세요." };
+    }
+
+    if (typeof content !== "string" || content.trim().length === 0) {
+      return { error: "답변 내용을 입력해주세요." };
+    }
+
+    if (typeof recordId !== "string" || !recordId) {
+      return { error: "기록 정보가 없습니다." };
+    }
+
+    const recordData = await database
+      .select({ authorId: records.authorId })
+      .from(records)
+      .where(eq(records.id, recordId))
+      .limit(1);
+
+    if (recordData.length === 0 || recordData[0].authorId !== auth.user.id) {
+      return { error: "자신의 기록에만 답변할 수 있습니다." };
+    }
+
+    await createSelfAnswer(context.cloudflare.env.DB, auth.user.id, {
+      questionId,
+      content: content.trim(),
+    });
+
+    return { success: "자기 답변이 등록되었습니다." };
   }
 
   return { error: "알 수 없는 요청입니다." };
@@ -184,7 +207,7 @@ export function meta({ data: loaderData }: Route.MetaArgs) {
     { title: `${loaderData.record.title} — divelog` },
     {
       name: "description",
-      content: loaderData.record.content.slice(0, 150),
+      content: loaderData.plainTextContent.slice(0, 150),
     },
   ];
 }
@@ -196,13 +219,178 @@ const RESPONSE_TYPE_OPTIONS = [
   { value: "suggestion", label: "제안 - 한 가지 제안합니다" },
 ];
 
+const MIN_SELECTED_SENTENCE_LENGTH = 10;
+const MAX_SELECTED_SENTENCE_LENGTH = 500;
+const FLOATING_BUTTON_OFFSET = 48;
+const FLOATING_BUTTON_EDGE_PADDING = 96;
+const FLOATING_BUTTON_TOP_PADDING = 16;
+
+function normalizeSelectedSentence(value: string) {
+  return value.replace(/\s+/g, " ").trim();
+}
+
+function isSelectionInsideElement(selection: Selection, element: HTMLElement | null) {
+  if (!element || selection.rangeCount === 0) {
+    return false;
+  }
+
+  const range = selection.getRangeAt(0);
+  const anchorNode = range.commonAncestorContainer.nodeType === Node.TEXT_NODE
+    ? range.commonAncestorContainer.parentNode
+    : range.commonAncestorContainer;
+
+  return anchorNode instanceof Node && element.contains(anchorNode);
+}
+
 export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
-  const { record, author, questions: recordQuestions, responses: recordResponses, sentences: recordSentences, linkedRecords } = loaderData;
+  const { record, author, questions: recordQuestions, responses: recordResponses, sentences: recordSentences, linkedRecords, selfAnswers, tags: recordTags, currentUserId, contentHtml } = loaderData;
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
+  const submit = useSubmit();
   const submittingIntent = navigation.formData?.get("intent");
   const isSubmittingResponse = navigation.state === "submitting" && submittingIntent === "create_response";
   const isSubmittingSentence = navigation.state === "submitting" && submittingIntent === "save_sentence";
+  const isSubmittingSelfAnswer = navigation.state === "submitting" && submittingIntent === "create_self_answer";
+
+  const [expandedQuestionId, setExpandedQuestionId] = useState<string | null>(null);
+  const [selectedText, setSelectedText] = useState("");
+  const [showSentenceButton, setShowSentenceButton] = useState(false);
+  const [buttonPosition, setButtonPosition] = useState({ x: 0, y: 0 });
+  const articleContentRef = useRef<HTMLDivElement | null>(null);
+
+  const isRecordAuthor = currentUserId === record.authorId;
+  const recordFormat = normalizeContentFormat(record.format);
+  const isArticleRecord = recordFormat === "article";
+
+  const selfAnswersByQuestion = new Map<string, typeof selfAnswers>();
+  for (const sa of selfAnswers) {
+    const qid = sa.questionId;
+    if (!selfAnswersByQuestion.has(qid)) {
+      selfAnswersByQuestion.set(qid, []);
+    }
+    selfAnswersByQuestion.get(qid)!.push(sa);
+  }
+
+  const hideSentenceButton = useCallback(() => {
+    setSelectedText("");
+    setShowSentenceButton(false);
+    setButtonPosition({ x: 0, y: 0 });
+  }, []);
+
+  const dismissSentenceSelection = useCallback(() => {
+    hideSentenceButton();
+    if (typeof window !== "undefined") {
+      window.getSelection()?.removeAllRanges();
+    }
+  }, [hideSentenceButton]);
+
+  const handleArticleMouseUp = useCallback(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const selection = window.getSelection();
+
+    if (!selection || selection.rangeCount === 0 || selection.isCollapsed) {
+      hideSentenceButton();
+      return;
+    }
+
+    if (!isSelectionInsideElement(selection, articleContentRef.current)) {
+      hideSentenceButton();
+      return;
+    }
+
+    const normalizedText = normalizeSelectedSentence(selection.toString());
+
+    if (
+      normalizedText.length < MIN_SELECTED_SENTENCE_LENGTH
+      || normalizedText.length > MAX_SELECTED_SENTENCE_LENGTH
+    ) {
+      hideSentenceButton();
+      return;
+    }
+
+    const rect = selection.getRangeAt(0).getBoundingClientRect();
+
+    if (rect.width === 0 && rect.height === 0) {
+      hideSentenceButton();
+      return;
+    }
+
+    setSelectedText(normalizedText);
+    setButtonPosition({
+      x: Math.min(
+        Math.max(rect.left + rect.width / 2, FLOATING_BUTTON_EDGE_PADDING),
+        window.innerWidth - FLOATING_BUTTON_EDGE_PADDING,
+      ),
+      y: Math.max(rect.top - FLOATING_BUTTON_OFFSET, FLOATING_BUTTON_TOP_PADDING),
+    });
+    setShowSentenceButton(true);
+  }, [hideSentenceButton]);
+
+  const handleFloatingSentenceSave = useCallback(() => {
+    if (!selectedText) {
+      return;
+    }
+
+    submit(
+      {
+        intent: "save_sentence",
+        recordId: record.id,
+        content: selectedText,
+      },
+      { method: "post" },
+    );
+
+    dismissSentenceSelection();
+  }, [dismissSentenceSelection, record.id, selectedText, submit]);
+
+  useEffect(() => {
+    if (!isArticleRecord) {
+      return;
+    }
+
+    const articleContentElement = articleContentRef.current;
+
+    if (!articleContentElement) {
+      return;
+    }
+
+    articleContentElement.addEventListener("mouseup", handleArticleMouseUp);
+
+    return () => {
+      articleContentElement.removeEventListener("mouseup", handleArticleMouseUp);
+    };
+  }, [handleArticleMouseUp, isArticleRecord]);
+
+  useEffect(() => {
+    if (!showSentenceButton || typeof document === "undefined") {
+      return;
+    }
+
+    const handleSelectionChange = () => {
+      const selection = window.getSelection();
+
+      if (!selection || selection.rangeCount === 0 || selection.isCollapsed) {
+        hideSentenceButton();
+      }
+    };
+
+    const handleViewportChange = () => {
+      hideSentenceButton();
+    };
+
+    document.addEventListener("selectionchange", handleSelectionChange);
+    window.addEventListener("scroll", handleViewportChange, true);
+    window.addEventListener("resize", handleViewportChange);
+
+    return () => {
+      document.removeEventListener("selectionchange", handleSelectionChange);
+      window.removeEventListener("scroll", handleViewportChange, true);
+      window.removeEventListener("resize", handleViewportChange);
+    };
+  }, [hideSentenceButton, showSentenceButton]);
 
   return (
     <div className="max-w-reading mx-auto py-16 px-6 md:py-24">
@@ -220,17 +408,69 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
           {record.title}
         </h1>
 
-        {author?.slug ? (
-          <Link to={`/learners/${author.slug}`} className="text-sm text-text-secondary no-underline hover:text-ocean-blue transition-colors">
-            {author.displayName ?? "작성자"}
-          </Link>
-        ) : (
-          <p className="text-sm text-text-secondary">{author?.displayName ?? "작성자"}</p>
-        )}
+        <div className="flex items-center gap-4 flex-wrap">
+          {author?.slug ? (
+            <Link to={`/learners/${author.slug}`} className="text-sm text-text-secondary no-underline hover:text-ocean-blue transition-colors">
+              {author.displayName ?? "작성자"}
+            </Link>
+          ) : (
+            <p className="text-sm text-text-secondary">{author?.displayName ?? "작성자"}</p>
+          )}
+
+          {recordTags.length > 0 && (
+            <div className="flex gap-2 flex-wrap">
+              {recordTags.map((tag) => (
+                <Link
+                  key={tag.id}
+                  to={`/tags/${tag.slug}`}
+                  className="text-caption px-2 py-0.5 rounded-full border border-border bg-surface text-text-secondary no-underline transition-all duration-normal hover:border-reef-cyan/40 hover:bg-mist-blue/20 hover:text-ocean-blue"
+                >
+                  {tag.name}
+                </Link>
+              ))}
+            </div>
+          )}
+
+          {isRecordAuthor && (
+            <Link
+              to={`/logs/${record.slug}/edit`}
+              className="inline-flex items-center rounded-full border border-border px-3 py-1.5 text-caption font-medium text-text-secondary no-underline transition-colors hover:bg-surface-secondary hover:text-text-primary"
+            >
+              수정
+            </Link>
+          )}
+        </div>
       </header>
 
-      <section className="mb-12 text-base leading-relaxed text-text-primary whitespace-pre-wrap">
-        {record.content}
+      <section className="mb-12 relative">
+        {isArticleRecord ? (
+          <div ref={articleContentRef}>
+            <ContentRenderer contentHtml={contentHtml} format={recordFormat} />
+          </div>
+        ) : (
+          <ContentRenderer contentHtml={contentHtml} format={recordFormat} />
+        )}
+
+        {showSentenceButton && selectedText ? (
+          <div
+            className="fixed z-50"
+            style={{
+              left: buttonPosition.x,
+              top: buttonPosition.y,
+              transform: "translateX(-50%)",
+            }}
+          >
+            <button
+              type="button"
+              disabled={isSubmittingSentence}
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={handleFloatingSentenceSave}
+              className="rounded-full border border-border bg-surface px-4 py-2 text-sm font-medium text-text-primary shadow-[0_10px_24px_rgba(11,36,71,0.12)] transition-all duration-normal hover:-translate-y-0.5 hover:border-reef-cyan/40 hover:text-ocean-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2 disabled:opacity-60"
+            >
+              {isSubmittingSentence ? "저장 중..." : "문장 저장"}
+            </button>
+          </div>
+        ) : null}
       </section>
 
       <section className="mb-12">
@@ -238,10 +478,79 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
           남겨진 질문
         </h2>
         {recordQuestions.length > 0 ? (
-          <div className="flex flex-col gap-5">
-            {recordQuestions.map((question) => (
-              <QuestionCard key={question.id} question={question} />
-            ))}
+          <div className="flex flex-col gap-8">
+            {recordQuestions.map((question) => {
+              const questionSelfAnswers = selfAnswersByQuestion.get(question.id) ?? [];
+              const isExpanded = expandedQuestionId === question.id;
+
+              return (
+                <div key={question.id} className="flex flex-col gap-4">
+                  <QuestionCard question={question} />
+                  
+                  {questionSelfAnswers.length > 0 && (
+                    <div className="ml-4 flex flex-col gap-3">
+                      {questionSelfAnswers.map(({ selfAnswer, author: selfAnswerAuthor }) => (
+                        <SelfAnswerCard
+                          key={selfAnswer.id}
+                          selfAnswer={selfAnswer}
+                        />
+                      ))}
+                    </div>
+                  )}
+
+                  {isRecordAuthor && (
+                    <div className="ml-4">
+                      {isExpanded ? (
+                        <form method="post" className="flex flex-col gap-4 bg-mist-blue/30 rounded-xl border border-reef-cyan/30 p-5">
+                          <input type="hidden" name="intent" value="create_self_answer" />
+                          <input type="hidden" name="questionId" value={question.id} />
+                          <input type="hidden" name="recordId" value={record.id} />
+                          
+                          <div>
+                            <label htmlFor={`self-answer-content-${question.id}`} className="text-sm font-medium text-text-secondary mb-2 block">
+                              나의 답변
+                            </label>
+                            <textarea
+                              id={`self-answer-content-${question.id}`}
+                              name="content"
+                              required
+                              rows={4}
+                              placeholder="스스로에게 답해보세요."
+                              className="w-full rounded-lg border border-border bg-surface px-4 py-3 text-base text-text-primary placeholder:text-text-tertiary min-h-[100px] resize-y focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
+                            />
+                          </div>
+
+                          <div className="flex gap-3">
+                            <button
+                              type="submit"
+                              disabled={isSubmittingSelfAnswer}
+                              className="rounded-full bg-deep-ocean text-white px-5 py-2.5 text-sm font-medium hover:bg-ocean-blue transition-all shadow-sm hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2 disabled:opacity-60"
+                            >
+                              {isSubmittingSelfAnswer ? "등록 중..." : "답변 등록"}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setExpandedQuestionId(null)}
+                              className="rounded-full px-5 py-2.5 text-sm border border-border bg-transparent text-text-secondary cursor-pointer transition-all duration-normal hover:border-text-secondary/30 hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
+                            >
+                              취소
+                            </button>
+                          </div>
+                        </form>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setExpandedQuestionId(question.id)}
+                          className="rounded-full px-4 py-2 text-sm border border-reef-cyan/40 bg-mist-blue/20 text-ocean-blue cursor-pointer transition-all duration-normal hover:bg-mist-blue/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
+                        >
+                          답변하기
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         ) : (
           <EmptyState variant="questions" />
@@ -356,17 +665,21 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
           연결된 기록
         </h2>
         {linkedRecords.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {linkedRecords.map(({ record: linkedRecord, author: linkedAuthor }) => (
-              <Link key={linkedRecord.id} to={`/logs/${linkedRecord.slug}`} className="no-underline bg-surface rounded-lg border border-border p-5 flex flex-col gap-2 transition-all duration-normal hover:shadow-card-hover hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2">
-                <p className="text-sm text-text-secondary">{linkedRecord.format === "note" ? "노트" : "글"}</p>
-                <p className="text-base text-text-primary font-medium leading-normal">
-                  {linkedRecord.title}
-                </p>
-                {linkedAuthor?.displayName ? (
-                  <p className="text-meta text-text-tertiary">{linkedAuthor.displayName}</p>
-                ) : null}
-              </Link>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {linkedRecords.map((linkedRecord) => (
+              <div key={linkedRecord.record.id} className="relative">
+                <SceneCard
+                  record={linkedRecord.record}
+                  contentSnippet={linkedRecord.record.content.substring(0, 100)}
+                  author={linkedRecord.author?.displayName ? {
+                    displayName: linkedRecord.author.displayName,
+                    slug: linkedRecord.author.slug ?? "",
+                  } : undefined}
+                />
+                <span className="absolute top-4 right-4 text-caption px-2 py-0.5 rounded-full bg-mist-blue text-ocean-blue">
+                  {linkedRecord.direction === "outgoing" ? "참조" : "역참조"}
+                </span>
+              </div>
             ))}
           </div>
         ) : (

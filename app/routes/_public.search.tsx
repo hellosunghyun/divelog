@@ -7,6 +7,8 @@ import SceneCard from "../components/SceneCard";
 import LearnerCard from "../components/LearnerCard";
 import HeroSection from "../components/HeroSection";
 import EmptyState from "../components/EmptyState";
+import { getPlainText } from "../lib/content.server";
+import { normalizeContentFormat } from "../lib/editor-extensions";
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "검색 — divelog" }];
@@ -40,12 +42,12 @@ export async function loader({ request, context }: Route.LoaderArgs) {
       })
       .from(records)
       .leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
-      .where(
-        and(
-          or(like(records.title, pattern), like(records.content, pattern)),
-          sql`${records.visibility} != 'draft'`
-        )
-      )
+       .where(
+         and(
+           or(like(records.title, pattern), like(records.contentText, pattern)),
+           sql`${records.visibility} != 'draft'`
+         )
+       )
       .orderBy(desc(records.createdAt))
       .limit(10),
     database.select().from(questions).where(like(questions.content, pattern)).limit(10),
@@ -57,11 +59,22 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     database.select().from(sentences).where(like(sentences.content, pattern)).limit(10),
   ]);
 
+  const recordsWithSnippets = foundRecords.map(({ record, author }) => {
+    const plainTextContent = getPlainText(record.content, normalizeContentFormat(record.format));
+
+    return {
+      record,
+      author,
+      contentSnippet:
+        plainTextContent.substring(0, 120) + (plainTextContent.length > 120 ? "…" : ""),
+    };
+  });
+
   return {
     q,
     tab,
     results: {
-      records: foundRecords,
+      records: recordsWithSnippets,
       questions: foundQuestions,
       learners: foundLearners,
       sentences: foundSentences,
@@ -142,8 +155,22 @@ export default function SearchPage({ loaderData }: Route.ComponentProps) {
                   기록
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                  {results.records.map(({ record, author }) => (
-                    <SceneCard key={record.id} record={record} author={author ?? undefined} />
+                  {results.records.map(({ record, author, contentSnippet }) => (
+                    <SceneCard
+                      key={record.id}
+                      record={{
+                        ...record,
+                        format: normalizeContentFormat(record.format),
+                        type:
+                          record.type === "challenge"
+                            ? "challenge"
+                            : record.type === "collaboration"
+                              ? "collaboration"
+                              : "personal",
+                      }}
+                      author={author ?? undefined}
+                      contentSnippet={contentSnippet}
+                    />
                   ))}
                 </div>
               </section>

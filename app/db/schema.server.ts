@@ -106,6 +106,7 @@ export const records = sqliteTable("records", {
   linkedRecordId: text("linked_record_id"),
   title: text("title").notNull(),
   content: text("content").notNull(),
+  contentText: text("content_text").default(""),
   format: text("format").notNull().default("note"),
   type: text("type").notNull().default("personal"),
   rhythm: text("rhythm").notNull().default("free"),
@@ -294,3 +295,28 @@ export const userRoles = sqliteTable("user_roles", {
   grantedAt: integer("granted_at").notNull().default(now()),
   grantedBy: text("granted_by"),
 });
+
+export const tags = sqliteTable("tags", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  slug: text("slug").notNull().unique(),
+  description: text("description").default(""),
+  color: text("color").default("#6E6E73"),
+  createdBy: text("created_by"),
+  createdAt: integer("created_at").notNull().default(now()),
+  updatedAt: integer("updated_at").notNull().default(now()),
+});
+
+export const recordTags = sqliteTable(
+  "record_tags",
+  {
+    recordId: text("record_id")
+      .notNull()
+      .references(() => records.id, { onDelete: "cascade" }),
+    tagId: text("tag_id")
+      .notNull()
+      .references(() => tags.id, { onDelete: "cascade" }),
+    createdAt: integer("created_at").notNull().default(now()),
+  },
+  (table) => [primaryKey({ columns: [table.recordId, table.tagId] })],
+);

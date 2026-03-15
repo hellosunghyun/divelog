@@ -1,0 +1,19 @@
+T27 - Article 형식 문장 하이라이팅 지원
+
+변경 파일
+- app/routes/_public.logs.$recordSlug.tsx
+- .sisyphus/notepads/editor-and-enrichment/learnings.md
+
+구현 내용
+- Article 본문 wrapper에서 native mouseup selection을 감지한다.
+- 선택 텍스트를 plain text로 정규화하고 10~500자 범위일 때만 고정형 `문장 저장` 버튼을 띄운다.
+- 플로팅 버튼 클릭 시 기존 `save_sentence` intent로 제출하고, insert는 `saveSentence()` query helper를 재사용한다.
+- selectionchange / scroll / resize 시 플로팅 버튼을 정리한다.
+
+검증
+- LSP diagnostics: app/routes/_public.logs.$recordSlug.tsx clean
+- pnpm exec tsc --noEmit: success (no output)
+- pnpm build: success
+
+비고
+- build 중 Vite chunk size / sourcemap 경고는 있었지만 실패 없이 완료되었고, 이번 변경으로 추가된 오류는 없었다.

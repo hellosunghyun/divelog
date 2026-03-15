@@ -13,7 +13,9 @@ export async function loader(_args: Route.LoaderArgs) {
 
 export default function GuidePage() {
   const [searchParams] = useSearchParams();
-  const authError = searchParams.get("auth_error") === "1";
+  const authError = searchParams.get("auth_error");
+  const isSessionError = authError === "1";
+  const isConfigError = authError === "config";
 
   return (
     <div>
@@ -24,19 +26,37 @@ export default function GuidePage() {
       />
 
       <div className="max-w-reading mx-auto py-12 px-6 md:py-20">
-        {authError && (
+        {(isSessionError || isConfigError) && (
           <div className="mb-8 rounded-2xl border border-ocean-blue/20 bg-mist-blue/30 p-6">
-            <h3 className="text-lg font-bold text-deep-ocean mb-2">로그인 인증을 확인할 수 없습니다</h3>
-            <p className="text-sm text-text-secondary leading-relaxed mb-4">
-              ada-kr-pos.com에 로그인되어 있지만 divelog에서 세션을 확인하지 못했습니다.
-              브라우저의 쿠키 설정을 확인하거나, 다시 시도해 주세요.
-            </p>
-            <a
-              href="https://ada-kr-pos.com/login?callbackUrl=https%3A%2F%2Fdivelog.ada-kr-pos.com%2Fwrite"
-              className="inline-block rounded-full bg-ocean-blue text-white px-6 py-2.5 text-sm font-bold hover:bg-ocean-blue/90 transition-all no-underline"
-            >
-              다시 로그인 시도
-            </a>
+            {isConfigError ? (
+              <>
+                <h3 className="text-lg font-bold text-deep-ocean mb-2">로그인 설정 확인이 필요합니다</h3>
+                <p className="text-sm text-text-secondary leading-relaxed mb-4">
+                  현재는 다시 로그인해도 divelog에서 세션을 확인할 수 없는 상태입니다.
+                  잠시 후 다시 시도하거나 운영진에게 알려주세요.
+                </p>
+                <a
+                  href="/"
+                  className="inline-block rounded-full bg-ocean-blue text-white px-6 py-2.5 text-sm font-bold hover:bg-ocean-blue/90 transition-all no-underline"
+                >
+                  홈으로 이동
+                </a>
+              </>
+            ) : (
+              <>
+                <h3 className="text-lg font-bold text-deep-ocean mb-2">로그인 인증을 확인할 수 없습니다</h3>
+                <p className="text-sm text-text-secondary leading-relaxed mb-4">
+                  ada-kr-pos.com에 로그인되어 있지만 divelog에서 세션을 확인하지 못했습니다.
+                  브라우저의 쿠키 설정을 확인하거나, 다시 시도해 주세요.
+                </p>
+                <a
+                  href="https://ada-kr-pos.com/login?callbackUrl=https%3A%2F%2Fdivelog.ada-kr-pos.com%2Fwrite"
+                  className="inline-block rounded-full bg-ocean-blue text-white px-6 py-2.5 text-sm font-bold hover:bg-ocean-blue/90 transition-all no-underline"
+                >
+                  다시 로그인 시도
+                </a>
+              </>
+            )}
           </div>
         )}
         <section className="mb-10">

@@ -1,0 +1,26 @@
+T15 /write 듀얼 모드 에디터 통합 — 검증 Evidence
+
+변경 파일
+- app/routes/_public.write.tsx
+- app/lib/validation.ts
+- .sisyphus/notepads/editor-and-enrichment/learnings.md
+
+구현 요약
+- format 라디오 선택값에 따라 NoteEditor/ArticleEditor 조건부 렌더링
+- note 저장 시 contentText = content
+- article 저장 시 JSON 유효 시 getPlainText(content, "article")로 contentText 생성
+- records insert에 contentText 반영
+- createRecordSchema에 article 본문 JSON(doc 타입) 검증(superRefine) 적용
+
+검증 결과
+1) LSP diagnostics
+- app/routes/_public.write.tsx: clean
+- app/lib/validation.ts: clean
+
+2) 빌드
+- 명령어: pnpm build
+- 결과: 성공
+
+3) 타입체크
+- 명령어: pnpm exec tsc --noEmit
+- 결과: 성공

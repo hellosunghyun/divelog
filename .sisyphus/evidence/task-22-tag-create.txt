@@ -1,0 +1,69 @@
+# T22: 태그 Admin CRUD UI 구현 - Evidence
+
+## 생성된 파일
+
+### 1. app/db/queries/tags.server.ts
+태그 CRUD 쿼리 함수:
+- `getAllTags(d1)`: 모든 태그 + 각 태그의 사용 횟수 반환
+- `getTagById(d1, id)`: ID로 태그 조회
+- `getTagBySlug(d1, slug)`: 슬러그로 태그 조회
+- `getTagByName(d1, name)`: 이름으로 태그 조회
+- `createTag(d1, data)`: 새 태그 생성
+- `updateTag(d1, id, data)`: 태그 수정
+- `deleteTag(d1, id)`: 태그 삭제 (CASCADE로 record_tags 자동 삭제)
+- `getTagUsageCount(d1, tagId)`: 태그 사용 횟수 조회
+
+### 2. app/routes/_admin.admin.tags.tsx
+Admin 태그 관리 페이지:
+- loader: getAllTags 호출, 태그 목록 반환
+- action:
+  - `create_tag`: 새 태그 생성 (이름/슬러그 중복 검사)
+  - `update_tag`: 태그 수정
+  - `delete_tag`: 태그 삭제
+- UI:
+  - 태그 추가 폼 (이름, 슬러그 자동 생성, 설명, 색상 선택)
+  - 태그 목록 테이블 (색상 미리보기, 이름, 슬러그, 설명, 사용 횟수, 생성일, 삭제 버튼)
+  - 삭제 시 confirm 다이얼로그
+  - Admin 디자인: utilitarian, dense table, neutral colors
+
+### 3. app/components/admin/AdminSidebar.tsx (수정)
+NAV_ITEMS에 "태그 관리" 메뉴 추가:
+- 위치: "템플릿" 다음, "애널리틱스" 이전
+- href: `/admin/tags`
+
+### 4. app/routes.ts (수정)
+admin 라우트 배열에 추가:
+```typescript
+route("admin/tags", "routes/_admin.admin.tags.tsx"),
+```
+
+## 검증 결과
+
+### tsc --noEmit
+```
+✓ 에러 없음
+```
+
+### pnpm build
+```
+✓ 215 modules transformed
+✓ built in 1.76s (client)
+✓ 366 modules transformed
+✓ built in 2.12s (server)
+```
+
+## 기술적 결정
+
+1. **ID 생성**: `crypto.randomUUID()` 사용 (다른 엔티티와 일관성 유지)
+2. **슬러그 자동 생성**: 한글/영문/숫자/하이픈 지원, 입력 시 자동 생성 + 수동 수정 가능
+3. **색상 기본값**: `#6E6E73` (Text Secondary 색상)
+4. **중복 검사**: 이름과 슬러그 모두 unique 제약, 생성/수정 시 검사
+5. **삭제 처리**: CASCADE로 record_tags 자동 삭제됨
+
+## 준수 사항
+
+- [x] Admin 디자인 가이드 준수 (utilitarian, dense, neutral)
+- [x] 한국어 UI 텍스트
+- [x] `as any`, `@ts-ignore` 미사용
+- [x] 태그 계층 구조 미구현 (flat list만)
+- [x] 사용자 태그 생성 API 미구현 (admin-curated만)

@@ -1,0 +1,56 @@
+# Task 14: Self-answer 생성 UI — Evidence
+
+## Summary
+기록 작성자가 자기 기록의 질문에 답변하는 자기 답변 기능을 구현함.
+
+## Files Created
+
+### 1. app/components/SelfAnswerCard.tsx
+- "자기 답변" 뱃지 (배경: bg-mist-blue, 텍스트: text-ocean-blue)
+- Editorial card 스타일 (말풍선/채팅 버블 디자인 사용하지 않음)
+- 타임스탬프 표시 (unixepoch → readable date)
+- data-testid="self-answer-card" 추가
+
+### 2. app/db/queries/selfAnswers.server.ts
+- createSelfAnswer(d1, authorId, { questionId, content })
+- getSelfAnswersByQuestion(d1, questionId)
+- getSelfAnswersByRecord(d1, recordId) - record의 모든 질문에 대한 self-answer 조회
+
+## Files Modified
+
+### app/routes/_public.logs.$recordSlug.tsx
+
+#### Loader Changes
+- getOptionalUser() 호출로 현재 사용자 정보 가져옴
+- getSelfAnswersByRecord() 호출로 self-answers 조회
+- loaderData에 selfAnswers, currentUserId 추가
+
+#### Action Changes
+- "create_self_answer" intent 추가
+- 권한 확인: record.authorId === auth.user.id (작성자만 self-answer 가능)
+- createSelfAnswer() 호출
+
+#### UI Changes
+- React useState로 expandedQuestionId 관리 (토글)
+- isRecordAuthor 확인 (currentUserId === record.authorId)
+- selfAnswersByQuestion Map으로 질문별 self-answer 그룹화
+- 각 질문 하단에:
+  - 기존 self-answer가 있으면 SelfAnswerCard로 표시
+  - 작성자인 경우 "답변하기" 버튼 표시
+  - 버튼 클릭 시 인라인 폼 확장
+  - 폼 제출 후 취소 버튼 제공
+
+## Design Compliance
+- 말풍선/채팅 버블 디자인 사용하지 않음 (editorial card 스타일)
+- Quiet Depth 디자인 가이드라인 준수
+  - bg-mist-blue/50, border-reef-cyan/40 사용
+  - 카드 radius: rounded-2xl
+  - 텍스트 스타일: text-base, leading-body
+
+## Verification
+- pnpm tsc --noEmit: 성공 (에러 없음)
+- pnpm build: 성공
+
+## Notes
+- self-answer 수정/삭제 UI는 Phase 2에서 구현 예정
+- 자동 저장 기능 없음 (명시적 제출 필요)

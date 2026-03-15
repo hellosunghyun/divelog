@@ -1,12 +1,18 @@
 import { eq } from "drizzle-orm";
 import { Link, redirect, useActionData, useNavigation } from "react-router";
+import { useState } from "react";
 import type { Route } from "./+types/_public.write";
 
+import { ArticleEditor } from "../components/editor/ArticleEditor";
+import NoteEditor from "../components/editor/NoteEditor";
 import { db } from "../db/client.server";
-import { collaborationUnits, questions, records, stages, templates } from "../db/schema.server";
+import { collaborationUnits, questions, records, recordTags, stages, templates } from "../db/schema.server";
 import { requireVerified } from "../lib/auth.middleware";
+import { getPlainText } from "../lib/content.server";
 import { createQuestionSchema, createRecordSchema } from "../lib/validation";
 import { nanoid } from "../lib/utils.server";
+import { getAllTags } from "../db/queries/tags.server";
+import { useUnsavedWarning } from "../hooks/useUnsavedWarning";
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "기록하기 — divelog" }];
@@ -23,10 +29,13 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     database.select().from(collaborationUnits).where(eq(collaborationUnits.status, "active")),
   ]);
 
+  const allTags = await getAllTags(context.cloudflare.env.DB);
+
   return {
     templates: activeTemplates,
     currentStage: currentStageResult[0] ?? null,
     collaborations: activeCollaborations,
+    tags: allTags,
   };
 }
 
@@ -34,11 +43,28 @@ export async function action({ request, context }: Route.ActionArgs) {
   const auth = await requireVerified(request, context);
 
   const formData = await request.formData();
+  const formatRaw = formData.get("format");
+  const contentRaw = formData.get("content");
+  const format = formatRaw === "article" ? "article" : "note";
+  const content = typeof contentRaw === "string" ? contentRaw : "";
+
+  let contentText = "";
+  if (format === "article") {
+    try {
+      JSON.parse(content);
+      contentText = getPlainText(content, "article");
+    } catch {
+      contentText = content;
+    }
+  } else {
+    contentText = content;
+  }
 
   const parsed = createRecordSchema.safeParse({
     title: formData.get("title"),
-    content: formData.get("content"),
-    format: formData.get("format"),
+    content,
+    contentText,
+    format,
     type: formData.get("type"),
     rhythm: formData.get("rhythm"),
     visibility: formData.get("visibility"),
@@ -83,6 +109,7 @@ export async function action({ request, context }: Route.ActionArgs) {
     authorId: auth.user.id,
     title: parsed.data.title,
     content: parsed.data.content,
+    contentText: parsed.data.contentText ?? contentText,
     format: parsed.data.format ?? "note",
     type: parsed.data.type ?? "personal",
     rhythm: parsed.data.rhythm ?? "free",
@@ -106,14 +133,42 @@ export async function action({ request, context }: Route.ActionArgs) {
     });
   }
 
+  const tagIds = formData.getAll("tagIds") as string[];
+  if (tagIds.length > 0) {
+    for (const tagId of tagIds) {
+      await database.insert(recordTags).values({
+        recordId: id,
+        tagId,
+        createdAt: now,
+      });
+    }
+  }
+
   throw redirect(`/logs/${slug}`);
 }
 
 export default function WritePage({ loaderData }: Route.ComponentProps) {
-  const { templates: availableTemplates, currentStage, collaborations } = loaderData;
+  const { templates: availableTemplates, currentStage, collaborations, tags } = loaderData;
   const actionData = useActionData<typeof action>();
+  const errors = actionData?.errors;
+  const titleError = errors && "title" in errors ? errors.title?.[0] : undefined;
+  const contentError = errors && "content" in errors ? errors.content?.[0] : undefined;
+  const questionError = errors && "question" in errors ? errors.question?.[0] : undefined;
   const navigation = useNavigation();
+  const [selectedFormat, setSelectedFormat] = useState<"note" | "article">("note");
+  const [articleContent, setArticleContent] = useState("");
+  const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
+  const [title, setTitle] = useState("");
+  const [question, setQuestion] = useState("");
   const isSubmitting = navigation.state === "submitting";
+
+  const hasChanges =
+    title.length > 0 ||
+    articleContent.length > 0 ||
+    question.length > 0 ||
+    selectedTags.size > 0;
+
+  useUnsavedWarning(hasChanges);
 
   return (
     <div className="max-w-reading mx-auto py-12 px-4 md:py-20">
@@ -159,7 +214,13 @@ export default function WritePage({ loaderData }: Route.ComponentProps) {
                 key={opt.value}
                 className="flex items-center gap-1 cursor-pointer"
               >
-                <input type="radio" name="format" value={opt.value} defaultChecked={opt.value === "note"} />
+                <input
+                  type="radio"
+                  name="format"
+                  value={opt.value}
+                  defaultChecked={opt.value === "note"}
+                  onChange={() => setSelectedFormat(opt.value as "note" | "article")}
+                />
                 <span className="text-base">{opt.label}</span>
               </label>
             ))}
@@ -246,35 +307,33 @@ export default function WritePage({ loaderData }: Route.ComponentProps) {
             type="text"
             required
             placeholder="제목을 입력하세요"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
             className="w-full rounded-md border border-border bg-surface px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-ocean-blue focus:ring-offset-1"
           />
-          {actionData?.errors?.title && (
-            <p className="text-error text-meta mt-1">
-              {actionData.errors.title[0]}
-            </p>
-          )}
+          {titleError ? <p className="text-error text-meta mt-1">{titleError}</p> : null}
         </div>
 
         <div>
-          <label
-            htmlFor="content"
-            className="block text-meta font-medium text-text-secondary mb-2"
-          >
+          <p className="block text-meta font-medium text-text-secondary mb-2">
             내용 <span className="text-error">*</span>
-          </label>
-          <textarea
-            id="content"
-            name="content"
-            required
-            rows={16}
-            placeholder="지금 이 순간의 탐구를 기록해보세요..."
-            className="w-full rounded-md border border-border bg-surface px-4 py-3 text-base leading-body min-h-[200px] resize-y focus:outline-none focus:ring-2 focus:ring-ocean-blue"
-          />
-          {actionData?.errors?.content && (
-            <p className="text-error text-meta mt-1">
-              {actionData.errors.content[0]}
-            </p>
+          </p>
+          {selectedFormat === "note" ? (
+            <NoteEditor
+              name="content"
+              placeholder="짧은 생각, 메모, 기록을 남겨보세요..."
+              error={contentError}
+              htmlProps={{ required: true }}
+            />
+          ) : (
+            <ArticleEditor
+              name="content"
+              content={articleContent}
+              onChange={setArticleContent}
+              placeholder="여기에 글을 쓰세요. `/`를 입력하면 블록을 추가할 수 있습니다."
+            />
           )}
+          {contentError ? <p className="text-error text-meta mt-1">{contentError}</p> : null}
         </div>
 
         <div>
@@ -289,13 +348,11 @@ export default function WritePage({ loaderData }: Route.ComponentProps) {
             name="question"
             type="text"
             placeholder="이 기록에 남기고 싶은 질문이 있다면..."
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
             className="w-full rounded-md border border-border bg-surface-secondary px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-ocean-blue focus:ring-offset-1"
           />
-          {actionData?.errors?.question && (
-            <p className="text-error text-meta mt-1">
-              {actionData.errors.question[0]}
-            </p>
-          )}
+          {questionError ? <p className="text-error text-meta mt-1">{questionError}</p> : null}
         </div>
 
         <div>
@@ -315,6 +372,48 @@ export default function WritePage({ loaderData }: Route.ComponentProps) {
             <option value="closed">응답 닫기</option>
           </select>
         </div>
+
+        {tags.length > 0 && (
+          <fieldset className="border-0 m-0 p-0">
+            <legend className="block text-meta font-medium text-text-secondary mb-3">
+              태그 (선택)
+            </legend>
+            <div className="flex flex-wrap gap-2">
+              {tags.map((tag) => (
+                <label
+                  key={tag.id}
+                  className="cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    name="tagIds"
+                    value={tag.id}
+                    checked={selectedTags.has(tag.id)}
+                    onChange={(e) => {
+                      const newTags = new Set(selectedTags);
+                      if (e.target.checked) {
+                        newTags.add(tag.id);
+                      } else {
+                        newTags.delete(tag.id);
+                      }
+                      setSelectedTags(newTags);
+                    }}
+                    className="hidden"
+                  />
+                  <span
+                    className={`inline-block px-3 py-1 rounded-full text-sm border transition-colors ${
+                      selectedTags.has(tag.id)
+                        ? "border-ocean-blue bg-mist-blue text-ocean-blue"
+                        : "border-border bg-surface text-text-secondary hover:border-ocean-blue"
+                    }`}
+                  >
+                    {tag.name}
+                  </span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        )}
 
         <div>
           <label

@@ -1,0 +1,8 @@
+=== Forbidden Patterns ===
+[as any | @ts-ignore | @ts-expect-error]
+
+[console.log]
+
+[empty catch]
+
+[TODO | FIXME | HACK | STUB | XXX]

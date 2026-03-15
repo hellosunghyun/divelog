@@ -4,6 +4,8 @@ import { db } from "../db/client.server";
 import { stages, records, questions, sentences, learnerProfiles } from "../db/schema.server";
 import { eq, desc, and, sql, count } from "drizzle-orm";
 import HeroSection from "../components/HeroSection";
+import ActivityFeed from "../components/ActivityFeed";
+import { getRecentActivity } from "../db/queries/activity.server";
 
 export function meta(_args: Route.MetaArgs) {
   return [
@@ -79,7 +81,16 @@ export async function loader({ context }: Route.LoaderArgs) {
   const currentStage = currentStageResult[0] ?? null;
   const learnerCount = learnerCountResult[0]?.total ?? 0;
 
-  return { allStages, currentStage, recentRecords, openQuestions, recentSentences, spotlightLearners, learnerCount };
+  const recentActivity = await getRecentActivity(context.cloudflare.env.DB, { limit: 8 });
+
+  // Pre-compute plain text snippets on server to avoid client importing server-only modules
+  const { getPlainText } = await import("../lib/content.server");
+  const recentRecordsWithSnippets = recentRecords.map(row => ({
+    ...row,
+    snippet: getPlainText(row.content ?? "", (row.format === "article" ? "article" : "note") as "note" | "article").substring(0, 120),
+  }));
+
+  return { allStages, currentStage, recentRecords: recentRecordsWithSnippets, openQuestions, recentSentences, spotlightLearners, learnerCount, recentActivity };
 }
 
 function formatRelativeTime(timestamp: number | null): string {
@@ -110,7 +121,7 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 export default function HomePage({ loaderData }: Route.ComponentProps) {
-  const { allStages, currentStage, recentRecords, openQuestions, recentSentences, spotlightLearners, learnerCount } = loaderData;
+  const { allStages, currentStage, recentRecords, openQuestions, recentSentences, spotlightLearners, learnerCount, recentActivity } = loaderData;
 
   return (
     <div>
@@ -199,10 +210,21 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
         </section>
       )}
 
+      <section className="max-w-canvas mx-auto px-6 py-16" data-testid="activity-section">
+        <div className="flex items-end justify-between mb-8">
+          <div>
+            <span className="text-xs font-bold tracking-[0.3em] text-ocean-blue/50 mb-2 block uppercase">여정 활동</span>
+            <h2 className="text-3xl font-bold text-deep-ocean">여정에서 일어나는 일</h2>
+            <p className="text-text-secondary mt-2 text-md font-light">지난 2주간의 활동 요약</p>
+          </div>
+        </div>
+        <ActivityFeed activities={recentActivity} />
+      </section>
+
       {currentStage && (
         <section className="max-w-canvas mx-auto px-6 py-16" data-testid="questions-section">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
-            <div className="lg:col-span-4 sticky top-24">
+            <div className="lg:col-span-4 lg:sticky lg:top-24">
               <div className="quiet-depth-card p-10 rounded-[40px]">
                 <span className="text-ocean-blue font-bold text-xs tracking-[0.2em] uppercase mb-4 block">현재 구간</span>
                 <h3 className="text-3xl font-bold text-deep-ocean mb-6">{currentStage.name}</h3>
@@ -299,7 +321,7 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {recentRecords.map((row) => {
-                  const snippet = row.content.substring(0, 120) + (row.content.length > 120 ? "…" : "");
+                  const snippet = (row.snippet ?? row.content.substring(0, 120)) + ((row.snippet ?? row.content).length > 120 ? "…" : "");
                   const initial = row.authorDisplayName ? row.authorDisplayName[0] : "?";
                   const stage = row.stageId ? allStages.find(s => s.id === row.stageId) : null;
                   return (

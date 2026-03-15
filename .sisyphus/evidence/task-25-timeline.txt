@@ -1,0 +1,69 @@
+# T25: /me 페이지에 개인 여정 타임라인 + Stage별 기록 분포 추가
+
+## 완료 항목
+
+### 1. loader 수정
+- [x] `stages` 테이블 import 추가
+- [x] `asc` 함수 import 추가
+- [x] 모든 Stage 조회 쿼리 추가 (orderBy order ASC)
+- [x] 현재 사용자의 기록 + Stage 정보 JOIN 쿼리 추가
+- [x] Stage별로 기록 그룹핑 로직 추가
+
+### 2. UI 구현
+- [x] "나의 여정" 섹션 추가 (Hero 다음, 기존 섹션들 앞)
+- [x] Stage별 카드 표시
+- [x] Stage 톤 매핑 적용 (CSS custom properties)
+  - prelude: --color-prelude-bg, --color-prelude
+  - bridge: --color-bridge-bg, --color-bridge
+  - challenge: --color-challenge-bg, --color-challenge
+  - epilogue: --color-epilogue-bg, --color-epilogue
+- [x] 기록이 없는 Stage에 빈 상태 안내 표시
+- [x] 각 Stage당 최대 3개 기록 표시
+- [x] 3개 초과 시 "외 N개의 기록" 표시
+- [x] 기록 카드: 제목 + 내용 미리보기 (100자)
+
+### 3. 금지 사항 준수
+- [x] 진행률/퍼센트 표시 없음
+- [x] 스트릭 없음
+- [x] 다른 learner와 비교 없음
+- [x] 차트/그래프 라이브러리 없음
+- [x] 기존 섹션 (Draft, 문장, 질문) 보존
+
+### 4. 검증
+- [x] `pnpm exec tsc --noEmit` 성공
+- [x] `pnpm build` 성공
+
+## 파일 변경
+
+### app/routes/_public.me.tsx
+- import: stages, asc 추가
+- STAGE_TONE_MAP 상수 추가 (17-22행)
+- getStageToneStyle 함수 추가 (24-26행)
+- loader: allStages, myRecordsWithStage 쿼리 추가 (66-81행)
+- loader: recordsByStage 그룹핑 로직 추가 (90-97행)
+- return: stages, recordsByStage 추가 (105-106행)
+- component: "나의 여정" 섹션 추가 (122-182행)
+
+## 디자인 특징
+
+- Stage별로 왼쪽 border 4px로 톤 구분
+- 배경색은 Stage type에 따라 미묘하게 다름
+- 기록 카드는 surface 배경 + 얇은 border
+- hover 시 border 색상 변화
+- 한국어 UI 텍스트 사용
+
+## 빌드 결과
+
+```
+build/client/assets/_public.me-Cgq88cD5.js    4.23 kB │ gzip: 1.49 kB
+```
+
+## 타입스크립트 검증
+
+`pnpm exec tsc --noEmit` - 에러 없음
+
+## 일관성
+
+- 기존 /me 페이지의 디자인 톤과 일치
+- tokens.css에 정의된 Stage 톤 변수 활용
+- SceneCard, QuestionCard 등 기존 컴포넌트 패턴 준수

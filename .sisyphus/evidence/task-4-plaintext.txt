@@ -1,0 +1,19 @@
+T4 콘텐츠 추상화 레이어 구현 증거
+
+- 생성 파일
+  - app/lib/content.server.ts
+  - app/lib/editor-extensions.ts
+  - app/components/ContentRenderer.tsx
+- learnings 갱신
+  - .sisyphus/notepads/editor-and-enrichment/learnings.md
+
+구현 메모
+- detectContentFormat(): JSON.parse 후 ProseMirror doc(type === "doc")만 json으로 판별
+- getPlainText(): article JSON을 재귀 순회해 텍스트 추출, 블록 사이 줄바꿈 유지
+- renderContentToHtml(): note는 escapeHtml 후 whitespace-pre-wrap div로 래핑, article은 generateHTML + plaintext fallback
+- ContentRenderer: 서버에서 계산된 contentHtml을 note/article 전용 Quiet Depth 타이포그래피로 렌더링
+
+검증 결과
+- `pnpm build` 성공
+- `npx tsc --noEmit` 성공 (출력 없음)
+- changed files LSP diagnostics: clean

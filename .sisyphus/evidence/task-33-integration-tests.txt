@@ -1,0 +1,57 @@
+T33: 에디터 및 콘텐츠 통합 테스트 작성
+
+COMPLETED: 2026-03-15
+
+=== DELIVERABLES ===
+
+1. ✅ app/lib/__tests__/r2-cleanup.test.ts 생성
+   - `extractImageKeys()` 6개 시나리오 검증
+     * 빈 문서
+     * 이미지 없는 문서
+     * 단일 이미지 키 추출
+     * 중첩 이미지 추출
+     * 잘못된 JSON graceful fallback
+     * 다중 이미지 추출
+   - `cleanupRemovedImages()` 2개 시나리오 검증
+     * 제거된 키만 삭제
+     * 이미지 추가만 있는 경우 삭제 없음
+   - 실제 R2 대신 `R2Bucket.delete()` mock 사용
+
+2. ✅ app/lib/__tests__/content.integration.test.ts 생성
+   - Article JSON → `detectContentFormat()` → `getPlainText()` → `renderContentToHtml()` → `extractImageKeys()` 흐름 검증
+   - Plain text note → plaintext 판별 / 텍스트 유지 / 이미지 키 없음 검증
+   - `/api/images/...` 프록시 URL 기준 fixture 사용
+
+3. ✅ .sisyphus/notepads/editor-and-enrichment/learnings.md 갱신
+   - T33 구현 범위, mock 전략, 경계 통합 검증 포인트 추가
+
+=== VERIFICATION ===
+
+1. ✅ LSP diagnostics clean
+   - `app/lib/__tests__/r2-cleanup.test.ts`
+   - `app/lib/__tests__/content.integration.test.ts`
+
+2. ✅ `pnpm vitest run --reporter=verbose`
+   - Test Files: 4 passed
+   - Tests: 47 passed
+   - Includes existing 37 tests + new 10 tests
+
+3. ✅ `pnpm build`
+   - Client/SSR production build completed successfully
+
+4. ℹ️ `pnpm typecheck`
+   - New test files related errors 없음
+   - Unrelated pre-existing errors remain in untouched route/auth files:
+     * `app/lib/auth.middleware.ts`
+     * `app/routes/_public.challenges.$challengeSlug.tsx`
+     * `app/routes/_public.groups.$groupSlug.tsx`
+     * `app/routes/_public.journey.$stageSlug.tsx`
+     * `app/routes/_public.journey.tsx`
+     * `app/routes/_public.learners.$learnerSlug.tsx`
+     * `app/routes/_public.me.tsx`
+     * `app/routes/_public.memories.$stageSlug.tsx`
+
+=== NOTES ===
+
+- Vitest output included existing Tiptap duplicate-extension warning (`underline`), but tests all passed and this task did not modify the underlying content renderer extension setup.
+- Coverage intentionally stays at unit/integration level only; no browser/E2E dependency added.

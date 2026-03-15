@@ -1,0 +1,1 @@
+ALTER TABLE `records` ADD `content_text` text DEFAULT '';

@@ -1,0 +1,15 @@
+Task: T7 ArticleEditor implementation verification
+Date: 2026-03-15
+
+Command: npx tsc --noEmit
+Result: SUCCESS (exit code 0, no TypeScript errors)
+
+Command: pnpm build
+Result: SUCCESS (exit code 0)
+
+Key output lines:
+- > divelog@ build /Users/hellosunghyun/Documents/Github/divelog
+- > react-router build && node scripts/patch-worker.mjs
+- ✓ built in 775ms (client)
+- ✓ built in 670ms (ssr)
+- [patch-worker] bundled build/client/_worker.js for Cloudflare Pages

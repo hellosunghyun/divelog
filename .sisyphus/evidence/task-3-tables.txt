@@ -1,0 +1,73 @@
+TASK 3: Add tags and record_tags tables to Drizzle schema and migration
+========================================================================
+
+COMPLETION CHECKLIST:
+✅ tags table added to app/db/schema.server.ts
+✅ recordTags junction table added to app/db/schema.server.ts
+✅ Relations defined in app/db/relations.server.ts
+✅ Migration generated: drizzle/migrations/0002_majestic_bastion.sql
+✅ Migration applied successfully to local D1 database
+✅ Table structure verified via PRAGMA table_info
+✅ TypeScript type checking passed (tsc --noEmit)
+
+SCHEMA ADDITIONS:
+================
+
+1. tags table (app/db/schema.server.ts):
+   - id: text (PRIMARY KEY)
+   - name: text (NOT NULL, UNIQUE)
+   - slug: text (NOT NULL, UNIQUE)
+   - description: text (DEFAULT '')
+   - color: text (DEFAULT '#6E6E73')
+   - createdBy: text (nullable)
+   - createdAt: integer (NOT NULL, DEFAULT unixepoch())
+   - updatedAt: integer (NOT NULL, DEFAULT unixepoch())
+
+2. recordTags junction table (app/db/schema.server.ts):
+   - recordId: text (NOT NULL, FK → records.id ON DELETE CASCADE)
+   - tagId: text (NOT NULL, FK → tags.id ON DELETE CASCADE)
+   - createdAt: integer (NOT NULL, DEFAULT unixepoch())
+   - PRIMARY KEY: (recordId, tagId)
+
+RELATIONS ADDED (app/db/relations.server.ts):
+==============================================
+
+1. tagsRelations:
+   - recordTags: many(recordTags)
+
+2. recordTagsRelations:
+   - record: one(records)
+   - tag: one(tags)
+
+3. recordsRelations updated:
+   - Added: recordTags: many(recordTags)
+
+MIGRATION VERIFICATION:
+======================
+
+Migration file: drizzle/migrations/0002_majestic_bastion.sql
+Status: ✅ Applied successfully
+
+PRAGMA table_info(tags) output:
+- 8 columns total
+- Unique indexes on name and slug
+- All columns match schema definition
+
+PRAGMA table_info(record_tags) output:
+- 3 columns total
+- Composite primary key on (record_id, tag_id)
+- Foreign keys with cascade delete configured
+
+TYPE CHECKING:
+==============
+✅ npx tsc --noEmit: No errors
+
+NOTES:
+======
+- Tags are admin-curated only (no user-generated tags in Phase 1)
+- Color field defaults to Quiet Depth text secondary color (#6E6E73)
+- createdBy field tracks which admin created the tag
+- recordTags uses junction table pattern (not JSON array)
+- All timestamps use unixepoch() for consistency with existing schema
+
+TIMESTAMP: 2026-03-15

@@ -1,0 +1,28 @@
+Task: T10 R2 이미지 업로드 API + 이미지 프록시 라우트
+Date: 2026-03-15
+
+Implemented files:
+- app/routes/api.upload.tsx
+- app/routes/api.images.$.tsx
+- app/routes.ts
+
+Verification:
+- lsp_diagnostics: clean for app/routes/api.upload.tsx
+- lsp_diagnostics: clean for app/routes/api.images.$.tsx
+- lsp_diagnostics: clean for app/routes.ts
+- npx react-router typegen && pnpm exec tsc --noEmit: PASS
+- pnpm build: PASS
+
+Build notes:
+- React Router/Vite build completed successfully
+- Empty client chunks were generated for resource routes `api.upload` and `api.images._`, which is expected for non-UI route modules
+
+Auth QA note:
+- `.dev.vars` currently contains a placeholder `TEST_VERIFIED_SESSION`, so an authenticated curl upload smoke test could not be executed in this workspace without replacing that value first
+
+Implemented behavior summary:
+- POST /api/upload checks auth with getAuth() and returns JSON 401 when unauthenticated
+- Upload accepts only jpeg/png/webp/gif and rejects files over 5MB
+- Files are stored in R2 under records/{nanoid(12)}.{ext}
+- Successful responses return `{ url, key }` where `url` points to `/api/images/{key}`
+- GET /api/images/* streams the R2 object with content type, immutable cache headers, and ETag

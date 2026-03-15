@@ -8,24 +8,24 @@ export async function searchAll(d1: D1Database, query: string, cohort?: string) 
   const pattern = `%${query}%`;
 
   const [foundRecords, foundQuestions, foundLearners, foundSentences] = await database.batch([
-    database
-      .select({
-        id: records.id,
-        slug: records.slug,
-        title: records.title,
-        type: sql<string>`'record'`,
-        snippet: records.content,
-      })
-      .from(records)
-      .where(
-        and(
-          or(like(records.title, pattern), like(records.content, pattern)),
-          cohort ? eq(records.cohort, cohort) : sql`1=1`,
-          sql`${records.visibility} != 'draft'`,
-        ),
-      )
-      .orderBy(desc(records.createdAt))
-      .limit(10),
+     database
+       .select({
+         id: records.id,
+         slug: records.slug,
+         title: records.title,
+         type: sql<string>`'record'`,
+         snippet: records.contentText,
+       })
+       .from(records)
+       .where(
+         and(
+           or(like(records.title, pattern), like(records.contentText, pattern)),
+           cohort ? eq(records.cohort, cohort) : sql`1=1`,
+           sql`${records.visibility} != 'draft'`,
+         ),
+       )
+       .orderBy(desc(records.createdAt))
+       .limit(10),
     database
       .select({
         id: questions.id,
