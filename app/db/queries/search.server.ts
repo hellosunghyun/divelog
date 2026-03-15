@@ -15,8 +15,13 @@ export async function searchAll(d1: D1Database, query: string, cohort?: string) 
          title: records.title,
          type: sql<string>`'record'`,
          snippet: records.contentText,
+         format: records.format,
+         rhythm: records.rhythm,
+         authorDisplayName: learnerProfiles.displayName,
+         authorSlug: learnerProfiles.slug,
        })
        .from(records)
+       .leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
        .where(
          and(
            or(like(records.title, pattern), like(records.contentText, pattern)),

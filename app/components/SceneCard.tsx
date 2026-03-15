@@ -90,12 +90,16 @@ export default function SceneCard({
       {/* Footer */}
       <div className="flex items-center justify-between mt-2 border-t border-border-subtle pt-4">
         {author && (
-          <Link
-            to={`/learners/${author.slug}`}
-            className="text-meta text-text-secondary no-underline hover:text-ocean-blue transition-colors"
-          >
-            {author.displayName}
-          </Link>
+          author.slug ? (
+            <Link
+              to={`/learners/${author.slug}`}
+              className="text-meta text-text-secondary no-underline hover:text-ocean-blue transition-colors"
+            >
+              {author.displayName}
+            </Link>
+          ) : (
+            <span className="text-meta text-text-secondary">{author.displayName}</span>
+          )
         )}
 
         {/* Indicator icons */}
