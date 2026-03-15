@@ -162,7 +162,19 @@ export default function StageDetailPage({ loaderData }: Route.ComponentProps) {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {stageRecords.map(({ record, author }) => (
-                <SceneCard key={record.id} record={record} author={author ?? undefined} />
+                <SceneCard
+                  key={record.id}
+                  record={{
+                    slug: record.slug,
+                    title: record.title,
+                    content: record.content,
+                    format: record.format as "note" | "article",
+                    type: record.type as "personal" | "challenge" | "collaboration",
+                    rhythm: record.rhythm ?? undefined,
+                    createdAt: record.createdAt,
+                  }}
+                  author={author?.displayName ? { displayName: author.displayName, slug: author.slug ?? "" } : undefined}
+                />
               ))}
             </div>
           )}

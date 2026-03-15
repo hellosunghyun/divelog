@@ -5,8 +5,8 @@ interface Stage {
   slug: string;
   name: string;
   type: string;
-  status: "upcoming" | "active" | "completed";
-  isCurrent?: boolean;
+  status: string;
+  isCurrent?: boolean | number;
   order: number;
 }
 

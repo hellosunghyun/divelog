@@ -67,7 +67,20 @@ export default function LearnerDetailPage({ loaderData }: Route.ComponentProps) 
             <EmptyState variant="records" />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {learnerRecords.map(({ record }) => <SceneCard key={record.id} record={record} />)}
+              {learnerRecords.map(({ record }) => (
+                <SceneCard
+                  key={record.id}
+                  record={{
+                    slug: record.slug,
+                    title: record.title,
+                    content: record.content,
+                    format: record.format as "note" | "article",
+                    type: record.type as "personal" | "challenge" | "collaboration",
+                    rhythm: record.rhythm ?? undefined,
+                    createdAt: record.createdAt,
+                  }}
+                />
+              ))}
             </div>
           )}
         </section>
