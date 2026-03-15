@@ -86,11 +86,19 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
       .orderBy(desc(sentences.createdAt)),
   ]);
 
-  const linkedRecords = await getLinkedRecords(
+  const linkedRecordsRaw = await getLinkedRecords(
     context.cloudflare.env.DB,
     recordData.record.id,
     recordData.record.linkedRecordId,
   );
+
+  const linkedRecords = linkedRecordsRaw.map((lr) => ({
+    ...lr,
+    contentSnippet: getPlainText(
+      lr.record.content,
+      normalizeContentFormat(lr.record.format),
+    ).substring(0, 120),
+  }));
 
   const selfAnswersData = await getSelfAnswersByRecord(context.cloudflare.env.DB, recordData.record.id);
   const recordTags = await getTagsByRecord(context.cloudflare.env.DB, recordData.record.id);
@@ -722,7 +730,7 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
               <div key={linkedRecord.record.id} className="relative">
                 <SceneCard
                   record={linkedRecord.record}
-                  contentSnippet={getPlainText(linkedRecord.record.content, normalizeContentFormat(linkedRecord.record.format)).substring(0, 100)}
+                  contentSnippet={linkedRecord.contentSnippet}
                   author={linkedRecord.author?.displayName ? {
                     displayName: linkedRecord.author.displayName,
                     slug: linkedRecord.author.slug ?? "",
