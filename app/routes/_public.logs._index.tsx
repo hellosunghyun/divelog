@@ -127,7 +127,7 @@ export default function LogsPage({ loaderData }: Route.ComponentProps) {
       <HeroSection
         variant="stage"
         title="기록"
-        subtitle="Learner들이 남긴 탐구의 기록들"
+        subtitle="러너들이 남긴 탐구의 기록들"
       />
 
       <div className="max-w-content mx-auto px-6 py-12 md:py-16">

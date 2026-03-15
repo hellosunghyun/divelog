@@ -29,15 +29,13 @@ export async function loader({ context }: Route.LoaderArgs) {
         format: records.format,
         type: records.type,
         rhythm: records.rhythm,
-        stageName: stages.name,
-        stageSlug: stages.slug,
+        stageId: records.stageId,
         createdAt: records.createdAt,
         authorDisplayName: learnerProfiles.displayName,
         authorSlug: learnerProfiles.slug,
         authorProfilePhotoUrl: learnerProfiles.profilePhotoUrl,
       })
       .from(records)
-      .leftJoin(stages, eq(records.stageId, stages.id))
       .leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
       .where(sql`${records.visibility} != 'draft'`)
       .orderBy(desc(records.createdAt))
@@ -108,6 +106,7 @@ const FORMAT_LABELS: Record<string, string> = {
 const TYPE_LABELS: Record<string, string> = {
   personal: "개인",
   challenge: "챌린지",
+  collaboration: "협업",
 };
 
 export default function HomePage({ loaderData }: Route.ComponentProps) {
@@ -302,6 +301,7 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
                 {recentRecords.map((row) => {
                   const snippet = row.content.substring(0, 120) + (row.content.length > 120 ? "…" : "");
                   const initial = row.authorDisplayName ? row.authorDisplayName[0] : "?";
+                  const stage = row.stageId ? allStages.find(s => s.id === row.stageId) : null;
                   return (
                     <article
                       key={row.id}
@@ -315,12 +315,12 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
                           <span className="bg-mist-blue text-ocean-blue text-xs font-semibold px-2.5 py-0.5 rounded-full">
                             {TYPE_LABELS[row.type] ?? row.type}
                           </span>
-                          {row.stageName && (
+                          {stage && (
                             <Link
-                              to={row.stageSlug ? `/journey/${row.stageSlug}` : "/journey"}
+                              to={`/journey/${stage.slug}`}
                               className="bg-surface-secondary text-text-secondary text-xs font-semibold px-2.5 py-0.5 rounded-full no-underline hover:text-ocean-blue transition-colors"
                             >
-                              {row.stageName}
+                              {stage.name}
                             </Link>
                           )}
                         </div>

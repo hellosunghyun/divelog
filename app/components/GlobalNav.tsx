@@ -59,6 +59,7 @@ export default function GlobalNav() {
   }
 
   return (
+    <>
     <header className="sticky top-0 z-50 bg-surface/75 backdrop-blur-xl backdrop-saturate-[1.8] border-b border-ocean-blue/5">
       <div className="max-w-canvas mx-auto px-6 h-16 flex items-center justify-between">
         <div className="flex items-center gap-10">
@@ -181,8 +182,10 @@ export default function GlobalNav() {
         </button>
       </div>
 
+    </header>
+
       {isMenuOpen && (
-        <div className="lg:hidden fixed inset-0 top-16 z-40 bg-surface animate-fade-in">
+        <div className="lg:hidden fixed inset-x-0 top-16 bottom-0 z-[9999] bg-white overflow-y-auto">
           <div className="border-t border-border-subtle" />
           <div className="max-w-content mx-auto px-6 py-8 flex flex-col gap-1">
             <form onSubmit={handleSearchSubmit} className="relative mb-4">
@@ -279,6 +282,6 @@ export default function GlobalNav() {
           </div>
         </div>
       )}
-    </header>
+    </>
   );
 }
