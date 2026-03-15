@@ -181,7 +181,7 @@ export async function getLearnersWithActivity(
       createdAt: records.createdAt,
     })
     .from(records)
-    .where(sql`${records.authorId} IN ${userIds}`)
+    .where(sql`${records.authorId} IN ${userIds} AND ${records.visibility} != 'draft'`)
     .orderBy(desc(records.createdAt));
 
   const mostRecentRecordByAuthor = new Map<
