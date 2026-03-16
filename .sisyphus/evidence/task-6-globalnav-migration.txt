@@ -1,0 +1,26 @@
+=== GlobalNav.tsx Migration Evidence ===
+
+1. SmartLink Import:
+2:import { Link } from "~/components/SmartLink";
+4:import { User, Inbox, Settings, ExternalLink, LogOut } from "lucide-react";
+
+2. Prefetch Props on /write/note and /write/article:
+                to="/write/note"
+                prefetch="render"
+                to="/write/article"
+                prefetch="render"
+                  to="/write/note"
+                  prefetch="render"
+                  to="/write/article"
+                  prefetch="render"
+                     to="/write/note"
+                     prefetch="render"
+                     to="/write/article"
+                     prefetch="render"
+                      to="/write/note"
+                      prefetch="render"
+                      to="/write/article"
+                      prefetch="render"
+
+3. TypeScript Check:
+PASS - No GlobalNav errors

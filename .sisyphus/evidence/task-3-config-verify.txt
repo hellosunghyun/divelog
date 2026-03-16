@@ -1,3 +1,4 @@
+=== react-router.config.ts ===
 import type { Config } from "@react-router/dev/config";
 import { sentryOnBuildEnd } from "@sentry/react-router";
 
@@ -11,3 +12,6 @@ export default {
     await sentryOnBuildEnd(args);
   },
 } satisfies Config;
+
+=== tsc --noEmit ===
+✓ No TypeScript errors

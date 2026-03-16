@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import { Link } from "~/components/SmartLink";
 
 interface CTABandProps {
   primaryCta?: { label: string; href: string };

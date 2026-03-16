@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import { Link } from "~/components/SmartLink";
 
 const exploreLinks = [
   { to: "/journey", label: "여정" },

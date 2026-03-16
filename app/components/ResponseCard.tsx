@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import { Link } from "~/components/SmartLink";
 
 type ResponseType = "resonance" | "question" | "connection" | "suggestion" | "self_answer";
 
@@ -53,6 +53,7 @@ export default function ResponseCard({ response, author, isSelfAnswer }: Respons
         {author && (
           <Link
             to={`/learners/${author.slug}`}
+            prefetch="viewport"
             className="text-meta text-text-tertiary no-underline"
           >
             {author.displayName}

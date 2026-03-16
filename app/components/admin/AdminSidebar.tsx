@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router";
+import { Link } from "~/components/SmartLink";
+import { useLocation } from "react-router";
 
 interface NavItem {
   label: string;

@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import { Link } from "~/components/SmartLink";
 import { FileText, MessageSquare } from "lucide-react";
 import type { Route } from "./+types/index";
 import { requireVerified } from "~/lib/auth.middleware";

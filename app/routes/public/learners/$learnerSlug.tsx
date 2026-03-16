@@ -1,6 +1,6 @@
 import { data } from "react-router";
 import type { Route } from "./+types/$learnerSlug";
-import { Link } from "react-router";
+import { Link } from "~/components/SmartLink";
 import { db } from "~/db/client.server";
 import { learnerProfiles, records, questions, sentences } from "~/db/schema.server";
 import { eq, and, desc, sql } from "drizzle-orm";
@@ -10,6 +10,8 @@ import HighlightedSentenceCard from "~/components/HighlightedSentenceCard";
 import EmptyState from "~/components/EmptyState";
 import HeroSection from "~/components/HeroSection";
 import { createLogger } from "~/lib/logger.server";
+
+const cache = new Map<string, unknown>();
 
 export async function loader({ params, request, context }: Route.LoaderArgs) {
   const { learnerSlug } = params;
@@ -36,6 +38,17 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
 
   logger.info("loader_end");
   return { learner, learnerRecords, learnerQuestions, learnerSentences };
+}
+
+export async function clientLoader({ params, serverLoader }: {
+  params: { learnerSlug?: string };
+  serverLoader: () => Promise<unknown>;
+}) {
+  const key = params.learnerSlug ?? "";
+  if (cache.has(key)) return cache.get(key);
+  const loaderData = await serverLoader();
+  cache.set(key, loaderData);
+  return loaderData;
 }
 
 export function meta({ data: loaderData }: Route.MetaArgs) {

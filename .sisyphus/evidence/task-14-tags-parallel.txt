@@ -1,0 +1,41 @@
+TASK: Parallelize sequential queries in app/routes/public/tags/$tagSlug.tsx loader
+
+ANALYSIS RESULT: NO PARALLELIZATION POSSIBLE
+
+Current Code (lines 28-35):
+  const tag = await getTagBySlug(context.cloudflare.env.DB, tagSlug);
+  if (!tag) {
+    logger.info("not_found", { slug: tagSlug });
+    throw data("태그를 찾을 수 없습니다.", { status: 404 });
+  }
+  const records = await getRecordsByTag(context.cloudflare.env.DB, tag.id);
+
+Dependency Analysis:
+  - getTagBySlug(slug) → returns tag object with tag.id
+  - getRecordsByTag(tagId) → REQUIRES tag.id (line 174 in tags.server.ts: where(eq(recordTags.tagId, tagId)))
+  - 404 check (line 30-33) → MUST execute before querying records
+
+Conclusion:
+  ✅ ALREADY OPTIMAL
+  - Hard dependency: getRecordsByTag needs tag.id from getTagBySlug
+  - 404 check must precede record query
+  - Sequential awaits are necessary and correct
+  - No Promise.all() or database.batch() applicable here
+
+Recommendation:
+  No code changes required. The loader is already optimized for this dependency structure.
+  Consider this pattern as a reference for other loaders with similar dependencies.
+
+TypeScript Check:
+  PASS - No type errors in current implementation
+
+VERIFICATION RESULTS:
+  ✅ TypeScript compilation: PASS (no errors)
+  ✅ Current implementation: OPTIMAL
+  ✅ No changes required: Confirmed
+
+TASK COMPLETION STATUS: ✅ COMPLETE
+  - Dependency analysis: Complete
+  - Parallelization assessment: Complete (not applicable)
+  - Evidence documented: Complete
+  - TypeScript verified: Complete

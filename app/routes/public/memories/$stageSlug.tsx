@@ -1,6 +1,6 @@
 import { data } from "react-router";
 import type { Route } from "./+types/$stageSlug";
-import { Link } from "react-router";
+import { Link } from "~/components/SmartLink";
 import { db } from "~/db/client.server";
 import {
   collectiveMemories,

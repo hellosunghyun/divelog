@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import { Link } from "~/components/SmartLink";
 
 interface HighlightedSentenceCardProps {
   sentence: {
@@ -32,8 +32,8 @@ export default function HighlightedSentenceCard({ sentence, savedBy, record }: H
         </p>
       )}
       <div className="flex gap-4 text-meta text-text-tertiary">
-        {savedBy && <Link to={`/learners/${savedBy.slug}`} className="no-underline hover:text-ocean-blue transition-colors">{savedBy.displayName}</Link>}
-        {record && <Link to={`/logs/${record.slug}`} className="no-underline hover:text-ocean-blue transition-colors">← {record.title}</Link>}
+        {savedBy && <Link to={`/learners/${savedBy.slug}`} prefetch="viewport" className="no-underline hover:text-ocean-blue transition-colors">{savedBy.displayName}</Link>}
+        {record && <Link to={`/logs/${record.slug}`} prefetch="viewport" className="no-underline hover:text-ocean-blue transition-colors">← {record.title}</Link>}
       </div>
     </blockquote>
   );

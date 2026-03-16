@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import { Link } from "~/components/SmartLink";
 
 interface CollaborationUnitCardProps {
   unit: {
@@ -48,7 +48,8 @@ export default function CollaborationUnitCard({ unit, memberCount, challenge }: 
       )}
 
       <Link 
-        to={`/groups/${unit.slug}`} 
+        to={`/groups/${unit.slug}`}
+        prefetch="viewport"
         className="font-semibold text-text-primary text-lg tracking-tight no-underline hover:text-ocean-blue transition-colors"
       >
         {unit.name}
@@ -62,14 +63,15 @@ export default function CollaborationUnitCard({ unit, memberCount, challenge }: 
 
       <div className="flex gap-4 text-meta text-text-tertiary">
         {memberCount !== undefined && <span>팀원 {memberCount}명</span>}
-        {challenge && (
-          <Link 
-            to={`/challenges/${challenge.slug}`}
-            className="no-underline hover:text-ocean-blue transition-colors"
-          >
-            {challenge.name}
-          </Link>
-        )}
+         {challenge && (
+           <Link 
+             to={`/challenges/${challenge.slug}`}
+             prefetch="viewport"
+             className="no-underline hover:text-ocean-blue transition-colors"
+           >
+             {challenge.name}
+           </Link>
+         )}
       </div>
     </article>
   );

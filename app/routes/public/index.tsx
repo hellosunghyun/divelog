@@ -1,5 +1,5 @@
 import type { Route } from "./+types/index";
-import { Link } from "react-router";
+import { Link } from "~/components/SmartLink";
 import { db } from "~/db/client.server";
 import { stages, records, questions, sentences, learnerProfiles } from "~/db/schema.server";
 import { eq, desc, and, sql, count } from "drizzle-orm";

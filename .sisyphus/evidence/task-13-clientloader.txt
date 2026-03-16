@@ -1,0 +1,5 @@
+14:const cache = new Map<string, unknown>();
+43:export async function clientLoader({ params, serverLoader }: {
+48:  if (cache.has(key)) return cache.get(key);
+50:  cache.set(key, loaderData);
+PASS

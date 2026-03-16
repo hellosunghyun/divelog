@@ -1,0 +1,6 @@
+30:const cache = new Map<string, unknown>();
+32:export async function clientLoader({ params, serverLoader }: Route.ClientLoaderArgs) {
+34:  if (cache.has(key)) return cache.get(key) as Awaited<ReturnType<typeof loader>>;
+36:  cache.set(key, data);
+42:  cache.delete(params.recordSlug ?? "");
+=== Type Check ===

@@ -1,0 +1,6 @@
+15:export const links: Route.LinksFunction = () => [
+16:  { rel: "dns-prefetch", href: "https://ada-kr-pos.com" },
+17:  { rel: "preconnect", href: "https://ada-kr-pos.com" },
+29:        <link rel="preconnect" href="https://cdn.jsdelivr.net" crossOrigin="anonymous" />
+---
+Type check completed

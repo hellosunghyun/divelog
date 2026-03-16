@@ -1,5 +1,6 @@
 import { eq } from "drizzle-orm";
-import { data, Link, redirect, useActionData, useNavigation } from "react-router";
+import { Link } from "~/components/SmartLink";
+import { data, redirect, useActionData, useNavigation } from "react-router";
 import { useState } from "react";
 
 import type { Route } from "./+types/$recordSlug.details";

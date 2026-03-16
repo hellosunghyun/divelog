@@ -1,5 +1,6 @@
 import { and, desc, eq } from "drizzle-orm";
-import { data, Link, redirect, useActionData, useNavigation, useSubmit } from "react-router";
+import { Link } from "~/components/SmartLink";
+import { data, redirect, useActionData, useNavigation, useSubmit } from "react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import EmptyState from "~/components/EmptyState";
@@ -25,6 +26,22 @@ import { createResponseSchema, saveSentenceSchema } from "~/lib/validation";
 import { getOptionalUser } from "~/lib/auth.middleware";
 
 import type { Route } from "./+types/$recordSlug";
+
+const cache = new Map<string, unknown>();
+
+export async function clientLoader({ params, serverLoader }: Route.ClientLoaderArgs) {
+  const key = params.recordSlug ?? "";
+  if (cache.has(key)) return cache.get(key) as Awaited<ReturnType<typeof loader>>;
+  const data = await serverLoader();
+  cache.set(key, data);
+  return data;
+}
+
+export async function clientAction({ params, serverAction }: Route.ClientActionArgs) {
+  const result = await serverAction();
+  cache.delete(params.recordSlug ?? "");
+  return result;
+}
 
 export async function loader({ params, context, request }: Route.LoaderArgs) {
   const { recordSlug } = params;

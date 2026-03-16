@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import { Link } from "~/components/SmartLink";
 
 interface EmptyStateProps {
   variant?: "records" | "questions" | "responses" | "learners" | "notifications" | "search" | "generic";

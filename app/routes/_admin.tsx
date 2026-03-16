@@ -19,6 +19,20 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   };
 }
 
+export function shouldRevalidate({
+  formMethod,
+  defaultShouldRevalidate,
+}: {
+  formMethod?: string;
+  defaultShouldRevalidate: boolean;
+}): boolean {
+  // mutation(POST/PUT/DELETE)에서만 revalidation
+  if (formMethod && formMethod !== "GET") {
+    return defaultShouldRevalidate;
+  }
+  return false;
+}
+
 export default function AdminLayout() {
   return (
     <div className="flex h-screen overflow-hidden bg-admin-bg">
