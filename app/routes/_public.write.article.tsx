@@ -4,7 +4,6 @@ import { Link, redirect, useActionData, useNavigation } from "react-router";
 import type { Route } from "./+types/_public.write.article";
 
 import { ArticleEditor } from "../components/editor/ArticleEditor";
-import { getAllTags } from "../db/queries/tags.server";
 import { db } from "../db/client.server";
 import { learnerProfiles, notifications, records, stages, templates } from "../db/schema.server";
 import { useUnsavedWarning } from "../hooks/useUnsavedWarning";
@@ -29,8 +28,6 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     database.select({ id: stages.id, name: stages.name, isCurrent: stages.isCurrent }).from(stages).orderBy(stages.order),
     database.select().from(templates).where(eq(templates.active, true)),
   ]);
-  await getAllTags(context.cloudflare.env.DB);
-
   return {
     currentStage: currentStageResult[0] ?? null,
     stages: allStages,
