@@ -282,8 +282,8 @@
 
 /* === Selection === */
 .ProseMirror ::selection {
-  background-color: var(--color-mist-blue);
-  color: var(--color-text-primary);
+  background-color: var(--color-deep-ocean);
+  color: #FFFFFF;
 }
 
 /* === Placeholder Text === */
