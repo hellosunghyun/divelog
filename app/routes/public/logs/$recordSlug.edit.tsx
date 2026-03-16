@@ -318,7 +318,7 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
             <ArticleEditor
               name="content"
               content={articleContent}
-              onChange={setArticleContent}
+              onChange={(json) => setArticleContent(JSON.stringify(json))}
               placeholder="여기에 글을 쓰세요. `/`를 입력하면 블록을 추가할 수 있습니다."
             />
           )}

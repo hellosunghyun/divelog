@@ -1,20 +1,30 @@
 import { eq, sql } from "drizzle-orm";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "~/components/SmartLink";
-import { redirect, useActionData, useNavigation } from "react-router";
+import {
+  redirect,
+  useActionData,
+  useLoaderData,
+  useLocation,
+  useNavigation,
+} from "react-router";
 import type { Route } from "./+types/article";
 
+import { AutosaveIndicator } from "~/components/AutosaveIndicator";
 import { ArticleEditor } from "~/components/editor/ArticleEditor";
 import { db } from "~/db/client.server";
+import { deleteDraft, getDraftByAuthorAndFormat } from "~/db/queries/drafts.server";
 import { createQuestion } from "~/db/queries/questions.server";
 import { createLink, syncRecordLinksForRecord } from "~/db/queries/recordLinks.server";
 import { getRecordBySlug } from "~/db/queries/records.server";
 import { learnerProfiles, records, stages, templates } from "~/db/schema.server";
+import { useAutosave } from "~/hooks/useAutosave";
 import { useUnsavedWarning } from "~/hooks/useUnsavedWarning";
 import { requireVerified } from "~/lib/auth.middleware";
 import { getPlainText } from "~/lib/content.server";
 import { syncMentionsForRecord } from "~/db/queries/mentions.server";
 import { createNotification } from "~/db/queries/notifications.server";
+import { clearLocalDraft, loadDraftFromLocal } from "~/lib/draft-storage";
 import { extractUserMentions, extractRecordRefs } from "~/lib/extract-references.server";
 import { nanoid } from "~/lib/utils.server";
 import { createArticleSchema } from "~/lib/validation";
@@ -104,11 +114,24 @@ function createArticleContentFromNote(noteContent: string) {
   });
 }
 
+function getValidDraftContentJson(draft: { content: string; contentJson?: string | null }) {
+  if (draft.contentJson) {
+    try {
+      const parsed = JSON.parse(draft.contentJson) as unknown;
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+        return draft.contentJson;
+      }
+    } catch {}
+  }
+
+  return createArticleContentFromNote(draft.content);
+}
+
 export async function loader({ request, context }: Route.LoaderArgs) {
   const auth = await requireVerified(request, context);
   const url = new URL(request.url);
   const expandFrom = url.searchParams.get("expandFrom");
-  let expandRecord: { slug: string; title: string; content: string } | null = null;
+  let expandRecord: { slug: string; title: string; content: string; plainText: string } | null = null;
 
   if (expandFrom) {
     const sourceRecord = await getRecordBySlug(context.cloudflare.env.DB, expandFrom);
@@ -121,24 +144,56 @@ export async function loader({ request, context }: Route.LoaderArgs) {
         slug: sourceRecord.record.slug,
         title: sourceRecord.record.title,
         content: createArticleContentFromNote(sourceRecord.record.content),
+        plainText: sourceRecord.record.contentText,
       };
     }
   }
 
   const database = db(context.cloudflare.env.DB);
-  const [currentStageResult, allStages, activeTemplates] = await database.batch([
+  const [currentStageResult, allStages, activeTemplates, serverDraftRecord] = await Promise.all([
     database.select().from(stages).where(eq(stages.isCurrent, true)).limit(1),
-    database.select({ id: stages.id, name: stages.name, isCurrent: stages.isCurrent }).from(stages).orderBy(stages.order),
+    database
+      .select({ id: stages.id, name: stages.name, isCurrent: stages.isCurrent })
+      .from(stages)
+      .orderBy(stages.order),
     database.select().from(templates).where(eq(templates.active, true)),
+    getDraftByAuthorAndFormat(context.cloudflare.env.DB, auth.user.id, "article"),
   ]);
+
+  const serverDraft =
+    serverDraftRecord && serverDraftRecord.content.trim().length > 0
+      ? {
+          title: serverDraftRecord.title ?? undefined,
+          content: serverDraftRecord.content,
+          contentJson: serverDraftRecord.contentJson ?? undefined,
+          stageId: serverDraftRecord.stageId,
+          rhythm: serverDraftRecord.rhythm,
+          visibility: serverDraftRecord.visibility,
+          savedAt: serverDraftRecord.updatedAt * 1000,
+        }
+      : null;
+
   return {
     currentStage: currentStageResult[0] ?? null,
     stages: allStages,
     templates: activeTemplates,
     warmupPrompt: getRandomWarmupPrompt(),
     expandRecord,
+    serverDraft,
   };
 }
+
+export async function clientLoader({ serverLoader }: Route.ClientLoaderArgs) {
+  const serverData = await serverLoader();
+  const localDraft = loadDraftFromLocal("article");
+
+  return {
+    ...serverData,
+    localDraft: localDraft && localDraft.content.length > 0 ? localDraft : null,
+  };
+}
+
+clientLoader.hydrate = true as const;
 
 export async function action({ request, context }: Route.ActionArgs) {
   const auth = await requireVerified(request, context);
@@ -248,6 +303,8 @@ export async function action({ request, context }: Route.ActionArgs) {
     await syncRecordLinksForRecord(context.cloudflare.env.DB, id, recordRefs);
   }
 
+  await deleteDraft(context.cloudflare.env.DB, auth.user.id, "article");
+
   if (expandFrom) {
     const sourceRecord = await getRecordBySlug(context.cloudflare.env.DB, expandFrom);
     if (
@@ -267,20 +324,38 @@ export async function action({ request, context }: Route.ActionArgs) {
   throw redirect(`/logs/${slug}/details`);
 }
 
-export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
+export default function WriteArticlePage() {
   const {
     currentStage,
     stages: availableStages,
     templates: availableTemplates,
     warmupPrompt,
     expandRecord,
-  } = loaderData;
+    serverDraft,
+    localDraft,
+  } = useLoaderData<typeof clientLoader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
-  const [title, setTitle] = useState("");
+  const location = useLocation();
+  const recoveryDraft = expandRecord ? null : (serverDraft ?? localDraft);
   const initialContent = expandRecord?.content ?? "";
-  const [articleContent, setArticleContent] = useState(initialContent);
+  const initialContentText = expandRecord?.plainText ?? "";
+  const [title, setTitle] = useState("");
+  const [articleContent, setArticleContent] = useState<{ json: string; text: string } | null>(
+    initialContent
+      ? {
+          json: initialContent,
+          text: initialContentText,
+        }
+      : null,
+  );
+  const [selectedVisibility, setSelectedVisibility] = useState<"draft" | "cohort" | "public">(
+    "cohort",
+  );
+  const [selectedStage, setSelectedStage] = useState(currentStage?.id ?? "");
+  const selectedRhythm = "free";
   const [showSettings, setShowSettings] = useState(false);
+  const [showRecovery, setShowRecovery] = useState(Boolean(recoveryDraft));
   const [hasStartedTyping, setHasStartedTyping] = useState(hasMeaningfulArticleContent(initialContent));
   const [hasAutoRevealedSettings, setHasAutoRevealedSettings] = useState(false);
   const isSubmitting = navigation.state === "submitting";
@@ -288,13 +363,56 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
   const titleError = errors && "title" in errors ? errors.title?.[0] : undefined;
   const contentError = errors && "content" in errors ? errors.content?.[0] : undefined;
 
-  useUnsavedWarning(title.length > 0 || articleContent.length > 0);
+  const getAutosaveFormData = useCallback(
+    () => ({
+      content: articleContent?.text || "",
+      contentJson: articleContent?.json,
+      title: title || undefined,
+      stageId: selectedStage || null,
+      rhythm: selectedRhythm,
+      visibility: selectedVisibility,
+    }),
+    [articleContent, selectedStage, selectedVisibility, title],
+  );
+
+  const autosaveState = useAutosave({
+    format: "article",
+    getFormData: getAutosaveFormData,
+    enabled: true,
+    debounceMs: 3000,
+  });
+
+  useUnsavedWarning(title.length > 0 || (articleContent?.text.trim().length ?? 0) > 0);
 
   useEffect(() => {
-    setArticleContent(initialContent);
+    const isRedirectingAfterPublish =
+      navigation.state === "loading"
+      && navigation.formMethod === "post"
+      && navigation.formAction?.endsWith(location.pathname)
+      && navigation.location?.pathname !== location.pathname;
+
+    if (isRedirectingAfterPublish) {
+      clearLocalDraft("article");
+    }
+  }, [location.pathname, navigation.formAction, navigation.formMethod, navigation.location, navigation.state]);
+
+  useEffect(() => {
+    setTitle("");
+    setArticleContent(
+      initialContent
+        ? {
+            json: initialContent,
+            text: initialContentText,
+          }
+        : null,
+    );
+    setSelectedStage(currentStage?.id ?? "");
+    setSelectedVisibility("cohort");
+    setShowRecovery(Boolean(recoveryDraft));
+    setShowSettings(false);
     setHasStartedTyping(hasMeaningfulArticleContent(initialContent));
     setHasAutoRevealedSettings(false);
-  }, [initialContent]);
+  }, [currentStage?.id, initialContent, initialContentText, recoveryDraft]);
 
   useEffect(() => {
     if (showSettings || hasAutoRevealedSettings || !hasStartedTyping) {
@@ -311,12 +429,41 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
     };
   }, [hasAutoRevealedSettings, hasStartedTyping, showSettings]);
 
-  const handleArticleChange = (value: string) => {
-    setArticleContent(value);
+  const handleArticleChange = (json: object, text: string) => {
+    setArticleContent({ json: JSON.stringify(json), text });
 
-    if (!hasStartedTyping && hasMeaningfulArticleContent(value)) {
+    if (showRecovery && text.length > 0) {
+      setShowRecovery(false);
+    }
+
+    if (!hasStartedTyping && text.trim().length > 0) {
       setHasStartedTyping(true);
     }
+  };
+
+  const handleRecoverDraft = () => {
+    if (!recoveryDraft) {
+      return;
+    }
+
+    setTitle(recoveryDraft.title ?? "");
+    setArticleContent({
+      json: getValidDraftContentJson(recoveryDraft),
+      text: recoveryDraft.content,
+    });
+    setSelectedStage(recoveryDraft.stageId ?? currentStage?.id ?? "");
+    setSelectedVisibility(
+      (recoveryDraft.visibility as "draft" | "cohort" | "public" | undefined) ?? "cohort",
+    );
+    setShowRecovery(false);
+    setShowSettings(true);
+    setHasStartedTyping(true);
+    setHasAutoRevealedSettings(true);
+  };
+
+  const handleDiscardDraft = () => {
+    clearLocalDraft("article");
+    setShowRecovery(false);
   };
 
   return (
@@ -334,6 +481,39 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
         {expandRecord ? <input type="hidden" name="expandFrom" value={expandRecord.slug} /> : null}
 
         <div>
+          {showRecovery && recoveryDraft ? (
+            <div
+              data-testid="draft-recovery-prompt"
+              className="mb-4 rounded-2xl border border-[--color-mist-blue] bg-[--color-mist-blue]/30 p-4"
+            >
+              <p className="mb-3 text-sm text-[--color-text-secondary]">
+                이전에 작성하던 글 초안이 있습니다.
+              </p>
+              <p className="mb-2 line-clamp-2 text-xs text-[--color-text-tertiary]">
+                {(recoveryDraft.title?.trim().length ? `${recoveryDraft.title} - ` : "")
+                  + recoveryDraft.content.slice(0, 150)}
+              </p>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  data-testid="draft-recover-button"
+                  onClick={handleRecoverDraft}
+                  className="min-h-11 text-sm text-[--color-ocean-blue] hover:underline"
+                >
+                  이어서 작성하기
+                </button>
+                <button
+                  type="button"
+                  data-testid="draft-discard-button"
+                  onClick={handleDiscardDraft}
+                  className="min-h-11 text-sm text-[--color-text-tertiary] hover:underline"
+                >
+                  새로 시작
+                </button>
+              </div>
+            </div>
+          ) : null}
+
           {expandRecord ? (
             <p className="mb-3 text-sm text-text-secondary">
               <span className="font-medium text-text-primary">{expandRecord.title}</span> 메모를 바탕으로 이어 쓰고 있습니다.
@@ -345,12 +525,15 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
           >
             {warmupPrompt}
           </p>
+          <div className="mb-3 flex justify-end" data-testid="autosave-indicator">
+            <AutosaveIndicator status={autosaveState.status} lastSavedAt={autosaveState.lastSavedAt} />
+          </div>
           <p className="mb-2 block text-meta font-medium text-text-secondary">
             내용 <span className="text-error">*</span>
           </p>
           <ArticleEditor
             name="content"
-            content={articleContent}
+            content={articleContent?.json ?? ""}
             onChange={handleArticleChange}
             placeholder="여기에 글을 쓰세요. `/`를 입력하면 블록을 추가할 수 있습니다."
           />
@@ -389,7 +572,14 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
                 type="text"
                 placeholder="제목 (나중에 붙여도 됩니다)"
                 value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                onChange={(e) => {
+                  const nextTitle = e.target.value;
+                  setTitle(nextTitle);
+
+                  if (showRecovery && nextTitle.trim().length > 0) {
+                    setShowRecovery(false);
+                  }
+                }}
                 className="w-full rounded-md border border-border bg-surface px-4 py-3 text-base focus:ring-2 focus:ring-ocean-blue focus:ring-offset-1 focus:outline-none"
               />
               {titleError ? <p className="mt-1 text-meta text-error">{titleError}</p> : null}
@@ -406,7 +596,10 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
                 <select
                   id="visibility"
                   name="visibility"
-                  defaultValue="cohort"
+                  value={selectedVisibility}
+                  onChange={(event) =>
+                    setSelectedVisibility(event.target.value as "draft" | "cohort" | "public")
+                  }
                   className="w-full rounded-md border border-border bg-surface px-3 py-2 text-base focus:ring-2 focus:ring-ocean-blue focus:outline-none"
                 >
                   <option value="cohort">코호트 공개</option>
@@ -425,7 +618,8 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
                 <select
                   id="stageId"
                   name="stageId"
-                  defaultValue={currentStage?.id ?? ""}
+                  value={selectedStage}
+                  onChange={(event) => setSelectedStage(event.target.value)}
                   className="w-full rounded-md border border-border bg-surface px-3 py-2 text-base focus:ring-2 focus:ring-ocean-blue focus:outline-none"
                 >
                   <option value="">구간 미지정</option>

@@ -192,13 +192,13 @@ function ColorPickerMenu({ editor }: { editor: any }) {
 
 interface ArticleEditorProps {
   content?: string;
-  onChange?: (json: string) => void;
+  onChange?: (json: object, text: string) => void;
   className?: string;
   placeholder?: string;
   name?: string;
 }
 
-function parseContent(content?: string): Record<string, unknown> | undefined {
+function parseContent(content?: string): object | undefined {
   if (!content) {
     return undefined;
   }
@@ -206,7 +206,7 @@ function parseContent(content?: string): Record<string, unknown> | undefined {
   try {
     const parsed = JSON.parse(content) as unknown;
     if (typeof parsed === "object" && parsed !== null) {
-      return parsed as Record<string, unknown>;
+      return parsed;
     }
   } catch {
     return undefined;
@@ -347,7 +347,8 @@ export function ArticleEditor({
       },
     },
     onUpdate: ({ editor: currentEditor }) => {
-      const nextValue = JSON.stringify(currentEditor.getJSON());
+      const nextJson = currentEditor.getJSON();
+      const nextValue = JSON.stringify(nextJson);
 
       const jsonSize = new TextEncoder().encode(nextValue).length;
       if (jsonSize > MAX_CONTENT_SIZE) {
@@ -358,7 +359,7 @@ export function ArticleEditor({
       setEditorError(null);
       lastSyncedRef.current = nextValue;
       setJsonValue(nextValue);
-      onChange?.(nextValue);
+      onChange?.(nextJson, currentEditor.getText());
     },
   });
 
