@@ -1,11 +1,10 @@
 import { sql, ne, and } from "drizzle-orm";
-import type { Route } from "./+types/api.search-records";
-import { db } from "../db/client.server";
-import { records, learnerProfiles } from "../db/schema.server";
-import { getOptionalUser } from "../lib/auth.middleware";
-import { createLogger } from "../lib/logger.server";
+import { db } from "~/db/client.server";
+import { records, learnerProfiles } from "~/db/schema.server";
+import { getOptionalUser } from "~/lib/auth.middleware";
+import { createLogger } from "~/lib/logger.server";
 
-export async function loader({ request, context }: Route.LoaderArgs) {
+export async function loader({ request, context }: any) {
   const logger = createLogger(request, context.cloudflare.env).child({ route: "api.search-records" });
   logger.info("loader_start");
 
