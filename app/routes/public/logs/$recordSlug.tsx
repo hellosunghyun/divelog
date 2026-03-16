@@ -425,6 +425,8 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
   const [selectedText, setSelectedText] = useState("");
   const [showSentenceButton, setShowSentenceButton] = useState(false);
   const [buttonPosition, setButtonPosition] = useState({ x: 0, y: 0 });
+  const [showLinkedRecords, setShowLinkedRecords] = useState(false);
+  const [showSentences, setShowSentences] = useState(false);
   const articleContentRef = useRef<HTMLDivElement | null>(null);
 
   const isRecordAuthor = currentUserId === record.authorId;
@@ -998,40 +1000,63 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
       </section>
 
       <section className="mb-12">
-        <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-8">
-          연결된 기록
-        </h2>
-        {linkedRecords.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {linkedRecords.map((linkedRecord) => (
-              <div key={linkedRecord.record.id} className="relative">
-                <SceneCard
-                  record={linkedRecord.record}
-                  contentSnippet={linkedRecord.contentSnippet}
-                  author={linkedRecord.author?.displayName ? {
-                    displayName: linkedRecord.author.displayName,
-                    slug: linkedRecord.author.slug ?? "",
-                  } : undefined}
-                />
-                <span className="absolute top-4 right-4 text-caption px-2 py-0.5 rounded-full bg-mist-blue text-ocean-blue">
-                  {linkedRecord.direction === "outgoing" ? "참조" : "역참조"}
-                </span>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="flex flex-col items-center text-center py-12 px-4 gap-4">
-            <p className="text-base text-text-secondary leading-body">아직 연결된 기록이 없습니다.</p>
-            {isRecordAuthor && (
-              <Link
-                to={`/write`}
-                className="mt-2 px-5 py-2.5 rounded-full bg-ocean-blue text-white text-sm font-medium hover:bg-deep-ocean transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2 no-underline"
-              >
-                이어서 기록하기
-              </Link>
-            )}
-          </div>
-        )}
+        <div>
+          {/* 모바일 토글 버튼 */}
+          <button
+            type="button"
+            className="md:hidden w-full flex items-center justify-between py-3 text-sm font-medium text-[--color-text-secondary]"
+            onClick={() => setShowLinkedRecords(v => !v)}
+            aria-expanded={showLinkedRecords}
+          >
+            <span>연결된 기록 {linkedRecords.length > 0 ? `(${linkedRecords.length})` : ''}</span>
+            <svg aria-hidden className={`w-4 h-4 transition-transform ${showLinkedRecords ? 'rotate-180' : ''}`} viewBox="0 0 16 16" fill="none">
+              <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+
+          {/* 데스크톱 제목 */}
+          <h2 className="hidden md:block text-xl font-semibold text-text-primary tracking-tight mb-8">
+            연결된 기록
+          </h2>
+        </div>
+
+        {/* 콘텐츠 */}
+        <div 
+          data-testid="section-accordion-linked"
+          className={`${showLinkedRecords ? 'block' : 'hidden'} md:block`}
+        >
+          {linkedRecords.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {linkedRecords.map((linkedRecord) => (
+                <div key={linkedRecord.record.id} className="relative">
+                  <SceneCard
+                    record={linkedRecord.record}
+                    contentSnippet={linkedRecord.contentSnippet}
+                    author={linkedRecord.author?.displayName ? {
+                      displayName: linkedRecord.author.displayName,
+                      slug: linkedRecord.author.slug ?? "",
+                    } : undefined}
+                  />
+                  <span className="absolute top-4 right-4 text-caption px-2 py-0.5 rounded-full bg-mist-blue text-ocean-blue">
+                    {linkedRecord.direction === "outgoing" ? "참조" : "역참조"}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center text-center py-12 px-4 gap-4">
+              <p className="text-base text-text-secondary leading-body">아직 연결된 기록이 없습니다.</p>
+              {isRecordAuthor && (
+                <Link
+                  to={`/write`}
+                  className="mt-2 px-5 py-2.5 rounded-full bg-ocean-blue text-white text-sm font-medium hover:bg-deep-ocean transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2 no-underline"
+                >
+                  이어서 기록하기
+                </Link>
+              )}
+            </div>
+          )}
+        </div>
       </section>
 
       {recordFormat === "note" && expansionLinks.length > 0 && (
@@ -1075,18 +1100,41 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
       )}
 
       <section>
-        <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-8">
-          남겨두고 싶은 문장들
-        </h2>
-        {recordSentences.length > 0 ? (
-          <div className="flex flex-col gap-5">
-            {recordSentences.map(({ sentence, savedBy }) => (
-              <HighlightedSentenceCard key={sentence.id} sentence={sentence} savedBy={savedBy ?? undefined} />
-            ))}
-          </div>
-        ) : (
-          <EmptyState variant="generic" message="아직 저장된 문장이 없습니다." />
-        )}
+        <div>
+          {/* 모바일 토글 버튼 */}
+          <button
+            type="button"
+            className="md:hidden w-full flex items-center justify-between py-3 text-sm font-medium text-[--color-text-secondary]"
+            onClick={() => setShowSentences(v => !v)}
+            aria-expanded={showSentences}
+          >
+            <span>남겨두고 싶은 문장들 {recordSentences.length > 0 ? `(${recordSentences.length})` : ''}</span>
+            <svg aria-hidden className={`w-4 h-4 transition-transform ${showSentences ? 'rotate-180' : ''}`} viewBox="0 0 16 16" fill="none">
+              <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+
+          {/* 데스크톱 제목 */}
+          <h2 className="hidden md:block text-xl font-semibold text-text-primary tracking-tight mb-8">
+            남겨두고 싶은 문장들
+          </h2>
+        </div>
+
+        {/* 콘텐츠 */}
+        <div 
+          data-testid="section-accordion-sentences"
+          className={`${showSentences ? 'block' : 'hidden'} md:block`}
+        >
+          {recordSentences.length > 0 ? (
+            <div className="flex flex-col gap-5">
+              {recordSentences.map(({ sentence, savedBy }) => (
+                <HighlightedSentenceCard key={sentence.id} sentence={sentence} savedBy={savedBy ?? undefined} />
+              ))}
+            </div>
+          ) : (
+            <EmptyState variant="generic" message="아직 저장된 문장이 없습니다." />
+          )}
+        </div>
       </section>
     </div>
   );
