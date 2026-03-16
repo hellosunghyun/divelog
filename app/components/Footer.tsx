@@ -29,13 +29,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 mb-20">
           <div className="lg:col-span-4">
             <Link to="/" className={`flex items-center gap-2.5 mb-6 no-underline ${focusRing}`}>
-              <div className="bg-ocean-blue w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-xl shadow-ocean-blue/20">
-                <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1" />
-                  <path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1" />
-                  <path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1" />
-                </svg>
-              </div>
+              <img src="/icon.svg" alt="" aria-hidden="true" className="w-10 h-10 rounded-xl shadow-xl shadow-ocean-blue/20" />
                <span className="text-2xl font-bold tracking-tight text-white">DiveLog</span>
             </Link>
             <p className="text-mist-blue/60 text-[15px] leading-relaxed max-w-sm">
