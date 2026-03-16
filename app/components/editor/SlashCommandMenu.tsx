@@ -141,6 +141,83 @@ function getSlashItems(options: Pick<SlashCommandMenuOptions, "uploadImage" | "o
       },
     },
     {
+      title: "체크리스트",
+      description: "할 일 체크 목록",
+      icon: "☑",
+      keywords: ["체크", "할일", "task", "todo", "checkbox"],
+      command: ({ editor, range }) => {
+        editor.chain().focus().deleteRange(range).toggleTaskList().run();
+      },
+    },
+    {
+      title: "표",
+      description: "행과 열이 있는 표",
+      icon: "⊞",
+      keywords: ["표", "테이블", "table"],
+      command: ({ editor, range }) => {
+        editor.chain().focus().deleteRange(range).insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
+      },
+    },
+    {
+      title: "콜아웃",
+      description: "강조하고 싶은 안내 블록",
+      icon: "ℹ",
+      keywords: ["콜아웃", "안내", "callout", "info", "알림"],
+      command: ({ editor, range }) => {
+        editor.chain().focus().deleteRange(range).run();
+        editor.chain().focus().wrapIn("callout", { type: "info" }).run();
+      },
+    },
+    {
+      title: "팁",
+      description: "유용한 팁이나 노하우",
+      icon: "💡",
+      keywords: ["팁", "tip", "노하우"],
+      command: ({ editor, range }) => {
+        editor.chain().focus().deleteRange(range).run();
+        editor.chain().focus().wrapIn("callout", { type: "tip" }).run();
+      },
+    },
+    {
+      title: "주의",
+      description: "주의가 필요한 내용",
+      icon: "⚠",
+      keywords: ["주의", "경고", "warning"],
+      command: ({ editor, range }) => {
+        editor.chain().focus().deleteRange(range).run();
+        editor.chain().focus().wrapIn("callout", { type: "warning" }).run();
+      },
+    },
+    {
+      title: "질문 블록",
+      description: "아직 답이 없는 질문을 남기기",
+      icon: "?",
+      keywords: ["질문", "question", "궁금"],
+      command: ({ editor, range }) => {
+        editor.chain().focus().deleteRange(range).run();
+        editor.chain().focus().wrapIn("callout", { type: "question" }).run();
+      },
+    },
+    {
+      title: "접기",
+      description: "펼쳐서 볼 수 있는 접힌 블록",
+      icon: "▸",
+      keywords: ["접기", "토글", "toggle", "details", "펼치기"],
+      command: ({ editor, range }) => {
+        editor.chain().focus().deleteRange(range).run();
+        editor.chain().focus().wrapIn("toggleBlock").run();
+      },
+    },
+    {
+      title: "형광펜",
+      description: "텍스트를 형광 표시",
+      icon: "🖍",
+      keywords: ["형광", "강조", "highlight", "마크"],
+      command: ({ editor, range }) => {
+        editor.chain().focus().deleteRange(range).toggleHighlight().run();
+      },
+    },
+    {
       title: "이미지",
       description: "이미지를 업로드해 삽입",
       icon: "🖼",

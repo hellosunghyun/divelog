@@ -148,6 +148,30 @@ function renderNode(node: TiptapNode): string {
       const refLabel = escapeHtml((node.attrs?.label as string) ?? "");
       return `<a href="/logs/${refSlug}" class="record-ref" data-record-id="${escapeHtml((node.attrs?.id as string) ?? "")}">${refLabel}</a>`;
     }
+    case "callout": {
+      const calloutType = escapeHtml((node.attrs?.type as string) ?? "info");
+      return `<div class="callout" data-callout-type="${calloutType}">${children}</div>`;
+    }
+    case "toggleBlock": {
+      const summary = escapeHtml((node.attrs?.summary as string) ?? "클릭하여 펼치기");
+      return `<details class="toggle-block" open><summary>${summary}</summary><div class="toggle-content">${children}</div></details>`;
+    }
+    case "taskList":
+      return `<ul data-type="taskList">${children}</ul>`;
+    case "taskItem": {
+      const checked = node.attrs?.checked ? "true" : "false";
+      return `<li data-type="taskItem" data-checked="${checked}"><label><input type="checkbox" ${node.attrs?.checked ? "checked" : ""} disabled></label><div>${children}</div></li>`;
+    }
+    case "table":
+      return `<table>${children}</table>`;
+    case "tableRow":
+      return `<tr>${children}</tr>`;
+    case "tableCell":
+      return `<td>${children}</td>`;
+    case "tableHeader":
+      return `<th>${children}</th>`;
+    case "highlight":
+      return `<mark>${children}</mark>`;
     default:
       return children;
   }

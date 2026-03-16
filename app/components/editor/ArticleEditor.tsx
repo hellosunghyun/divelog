@@ -1,13 +1,25 @@
 "use client";
 
 import { CodeBlockLowlight } from "@tiptap/extension-code-block-lowlight";
+import { Highlight } from "@tiptap/extension-highlight";
 import { Image } from "@tiptap/extension-image";
+import { Link } from "@tiptap/extension-link";
 import { Placeholder } from "@tiptap/extension-placeholder";
+import { Subscript } from "@tiptap/extension-subscript";
+import { Superscript } from "@tiptap/extension-superscript";
+import { Table } from "@tiptap/extension-table";
+import { TableCell } from "@tiptap/extension-table-cell";
+import { TableHeader } from "@tiptap/extension-table-header";
+import { TableRow } from "@tiptap/extension-table-row";
+import { TaskItem } from "@tiptap/extension-task-item";
+import { TaskList } from "@tiptap/extension-task-list";
 import { Underline } from "@tiptap/extension-underline";
 import { Extension, EditorContent, useEditor } from "@tiptap/react";
 import { BubbleMenu } from "@tiptap/react/menus";
 import { StarterKit } from "@tiptap/starter-kit";
 import { common, createLowlight } from "lowlight";
+import { Callout } from "./CalloutExtension";
+import { ToggleBlock } from "./ToggleExtension";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { createSlashCommandExtension } from "./SlashCommandMenu";
@@ -123,10 +135,21 @@ export function ArticleEditor({
       Underline,
       CodeBlockLowlight.configure({
         lowlight,
+        defaultLanguage: "swift",
       }),
-      Image.configure({
-        allowBase64: false,
-      }),
+      Image.configure({ allowBase64: false }),
+      Link.configure({ autolink: true, openOnClick: false, defaultProtocol: "https" }),
+      Highlight.configure({ multicolor: false }),
+      TaskList,
+      TaskItem.configure({ nested: true }),
+      Table.configure({ resizable: false }),
+      TableRow,
+      TableCell,
+      TableHeader,
+      Superscript,
+      Subscript,
+      Callout,
+      ToggleBlock,
       slashCommandExtension,
       formSubmitExtension,
       userMentionExtension,
