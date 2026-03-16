@@ -1,4 +1,5 @@
-import { data } from "react-router";
+import { data, Form, useActionData, useNavigation } from "react-router";
+import { useState } from "react";
 import type { Route } from "./+types/$stageSlug";
 import { Link } from "~/components/SmartLink";
 import { db } from "~/db/client.server";
@@ -10,7 +11,10 @@ import QuestionCard from "~/components/QuestionCard";
 import CollaborationUnitCard from "~/components/CollaborationUnitCard";
 import EmptyState from "~/components/EmptyState";
 import StageStrip from "~/components/StageStrip";
+import { getPersonalReflection, upsertPersonalReflection } from "~/db/queries/reflections.server";
+import { getOptionalUser, requireAuth } from "~/lib/auth.middleware";
 import { createLogger } from "~/lib/logger.server";
+import { personalReflectionSchema } from "~/lib/validation";
 
 const cache = new Map<string, unknown>();
 
@@ -19,6 +23,7 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
   const logger = createLogger(request, context.cloudflare.env).child({ route: "journey_stage_detail" });
   logger.info("loader_start");
   const database = db(context.cloudflare.env.DB);
+  const auth = await getOptionalUser(request, context);
 
   const [stageResult, allStages] = await database.batch([
     database.select().from(stages).where(eq(stages.slug, stageSlug)).limit(1),
@@ -60,8 +65,20 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
     database.select().from(collaborationUnits).where(eq(collaborationUnits.stageId, stage.id)),
   ]);
 
+  const existingReflection = stage.status === "closed" && auth?.user
+    ? await getPersonalReflection(context.cloudflare.env.DB, stage.id, auth.user.id)
+    : null;
+
   logger.info("loader_end");
-  return { stage, allStages, stageRecords, stageQuestions, stageCollaborations };
+  return {
+    stage,
+    allStages,
+    stageRecords,
+    stageQuestions,
+    stageCollaborations,
+    existingReflection,
+    canWriteReflection: Boolean(auth?.isAuthenticated),
+  };
 }
 
 export async function clientLoader({ params, serverLoader }: {
@@ -73,6 +90,65 @@ export async function clientLoader({ params, serverLoader }: {
   const data = await serverLoader();
   cache.set(key, data);
   return data;
+}
+
+export async function clientAction({ params, serverAction }: Route.ClientActionArgs) {
+  const result = await serverAction();
+  cache.delete(params.stageSlug ?? "");
+  return result;
+}
+
+function normalizeOptionalField(value: FormDataEntryValue | null): string | null {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+export async function action({ request, context, params }: Route.ActionArgs) {
+  const formData = await request.formData();
+  const intent = formData.get("intent")?.toString();
+
+  if (intent !== "create_reflection" && intent !== "edit_reflection") {
+    return { error: "알 수 없는 요청입니다." };
+  }
+
+  const auth = await requireAuth(request, context);
+  const stageSlug = params.stageSlug;
+  const database = db(context.cloudflare.env.DB);
+  const stageResult = await database.select().from(stages).where(eq(stages.slug, stageSlug)).limit(1);
+  const stage = stageResult[0];
+
+  if (!stage) {
+    throw data("Stage를 찾을 수 없습니다", { status: 404 });
+  }
+
+  if (stage.status !== "closed") {
+    return { error: "종료된 Stage에서만 회고를 남길 수 있습니다." };
+  }
+
+  const parsed = personalReflectionSchema.safeParse({
+    stageId: formData.get("stageId"),
+    letGo: normalizeOptionalField(formData.get("letGo")),
+    carryQuestion: normalizeOptionalField(formData.get("carryQuestion")),
+    lastingSentence: normalizeOptionalField(formData.get("lastingSentence")),
+  });
+
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "입력값을 확인해주세요." };
+  }
+
+  await upsertPersonalReflection(context.cloudflare.env.DB, {
+    stageId: parsed.data.stageId || stage.id,
+    learnerId: auth.user.id,
+    letGo: parsed.data.letGo,
+    carryQuestion: parsed.data.carryQuestion,
+    lastingSentence: parsed.data.lastingSentence,
+  });
+
+  return { success: true };
 }
 
 export function meta({ data: loaderData }: Route.MetaArgs) {
@@ -89,7 +165,14 @@ export function meta({ data: loaderData }: Route.MetaArgs) {
 }
 
 export default function StageDetailPage({ loaderData }: Route.ComponentProps) {
-  const { stage, allStages, stageRecords, stageQuestions, stageCollaborations } = loaderData;
+  const { stage, allStages, stageRecords, stageQuestions, stageCollaborations, existingReflection, canWriteReflection } = loaderData;
+  const actionData = useActionData<typeof action>();
+  const navigation = useNavigation();
+  const isSubmittingReflection = navigation.state === "submitting"
+    && (navigation.formData?.get("intent") === "create_reflection"
+      || navigation.formData?.get("intent") === "edit_reflection");
+  const [isEditingReflection, setIsEditingReflection] = useState(false);
+  const showReflectionForm = !existingReflection || isEditingReflection;
 
   return (
     <div>
@@ -197,6 +280,106 @@ export default function StageDetailPage({ loaderData }: Route.ComponentProps) {
             </div>
           )}
         </section>
+
+        {stage.status === "closed" && canWriteReflection && (
+          <section data-testid="personal-closing-ritual" className="mt-12 border-t border-border pt-8">
+            <h2 className="text-xl font-semibold text-text-primary mb-2">
+              이 구간을 돌아보며
+            </h2>
+            <p className="text-sm text-text-tertiary mb-6">
+              완성된 글이 아니어도 괜찮습니다. 한 문장도 충분합니다.
+            </p>
+
+            {actionData?.error ? (
+              <p className="mb-4 text-sm text-error">{actionData.error}</p>
+            ) : null}
+
+            {existingReflection && !showReflectionForm ? (
+              <div className="flex flex-col gap-5 rounded-2xl border border-border bg-surface p-6">
+                <div className="space-y-2">
+                  <h3 className="text-sm font-medium text-text-secondary">버릴 것</h3>
+                  <p className="text-base leading-relaxed text-text-primary">{existingReflection.letGo || "—"}</p>
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-sm font-medium text-text-secondary">다음 구간으로 가져갈 질문</h3>
+                  <p className="text-base leading-relaxed text-text-primary">{existingReflection.carryQuestion || "—"}</p>
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-sm font-medium text-text-secondary">가장 오래 남은 문장</h3>
+                  <p className="text-base leading-relaxed text-text-primary">{existingReflection.lastingSentence || "—"}</p>
+                </div>
+                <div>
+                  <button
+                    type="button"
+                    onClick={() => setIsEditingReflection(true)}
+                    className="min-h-11 rounded-full border border-border px-4 py-2 text-sm text-text-secondary transition-colors hover:bg-surface-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
+                  >
+                    수정
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <Form method="post" className="flex flex-col gap-5 rounded-2xl border border-border bg-surface p-6">
+                <input
+                  type="hidden"
+                  name="intent"
+                  value={existingReflection ? "edit_reflection" : "create_reflection"}
+                />
+                <input type="hidden" name="stageId" value={stage.id} />
+
+                <div>
+                  <label htmlFor="letGo" className="mb-2 block text-sm font-medium text-text-secondary">
+                    이 구간에서 버릴 것 한 가지 (선택)
+                  </label>
+                  <textarea
+                    id="letGo"
+                    name="letGo"
+                    defaultValue={existingReflection?.letGo ?? ""}
+                    rows={4}
+                    placeholder="무엇을 내려놓을 수 있을까요?"
+                    className="min-h-[96px] w-full resize-y rounded-lg border border-border bg-surface px-4 py-3 text-base text-text-primary placeholder:text-text-tertiary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="carryQuestion" className="mb-2 block text-sm font-medium text-text-secondary">
+                    다음 구간으로 가져갈 질문 한 가지 (선택)
+                  </label>
+                  <textarea
+                    id="carryQuestion"
+                    name="carryQuestion"
+                    defaultValue={existingReflection?.carryQuestion ?? ""}
+                    rows={4}
+                    placeholder="어떤 질문을 가져가고 싶은가요?"
+                    className="min-h-[96px] w-full resize-y rounded-lg border border-border bg-surface px-4 py-3 text-base text-text-primary placeholder:text-text-tertiary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="lastingSentence" className="mb-2 block text-sm font-medium text-text-secondary">
+                    가장 오래 남은 문장 한 가지 (선택)
+                  </label>
+                  <textarea
+                    id="lastingSentence"
+                    name="lastingSentence"
+                    defaultValue={existingReflection?.lastingSentence ?? ""}
+                    rows={4}
+                    placeholder="이 구간에서 떠오르는 문장은?"
+                    className="min-h-[96px] w-full resize-y rounded-lg border border-border bg-surface px-4 py-3 text-base text-text-primary placeholder:text-text-tertiary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isSubmittingReflection}
+                  className="self-start rounded-full bg-deep-ocean px-7 py-3 text-[15px] font-medium text-white shadow-sm transition-all hover:bg-ocean-blue hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2 disabled:opacity-60"
+                >
+                  {isSubmittingReflection ? "저장 중..." : "저장"}
+                </button>
+              </Form>
+            )}
+          </section>
+        )}
       </div>
     </div>
   );

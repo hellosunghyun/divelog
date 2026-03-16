@@ -152,6 +152,15 @@ export const saveSentenceSchema = z.object({
 
 export type SaveSentenceInput = z.infer<typeof saveSentenceSchema>;
 
+export const personalReflectionSchema = z.object({
+  stageId: z.string().min(1),
+  letGo: z.string().optional().nullable(),
+  carryQuestion: z.string().optional().nullable(),
+  lastingSentence: z.string().optional().nullable(),
+});
+
+export type PersonalReflectionInput = z.infer<typeof personalReflectionSchema>;
+
 export const updateSettingsSchema = z.object({
   defaultVisibility: z.enum(["draft", "cohort", "public"]).optional(),
   defaultResponsePreference: z.enum(["open", "question_only", "closed"]).optional(),
