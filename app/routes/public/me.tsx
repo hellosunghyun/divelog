@@ -5,7 +5,9 @@ import EmptyState from "~/components/EmptyState";
 import HeroSection from "~/components/HeroSection";
 import { Link } from "~/components/SmartLink";
 import { db } from "~/db/client.server";
+import { createNotification } from "~/db/queries/notifications.server";
 import { getUnansweredQuestionsByAuthor } from "~/db/queries/questions.server";
+import { getDueReminders, markReminderSent } from "~/db/queries/reminders.server";
 import { getRecentlyRespondedRecords } from "~/db/queries/responses.server";
 import { learnerProfiles, records, stages } from "~/db/schema.server";
 import { requireAuth } from "~/lib/auth.middleware";
@@ -51,6 +53,19 @@ export async function loader({ request, context }: Route.LoaderArgs): Promise<Lo
 
   const auth = await requireAuth(request, context);
   const database = db(context.cloudflare.env.DB);
+  const dueReminders = await getDueReminders(context.cloudflare.env.DB, auth.user.id);
+
+  await Promise.all(dueReminders.map(async (reminder) => {
+    await createNotification(context.cloudflare.env.DB, {
+      recipientId: auth.user.id,
+      type: "reread_reminder",
+      title: "다시 읽어볼 시간입니다",
+      content: "이전에 설정한 질문 리마인드 시간이 됐습니다.",
+      questionId: reminder.questionId,
+    });
+
+    await markReminderSent(context.cloudflare.env.DB, reminder.id);
+  }));
 
   const [unansweredQuestions, recentlyResponded, drafts, allStages, myRecordsWithStage]: [
     LoaderData["unansweredQuestions"],

@@ -1,6 +1,6 @@
 import { and, desc, eq } from "drizzle-orm";
 import { Link } from "~/components/SmartLink";
-import { data, redirect, useActionData, useNavigation, useSubmit } from "react-router";
+import { data, useActionData, useNavigation, useSubmit } from "react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import EmptyState from "~/components/EmptyState";
@@ -17,6 +17,7 @@ import { learnerProfiles, questions, records, responses, sentences } from "~/db/
 import { createSelfAnswer, getSelfAnswersByRecord } from "~/db/queries/selfAnswers.server";
 import { getLinkedRecords } from "~/db/queries/records.server";
 import { getIncomingLinks } from "~/db/queries/recordLinks.server";
+import { createReminder } from "~/db/queries/reminders.server";
 import { getTagsByRecord } from "~/db/queries/tags.server";
 import { requireVerified } from "~/lib/auth.middleware";
 import { getPlainText, renderContentToHtml } from "~/lib/content.server";
@@ -270,6 +271,47 @@ export async function action({ request, context }: Route.ActionArgs) {
     return { success: "자기 답변이 등록되었습니다." };
   }
 
+  if (intent === "create_reminder") {
+    const questionId = formData.get("questionId");
+
+    if (typeof questionId !== "string" || !questionId) {
+      return { error: "질문을 찾을 수 없습니다.", intent: "create_reminder", questionId: null };
+    }
+
+    const questionData = await database
+      .select({
+        questionId: questions.id,
+        isOpen: questions.isOpen,
+        authorId: records.authorId,
+      })
+      .from(questions)
+      .innerJoin(records, eq(questions.recordId, records.id))
+      .where(eq(questions.id, questionId))
+      .limit(1);
+
+    if (questionData.length === 0) {
+      return { error: "질문을 찾을 수 없습니다.", intent: "create_reminder", questionId };
+    }
+
+    if (questionData[0].authorId !== auth.user.id) {
+      return { error: "자신의 질문에만 알림을 설정할 수 있습니다.", intent: "create_reminder", questionId };
+    }
+
+    if (!questionData[0].isOpen) {
+      return { error: "닫힌 질문에는 알림을 설정할 수 없습니다.", intent: "create_reminder", questionId };
+    }
+
+    await createReminder(context.cloudflare.env.DB, {
+      questionId,
+      learnerId: auth.user.id,
+      remindAt: Math.floor(Date.now() / 1000) + 7 * 24 * 60 * 60,
+    });
+
+    logger.info("question_reminder_create", { questionId });
+
+    return { success: "1주 후 알림이 설정되었습니다.", intent: "create_reminder", questionId };
+  }
+
   return { error: "알 수 없는 요청입니다." };
 }
 
@@ -411,6 +453,11 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
   const isSubmittingResponse = navigation.state === "submitting" && submittingIntent === "create_response";
   const isSubmittingSentence = navigation.state === "submitting" && submittingIntent === "save_sentence";
   const isSubmittingSelfAnswer = navigation.state === "submitting" && submittingIntent === "create_self_answer";
+  const isSubmittingReminder = navigation.state === "submitting" && submittingIntent === "create_reminder";
+  const reminderQuestionId = navigation.formData?.get("questionId");
+  const reminderFeedback = actionData && "intent" in actionData && actionData.intent === "create_reminder"
+    ? actionData
+    : null;
 
   const [expandedQuestionId, setExpandedQuestionId] = useState<string | null>(null);
   const [showResponseForm, setShowResponseForm] = useState(false);
@@ -706,8 +753,8 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
               const hasTimelineNodes = questionSelfAnswers.length > 0 || questionResponses.length > 0;
               const isExpanded = expandedQuestionId === question.id;
 
-              return (
-                <div key={question.id} className="flex flex-col gap-4">
+                return (
+                  <div key={question.id} className="flex flex-col gap-4">
                   {hasTimelineNodes ? (
                     <QuestionTimeline
                       question={{
@@ -816,7 +863,7 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
                   ) : null}
 
                   {isRecordAuthor && (
-                    <div className="ml-4">
+                    <div className="ml-4 flex flex-col gap-3">
                       {isExpanded ? (
                         <form method="post" className="flex flex-col gap-4 bg-mist-blue/30 rounded-xl border border-reef-cyan/30 p-5">
                           <input type="hidden" name="intent" value="create_self_answer" />
@@ -863,6 +910,26 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
                           답변하기
                         </button>
                       )}
+
+                      {question.isOpen ? (
+                        <form method="post">
+                          <input type="hidden" name="intent" value="create_reminder" />
+                          <input type="hidden" name="questionId" value={question.id} />
+                          <button
+                            type="submit"
+                            disabled={isSubmittingReminder && reminderQuestionId === question.id}
+                            className="min-h-11 text-left text-xs text-[--color-text-tertiary] transition-colors hover:text-[--color-ocean-blue] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2 disabled:opacity-60"
+                          >
+                            {isSubmittingReminder && reminderQuestionId === question.id ? "설정 중..." : "1주 후 다시 알림"}
+                          </button>
+                        </form>
+                      ) : null}
+
+                      {reminderFeedback && reminderFeedback.questionId === question.id ? (
+                        <p className={"text-sm " + ("error" in reminderFeedback ? "text-error" : "text-success")}>
+                          {"error" in reminderFeedback ? reminderFeedback.error : reminderFeedback.success}
+                        </p>
+                      ) : null}
                     </div>
                   )}
                 </div>
@@ -883,11 +950,11 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
             {RESPONSE_PREFERENCE_LABELS[record.responsePreference] ?? "이 기록에 응답해보세요."}
           </p>
 
-          {actionData && "error" in actionData ? (
+          {actionData && !reminderFeedback && "error" in actionData ? (
             <p className="text-error mb-4 text-sm">{actionData.error}</p>
           ) : null}
 
-          {actionData && "success" in actionData ? (
+          {actionData && !reminderFeedback && "success" in actionData ? (
             <p className="text-success mb-4 text-sm">{actionData.success}</p>
           ) : null}
 
