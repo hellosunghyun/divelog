@@ -18,7 +18,7 @@ import { cleanupRemovedImages } from "~/lib/r2-cleanup.server";
 import { useUnsavedWarning } from "~/hooks/useUnsavedWarning";
 
 export function meta(_args: Route.MetaArgs) {
-  return [{ title: "기록 수정 — divelog" }];
+  return [{ title: "기록 수정 — DiveLog" }];
 }
 
 export async function loader({ params, request, context }: Route.LoaderArgs) {

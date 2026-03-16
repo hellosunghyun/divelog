@@ -7,7 +7,7 @@ import { createLogger } from "~/lib/logger.server";
 
 export function meta() {
   return [
-    { title: "태그 — divelog" },
+    { title: "태그 — DiveLog" },
     { name: "description", content: "태그별로 기록을 탐색합니다." },
   ];
 }

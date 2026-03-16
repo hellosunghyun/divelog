@@ -36,7 +36,7 @@ export default function AdminAnalyticsPage({ loaderData }: Route.ComponentProps)
           { label: "전체 기록", value: stats.records },
           { label: "전체 질문", value: stats.questions },
           { label: "전체 응답", value: stats.responses },
-          { label: "전체 Learner", value: stats.learners },
+           { label: "전체 러너", value: stats.learners },
         ].map((item) => (
           <div key={item.label} className="bg-admin-surface border border-admin-border rounded-lg p-5">
             <p className="text-caption text-admin-text-secondary mb-2">{item.label}</p>

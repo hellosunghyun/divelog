@@ -7,7 +7,7 @@ import { eq } from "drizzle-orm";
 import HeroSection from "~/components/HeroSection";
 
 export function meta(_args: Route.MetaArgs) {
-  return [{ title: "설정 — divelog" }];
+  return [{ title: "설정 — DiveLog" }];
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {

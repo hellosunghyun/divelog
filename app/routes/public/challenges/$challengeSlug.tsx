@@ -38,8 +38,8 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
 }
 
 export function meta({ data: loaderData }: Route.MetaArgs) {
-  if (!loaderData) return [{ title: "챌린지 — divelog" }];
-  return [{ title: `${loaderData.challenge.name} — divelog` }];
+  if (!loaderData) return [{ title: "챌린지 — DiveLog" }];
+  return [{ title: `${loaderData.challenge.name} — DiveLog` }];
 }
 
 export default function ChallengeDetailPage({ loaderData }: Route.ComponentProps) {

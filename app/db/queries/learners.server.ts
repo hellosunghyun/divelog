@@ -67,7 +67,7 @@ export async function getLearnerByUserId(d1: D1Database, userId: string) {
 
 export async function getOrCreateLearnerProfile(d1: D1Database, user: AdakrposUser) {
   const database = db(d1);
-  const displayName = user.name ?? user.nickname ?? "익명";
+  const displayName = user.nickname ?? user.name ?? "익명";
   const now = Math.floor(Date.now() / 1000);
   const existing = await database
     .select()

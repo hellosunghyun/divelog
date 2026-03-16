@@ -11,11 +11,11 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
   logger.info("loader_start");
   const database = db(context.cloudflare.env.DB);
   const learner = await database.select().from(learnerProfiles).where(eq(learnerProfiles.userId, params.learnerId)).limit(1);
-  if (!learner[0]) throw data("Learner not found", { status: 404 });
+   if (!learner[0]) throw data("러너를 찾을 수 없습니다", { status: 404 });
   const lr = await database.select().from(records).where(eq(records.authorId, params.learnerId)).orderBy(desc(records.createdAt)).limit(20);
   return { learner: learner[0], records: lr };
 }
-export function meta(_: Route.MetaArgs) { return [{ title: "Learner 상세" }]; }
+export function meta(_: Route.MetaArgs) { return [{ title: "러너 상세" }]; }
 export default function AdminLearnerDetailPage({ loaderData }: Route.ComponentProps) {
   const { learner, records: lr } = loaderData;
   return (

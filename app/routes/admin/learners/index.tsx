@@ -6,7 +6,7 @@ import { learnerProfiles } from "~/db/schema.server";
 import { asc } from "drizzle-orm";
 import EmptyState from "~/components/EmptyState";
 
-export function meta(_: Route.MetaArgs) { return [{ title: "Learner 관리" }]; }
+export function meta(_: Route.MetaArgs) { return [{ title: "러너 관리" }]; }
 export async function loader({ request, context }: Route.LoaderArgs) {
   const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.learners" });
   logger.info("loader_start");
@@ -15,9 +15,9 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 export default function AdminLearnersPage({ loaderData }: Route.ComponentProps) {
   return (
     <div>
-      <h2 className="text-xl font-semibold text-admin-text mb-6">Learner 관리 ({loaderData.learners.length}명)</h2>
+       <h2 className="text-xl font-semibold text-admin-text mb-6">러너 관리 ({loaderData.learners.length}명)</h2>
       {loaderData.learners.length === 0 ? (
-        <EmptyState variant="generic" message="등록된 Learner가 없습니다" />
+         <EmptyState variant="generic" message="등록된 러너가 없습니다" />
       ) : (
         <div className="bg-admin-surface rounded-lg border border-admin-border overflow-hidden">
           <table className="w-full border-collapse">

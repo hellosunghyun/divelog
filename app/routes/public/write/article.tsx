@@ -16,7 +16,7 @@ import { nanoid } from "~/lib/utils.server";
 import { createArticleSchema } from "~/lib/validation";
 
 export function meta(_args: Route.MetaArgs) {
-  return [{ title: "글 쓰기 — divelog" }];
+  return [{ title: "글 쓰기 — DiveLog" }];
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {

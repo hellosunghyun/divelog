@@ -21,7 +21,10 @@ const focusRing = "focus-visible:outline-none focus-visible:ring-2 focus-visible
 
 export default function Footer() {
   return (
-    <footer className="bg-deep-ocean text-white pt-20 pb-12 border-t border-white/5">
+    <footer 
+      className="bg-deep-ocean text-white pt-20 pb-12 border-t border-white/5"
+      style={{ paddingBottom: "calc(3rem + env(safe-area-inset-bottom, 0px))" }}
+    >
       <div className="max-w-canvas mx-auto px-6">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 mb-20">
           <div className="lg:col-span-4">
@@ -33,10 +36,10 @@ export default function Footer() {
                   <path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1" />
                 </svg>
               </div>
-              <span className="text-2xl font-bold tracking-tight text-white">divelog</span>
+               <span className="text-2xl font-bold tracking-tight text-white">DiveLog</span>
             </Link>
             <p className="text-mist-blue/60 text-[15px] leading-relaxed max-w-sm">
-              ADA Learner의 아홉 달을 조용한 깊이에서 기록하고 돌아보는 아카이브입니다.
+              ADA 러너의 아홉 달을 조용한 깊이에서 기록하고 돌아보는 아카이브입니다.
             </p>
           </div>
 

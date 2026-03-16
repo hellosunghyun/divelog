@@ -10,8 +10,8 @@ import { createLogger } from "~/lib/logger.server";
 
 export function meta(_args: Route.MetaArgs) {
   return [
-    { title: "여정 — divelog" },
-    { name: "description", content: "ADA Learner의 아홉 달 여정 구조를 탐색합니다" },
+    { title: "여정 — DiveLog" },
+    { name: "description", content: "ADA 러너의 아홉 달 여정 구조를 탐색합니다" },
   ];
 }
 
@@ -53,7 +53,7 @@ export default function JourneyPage({ loaderData }: Route.ComponentProps) {
       <HeroSection
         variant="stage"
         title="여정"
-        subtitle="ADA Learner의 아홉 달은 여러 Stage로 구성됩니다. 각 Stage마다 탐구와 기록이 쌓입니다."
+        subtitle="ADA 러너의 아홉 달은 여러 Stage로 구성됩니다. 각 Stage마다 탐구와 기록이 쌓입니다."
       />
 
       {/* Stage Strip */}

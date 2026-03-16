@@ -8,8 +8,8 @@ import { getLearnersWithActivity, getDistinctCohorts } from "~/db/queries/learne
 import { createLogger } from "~/lib/logger.server";
 
 export function meta(_args: Route.MetaArgs) {
-  return [{ title: "Learner — divelog" }];
-}
+   return [{ title: "러너 — DiveLog" }];
+ }
 
 export async function loader({ context, request }: Route.LoaderArgs) {
   const logger = createLogger(request, context.cloudflare.env).child({ route: "learners" });
@@ -54,10 +54,10 @@ export default function LearnersPage({ loaderData }: Route.ComponentProps) {
   return (
     <div>
       <HeroSection
-        variant="learner"
-        title="Learner"
-        subtitle="탐구하는 사람들을 만나보세요"
-      />
+         variant="learner"
+         title="러너"
+         subtitle="탐구하는 사람들을 만나보세요"
+       />
       <div className="max-w-content mx-auto py-16 px-6">
         {filterOptions.length > 0 && (
           <div className="mb-8">
@@ -88,11 +88,11 @@ export default function LearnersPage({ loaderData }: Route.ComponentProps) {
         {learners.length === 0 ? (
           <EmptyState
             variant="learners"
-            message={
-              currentCohort
-                ? `${currentCohort} 코호트에 등록된 Learner가 없습니다.`
-                : undefined
-            }
+             message={
+               currentCohort
+                 ? `${currentCohort} 코호트에 등록된 러너가 없습니다.`
+                 : undefined
+             }
           />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">

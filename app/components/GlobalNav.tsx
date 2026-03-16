@@ -8,6 +8,7 @@ interface PublicLoaderData {
     id: string;
     name: string;
     profilePhotoUrl: string | null;
+    isAdmin: boolean;
   } | null;
 }
 
@@ -105,7 +106,7 @@ export default function GlobalNav() {
                 <path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1" />
               </svg>
             </div>
-            <span className="text-lg font-bold tracking-tight text-deep-ocean">divelog</span>
+            <span className="text-lg font-bold tracking-tight text-deep-ocean">DiveLog</span>
           </Link>
 
           <nav className="hidden lg:flex items-center gap-8">
@@ -166,7 +167,7 @@ export default function GlobalNav() {
                   <path d="M12 20h9" />
                   <path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z" />
                 </svg>
-                글 쓰기
+                글쓰기
               </Link>
 
               <div className="relative">
@@ -221,7 +222,7 @@ export default function GlobalNav() {
                             {data.user?.name}
                           </p>
                           <p className="text-caption text-text-tertiary">
-                            divelog
+                            DiveLog
                           </p>
                         </div>
                       </div>
@@ -252,35 +253,54 @@ export default function GlobalNav() {
                         <Inbox className="w-4 h-4 shrink-0" aria-hidden="true" />
                         인박스
                       </Link>
-                      <Link
-                        to="/settings"
-                        className={`flex items-center gap-3 px-4 py-2.5 text-sm transition-colors no-underline ${focusRing} ${
-                          isActive("/settings")
-                            ? "text-ocean-blue bg-mist-blue/40"
-                            : "text-text-primary hover:bg-surface-secondary"
-                        }`}
-                        role="menuitem"
-                      >
-                        <Settings className="w-4 h-4 shrink-0" aria-hidden="true" />
-                        설정
-                      </Link>
-                    </div>
+                       <Link
+                         to="/settings"
+                         className={`flex items-center gap-3 px-4 py-2.5 text-sm transition-colors no-underline ${focusRing} ${
+                           isActive("/settings")
+                             ? "text-ocean-blue bg-mist-blue/40"
+                             : "text-text-primary hover:bg-surface-secondary"
+                         }`}
+                         role="menuitem"
+                       >
+                         <Settings className="w-4 h-4 shrink-0" aria-hidden="true" />
+                         설정
+                       </Link>
+                     </div>
 
-                    <div className="h-px bg-border mx-3" />
+                     {data.user?.isAdmin && (
+                       <>
+                         <div className="h-px bg-border mx-3" />
+                         <div className="py-1.5">
+                           <Link
+                             to="/admin"
+                             className={`flex items-center gap-3 px-4 py-2.5 text-sm text-text-primary hover:bg-surface-secondary transition-colors no-underline ${focusRing}`}
+                             role="menuitem"
+                           >
+                             <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                               <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+                               <circle cx="12" cy="12" r="3" />
+                             </svg>
+                             어드민
+                           </Link>
+                         </div>
+                       </>
+                     )}
 
-                    <div className="py-1.5">
-                      <a
-                        href={profileEditUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={`flex items-center gap-3 px-4 py-2.5 text-sm text-text-primary hover:bg-surface-secondary transition-colors no-underline ${focusRing}`}
-                        role="menuitem"
-                      >
-                        <ExternalLink className="w-4 h-4 shrink-0" aria-hidden="true" />
-                        프로필 수정
-                        <span className="ml-auto text-caption text-text-tertiary">ada-kr-pos.com</span>
-                      </a>
-                    </div>
+                     <div className="h-px bg-border mx-3" />
+
+                     <div className="py-1.5">
+                       <a
+                         href={profileEditUrl}
+                         target="_blank"
+                         rel="noopener noreferrer"
+                         className={`flex items-center gap-3 px-4 py-2.5 text-sm text-text-primary hover:bg-surface-secondary transition-colors no-underline ${focusRing}`}
+                         role="menuitem"
+                       >
+                         <ExternalLink className="w-4 h-4 shrink-0" aria-hidden="true" />
+                         프로필 수정
+                         <span className="ml-auto text-caption text-text-tertiary">ada-kr-pos.com</span>
+                       </a>
+                     </div>
 
                     <div className="h-px bg-border mx-3" />
 
@@ -314,7 +334,7 @@ export default function GlobalNav() {
                    <path d="M12 20h9" />
                    <path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z" />
                  </svg>
-                 글 쓰기
+                 글쓰기
                </Link>
              </>
            )}
@@ -397,17 +417,29 @@ export default function GlobalNav() {
                 >
                   인박스
                 </Link>
-                <Link
-                  to="/settings"
-                  className={`text-base py-3 px-1 -mx-1 rounded-lg transition-colors no-underline ${focusRing} ${
-                    isActive("/settings")
-                      ? "font-medium text-ocean-blue"
-                      : "text-text-secondary hover:text-text-primary"
-                  }`}
-                >
-                  설정
-                </Link>
-                <div className="mt-4 flex flex-col gap-2">
+                 <Link
+                   to="/settings"
+                   className={`text-base py-3 px-1 -mx-1 rounded-lg transition-colors no-underline ${focusRing} ${
+                     isActive("/settings")
+                       ? "font-medium text-ocean-blue"
+                       : "text-text-secondary hover:text-text-primary"
+                   }`}
+                 >
+                   설정
+                 </Link>
+                 {data.user?.isAdmin && (
+                   <Link
+                     to="/admin"
+                     className={`text-base py-3 px-1 -mx-1 rounded-lg transition-colors no-underline ${focusRing} ${
+                       isActive("/admin")
+                         ? "font-medium text-ocean-blue"
+                         : "text-text-secondary hover:text-text-primary"
+                     }`}
+                   >
+                     어드민
+                   </Link>
+                 )}
+                 <div className="mt-4 flex flex-col gap-2">
                   <Link
                     to="/write/note"
                     className={`w-full border border-border text-text-secondary py-3 px-5 rounded-full text-sm font-medium text-center hover:bg-surface-secondary transition-colors no-underline ${focusRing}`}
@@ -422,7 +454,7 @@ export default function GlobalNav() {
                       <path d="M12 20h9" />
                       <path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z" />
                     </svg>
-                    글 쓰기
+                    글쓰기
                   </Link>
                 </div>
                 <div className="flex items-center gap-3 py-4 mt-2">
@@ -467,7 +499,7 @@ export default function GlobalNav() {
                        <path d="M12 20h9" />
                        <path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z" />
                      </svg>
-                     글 쓰기
+                     글쓰기
                    </Link>
                    <a
                      href={loginUrl}

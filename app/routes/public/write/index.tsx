@@ -19,7 +19,7 @@ import { syncRecordLinksForRecord } from "~/db/queries/recordLinks.server";
 import { useUnsavedWarning } from "~/hooks/useUnsavedWarning";
 
 export function meta(_args: Route.MetaArgs) {
-  return [{ title: "기록하기 — divelog" }];
+  return [{ title: "기록하기 — DiveLog" }];
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {

@@ -253,11 +253,11 @@ export async function action({ request, context }: Route.ActionArgs) {
 
 export function meta({ data: loaderData }: Route.MetaArgs) {
   if (!loaderData) {
-    return [{ title: "기록 — divelog" }];
+    return [{ title: "기록 — DiveLog" }];
   }
 
   return [
-    { title: `${loaderData.record.title} — divelog` },
+    { title: `${loaderData.record.title} — DiveLog` },
     {
       name: "description",
       content: loaderData.plainTextContent.slice(0, 150),

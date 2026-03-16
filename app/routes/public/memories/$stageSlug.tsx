@@ -78,9 +78,9 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
 
 export function meta({ data: loaderData }: Route.MetaArgs) {
   if (!loaderData) {
-    return [{ title: "Collective Memory — divelog" }];
+    return [{ title: "Collective Memory — DiveLog" }];
   }
-  return [{ title: `${loaderData.stage.name} Memory — divelog` }];
+  return [{ title: `${loaderData.stage.name} Memory — DiveLog` }];
 }
 
 export default function MemoryPage({ loaderData }: Route.ComponentProps) {

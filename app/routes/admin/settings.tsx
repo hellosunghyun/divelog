@@ -34,7 +34,7 @@ export default function AdminSettingsPage({ loaderData }: Route.ComponentProps) 
     { key: "home_show_scenes", label: "홈 — 최근 기록 표시" },
     { key: "home_show_questions", label: "홈 — 열린 질문 표시" },
     { key: "home_show_sentences", label: "홈 — 문장 표시" },
-    { key: "home_show_learners", label: "홈 — Learner Spotlight" },
+     { key: "home_show_learners", label: "홈 — 러너 스포트라이트" },
     { key: "search_enabled", label: "검색 활성화" },
   ];
   return (

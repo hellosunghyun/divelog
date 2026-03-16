@@ -28,7 +28,7 @@ export default function AdminDashboard({ loaderData }: Route.ComponentProps) {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-5 mb-8">
         {[
           { label: "현재 Stage", value: currentStage?.name ?? "없음" },
-          { label: "전체 Learner", value: String(learnerCount) },
+           { label: "전체 러너", value: String(learnerCount) },
           { label: "최근 기록", value: String(recentRecords.length) },
           { label: "Flagged 기록", value: String(flaggedRecords.length), urgent: flaggedRecords.length > 0 },
         ].map((panel) => (

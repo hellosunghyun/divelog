@@ -12,7 +12,7 @@ import { normalizeContentFormat } from "~/lib/editor-extensions";
 import { createLogger } from "~/lib/logger.server";
 
 export function meta(_args: Route.MetaArgs) {
-  return [{ title: "검색 — divelog" }];
+  return [{ title: "검색 — DiveLog" }];
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {
@@ -102,7 +102,7 @@ export default function SearchPage({ loaderData }: Route.ComponentProps) {
       <HeroSection
         variant="home"
         title="검색"
-        subtitle="기록, 질문, Learner, 문장을 검색합니다"
+        subtitle="기록, 질문, 러너, 문장을 검색합니다"
       />
 
       <div className="max-w-content mx-auto py-12 px-6">
@@ -123,10 +123,10 @@ export default function SearchPage({ loaderData }: Route.ComponentProps) {
         </Form>
 
         {!q ? (
-          <EmptyState
-            variant="search"
-            message="검색어를 입력해서 기록, 질문, Learner를 찾아보세요."
-          />
+           <EmptyState
+             variant="search"
+             message="검색어를 입력해서 기록, 질문, 러너를 찾아보세요."
+           />
         ) : total === 0 ? (
           <EmptyState variant="search" message={`"${q}"에 대한 결과가 없습니다.`} />
         ) : (
@@ -149,8 +149,8 @@ export default function SearchPage({ loaderData }: Route.ComponentProps) {
                       : t === "questions"
                         ? "질문"
                         : t === "learners"
-                          ? "Learner"
-                          : "문장"}
+                           ? "러너"
+                           : "문장"}
                 </a>
               ))}
             </div>
@@ -182,11 +182,11 @@ export default function SearchPage({ loaderData }: Route.ComponentProps) {
               </section>
             )}
 
-            {(tab === "all" || tab === "learners") && results.learners.length > 0 && (
-              <section className="mb-10">
-                <h3 className="text-lg font-semibold text-text-primary tracking-tight mb-6">
-                  Learner
-                </h3>
+             {(tab === "all" || tab === "learners") && results.learners.length > 0 && (
+               <section className="mb-10">
+                 <h3 className="text-lg font-semibold text-text-primary tracking-tight mb-6">
+                   러너
+                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                   {results.learners.map((learner) => (
                     <LearnerCard key={learner.userId} learner={learner} />

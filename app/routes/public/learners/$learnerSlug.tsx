@@ -21,7 +21,7 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
   const learner = learnerResult[0];
   if (!learner) {
     logger.info("not_found", { slug: learnerSlug });
-    throw data("Learner를 찾을 수 없습니다", { status: 404 });
+    throw data("러너를 찾을 수 없습니다", { status: 404 });
   }
 
   const [learnerRecords, learnerQuestions, learnerSentences] = await database.batch([
@@ -39,9 +39,9 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
 }
 
 export function meta({ data: loaderData }: Route.MetaArgs) {
-  if (!loaderData) return [{ title: "Learner — divelog" }];
-  return [{ title: `${loaderData.learner.displayName} — divelog` }];
-}
+   if (!loaderData) return [{ title: "러너 — DiveLog" }];
+   return [{ title: `${loaderData.learner.displayName} — DiveLog` }];
+ }
 
 export default function LearnerDetailPage({ loaderData }: Route.ComponentProps) {
   const { learner, learnerRecords, learnerQuestions, learnerSentences } = loaderData;
@@ -111,7 +111,7 @@ export default function LearnerDetailPage({ loaderData }: Route.ComponentProps) 
 export function ErrorBoundary() {
   return (
     <div className="text-center py-16 px-4">
-      <p className="text-xl font-semibold text-text-primary">Learner를 찾을 수 없습니다</p>
+      <p className="text-xl font-semibold text-text-primary">러너를 찾을 수 없습니다</p>
       <Link to="/learners" className="mt-4 inline-block rounded-full bg-deep-ocean text-white px-7 py-3 text-[15px] font-medium hover:bg-ocean-blue transition-all shadow-sm hover:shadow-md no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2">목록으로</Link>
     </div>
   );

@@ -1,12 +1,10 @@
 {
-  "active_plan": "/Users/hellosunghyun/Documents/Github/divelog/.sisyphus/plans/editor-ui-dev.md",
-  "started_at": "2026-03-15T09:26:48.427Z",
+  "active_plan": "/Users/hellosunghyun/Documents/Github/divelog/.sisyphus/plans/route-folder-restructure.md",
+  "started_at": "2026-03-16T09:12:01.178Z",
   "session_ids": [
-    "ses_30f33a888ffetj0SnlZGbKCJik",
-    "ses_30de203d5ffebmBtlVBYaPiWai",
-    "ses_30b3efb32ffedu9I2J2WhaFQaL"
+    "ses_30a42250bffeo8hDH8cNRmt7Ki"
   ],
-  "plan_name": "editor-ui-dev",
+  "plan_name": "route-folder-restructure",
   "agent": "atlas",
-  "worktree_path": "/Users/hellosunghyun/Documents/Github/divelog"
+  "worktree_path": "/Users/hellosunghyun/Documents/Github/divelog-route-refactor"
 }

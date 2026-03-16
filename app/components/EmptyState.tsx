@@ -19,10 +19,10 @@ const MESSAGES: Record<string, { title: string; body: string }> = {
     title: "아직 응답이 없습니다",
     body: "이 기록에 공명하거나, 질문을 남기거나, 연결할 수 있습니다.",
   },
-  learners: {
-    title: "Learner가 없습니다",
-    body: "아직 등록된 Learner가 없습니다.",
-  },
+   learners: {
+     title: "러너가 없습니다",
+     body: "아직 등록된 러너가 없습니다.",
+   },
   notifications: {
     title: "알림이 없습니다",
     body: "새로운 응답이나 알림이 오면 여기에 표시됩니다.",

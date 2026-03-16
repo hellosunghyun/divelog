@@ -14,7 +14,7 @@ import { nanoid } from "~/lib/utils.server";
 import { createNoteSchema } from "~/lib/validation";
 
 export function meta(_args: Route.MetaArgs) {
-  return [{ title: "짧은 기록 — divelog" }];
+  return [{ title: "짧은 기록 — DiveLog" }];
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {

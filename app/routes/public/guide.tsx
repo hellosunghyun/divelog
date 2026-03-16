@@ -5,7 +5,7 @@ import CTABand from "~/components/CTABand";
 import { createLogger } from "~/lib/logger.server";
 
 export function meta(_args: Route.MetaArgs) {
-  return [{ title: "가이드 — divelog" }];
+  return [{ title: "가이드 — DiveLog" }];
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {
@@ -25,7 +25,7 @@ export default function GuidePage() {
     <div>
       <HeroSection
         variant="home"
-        title="divelog 가이드"
+        title="DiveLog 가이드"
         subtitle="탐구를 기록하는 방법을 안내합니다. 완성된 글이 아니어도 괜찮습니다."
       />
 
@@ -36,7 +36,7 @@ export default function GuidePage() {
               <>
                 <h3 className="text-lg font-bold text-deep-ocean mb-2">로그인 설정 확인이 필요합니다</h3>
                 <p className="text-sm text-text-secondary leading-relaxed mb-4">
-                  현재는 다시 로그인해도 divelog에서 세션을 확인할 수 없는 상태입니다.
+                  현재는 다시 로그인해도 DiveLog에서 세션을 확인할 수 없는 상태입니다.
                   잠시 후 다시 시도하거나 운영진에게 알려주세요.
                 </p>
                 <a
@@ -95,8 +95,8 @@ export default function GuidePage() {
           <h2 className="text-2xl font-semibold leading-title text-text-primary mb-4">
             응답하기
           </h2>
-          <p className="text-base leading-relaxed text-text-secondary">
-            다른 Learner의 기록에 응답할 수 있습니다. 응답에는 5가지 유형이 있습니다:
+           <p className="text-base leading-relaxed text-text-secondary">
+             다른 러너의 기록에 응답할 수 있습니다. 응답에는 5가지 유형이 있습니다:
           </p>
           <ul className="mt-4 flex flex-col gap-2 pl-6">
             <li className="text-base text-text-secondary">

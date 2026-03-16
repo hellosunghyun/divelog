@@ -9,7 +9,7 @@ import EmptyState from "~/components/EmptyState";
 import { Link, Form } from "react-router";
 
 export function meta(_args: Route.MetaArgs) {
-  return [{ title: "인박스 — divelog" }];
+  return [{ title: "인박스 — DiveLog" }];
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {

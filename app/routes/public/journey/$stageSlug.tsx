@@ -64,10 +64,10 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
 
 export function meta({ data: loaderData }: Route.MetaArgs) {
   if (!loaderData) {
-    return [{ title: "Stage — divelog" }];
+    return [{ title: "Stage — DiveLog" }];
   }
   return [
-    { title: `${loaderData.stage.name} — divelog` },
+    { title: `${loaderData.stage.name} — DiveLog` },
     {
       name: "description",
       content: loaderData.stage.description ?? `${loaderData.stage.name} Stage의 기록들`,

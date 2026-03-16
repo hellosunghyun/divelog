@@ -8,7 +8,7 @@ import EmptyState from "~/components/EmptyState";
 import { createLogger } from "~/lib/logger.server";
 
 export function meta(_args: Route.MetaArgs) {
-  return [{ title: "챌린지 — divelog" }];
+  return [{ title: "챌린지 — DiveLog" }];
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {

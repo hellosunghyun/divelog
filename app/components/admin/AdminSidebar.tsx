@@ -29,7 +29,7 @@ const NAV_CATEGORIES: NavCategory[] = [
   {
     label: "커뮤니티",
     items: [
-      { label: "Learner 관리", href: "/admin/learners" },
+      { label: "러너 관리", href: "/admin/learners" },
       { label: "Dialogue 관리", href: "/admin/dialogue" },
       { label: "Collaboration 관리", href: "/admin/collaboration" },
     ],
@@ -83,7 +83,7 @@ export default function AdminSidebar() {
           to="/admin"
           className="text-sm font-semibold text-admin-sidebar-text hover:opacity-80 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-admin-accent focus-visible:ring-offset-2 focus-visible:ring-offset-admin-sidebar"
         >
-          divelog admin
+           DiveLog admin
         </Link>
       </div>
 

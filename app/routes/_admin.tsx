@@ -14,7 +14,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   return {
     adminUser: {
       id: auth.user!.id,
-      name: auth.user!.name ?? auth.user!.nickname ?? "관리자",
+      name: auth.user!.nickname ?? auth.user!.name ?? "관리자",
     },
   };
 }

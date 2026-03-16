@@ -13,7 +13,7 @@ import { updateRecordMetadataSchema } from "~/lib/validation";
 import { nanoid } from "~/lib/utils.server";
 
 export function meta(_args: Route.MetaArgs) {
-  return [{ title: "세부 설정 — divelog" }];
+  return [{ title: "세부 설정 — DiveLog" }];
 }
 
 export async function loader({ params, request, context }: Route.LoaderArgs) {

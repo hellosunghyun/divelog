@@ -4,7 +4,7 @@ const ROUTE_LABELS: Record<string, string> = {
   "/admin": "대시보드",
   "/admin/stages": "Stage 관리",
   "/admin/challenges": "챌린지 관리",
-  "/admin/learners": "Learner 관리",
+  "/admin/learners": "러너 관리",
   "/admin/records": "기록 관리",
   "/admin/dialogue": "Dialogue 관리",
   "/admin/collaboration": "Collaboration 관리",

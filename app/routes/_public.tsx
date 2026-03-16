@@ -4,6 +4,9 @@ import { getAuth, getAuthDebug } from "~/lib/auth.server";
 import { getOrCreateLearnerProfile } from "~/db/queries/learners.server";
 import { ensureAdminByEmail } from "~/lib/auth.middleware";
 import { createLogger } from "~/lib/logger.server";
+import { db } from "~/db/client.server";
+import { userRoles } from "~/db/schema.server";
+import { and, eq } from "drizzle-orm";
 import GlobalNav from "~/components/GlobalNav";
 import Footer from "~/components/Footer";
 
@@ -12,7 +15,17 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   logger.info("loader_start");
   const auth = await getAuth(request, context.cloudflare.env.ADAKRPOS_API_KEY);
 
+  let isAdmin = false;
+
   if (auth.isAuthenticated && auth.user) {
+    const database = db(context.cloudflare.env.DB);
+    const adminRole = await database
+      .select({ id: userRoles.id })
+      .from(userRoles)
+      .where(and(eq(userRoles.userId, auth.user.id), eq(userRoles.role, "admin")))
+      .limit(1);
+    isAdmin = adminRole.length > 0;
+
     // 백그라운드에서 실행 — 페이지 렌더링을 차단하지 않음
     context.cloudflare.ctx.waitUntil(
       Promise.all([
@@ -39,6 +52,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
                   ? auth.user.profilePhotoUrl
                   : `https://ada-kr-pos.com${auth.user.profilePhotoUrl}`
                 : null,
+              isAdmin,
             }
           : null,
     },

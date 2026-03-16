@@ -56,9 +56,9 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
 
 export function meta({ data: loaderData }: Route.MetaArgs) {
   if (!loaderData) {
-    return [{ title: "협업 — divelog" }];
+    return [{ title: "협업 — DiveLog" }];
   }
-  return [{ title: `${loaderData.unit.name} — divelog` }];
+  return [{ title: `${loaderData.unit.name} — DiveLog` }];
 }
 
 const STATUS: Record<string, string> = {

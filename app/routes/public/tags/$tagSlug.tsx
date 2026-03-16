@@ -10,11 +10,11 @@ import { createLogger } from "~/lib/logger.server";
 
 export function meta({ data: loaderData }: Route.MetaArgs) {
   if (!loaderData?.tag) {
-    return [{ title: "태그 — divelog" }];
+    return [{ title: "태그 — DiveLog" }];
   }
 
   return [
-    { title: `${loaderData.tag.name} — divelog` },
+    { title: `${loaderData.tag.name} — DiveLog` },
     { name: "description", content: `"${loaderData.tag.name}" 태그가 붙은 기록 목록` },
   ];
 }

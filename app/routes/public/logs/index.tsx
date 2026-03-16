@@ -16,8 +16,8 @@ import { createLogger } from "~/lib/logger.server";
 
 export function meta({ data: loaderData }: Route.MetaArgs) {
   return [
-    { title: "기록 — divelog" },
-    { name: "description", content: loaderData?.metaDescription ?? "ADA Learner들의 기록 모음" },
+    { title: "기록 — DiveLog" },
+     { name: "description", content: loaderData?.metaDescription ?? "ADA 러너들의 기록 모음" },
   ];
 }
 
@@ -102,7 +102,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     : null;
   const metaDescription = firstRecordPlainText
     ? firstRecordPlainText.substring(0, 150) + (firstRecordPlainText.length > 150 ? "…" : "")
-    : "ADA Learner들의 기록 모음";
+    : "ADA 러너들의 기록 모음";
 
   logger.info("loader_end");
   return {

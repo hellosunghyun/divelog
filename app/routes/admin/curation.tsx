@@ -34,7 +34,7 @@ export async function action({ request, context }: Route.ActionArgs) {
 }
 export default function AdminCurationPage({ loaderData }: Route.ComponentProps) {
   const { slots } = loaderData;
-  const SLOT_TYPE_LABELS: Record<string, string> = { scene: "장면", question: "질문", sentence: "문장", learner: "Learner", stage_featured: "Stage 특집" };
+   const SLOT_TYPE_LABELS: Record<string, string> = { scene: "장면", question: "질문", sentence: "문장", learner: "러너", stage_featured: "Stage 특집" };
   return (
     <div>
       <h2 className="text-xl font-semibold text-admin-text mb-6">큐레이션</h2>

@@ -10,10 +10,10 @@ import { createLogger } from "~/lib/logger.server";
 
 export function meta(_args: Route.MetaArgs) {
   return [
-    { title: "divelog — ADA Learner 여정 아카이브" },
-    { name: "description", content: "ADA Learner의 아홉 달을 기록하는 여정 중심 아카이브" },
-    { property: "og:title", content: "divelog" },
-    { property: "og:description", content: "ADA Learner의 아홉 달을 기록하는 여정 중심 아카이브" },
+    { title: "DiveLog — ADA 러너 여정 아카이브" },
+     { name: "description", content: "ADA 러너의 아홉 달을 기록하는 여정 중심 아카이브" },
+     { property: "og:title", content: "DiveLog" },
+     { property: "og:description", content: "ADA 러너의 아홉 달을 기록하는 여정 중심 아카이브" },
   ];
 }
 

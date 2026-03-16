@@ -12,7 +12,7 @@ import { Link } from "react-router";
 import { createLogger } from "~/lib/logger.server";
 
 export function meta(_args: Route.MetaArgs) {
-  return [{ title: "내 공간 — divelog" }];
+  return [{ title: "내 공간 — DiveLog" }];
 }
 
 const STAGE_TONE_MAP: Record<string, { bg: string; border: string; label: string }> = {
