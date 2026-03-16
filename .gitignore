@@ -17,3 +17,6 @@ worker-configuration.d.ts
 *.jpeg
 *.jpg
 *.log
+
+# public 정적 자산은 추적
+!public/apple-touch-icon.png
