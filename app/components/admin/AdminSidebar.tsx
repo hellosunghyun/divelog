@@ -81,9 +81,10 @@ export default function AdminSidebar() {
       <div className="px-4 py-5 border-b border-admin-sidebar-hover">
         <Link
           to="/admin"
-          className="text-sm font-semibold text-admin-sidebar-text hover:opacity-80 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-admin-accent focus-visible:ring-offset-2 focus-visible:ring-offset-admin-sidebar"
+          className="flex items-center gap-2 text-sm font-semibold text-admin-sidebar-text hover:opacity-80 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-admin-accent focus-visible:ring-offset-2 focus-visible:ring-offset-admin-sidebar"
         >
-           DiveLog admin
+          <img src="/icon.svg" alt="" aria-hidden="true" className="w-6 h-6 rounded" />
+          DiveLog admin
         </Link>
       </div>
 
