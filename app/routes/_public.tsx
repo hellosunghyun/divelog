@@ -9,6 +9,7 @@ import { userRoles } from "~/db/schema.server";
 import { and, eq } from "drizzle-orm";
 import GlobalNav from "~/components/GlobalNav";
 import Footer from "~/components/Footer";
+import { FloatingWriteCTA } from "~/components/FloatingWriteCTA";
 
 export async function loader({ request, context }: Route.LoaderArgs) {
   const logger = createLogger(request, context.cloudflare.env).child({ route: "_public" });
@@ -90,6 +91,7 @@ export default function PublicLayout() {
         <Outlet />
       </main>
       <Footer />
+      <FloatingWriteCTA />
     </div>
   );
 }
