@@ -37,7 +37,7 @@ export async function action({ request, context }: Route.ActionArgs) {
   }
 
   if (fileEntry.size > MAX_FILE_SIZE) {
-    return Response.json({ error: "이미지는 5MB 이하만 업로드할 수 있습니다" }, { status: 400 });
+    return Response.json({ error: "이미지 압축 후에도 5MB를 초과합니다. 더 작은 이미지를 사용해주세요." }, { status: 400 });
   }
 
   const extension = MIME_TO_EXT[fileEntry.type];
