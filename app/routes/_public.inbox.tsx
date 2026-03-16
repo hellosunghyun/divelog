@@ -3,6 +3,7 @@ import { db } from "../db/client.server";
 import { notifications } from "../db/schema.server";
 import { eq, and, desc } from "drizzle-orm";
 import { requireAuth } from "../lib/auth.middleware";
+import { createLogger } from "../lib/logger.server";
 import HeroSection from "../components/HeroSection";
 import EmptyState from "../components/EmptyState";
 import { Link, Form } from "react-router";
@@ -12,6 +13,8 @@ export function meta(_args: Route.MetaArgs) {
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {
+  const logger = createLogger(request, context.cloudflare.env).child({ route: "inbox" });
+  logger.info("loader_start");
   const auth = await requireAuth(request, context);
   const database = db(context.cloudflare.env.DB);
   const url = new URL(request.url);
@@ -31,13 +34,16 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
+  const logger = createLogger(request, context.cloudflare.env).child({ route: "inbox" });
   const auth = await requireAuth(request, context);
   const formData = await request.formData();
   const intent = formData.get("intent");
+  logger.info("action_start", { intent });
   const database = db(context.cloudflare.env.DB);
 
   if (intent === "mark_read") {
     const id = formData.get("id") as string;
+    logger.info("notification_mark_read", { notificationId: id });
     await database
       .update(notifications)
       .set({ isRead: true })
@@ -47,6 +53,7 @@ export async function action({ request, context }: Route.ActionArgs) {
   }
 
   if (intent === "mark_all_read") {
+    logger.info("notification_mark_all_read");
     await database
       .update(notifications)
       .set({ isRead: true })
