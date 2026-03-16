@@ -16,7 +16,7 @@ import { nanoid } from "~/lib/utils.server";
 import { createArticleSchema } from "~/lib/validation";
 
 export function meta(_args: Route.MetaArgs) {
-  return [{ title: "글 쓰기 — DiveLog" }];
+  return [{ title: "글쓰기 — DiveLog" }];
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {
@@ -155,7 +155,7 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
         </Link>
       </div>
 
-      <h1 className="mb-1 text-2xl font-semibold text-text-primary">글 쓰기</h1>
+      <h1 className="mb-1 text-2xl font-semibold text-text-primary">글쓰기</h1>
       <p className="mb-8 text-base text-text-secondary">여유롭게 탐구의 기록을 남기세요.</p>
 
       <form method="post" className="flex flex-col gap-6">
