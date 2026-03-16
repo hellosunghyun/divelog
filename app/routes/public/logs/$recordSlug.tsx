@@ -142,7 +142,16 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
 
   const selfAnswersData = await getSelfAnswersByRecord(context.cloudflare.env.DB, recordData.record.id);
   const recordTags = await getTagsByRecord(context.cloudflare.env.DB, recordData.record.id);
-  const incomingLinks = await getIncomingLinks(context.cloudflare.env.DB, recordData.record.id);
+
+  let incomingLinks: Awaited<ReturnType<typeof getIncomingLinks>> = [];
+  try {
+    incomingLinks = await getIncomingLinks(context.cloudflare.env.DB, recordData.record.id);
+  } catch (err) {
+    logger.warn("incoming_links_query_failed", {
+      error: err instanceof Error ? err.message : String(err),
+      recordId: recordData.record.id,
+    });
+  }
   const recordFormat = normalizeContentFormat(recordData.record.format);
   const contentHtml = renderContentToHtml(recordData.record.content, recordFormat);
   const plainTextContent = getPlainText(recordData.record.content, recordFormat);

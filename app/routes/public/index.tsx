@@ -22,29 +22,11 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   logger.info("loader_start");
   const database = db(context.cloudflare.env.DB);
 
-  const [allStages, currentStageResult, recentRecords, openQuestions, recentSentences, spotlightLearners, learnerCountResult] = await database.batch([
+  // D1 batch()에서 slug 같은 동명 컬럼이 있는 JOIN 쿼리는 컬럼 매핑이 꼬이므로
+  // JOIN이 있는 쿼리는 별도 실행, 단순 쿼리만 batch로 묶는다
+  const [allStages, currentStageResult, openQuestions, spotlightLearners, learnerCountResult] = await database.batch([
     database.select().from(stages).orderBy(stages.order),
     database.select().from(stages).where(eq(stages.isCurrent, true)).limit(1),
-    database
-      .select({
-        id: records.id,
-        slug: records.slug,
-        title: records.title,
-        content: records.content,
-        format: records.format,
-        type: records.type,
-        rhythm: records.rhythm,
-        stageId: records.stageId,
-        createdAt: records.createdAt,
-        authorDisplayName: learnerProfiles.displayName,
-        authorSlug: learnerProfiles.slug,
-        authorProfilePhotoUrl: learnerProfiles.profilePhotoUrl,
-      })
-      .from(records)
-      .leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
-      .where(sql`${records.visibility} != 'draft'`)
-      .orderBy(desc(records.createdAt))
-      .limit(9),
     database
       .select({
         questionId: questions.id,
@@ -62,15 +44,46 @@ export async function loader({ request, context }: Route.LoaderArgs) {
       .where(and(eq(questions.isOpen, true), sql`${records.visibility} != 'draft'`))
       .orderBy(desc(questions.createdAt))
       .limit(8),
+    database.select().from(learnerProfiles).limit(4),
+    database.select({ total: count() }).from(learnerProfiles),
+  ]);
+
+  const [recentRecords, recentSentences] = await Promise.all([
+    database
+      .select({
+        id: records.id,
+        slug: records.slug,
+        title: records.title,
+        content: records.content,
+        format: records.format,
+        type: records.type,
+        rhythm: records.rhythm,
+        stageId: records.stageId,
+        createdAt: records.createdAt,
+        author: {
+          displayName: learnerProfiles.displayName,
+          slug: learnerProfiles.slug,
+          profilePhotoUrl: learnerProfiles.profilePhotoUrl,
+        },
+      })
+      .from(records)
+      .leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
+      .where(sql`${records.visibility} != 'draft'`)
+      .orderBy(desc(records.createdAt))
+      .limit(9),
     database
       .select({
         sentenceId: sentences.id,
         sentenceContent: sentences.content,
         sentenceReason: sentences.reason,
-        savedByDisplayName: learnerProfiles.displayName,
-        savedBySlug: learnerProfiles.slug,
-        recordSlug: records.slug,
-        recordTitle: records.title,
+        savedBy: {
+          displayName: learnerProfiles.displayName,
+          slug: learnerProfiles.slug,
+        },
+        record: {
+          slug: records.slug,
+          title: records.title,
+        },
       })
       .from(sentences)
       .leftJoin(learnerProfiles, eq(sentences.savedById, learnerProfiles.userId))
@@ -78,8 +91,6 @@ export async function loader({ request, context }: Route.LoaderArgs) {
       .where(sql`${records.visibility} != 'draft'`)
       .orderBy(desc(sentences.createdAt))
       .limit(4),
-    database.select().from(learnerProfiles).limit(4),
-    database.select({ total: count() }).from(learnerProfiles),
   ]);
 
   const currentStage = currentStageResult[0] ?? null;
@@ -327,7 +338,7 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {recentRecords.map((row) => {
                   const snippet = (row.snippet ?? row.content.substring(0, 120)) + ((row.snippet ?? row.content).length > 120 ? "…" : "");
-                  const initial = row.authorDisplayName ? row.authorDisplayName[0] : "?";
+                  const initial = row.author?.displayName ? row.author.displayName[0] : "?";
                   const stage = row.stageId ? allStages.find(s => s.id === row.stageId) : null;
                   return (
                     <article
@@ -361,10 +372,10 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
                       <p className="text-text-secondary text-base font-light leading-relaxed mb-6 flex-grow line-clamp-4">{snippet}</p>
                       <div className="pt-5 border-t border-border-subtle flex items-center justify-between">
                         <div className="flex items-center gap-2.5">
-                          {row.authorProfilePhotoUrl ? (
+                          {row.author?.profilePhotoUrl ? (
                             <img
-                              src={row.authorProfilePhotoUrl}
-                              alt={row.authorDisplayName ?? ""}
+                              src={row.author.profilePhotoUrl}
+                              alt={row.author.displayName ?? ""}
                               className="w-7 h-7 rounded-full object-cover"
                             />
                           ) : (
@@ -373,10 +384,10 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
                             </div>
                           )}
                           <Link
-                            to={row.authorSlug ? `/learners/${row.authorSlug}` : "#"}
+                            to={row.author?.slug ? `/learners/${row.author.slug}` : "#"}
                             className="text-xs font-bold text-text-secondary no-underline hover:text-ocean-blue transition-colors"
                           >
-                            {row.authorDisplayName ?? "익명"}
+                            {row.author?.displayName ?? "익명"}
                           </Link>
                         </div>
                       </div>
@@ -422,9 +433,9 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
                   {sentence.sentenceReason ? sentence.sentenceReason : "남긴 이유를 적지 않았습니다."}
                 </p>
                 <div className="mt-auto pt-4 border-t border-border-subtle flex items-center justify-between gap-2">
-                  <span className="text-xs font-semibold text-text-tertiary">{sentence.savedByDisplayName ?? "익명"}</span>
+                  <span className="text-xs font-semibold text-text-tertiary">{sentence.savedBy?.displayName ?? "익명"}</span>
                   <Link
-                    to={sentence.recordSlug ? `/logs/${sentence.recordSlug}` : "/logs"}
+                    to={sentence.record?.slug ? `/logs/${sentence.record.slug}` : "/logs"}
                     className="text-xs font-semibold text-ocean-blue no-underline hover:underline"
                   >
                     원문 보기
