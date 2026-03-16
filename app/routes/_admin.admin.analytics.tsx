@@ -1,10 +1,13 @@
 import type { Route } from "./+types/_admin.admin.analytics";
 import { db } from "../db/client.server";
+import { createLogger } from "../lib/logger.server";
 import { records, questions, responses, learnerProfiles, stages } from "../db/schema.server";
 import { eq, sql, desc } from "drizzle-orm";
 
 export function meta(_: Route.MetaArgs) { return [{ title: "애널리틱스" }]; }
-export async function loader({ context }: Route.LoaderArgs) {
+export async function loader({ request, context }: Route.LoaderArgs) {
+  const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.analytics" });
+  logger.info("loader_start");
   const database = db(context.cloudflare.env.DB);
   const [totalRecords, totalQuestions, totalResponses, totalLearners, currentStage] = await database.batch([
     database.select({ count: sql<number>`count(*)` }).from(records),

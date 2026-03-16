@@ -1,12 +1,15 @@
 import type { Route } from "./+types/_admin.admin._index";
 import { db } from "../db/client.server";
+import { createLogger } from "../lib/logger.server";
 import { stages, records, learnerProfiles } from "../db/schema.server";
 import { eq, desc } from "drizzle-orm";
 import { Link } from "react-router";
 
 export function meta(_: Route.MetaArgs) { return [{ title: "Admin 대시보드" }]; }
 
-export async function loader({ context }: Route.LoaderArgs) {
+export async function loader({ request, context }: Route.LoaderArgs) {
+  const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.dashboard" });
+  logger.info("loader_start");
   const database = db(context.cloudflare.env.DB);
   const [currentStage, recentRecords, flaggedRecords, allLearners] = await database.batch([
     database.select().from(stages).where(eq(stages.isCurrent, true)).limit(1),

@@ -2,17 +2,23 @@ import { data, redirect } from "react-router";
 import type { Route } from "./+types/_admin.admin.templates.$templateId";
 import { Link } from "react-router";
 import { db } from "../db/client.server";
+import { createLogger } from "../lib/logger.server";
 import { templates } from "../db/schema.server";
 import { eq } from "drizzle-orm";
 
-export async function loader({ params, context }: Route.LoaderArgs) {
+export async function loader({ params, request, context }: Route.LoaderArgs) {
+  const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.templates.$templateId" });
+  logger.info("loader_start");
   const tmpl = await db(context.cloudflare.env.DB).select().from(templates).where(eq(templates.id, params.templateId)).limit(1);
   if (!tmpl[0]) throw data("Template not found", { status: 404 });
   return { template: tmpl[0] };
 }
 export async function action({ params, request, context }: Route.ActionArgs) {
+  const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.templates.$templateId" });
   const f = await request.formData();
+  logger.info("action_start", { intent: "update_template" });
   await db(context.cloudflare.env.DB).update(templates).set({ name: f.get("name") as string, description: (f.get("description") as string) || null, promptBody: (f.get("promptBody") as string) || null, context: (f.get("ctx") as string) || null, form: (f.get("form") as string) || null, rhythm: (f.get("rhythm") as string) || null, active: f.get("active") === "on", updatedAt: Math.floor(Date.now() / 1000) }).where(eq(templates.id, params.templateId));
+  logger.info("admin_update_template", { templateId: params.templateId });
   throw redirect("/admin/templates");
 }
 export function meta(_: Route.MetaArgs) { return [{ title: "템플릿 편집" }]; }

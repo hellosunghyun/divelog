@@ -2,17 +2,23 @@ import { data, redirect } from "react-router";
 import type { Route } from "./+types/_admin.admin.collaboration.$groupId";
 import { Link } from "react-router";
 import { db } from "../db/client.server";
+import { createLogger } from "../lib/logger.server";
 import { collaborationUnits } from "../db/schema.server";
 import { eq } from "drizzle-orm";
 
-export async function loader({ params, context }: Route.LoaderArgs) {
+export async function loader({ params, request, context }: Route.LoaderArgs) {
+  const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.collaboration.$groupId" });
+  logger.info("loader_start");
   const unit = await db(context.cloudflare.env.DB).select().from(collaborationUnits).where(eq(collaborationUnits.id, params.groupId)).limit(1);
   if (!unit[0]) throw data("Collaboration unit not found", { status: 404 });
   return { unit: unit[0] };
 }
 export async function action({ params, request, context }: Route.ActionArgs) {
+  const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.collaboration.$groupId" });
   const f = await request.formData();
+  logger.info("action_start", { intent: "update_collaboration" });
   await db(context.cloudflare.env.DB).update(collaborationUnits).set({ status: f.get("status") as string, currentQuestion: (f.get("currentQuestion") as string) || null, updatedAt: Math.floor(Date.now() / 1000) }).where(eq(collaborationUnits.id, params.groupId));
+  logger.info("admin_update_collaboration", { groupId: params.groupId });
   throw redirect("/admin/collaboration");
 }
 export function meta(_: Route.MetaArgs) { return [{ title: "Collaboration 관리" }]; }

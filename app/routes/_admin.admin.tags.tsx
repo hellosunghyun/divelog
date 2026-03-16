@@ -1,6 +1,7 @@
 import type { Route } from "./+types/_admin.admin.tags";
 import { data, redirect } from "react-router";
 import { db } from "../db/client.server";
+import { createLogger } from "../lib/logger.server";
 import { tags } from "../db/schema.server";
 import { eq } from "drizzle-orm";
 import {
@@ -18,14 +19,18 @@ export function meta(_: Route.MetaArgs) {
   return [{ title: "태그 관리" }];
 }
 
-export async function loader({ context }: Route.LoaderArgs) {
+export async function loader({ request, context }: Route.LoaderArgs) {
+  const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.tags" });
+  logger.info("loader_start");
   const allTags = await getAllTags(context.cloudflare.env.DB);
   return { tags: allTags };
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
+  const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.tags" });
   const formData = await request.formData();
   const intent = formData.get("intent");
+  logger.info("action_start", { intent });
 
   const database = db(context.cloudflare.env.DB);
 
@@ -49,13 +54,14 @@ export async function action({ request, context }: Route.ActionArgs) {
       return data({ error: "이미 존재하는 슬러그입니다." }, { status: 400 });
     }
 
-    await createTag(context.cloudflare.env.DB, {
+    const createdTag = await createTag(context.cloudflare.env.DB, {
       name,
       slug,
       description,
       color,
     });
 
+    logger.info("admin_create_tag", { tagId: createdTag?.id, slug: createdTag?.slug });
     return redirect("/admin/tags");
   }
 
@@ -109,8 +115,9 @@ export async function action({ request, context }: Route.ActionArgs) {
       updateData.color = color;
     }
 
-    await updateTag(context.cloudflare.env.DB, id, updateData);
+    const updatedTag = await updateTag(context.cloudflare.env.DB, id, updateData);
 
+    logger.info("admin_update_tag", { tagId: updatedTag?.id ?? id, slug: updatedTag?.slug });
     return redirect("/admin/tags");
   }
 
@@ -123,6 +130,7 @@ export async function action({ request, context }: Route.ActionArgs) {
 
     await deleteTag(context.cloudflare.env.DB, id);
 
+    logger.info("admin_delete_tag", { tagId: id });
     return redirect("/admin/tags");
   }
 

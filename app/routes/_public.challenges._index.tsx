@@ -5,14 +5,18 @@ import { challenges } from "../db/schema.server";
 import { asc } from "drizzle-orm";
 import HeroSection from "../components/HeroSection";
 import EmptyState from "../components/EmptyState";
+import { createLogger } from "../lib/logger.server";
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "챌린지 — divelog" }];
 }
 
-export async function loader({ context }: Route.LoaderArgs) {
+export async function loader({ request, context }: Route.LoaderArgs) {
+  const logger = createLogger(request, context.cloudflare.env).child({ route: "challenges" });
+  logger.info("loader_start");
   const database = db(context.cloudflare.env.DB);
   const allChallenges = await database.select().from(challenges).orderBy(asc(challenges.name));
+  logger.info("loader_end");
   return { challenges: allChallenges };
 }
 

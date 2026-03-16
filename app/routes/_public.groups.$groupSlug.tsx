@@ -8,9 +8,12 @@ import SceneCard from "../components/SceneCard";
 import LearnerCard from "../components/LearnerCard";
 import HeroSection from "../components/HeroSection";
 import EmptyState from "../components/EmptyState";
+import { createLogger } from "../lib/logger.server";
 
-export async function loader({ params, context }: Route.LoaderArgs) {
+export async function loader({ params, request, context }: Route.LoaderArgs) {
   const { groupSlug } = params;
+  const logger = createLogger(request, context.cloudflare.env).child({ route: "group_detail" });
+  logger.info("loader_start");
   const database = db(context.cloudflare.env.DB);
 
   const unitResult = await database
@@ -21,6 +24,7 @@ export async function loader({ params, context }: Route.LoaderArgs) {
   const unit = unitResult[0];
 
   if (!unit) {
+    logger.info("not_found", { slug: groupSlug });
     throw data("협업 단위를 찾을 수 없습니다", { status: 404 });
   }
 
@@ -46,6 +50,7 @@ export async function loader({ params, context }: Route.LoaderArgs) {
       .limit(12),
   ]);
 
+  logger.info("loader_end");
   return { unit, members, unitRecords };
 }
 

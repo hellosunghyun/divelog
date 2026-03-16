@@ -12,6 +12,7 @@ import EmptyState from "../components/EmptyState";
 import HeroSection from "../components/HeroSection";
 import { getPlainText } from "../lib/content.server";
 import { normalizeContentFormat } from "../lib/editor-extensions";
+import { createLogger } from "../lib/logger.server";
 
 export function meta({ data: loaderData }: Route.MetaArgs) {
   return [
@@ -21,6 +22,8 @@ export function meta({ data: loaderData }: Route.MetaArgs) {
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {
+  const logger = createLogger(request, context.cloudflare.env).child({ route: "logs" });
+  logger.info("loader_start");
   const url = new URL(request.url);
   const stageId = url.searchParams.get("stage") ?? undefined;
   const format = url.searchParams.get("format") ?? undefined;
@@ -101,6 +104,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     ? firstRecordPlainText.substring(0, 150) + (firstRecordPlainText.length > 150 ? "…" : "")
     : "ADA Learner들의 기록 모음";
 
+  logger.info("loader_end");
   return {
     records: recordsWithSnippets,
     allStages,

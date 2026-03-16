@@ -2,20 +2,28 @@ import { data, redirect } from "react-router";
 import type { Route } from "./+types/_admin.admin.records.$recordId";
 import { Link } from "react-router";
 import { db } from "../db/client.server";
+import { createLogger } from "../lib/logger.server";
 import { records } from "../db/schema.server";
 import { getPlainText } from "../lib/content.server";
 import { normalizeContentFormat } from "../lib/editor-extensions";
 import { eq } from "drizzle-orm";
 
-export async function loader({ params, context }: Route.LoaderArgs) {
+export async function loader({ params, request, context }: Route.LoaderArgs) {
+  const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.records.$recordId" });
+  logger.info("loader_start");
   const record = await db(context.cloudflare.env.DB).select().from(records).where(eq(records.id, params.recordId)).limit(1);
   if (!record[0]) throw data("Record not found", { status: 404 });
   const plainTextPreview = getPlainText(record[0].content, normalizeContentFormat(record[0].format));
   return { record: record[0], plainTextPreview };
 }
 export async function action({ params, request, context }: Route.ActionArgs) {
+  const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.records.$recordId" });
   const f = await request.formData();
-  await db(context.cloudflare.env.DB).update(records).set({ moderationStatus: f.get("moderationStatus") as string, moderationNote: (f.get("note") as string) || null, updatedAt: Math.floor(Date.now() / 1000) }).where(eq(records.id, params.recordId));
+  logger.info("action_start", { intent: "moderate_record" });
+  const moderationStatus = f.get("moderationStatus") as string;
+  const moderationNote = (f.get("note") as string) || null;
+  await db(context.cloudflare.env.DB).update(records).set({ moderationStatus, moderationNote, updatedAt: Math.floor(Date.now() / 1000) }).where(eq(records.id, params.recordId));
+  logger.info("admin_moderate_record", { recordId: params.recordId, newStatus: moderationStatus });
   throw redirect("/admin/records");
 }
 export function meta(_: Route.MetaArgs) { return [{ title: "기록 검토" }]; }

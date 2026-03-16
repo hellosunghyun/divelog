@@ -12,6 +12,7 @@ import { getRecordBySlug, updateRecord } from "../db/queries/records.server";
 import { getAllTags, getTagsByRecord } from "../db/queries/tags.server";
 import { requireVerified } from "../lib/auth.middleware";
 import { getPlainText } from "../lib/content.server";
+import { createLogger } from "../lib/logger.server";
 import { createRecordSchema } from "../lib/validation";
 import { cleanupRemovedImages } from "../lib/r2-cleanup.server";
 import { useUnsavedWarning } from "../hooks/useUnsavedWarning";
@@ -21,6 +22,8 @@ export function meta(_args: Route.MetaArgs) {
 }
 
 export async function loader({ params, request, context }: Route.LoaderArgs) {
+  const logger = createLogger(request, context.cloudflare.env).child({ route: "logs_edit" });
+  logger.info("loader_start");
   const auth = await requireVerified(request, context);
   const recordSlug = params.recordSlug;
 
@@ -59,6 +62,8 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
 }
 
 export async function action({ params, request, context }: Route.ActionArgs) {
+  const logger = createLogger(request, context.cloudflare.env).child({ route: "logs_edit" });
+  logger.info("action_start");
   const auth = await requireVerified(request, context);
   const recordSlug = params.recordSlug;
 
@@ -84,6 +89,7 @@ export async function action({ params, request, context }: Route.ActionArgs) {
       JSON.parse(content);
       contentText = getPlainText(content, "article");
     } catch {
+      logger.debug("record_edit_content_parse_fallback");
       contentText = content;
     }
   } else {
@@ -121,6 +127,8 @@ export async function action({ params, request, context }: Route.ActionArgs) {
     challengeId: parsed.data.challengeId,
     collaborationUnitId: parsed.data.collaborationUnitId,
   });
+
+  logger.info("record_update", { recordId: recordData.record.id });
 
   if (parsed.data.format === "article") {
     await cleanupRemovedImages(

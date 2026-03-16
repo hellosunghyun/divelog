@@ -3,6 +3,10 @@
  * 기록 수정 시 제거된 이미지를 R2에서 삭제
  */
 
+import { createModuleLogger } from "./logger.server";
+
+const logger = createModuleLogger("r2-cleanup.server");
+
 /**
  * Tiptap JSON에서 이미지 R2 키 추출
  * @param tiptapJsonString - Tiptap JSON 문자열
@@ -37,8 +41,9 @@ export function extractImageKeys(tiptapJsonString: string): string[] {
     }
 
     traverse(doc);
-  } catch {
+  } catch (err) {
     // JSON 파싱 실패 시 빈 배열 반환
+    logger.warn("r2_cleanup_parse_error", { error: err instanceof Error ? err.message : String(err) });
     return [];
   }
 

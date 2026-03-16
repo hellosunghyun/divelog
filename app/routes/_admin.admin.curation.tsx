@@ -1,16 +1,21 @@
 import { redirect } from "react-router";
 import type { Route } from "./+types/_admin.admin.curation";
 import { db } from "../db/client.server";
+import { createLogger } from "../lib/logger.server";
 import { curationSlots } from "../db/schema.server";
 import { desc, eq } from "drizzle-orm";
 
 export function meta(_: Route.MetaArgs) { return [{ title: "큐레이션" }]; }
-export async function loader({ context }: Route.LoaderArgs) {
+export async function loader({ request, context }: Route.LoaderArgs) {
+  const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.curation" });
+  logger.info("loader_start");
   return { slots: await db(context.cloudflare.env.DB).select().from(curationSlots).orderBy(desc(curationSlots.position)) };
 }
 export async function action({ request, context }: Route.ActionArgs) {
+  const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.curation" });
   const f = await request.formData();
   const intent = f.get("intent");
+  logger.info("action_start", { intent });
   const database = db(context.cloudflare.env.DB);
   if (intent === "pin") {
     await database.update(curationSlots).set({ pinned: true, updatedAt: Math.floor(Date.now() / 1000) }).where(eq(curationSlots.id, f.get("id") as string));
@@ -24,6 +29,7 @@ export async function action({ request, context }: Route.ActionArgs) {
   if (intent === "unhide") {
     await database.update(curationSlots).set({ hidden: false, updatedAt: Math.floor(Date.now() / 1000) }).where(eq(curationSlots.id, f.get("id") as string));
   }
+  logger.info("admin_update_curation", { slotId: f.get("id"), action: intent });
   throw redirect("/admin/curation");
 }
 export default function AdminCurationPage({ loaderData }: Route.ComponentProps) {

@@ -3,6 +3,7 @@ import { Link } from "react-router";
 import { getAllTags } from "../db/queries/tags.server";
 import EmptyState from "../components/EmptyState";
 import HeroSection from "../components/HeroSection";
+import { createLogger } from "../lib/logger.server";
 
 export function meta() {
   return [
@@ -11,8 +12,11 @@ export function meta() {
   ];
 }
 
-export async function loader({ context }: Route.LoaderArgs) {
+export async function loader({ request, context }: Route.LoaderArgs) {
+  const logger = createLogger(request, context.cloudflare.env).child({ route: "tags" });
+  logger.info("loader_start");
   const tags = await getAllTags(context.cloudflare.env.DB);
+  logger.info("loader_end");
   return { tags };
 }
 

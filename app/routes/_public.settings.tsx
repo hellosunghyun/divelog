@@ -1,5 +1,6 @@
 import type { Route } from "./+types/_public.settings";
 import { requireAuth } from "../lib/auth.middleware";
+import { createLogger } from "../lib/logger.server";
 import { db } from "../db/client.server";
 import { learnerProfiles } from "../db/schema.server";
 import { eq } from "drizzle-orm";
@@ -10,6 +11,8 @@ export function meta(_args: Route.MetaArgs) {
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {
+  const logger = createLogger(request, context.cloudflare.env).child({ route: "settings" });
+  logger.info("loader_start");
   const auth = await requireAuth(request, context);
   const database = db(context.cloudflare.env.DB);
 
@@ -23,8 +26,10 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
+  const logger = createLogger(request, context.cloudflare.env).child({ route: "settings" });
   const auth = await requireAuth(request, context);
   const formData = await request.formData();
+  logger.info("action_start");
   const database = db(context.cloudflare.env.DB);
   const now = Math.floor(Date.now() / 1000);
 
@@ -33,6 +38,11 @@ export async function action({ request, context }: Route.ActionArgs) {
     "defaultResponsePreference"
   ) as string | null;
   const notificationEmailEnabled = formData.get("notificationEmailEnabled") === "on";
+
+  const changedFields: string[] = [];
+  if (defaultVisibility) changedFields.push("defaultVisibility");
+  if (defaultResponsePreference) changedFields.push("defaultResponsePreference");
+  changedFields.push("notificationEmailEnabled");
 
   await database
     .update(learnerProfiles)
@@ -43,6 +53,8 @@ export async function action({ request, context }: Route.ActionArgs) {
       updatedAt: now,
     })
     .where(eq(learnerProfiles.userId, auth.user.id));
+
+  logger.info("settings_update", { fields: changedFields });
 
   return { success: "설정이 저장되었습니다." };
 }

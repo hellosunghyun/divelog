@@ -5,12 +5,15 @@ import HeroSection from "../components/HeroSection";
 import EmptyState from "../components/EmptyState";
 import FilterBar from "../components/FilterBar";
 import { getLearnersWithActivity, getDistinctCohorts } from "../db/queries/learners.server";
+import { createLogger } from "../lib/logger.server";
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "Learner — divelog" }];
 }
 
 export async function loader({ context, request }: Route.LoaderArgs) {
+  const logger = createLogger(request, context.cloudflare.env).child({ route: "learners" });
+  logger.info("loader_start");
   const url = new URL(request.url);
   const cohortFilter = url.searchParams.get("cohort") ?? undefined;
 
@@ -19,6 +22,7 @@ export async function loader({ context, request }: Route.LoaderArgs) {
     getDistinctCohorts(context.cloudflare.env.DB),
   ]);
 
+  logger.info("loader_end");
   return { learners, cohorts, selectedCohort: cohortFilter ?? null };
 }
 

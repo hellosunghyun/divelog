@@ -1,12 +1,15 @@
 import { redirect } from "react-router";
 import type { Route } from "./+types/_admin.admin.roles";
 import { db } from "../db/client.server";
+import { createLogger } from "../lib/logger.server";
 import { userRoles, learnerProfiles } from "../db/schema.server";
 import { asc, eq } from "drizzle-orm";
 
 export function meta(_: Route.MetaArgs) { return [{ title: "역할 & 권한" }]; }
 
-export async function loader({ context }: Route.LoaderArgs) {
+export async function loader({ request, context }: Route.LoaderArgs) {
+  const logger = createLogger(request, context.cloudflare.env as { LOG_LEVEL?: string }).child({ route: "admin.roles" });
+  logger.info("loader_start");
   const database = db(context.cloudflare.env.DB);
   const [roles, allLearners] = await database.batch([
     database.select({
@@ -27,19 +30,27 @@ export async function loader({ context }: Route.LoaderArgs) {
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
+  const logger = createLogger(request, context.cloudflare.env as { LOG_LEVEL?: string }).child({ route: "admin.roles" });
   const f = await request.formData();
   const database = db(context.cloudflare.env.DB);
   const intent = f.get("intent");
+  logger.info("action_start", { intent });
   if (intent === "grant") {
+    const targetUserId = f.get("userId") as string;
+    const role = f.get("role") as string;
     await database.insert(userRoles).values({
       id: crypto.randomUUID(),
-      userId: f.get("userId") as string,
-      role: f.get("role") as string,
+      userId: targetUserId,
+      role,
       grantedAt: Math.floor(Date.now() / 1000),
     });
+    logger.info("admin_role_change", { targetUserId, role, action: "grant" });
   }
   if (intent === "revoke") {
-    await database.delete(userRoles).where(eq(userRoles.id, f.get("id") as string));
+    const id = f.get("id") as string;
+    const existingRole = await database.select().from(userRoles).where(eq(userRoles.id, id)).limit(1);
+    await database.delete(userRoles).where(eq(userRoles.id, id));
+    logger.info("admin_role_change", { targetUserId: existingRole[0]?.userId, role: existingRole[0]?.role, action: "revoke" });
   }
   throw redirect("/admin/roles");
 }
