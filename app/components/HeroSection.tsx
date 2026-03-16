@@ -1,7 +1,7 @@
 interface HeroSectionProps {
   variant: "home" | "stage" | "challenge" | "learner" | "memory";
   title: React.ReactNode;
-  subtitle?: string;
+  subtitle?: React.ReactNode;
   accentTone?: string;
   badge?: string;
   children?: React.ReactNode;

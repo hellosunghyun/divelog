@@ -132,7 +132,7 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
       <HeroSection
         variant="home"
         title={<>수면 아래, <br /><span className="text-mist-blue/90">기록이 깊어지는 곳</span></>}
-        subtitle="완성된 글이 아니어도 괜찮습니다. 질문을 남기고, 조용히 깊어지는 여정의 아카이브입니다."
+        subtitle={<>완성된 글이 아니어도 괜찮습니다.<br />질문을 남기고, 조용히 깊어지는 여정의 아카이브입니다.</>}
         badge="성찰적 다이빙"
       >
         <Link
