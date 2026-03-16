@@ -12,6 +12,8 @@ import EmptyState from "~/components/EmptyState";
 import StageStrip from "~/components/StageStrip";
 import { createLogger } from "~/lib/logger.server";
 
+const cache = new Map<string, unknown>();
+
 export async function loader({ params, request, context }: Route.LoaderArgs) {
   const { stageSlug } = params;
   const logger = createLogger(request, context.cloudflare.env).child({ route: "journey_stage_detail" });
@@ -60,6 +62,17 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
 
   logger.info("loader_end");
   return { stage, allStages, stageRecords, stageQuestions, stageCollaborations };
+}
+
+export async function clientLoader({ params, serverLoader }: {
+  params: { stageSlug?: string };
+  serverLoader: () => Promise<unknown>;
+}) {
+  const key = params.stageSlug ?? "";
+  if (cache.has(key)) return cache.get(key);
+  const data = await serverLoader();
+  cache.set(key, data);
+  return data;
 }
 
 export function meta({ data: loaderData }: Route.MetaArgs) {

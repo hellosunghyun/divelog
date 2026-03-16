@@ -11,6 +11,8 @@ import EmptyState from "~/components/EmptyState";
 import HeroSection from "~/components/HeroSection";
 import { createLogger } from "~/lib/logger.server";
 
+const cache = new Map<string, unknown>();
+
 export async function loader({ params, request, context }: Route.LoaderArgs) {
   const { learnerSlug } = params;
   const logger = createLogger(request, context.cloudflare.env).child({ route: "learner_detail" });
@@ -36,6 +38,17 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
 
   logger.info("loader_end");
   return { learner, learnerRecords, learnerQuestions, learnerSentences };
+}
+
+export async function clientLoader({ params, serverLoader }: {
+  params: { learnerSlug?: string };
+  serverLoader: () => Promise<unknown>;
+}) {
+  const key = params.learnerSlug ?? "";
+  if (cache.has(key)) return cache.get(key);
+  const loaderData = await serverLoader();
+  cache.set(key, loaderData);
+  return loaderData;
 }
 
 export function meta({ data: loaderData }: Route.MetaArgs) {

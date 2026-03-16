@@ -1,0 +1,27 @@
+=== TASK 12: clientLoader Caching Implementation ===
+
+FILE: app/routes/public/journey/$stageSlug.tsx
+
+VERIFICATION RESULTS:
+✓ clientLoader export exists
+✓ cache = new Map<string, unknown>() at module top level
+✓ No clientLoader.hydrate = true
+✓ No new type errors introduced
+
+GREP OUTPUT:
+15:const cache = new Map<string, unknown>();
+67:export async function clientLoader({ params, serverLoader }: {
+72:  if (cache.has(key)) return cache.get(key);
+74:  cache.set(key, data);
+
+TYPE CHECK:
+PASS - No new errors in stageSlug file
+
+IMPLEMENTATION DETAILS:
+- Cache key: params.stageSlug (empty string fallback)
+- Cache hit: returns cached data immediately
+- Cache miss: calls serverLoader(), stores result, returns data
+- No action present (only loader), so no clientAction needed
+- No hydrate configuration (client-side only caching)
+
+STATUS: ✅ COMPLETE

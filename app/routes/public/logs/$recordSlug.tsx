@@ -27,6 +27,22 @@ import { getOptionalUser } from "~/lib/auth.middleware";
 
 import type { Route } from "./+types/$recordSlug";
 
+const cache = new Map<string, unknown>();
+
+export async function clientLoader({ params, serverLoader }: Route.ClientLoaderArgs) {
+  const key = params.recordSlug ?? "";
+  if (cache.has(key)) return cache.get(key) as Awaited<ReturnType<typeof loader>>;
+  const data = await serverLoader();
+  cache.set(key, data);
+  return data;
+}
+
+export async function clientAction({ params, serverAction }: Route.ClientActionArgs) {
+  const result = await serverAction();
+  cache.delete(params.recordSlug ?? "");
+  return result;
+}
+
 export async function loader({ params, context, request }: Route.LoaderArgs) {
   const { recordSlug } = params;
   const logger = createLogger(request, context.cloudflare.env).child({ route: "logs_detail" });

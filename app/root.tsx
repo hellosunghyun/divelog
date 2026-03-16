@@ -12,7 +12,10 @@ import type { Route } from "./+types/root";
 import { NavigationFade } from "~/components/NavigationFade";
 import "./app.css";
 
-export const links: Route.LinksFunction = () => [];
+export const links: Route.LinksFunction = () => [
+  { rel: "dns-prefetch", href: "https://ada-kr-pos.com" },
+  { rel: "preconnect", href: "https://ada-kr-pos.com" },
+];
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
