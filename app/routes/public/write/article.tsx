@@ -7,12 +7,13 @@ import type { Route } from "./+types/article";
 import { ArticleEditor } from "~/components/editor/ArticleEditor";
 import { db } from "~/db/client.server";
 import { createQuestion } from "~/db/queries/questions.server";
+import { createLink, syncRecordLinksForRecord } from "~/db/queries/recordLinks.server";
+import { getRecordBySlug } from "~/db/queries/records.server";
 import { learnerProfiles, records, stages, templates } from "~/db/schema.server";
 import { useUnsavedWarning } from "~/hooks/useUnsavedWarning";
 import { requireVerified } from "~/lib/auth.middleware";
 import { getPlainText } from "~/lib/content.server";
 import { syncMentionsForRecord } from "~/db/queries/mentions.server";
-import { syncRecordLinksForRecord } from "~/db/queries/recordLinks.server";
 import { createNotification } from "~/db/queries/notifications.server";
 import { extractUserMentions, extractRecordRefs } from "~/lib/extract-references.server";
 import { nanoid } from "~/lib/utils.server";
@@ -73,8 +74,56 @@ function hasMeaningfulNode(node: unknown): boolean {
   return Array.isArray(content) && content.some((childNode) => hasMeaningfulNode(childNode));
 }
 
+function createArticleContentFromNote(noteContent: string) {
+  const paragraphs = noteContent
+    .split(/\n\s*\n/)
+    .map((paragraph) => paragraph.trim())
+    .filter((paragraph) => paragraph.length > 0)
+    .map((paragraph) => {
+      const lines = paragraph.split("\n");
+      const content = lines.flatMap((line, index) => {
+        const nodes: Array<Record<string, string>> = [];
+
+        if (line.length > 0) {
+          nodes.push({ type: "text", text: line });
+        }
+
+        if (index < lines.length - 1) {
+          nodes.push({ type: "hardBreak" });
+        }
+
+        return nodes;
+      });
+
+      return content.length > 0 ? { type: "paragraph", content } : { type: "paragraph" };
+    });
+
+  return JSON.stringify({
+    type: "doc",
+    content: paragraphs.length > 0 ? paragraphs : [{ type: "paragraph" }],
+  });
+}
+
 export async function loader({ request, context }: Route.LoaderArgs) {
-  await requireVerified(request, context);
+  const auth = await requireVerified(request, context);
+  const url = new URL(request.url);
+  const expandFrom = url.searchParams.get("expandFrom");
+  let expandRecord: { slug: string; title: string; content: string } | null = null;
+
+  if (expandFrom) {
+    const sourceRecord = await getRecordBySlug(context.cloudflare.env.DB, expandFrom);
+    if (
+      sourceRecord
+      && sourceRecord.record.authorId === auth.user.id
+      && sourceRecord.record.format === "note"
+    ) {
+      expandRecord = {
+        slug: sourceRecord.record.slug,
+        title: sourceRecord.record.title,
+        content: createArticleContentFromNote(sourceRecord.record.content),
+      };
+    }
+  }
 
   const database = db(context.cloudflare.env.DB);
   const [currentStageResult, allStages, activeTemplates] = await database.batch([
@@ -87,6 +136,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     stages: allStages,
     templates: activeTemplates,
     warmupPrompt: getRandomWarmupPrompt(),
+    expandRecord,
   };
 }
 
@@ -94,6 +144,8 @@ export async function action({ request, context }: Route.ActionArgs) {
   const auth = await requireVerified(request, context);
 
   const formData = await request.formData();
+  const expandFromValue = formData.get("expandFrom");
+  const expandFrom = typeof expandFromValue === "string" && expandFromValue.length > 0 ? expandFromValue : null;
   const contentRaw = formData.get("content");
   const content = typeof contentRaw === "string" ? contentRaw : "";
 
@@ -196,6 +248,22 @@ export async function action({ request, context }: Route.ActionArgs) {
     await syncRecordLinksForRecord(context.cloudflare.env.DB, id, recordRefs);
   }
 
+  if (expandFrom) {
+    const sourceRecord = await getRecordBySlug(context.cloudflare.env.DB, expandFrom);
+    if (
+      sourceRecord
+      && sourceRecord.record.authorId === auth.user.id
+      && sourceRecord.record.format === "note"
+      && sourceRecord.record.id !== id
+    ) {
+      await createLink(context.cloudflare.env.DB, {
+        sourceRecordId: id,
+        targetRecordId: sourceRecord.record.id,
+        linkType: "expansion",
+      });
+    }
+  }
+
   throw redirect(`/logs/${slug}/details`);
 }
 
@@ -205,13 +273,15 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
     stages: availableStages,
     templates: availableTemplates,
     warmupPrompt,
+    expandRecord,
   } = loaderData;
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const [title, setTitle] = useState("");
-  const [articleContent, setArticleContent] = useState("");
+  const initialContent = expandRecord?.content ?? "";
+  const [articleContent, setArticleContent] = useState(initialContent);
   const [showSettings, setShowSettings] = useState(false);
-  const [hasStartedTyping, setHasStartedTyping] = useState(false);
+  const [hasStartedTyping, setHasStartedTyping] = useState(hasMeaningfulArticleContent(initialContent));
   const [hasAutoRevealedSettings, setHasAutoRevealedSettings] = useState(false);
   const isSubmitting = navigation.state === "submitting";
   const errors = actionData?.errors;
@@ -219,6 +289,12 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
   const contentError = errors && "content" in errors ? errors.content?.[0] : undefined;
 
   useUnsavedWarning(title.length > 0 || articleContent.length > 0);
+
+  useEffect(() => {
+    setArticleContent(initialContent);
+    setHasStartedTyping(hasMeaningfulArticleContent(initialContent));
+    setHasAutoRevealedSettings(false);
+  }, [initialContent]);
 
   useEffect(() => {
     if (showSettings || hasAutoRevealedSettings || !hasStartedTyping) {
@@ -255,7 +331,14 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
       <p className="mb-8 text-base text-text-secondary">여유롭게 탐구의 기록을 남기세요.</p>
 
       <form method="post" className="flex flex-col gap-6">
+        {expandRecord ? <input type="hidden" name="expandFrom" value={expandRecord.slug} /> : null}
+
         <div>
+          {expandRecord ? (
+            <p className="mb-3 text-sm text-text-secondary">
+              <span className="font-medium text-text-primary">{expandRecord.title}</span> 메모를 바탕으로 이어 쓰고 있습니다.
+            </p>
+          ) : null}
           <p
             data-testid="article-warm-up-prompt"
             className="mb-4 text-sm italic text-[--color-text-tertiary]"

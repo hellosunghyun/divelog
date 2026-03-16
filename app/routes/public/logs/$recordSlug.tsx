@@ -344,6 +344,8 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
   const isRecordAuthor = currentUserId === record.authorId;
   const recordFormat = normalizeContentFormat(record.format);
   const isArticleRecord = recordFormat === "article";
+  const expansionLinks = incomingLinks.filter((link) => link.linkType === "expansion");
+  const referenceLinks = incomingLinks.filter((link) => link.linkType !== "expansion");
 
   const selfAnswersByQuestion = new Map<string, typeof selfAnswers>();
   for (const sa of selfAnswers) {
@@ -527,12 +529,28 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
           )}
 
           {isRecordAuthor && (
-            <Link
-              to={`/logs/${record.slug}/edit`}
-              className="inline-flex items-center rounded-full border border-border px-3 py-1.5 text-caption font-medium text-text-secondary no-underline transition-colors hover:bg-surface-secondary hover:text-text-primary"
-            >
-              수정
-            </Link>
+            <div className="flex items-center gap-3 flex-wrap">
+              <Link
+                to={`/logs/${record.slug}/edit`}
+                className="inline-flex items-center rounded-full border border-border px-3 py-1.5 text-caption font-medium text-text-secondary no-underline transition-colors hover:bg-surface-secondary hover:text-text-primary"
+              >
+                수정
+              </Link>
+
+              {recordFormat === "note" ? (
+                <Link
+                  to={`/write/article?expandFrom=${encodeURIComponent(record.slug)}`}
+                  data-testid="expand-to-article"
+                  className="inline-flex items-center gap-1.5 text-sm text-[--color-text-tertiary] no-underline transition-colors hover:text-[--color-ocean-blue]"
+                >
+                  <span>이 메모를 글로 확장</span>
+                  <svg aria-hidden="true" className="h-3.5 w-3.5" viewBox="0 0 16 16" fill="none">
+                    <path d="M3.5 8H12.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                    <path d="M8.5 4L12.5 8L8.5 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </Link>
+              ) : null}
+            </div>
           )}
         </div>
       </header>
@@ -795,13 +813,33 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
         )}
       </section>
 
-      {incomingLinks.length > 0 && (
+      {recordFormat === "note" && expansionLinks.length > 0 && (
         <section className="mb-12">
           <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-6">
-            이 글을 참조한 기록
+            이 메모에서 확장된 글
           </h2>
           <div className="flex flex-col gap-3">
-            {incomingLinks.map((link) => (
+            {expansionLinks.map((link) => (
+              <Link
+                key={link.linkId}
+                to={`/logs/${link.sourceSlug}`}
+                className="block p-4 rounded-xl bg-surface-secondary border border-border hover:border-ocean-blue/30 transition-colors no-underline"
+              >
+                <p className="text-base font-medium text-text-primary">{link.sourceTitle ?? "글"}</p>
+                <p className="text-sm text-text-tertiary mt-1">{link.sourceAuthorName}</p>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {referenceLinks.length > 0 && (
+        <section className="mb-12">
+          <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-6">
+            {isArticleRecord ? "이 글을 참조한 기록" : "이 기록을 참조한 기록"}
+          </h2>
+          <div className="flex flex-col gap-3">
+            {referenceLinks.map((link) => (
               <Link
                 key={link.linkId}
                 to={`/logs/${link.sourceSlug}`}
