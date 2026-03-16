@@ -38,7 +38,7 @@
 
 /* === Paragraph === */
 .ProseMirror p {
-  margin: var(--space-4) 0;
+  margin: 0.25em 0;
   line-height: var(--line-height-body);
 }
 
@@ -60,7 +60,7 @@
   font-weight: var(--font-weight-semibold);
   line-height: var(--line-height-title);
   color: var(--color-text-primary);
-  margin: var(--space-6) 0 var(--space-4) 0;
+  margin: 1em 0 0.25em 0;
 }
 
 .ProseMirror h1 {
