@@ -1,5 +1,6 @@
 import { useRouteLoaderData, useLocation, useNavigate } from "react-router";
 import { Link } from "~/components/SmartLink";
+import { Input } from "~/components/ui/input";
 import { useState, useEffect, useRef } from "react";
 import { User, Inbox, Settings, ExternalLink, LogOut } from "lucide-react";
 
@@ -370,12 +371,12 @@ export default function GlobalNav() {
                 <circle cx="11" cy="11" r="8" />
                 <path d="m21 21-4.3-4.3" />
               </svg>
-              <input
+              <Input
                 ref={searchInputRef}
                 type="text"
                 placeholder="기록, 질문, 러너 검색..."
                 aria-label="검색"
-                className={`w-full bg-text-tertiary/10 border-none rounded-full pl-10 pr-4 py-2.5 text-base placeholder:text-text-tertiary ${focusRing}`}
+                className={`h-11 rounded-full border-0 bg-text-tertiary/10 pl-10 pr-4 py-2.5 text-base shadow-none placeholder:text-text-tertiary focus-visible:border-ocean-blue focus-visible:ring-ocean-blue/20 ${focusRing}`}
               />
             </form>
 

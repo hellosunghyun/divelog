@@ -5,6 +5,16 @@ import { redirect, useActionData, useNavigation } from "react-router";
 import type { Route } from "./+types/article";
 
 import { ArticleEditor } from "~/components/editor/ArticleEditor";
+import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
 import { db } from "~/db/client.server";
 import { learnerProfiles, notifications, records, stages, templates } from "~/db/schema.server";
 import { useUnsavedWarning } from "~/hooks/useUnsavedWarning";
@@ -15,6 +25,9 @@ import { syncRecordLinksForRecord } from "~/db/queries/recordLinks.server";
 import { extractUserMentions, extractRecordRefs } from "~/lib/extract-references.server";
 import { nanoid } from "~/lib/utils.server";
 import { createArticleSchema } from "~/lib/validation";
+
+const NO_STAGE_VALUE = "__none__";
+const NO_TEMPLATE_VALUE = "__none__";
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "글쓰기 — DiveLog" }];
@@ -139,6 +152,8 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
   const { currentStage, stages: availableStages, templates: availableTemplates } = loaderData;
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
+  const [stageValue, setStageValue] = useState(currentStage?.id ?? NO_STAGE_VALUE);
+  const [templateValue, setTemplateValue] = useState(NO_TEMPLATE_VALUE);
   const [title, setTitle] = useState("");
   const [articleContent, setArticleContent] = useState("");
   const isSubmitting = navigation.state === "submitting";
@@ -162,53 +177,58 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
       <form method="post" className="flex flex-col gap-6">
         <div className="flex flex-wrap items-center gap-4">
           <div>
-            <label
+            <Label
               htmlFor="visibility"
               className="mb-1.5 block text-meta font-medium text-text-secondary"
             >
               공개 범위
-            </label>
-            <select
-              id="visibility"
-              name="visibility"
-              defaultValue="cohort"
-              className="rounded-md border border-border bg-surface px-3 py-2 text-base focus:ring-2 focus:ring-ocean-blue focus:outline-none"
-            >
-              <option value="cohort">코호트 공개</option>
-              <option value="public">전체 공개</option>
-              <option value="draft">임시저장</option>
-            </select>
+            </Label>
+            <Select name="visibility" defaultValue="cohort">
+              <SelectTrigger id="visibility" className="w-auto min-w-36 bg-surface">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="cohort">코호트 공개</SelectItem>
+                <SelectItem value="public">전체 공개</SelectItem>
+                <SelectItem value="draft">임시저장</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div>
-            <label
+            <Label
               htmlFor="stageId"
               className="mb-1.5 block text-meta font-medium text-text-secondary"
             >
               구간
-            </label>
-            <select
-              id="stageId"
+            </Label>
+            <input
+              type="hidden"
               name="stageId"
-              defaultValue={currentStage?.id ?? ""}
-              className="rounded-md border border-border bg-surface px-3 py-2 text-base focus:ring-2 focus:ring-ocean-blue focus:outline-none"
-            >
-              <option value="">구간 미지정</option>
-              {availableStages.map((stage) => (
-                <option key={stage.id} value={stage.id}>
-                  {stage.name}
-                  {stage.isCurrent ? " (현재)" : ""}
-                </option>
-              ))}
-            </select>
+              value={stageValue === NO_STAGE_VALUE ? "" : stageValue}
+            />
+            <Select value={stageValue} onValueChange={setStageValue}>
+              <SelectTrigger id="stageId" className="w-auto min-w-40 bg-surface">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={NO_STAGE_VALUE}>구간 미지정</SelectItem>
+                {availableStages.map((stage) => (
+                  <SelectItem key={stage.id} value={stage.id}>
+                    {stage.name}
+                    {stage.isCurrent ? " (현재)" : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
         <div>
-          <label htmlFor="title" className="mb-2 block text-meta font-medium text-text-secondary">
+          <Label htmlFor="title" className="mb-2 block text-meta font-medium text-text-secondary">
             제목 <span className="text-error">*</span>
-          </label>
-          <input
+          </Label>
+          <Input
             id="title"
             name="title"
             type="text"
@@ -216,7 +236,8 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
             placeholder="제목을 입력하세요"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full rounded-md border border-border bg-surface px-4 py-3 text-base focus:ring-2 focus:ring-ocean-blue focus:ring-offset-1 focus:outline-none"
+            aria-invalid={Boolean(titleError)}
+            className="w-full bg-surface focus-visible:ring-offset-1"
           />
           {titleError ? <p className="mt-1 text-meta text-error">{titleError}</p> : null}
         </div>
@@ -236,32 +257,38 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
 
         {availableTemplates.length > 0 && (
           <div>
-            <label htmlFor="templateId" className="mb-2 block text-meta font-medium text-text-secondary">
+            <Label htmlFor="templateId" className="mb-2 block text-meta font-medium text-text-secondary">
               템플릿 (선택)
-            </label>
-            <select
-              id="templateId"
+            </Label>
+            <input
+              type="hidden"
               name="templateId"
-              className="w-full rounded-md border border-border bg-surface px-3 py-2 text-base focus:ring-2 focus:ring-ocean-blue focus:outline-none"
-            >
-              <option value="">템플릿 없이 시작</option>
-              {availableTemplates.map((tmpl) => (
-                <option key={tmpl.id} value={tmpl.id}>
-                  {tmpl.name}
-                </option>
-              ))}
-            </select>
+              value={templateValue === NO_TEMPLATE_VALUE ? "" : templateValue}
+            />
+            <Select value={templateValue} onValueChange={setTemplateValue}>
+              <SelectTrigger id="templateId" className="w-full bg-surface">
+                <SelectValue placeholder="템플릿 없이 시작" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={NO_TEMPLATE_VALUE}>템플릿 없이 시작</SelectItem>
+                {availableTemplates.map((tmpl) => (
+                  <SelectItem key={tmpl.id} value={tmpl.id}>
+                    {tmpl.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         )}
 
         <div className="flex gap-3 border-t border-border pt-4">
-          <button
+          <Button
             type="submit"
             disabled={isSubmitting}
-            className="rounded-md bg-ocean-blue px-6 py-3 text-base font-medium text-white transition-colors hover:bg-deep-ocean focus-visible:ring-2 focus-visible:ring-ocean-blue disabled:opacity-60"
+            className="rounded-md px-6 py-3 text-base font-medium"
           >
             {isSubmitting ? "저장 중..." : "저장"}
-          </button>
+          </Button>
           <Link
             to="/write"
             className="rounded-md border border-border px-6 py-3 text-base font-medium text-text-secondary no-underline transition-colors hover:bg-surface-secondary"

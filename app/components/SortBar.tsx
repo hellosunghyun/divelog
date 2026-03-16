@@ -1,5 +1,14 @@
 import { useSearchParams } from "react-router";
 
+import { Label } from "~/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
+
 interface SortOption {
   value: string;
   label: string;
@@ -20,21 +29,29 @@ export default function SortBar({ options = DEFAULT_SORT_OPTIONS }: SortBarProps
 
   return (
     <div className="flex gap-2 items-center">
-      <label htmlFor="sort-select" className="text-sm text-text-secondary">정렬</label>
-      <select
-        id="sort-select"
+      <Label htmlFor="sort-select" className="text-sm text-text-secondary">정렬</Label>
+      <Select
         value={searchParams.get("sort") ?? "recent"}
-        onChange={(e) => {
+        onValueChange={(value) => {
           const newParams = new URLSearchParams(searchParams);
-          newParams.set("sort", e.target.value);
+          newParams.set("sort", value);
           setSearchParams(newParams);
         }}
-        className="text-sm px-3 py-2.5 rounded-lg border border-border bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
       >
-        {options.map((opt) => (
-          <option key={opt.value} value={opt.value}>{opt.label}</option>
-        ))}
-      </select>
+        <SelectTrigger
+          id="sort-select"
+          className="h-9 min-w-36 rounded-lg border-border bg-surface px-3 py-2 text-sm shadow-none focus-visible:border-ocean-blue focus-visible:ring-ocean-blue/20"
+        >
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {options.map((opt) => (
+            <SelectItem key={opt.value} value={opt.value}>
+              {opt.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   );
 }

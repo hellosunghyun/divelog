@@ -10,6 +10,7 @@ import ViewToggle from "~/components/ViewToggle";
 import TimelineView from "~/components/TimelineView";
 import EmptyState from "~/components/EmptyState";
 import HeroSection from "~/components/HeroSection";
+import { Button } from "~/components/ui/button";
 import { getPlainText } from "~/lib/content.server";
 import { normalizeContentFormat } from "~/lib/editor-extensions";
 import { createLogger } from "~/lib/logger.server";
@@ -184,18 +185,19 @@ export default function LogsPage({ loaderData }: Route.ComponentProps) {
         {/* 탭 */}
         <div className="mb-6 flex gap-1 border-b border-border">
           {tabs.map((tab) => (
-            <button
+            <Button
               key={tab.value}
               type="button"
+              variant="ghost"
               onClick={() => handleTabClick(tab.value)}
-              className={`px-4 py-2.5 text-base font-medium transition-colors border-b-2 -mb-px ${
+              className={`-mb-px h-auto rounded-none border-b-2 px-4 py-2.5 text-base font-medium transition-colors hover:bg-transparent ${
                 activeFormat === tab.value
                   ? "border-ocean-blue text-ocean-blue"
                   : "border-transparent text-text-secondary hover:text-text-primary"
               }`}
             >
               {tab.label}
-            </button>
+            </Button>
           ))}
         </div>
 

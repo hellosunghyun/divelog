@@ -7,6 +7,7 @@ import { createLogger } from "~/lib/logger.server";
 import HeroSection from "~/components/HeroSection";
 import EmptyState from "~/components/EmptyState";
 import { Link } from "~/components/SmartLink";
+import { Button } from "~/components/ui/button";
 import { Form } from "react-router";
 
 export function meta(_args: Route.MetaArgs) {
@@ -106,12 +107,13 @@ export default function InboxPage({ loaderData }: Route.ComponentProps) {
           {unreadCount > 0 && (
             <Form method="post">
               <input type="hidden" name="intent" value="mark_all_read" />
-              <button
+              <Button
                 type="submit"
-                className="text-meta text-text-tertiary border-none bg-transparent cursor-pointer hover:text-text-secondary transition-colors"
+                variant="ghost"
+                className="h-auto px-0 py-0 text-meta font-normal text-text-tertiary hover:bg-transparent hover:text-text-secondary"
               >
                 모두 읽음 처리
-              </button>
+              </Button>
             </Form>
           )}
         </div>
@@ -152,12 +154,13 @@ export default function InboxPage({ loaderData }: Route.ComponentProps) {
                     <Form method="post">
                       <input type="hidden" name="intent" value="mark_read" />
                       <input type="hidden" name="id" value={n.id} />
-                      <button
+                      <Button
                         type="submit"
-                        className="text-caption text-text-tertiary border-none bg-transparent cursor-pointer whitespace-nowrap hover:text-text-secondary transition-colors"
+                        variant="ghost"
+                        className="h-auto whitespace-nowrap p-0 text-caption font-normal text-text-tertiary hover:bg-transparent hover:text-text-secondary"
                       >
                         읽음
-                      </button>
+                      </Button>
                     </Form>
                   </div>
                 )}

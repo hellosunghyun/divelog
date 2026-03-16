@@ -10,6 +10,16 @@ import ResponseCard from "~/components/ResponseCard";
 import SelfAnswerCard from "~/components/SelfAnswerCard";
 import SceneCard from "~/components/SceneCard";
 import { ContentRenderer } from "~/components/ContentRenderer";
+import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
+import { Textarea } from "~/components/ui/textarea";
 import { db } from "~/db/client.server";
 import { saveSentence } from "~/db/queries/sentences.server";
 import { learnerProfiles, questions, records, responses, sentences } from "~/db/schema.server";
@@ -288,6 +298,7 @@ const ALL_RESPONSE_TYPE_OPTIONS = [
   { value: "connection", label: "연결 — 내 경험이나 다른 기록과 이어봅니다" },
   { value: "suggestion", label: "제안 — 다음 시도를 조심스럽게 제안합니다" },
 ];
+const NO_QUESTION_VALUE = "__none__";
 
 const RESPONSE_PREFERENCE_LABELS: Record<string, string> = {
   open: "모든 응답을 환영합니다",
@@ -336,6 +347,8 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
   const isSubmittingSelfAnswer = navigation.state === "submitting" && submittingIntent === "create_self_answer";
 
   const [expandedQuestionId, setExpandedQuestionId] = useState<string | null>(null);
+  const responseTypeOptions = getResponseTypeOptions(record.responsePreference);
+  const [responseQuestionValue, setResponseQuestionValue] = useState(NO_QUESTION_VALUE);
   const [selectedText, setSelectedText] = useState("");
   const [showSentenceButton, setShowSentenceButton] = useState(false);
   const [buttonPosition, setButtonPosition] = useState({ x: 0, y: 0 });
@@ -555,15 +568,17 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
               transform: "translateX(-50%)",
             }}
           >
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="sm"
               disabled={isSubmittingSentence}
               onMouseDown={(event) => event.preventDefault()}
               onClick={handleFloatingSentenceSave}
               className="rounded-full border border-border bg-surface px-4 py-2 text-sm font-medium text-text-primary shadow-[0_10px_24px_rgba(11,36,71,0.12)] transition-all duration-normal hover:-translate-y-0.5 hover:border-reef-cyan/40 hover:text-ocean-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2 disabled:opacity-60"
             >
               {isSubmittingSentence ? "저장 중..." : "문장 저장"}
-            </button>
+            </Button>
           </div>
         ) : null}
       </section>
@@ -605,7 +620,7 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
                             <label htmlFor={`self-answer-content-${question.id}`} className="text-sm font-medium text-text-secondary mb-2 block">
                               나의 답변
                             </label>
-                            <textarea
+                            <Textarea
                               id={`self-answer-content-${question.id}`}
                               name="content"
                               required
@@ -616,30 +631,34 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
                           </div>
 
                           <div className="flex gap-3">
-                            <button
+                            <Button
                               type="submit"
                               disabled={isSubmittingSelfAnswer}
                               className="rounded-full bg-deep-ocean text-white px-5 py-2.5 text-sm font-medium hover:bg-ocean-blue transition-all shadow-sm hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2 disabled:opacity-60"
                             >
                               {isSubmittingSelfAnswer ? "등록 중..." : "답변 등록"}
-                            </button>
-                            <button
+                            </Button>
+                            <Button
                               type="button"
+                              variant="ghost"
+                              size="sm"
                               onClick={() => setExpandedQuestionId(null)}
                               className="rounded-full px-5 py-2.5 text-sm border border-border bg-transparent text-text-secondary cursor-pointer transition-all duration-normal hover:border-text-secondary/30 hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
                             >
                               취소
-                            </button>
+                            </Button>
                           </div>
                         </form>
                       ) : (
-                        <button
+                        <Button
                           type="button"
+                          variant="ghost"
+                          size="sm"
                           onClick={() => setExpandedQuestionId(question.id)}
                           className="rounded-full px-4 py-2 text-sm border border-reef-cyan/40 bg-mist-blue/20 text-ocean-blue cursor-pointer transition-all duration-normal hover:bg-mist-blue/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
                         >
                           답변하기
-                        </button>
+                        </Button>
                       )}
                     </div>
                   )}
@@ -678,13 +697,18 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
                 <label htmlFor="response-type" className="text-sm font-medium text-text-secondary mb-2 block">
                   응답 유형
                 </label>
-                <select id="response-type" name="type" required className="w-full rounded-lg border border-border bg-surface px-4 py-3 text-base text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2">
-                  {getResponseTypeOptions(record.responsePreference).map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
+                <Select name="type" required defaultValue={responseTypeOptions[0]?.value}>
+                  <SelectTrigger id="response-type" className="w-full bg-surface">
+                    <SelectValue placeholder="응답 유형 선택" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {responseTypeOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               {recordQuestions.length > 0 ? (
@@ -692,14 +716,24 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
                   <label htmlFor="question-id" className="text-sm font-medium text-text-secondary mb-2 block">
                     연결할 질문 (선택)
                   </label>
-                  <select id="question-id" name="questionId" className="w-full rounded-lg border border-border bg-surface px-4 py-3 text-base text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2">
-                    <option value="">질문을 선택하지 않음</option>
-                    {recordQuestions.map((question) => (
-                      <option key={question.id} value={question.id}>
-                        {question.content}
-                      </option>
-                    ))}
-                  </select>
+                  <input
+                    type="hidden"
+                    name="questionId"
+                    value={responseQuestionValue === NO_QUESTION_VALUE ? "" : responseQuestionValue}
+                  />
+                  <Select value={responseQuestionValue} onValueChange={setResponseQuestionValue}>
+                    <SelectTrigger id="question-id" className="w-full bg-surface">
+                      <SelectValue placeholder="질문 선택" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={NO_QUESTION_VALUE}>질문을 선택하지 않음</SelectItem>
+                      {recordQuestions.map((question) => (
+                        <SelectItem key={question.id} value={question.id}>
+                          {question.content}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               ) : null}
 
@@ -707,12 +741,19 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
                 <label htmlFor="response-content" className="text-sm font-medium text-text-secondary mb-2 block">
                   내용
                 </label>
-                <textarea id="response-content" name="content" required rows={5} placeholder="이 기록에 응답해보세요." className="w-full rounded-lg border border-border bg-surface px-4 py-3 text-base text-text-primary placeholder:text-text-tertiary min-h-[120px] resize-y focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2" />
+                <Textarea
+                  id="response-content"
+                  name="content"
+                  required
+                  rows={5}
+                  placeholder="이 기록에 응답해보세요."
+                  className="min-h-[120px] bg-surface"
+                />
               </div>
 
-              <button type="submit" disabled={isSubmittingResponse} className="rounded-full bg-deep-ocean text-white px-7 py-3 text-[15px] font-medium hover:bg-ocean-blue transition-all shadow-sm hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2 self-start disabled:opacity-60">
+              <Button type="submit" disabled={isSubmittingResponse} className="self-start rounded-full bg-deep-ocean px-7 py-3 text-[15px] font-medium text-white hover:bg-ocean-blue">
                 {isSubmittingResponse ? "등록 중..." : "응답 등록"}
-              </button>
+              </Button>
             </form>
 
             <form method="post" className="flex flex-col gap-5 bg-surface rounded-lg border border-border p-6">
@@ -725,19 +766,31 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
                 <label htmlFor="sentence-content" className="text-sm font-medium text-text-secondary mb-2 block">
                   남겨두고 싶은 문장
                 </label>
-                <textarea id="sentence-content" name="content" required rows={3} placeholder="기록에서 기억하고 싶은 문장을 남겨보세요." className="w-full rounded-lg border border-border bg-surface px-4 py-3 text-base text-text-primary placeholder:text-text-tertiary min-h-[80px] resize-y focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2" />
+                <Input
+                  id="sentence-content"
+                  name="content"
+                  required
+                  placeholder="기록에서 기억하고 싶은 문장을 남겨보세요."
+                  className="w-full bg-surface"
+                />
               </div>
 
               <div>
                 <label htmlFor="sentence-reason" className="text-sm font-medium text-text-secondary mb-2 block">
                   이유 (선택)
                 </label>
-                <textarea id="sentence-reason" name="reason" rows={2} placeholder="왜 이 문장을 남기고 싶은지 적어보세요." className="w-full rounded-lg border border-border bg-surface px-4 py-3 text-base text-text-primary placeholder:text-text-tertiary resize-y focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2" />
+                <Textarea
+                  id="sentence-reason"
+                  name="reason"
+                  rows={2}
+                  placeholder="왜 이 문장을 남기고 싶은지 적어보세요."
+                  className="bg-surface"
+                />
               </div>
 
-              <button type="submit" disabled={isSubmittingSentence} className="rounded-full bg-deep-ocean text-white px-7 py-3 text-[15px] font-medium hover:bg-ocean-blue transition-all shadow-sm hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2 self-start disabled:opacity-60">
+              <Button type="submit" disabled={isSubmittingSentence} className="self-start rounded-full bg-deep-ocean px-7 py-3 text-[15px] font-medium text-white hover:bg-ocean-blue">
                 {isSubmittingSentence ? "저장 중..." : "문장 저장"}
-              </button>
+              </Button>
             </form>
           </div>
         </section>

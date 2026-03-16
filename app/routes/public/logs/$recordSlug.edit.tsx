@@ -7,6 +7,17 @@ import type { Route } from "./+types/$recordSlug.edit";
 
 import { ArticleEditor } from "~/components/editor/ArticleEditor";
 import NoteEditor from "~/components/editor/NoteEditor";
+import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
 import { db } from "~/db/client.server";
 import { collaborationUnits, recordTags, stages, templates } from "~/db/schema.server";
 import { getRecordBySlug, updateRecord } from "~/db/queries/records.server";
@@ -17,6 +28,8 @@ import { createLogger } from "~/lib/logger.server";
 import { createRecordSchema } from "~/lib/validation";
 import { cleanupRemovedImages } from "~/lib/r2-cleanup.server";
 import { useUnsavedWarning } from "~/hooks/useUnsavedWarning";
+
+const NO_SELECTION_VALUE = "__none__";
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "기록 수정 — DiveLog" }];
@@ -170,6 +183,10 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
   );
   const [title, setTitle] = useState(record.title);
   const [articleContent, setArticleContent] = useState(isArticleRecord ? record.content : "");
+  const [templateValue, setTemplateValue] = useState(NO_SELECTION_VALUE);
+  const [collaborationValue, setCollaborationValue] = useState(
+    record.collaborationUnitId ?? NO_SELECTION_VALUE
+  );
 
   const errors = actionData && "errors" in actionData ? actionData.errors : undefined;
   const formError = actionData && "error" in actionData ? actionData.error : undefined;
@@ -196,62 +213,70 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
 
         <fieldset className="border-0 m-0 p-0">
           <legend className="block text-meta font-medium text-text-secondary mb-2">유형</legend>
-          <div className="flex gap-2 flex-wrap">
+          <RadioGroup
+            name="type"
+            defaultValue={record.type}
+            className="flex flex-wrap gap-3"
+            aria-label="유형"
+          >
             {[
               { value: "personal", label: "개인 탐구" },
               { value: "challenge", label: "챌린지" },
               { value: "collaboration", label: "협업" },
             ].map((opt) => (
-              <label key={opt.value} className="flex items-center gap-1 cursor-pointer">
-                <input
-                  type="radio"
-                  name="type"
-                  value={opt.value}
-                  defaultChecked={record.type === opt.value}
-                />
-                <span className="text-base">{opt.label}</span>
-              </label>
+              <div key={opt.value} className="flex items-center gap-2">
+                <RadioGroupItem value={opt.value} id={`type-${opt.value}`} />
+                <Label htmlFor={`type-${opt.value}`} className="cursor-pointer text-base text-text-primary">
+                  {opt.label}
+                </Label>
+              </div>
             ))}
-          </div>
+          </RadioGroup>
         </fieldset>
 
         <div>
-          <label htmlFor="rhythm" className="block text-meta font-medium text-text-secondary mb-2">
+          <Label htmlFor="rhythm" className="mb-2 block text-meta font-medium text-text-secondary">
             리듬
-          </label>
-          <select
-            id="rhythm"
-            name="rhythm"
-            defaultValue={record.rhythm}
-            className="rounded-md border border-border bg-surface px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-ocean-blue"
-          >
-            <option value="free">자유 형식</option>
-            <option value="moment">순간의 기록</option>
-            <option value="weekly">이번 주 메모</option>
-            <option value="sprint">스프린트 로그</option>
-            <option value="monthly">월간 회고</option>
-            <option value="stage">구간 회고</option>
-            <option value="reflection">개인 회고</option>
-          </select>
+          </Label>
+          <Select name="rhythm" defaultValue={record.rhythm}>
+            <SelectTrigger id="rhythm" className="w-full bg-surface">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="free">자유 형식</SelectItem>
+              <SelectItem value="moment">순간의 기록</SelectItem>
+              <SelectItem value="weekly">이번 주 메모</SelectItem>
+              <SelectItem value="sprint">스프린트 로그</SelectItem>
+              <SelectItem value="monthly">월간 회고</SelectItem>
+              <SelectItem value="stage">구간 회고</SelectItem>
+              <SelectItem value="reflection">개인 회고</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         {availableTemplates.length > 0 ? (
           <div>
-            <label htmlFor="templateId" className="block text-meta font-medium text-text-secondary mb-2">
+            <Label htmlFor="templateId" className="mb-2 block text-meta font-medium text-text-secondary">
               템플릿 (선택)
-            </label>
-            <select
-              id="templateId"
+            </Label>
+            <input
+              type="hidden"
               name="templateId"
-              className="w-full rounded-md border border-border bg-surface px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-ocean-blue"
-            >
-              <option value="">템플릿 없이 작성 중</option>
+              value={templateValue === NO_SELECTION_VALUE ? "" : templateValue}
+            />
+            <Select value={templateValue} onValueChange={setTemplateValue}>
+              <SelectTrigger id="templateId" className="w-full bg-surface">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={NO_SELECTION_VALUE}>템플릿 없이 작성 중</SelectItem>
               {availableTemplates.map((tmpl) => (
-                <option key={tmpl.id} value={tmpl.id}>
+                <SelectItem key={tmpl.id} value={tmpl.id}>
                   {tmpl.name}
-                </option>
+                </SelectItem>
               ))}
-            </select>
+              </SelectContent>
+            </Select>
           </div>
         ) : null}
 
@@ -263,33 +288,38 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
 
         {collaborations.length > 0 ? (
           <div>
-            <label
+            <Label
               htmlFor="collaborationUnitId"
-              className="block text-meta font-medium text-text-secondary mb-2"
+              className="mb-2 block text-meta font-medium text-text-secondary"
             >
               협업 유닛 (선택)
-            </label>
-            <select
-              id="collaborationUnitId"
+            </Label>
+            <input
+              type="hidden"
               name="collaborationUnitId"
-              defaultValue={record.collaborationUnitId ?? ""}
-              className="w-full rounded-md border border-border bg-surface px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-ocean-blue"
-            >
-              <option value="">선택 안 함</option>
+              value={collaborationValue === NO_SELECTION_VALUE ? "" : collaborationValue}
+            />
+            <Select value={collaborationValue} onValueChange={setCollaborationValue}>
+              <SelectTrigger id="collaborationUnitId" className="w-full bg-surface">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={NO_SELECTION_VALUE}>선택 안 함</SelectItem>
               {collaborations.map((unit) => (
-                <option key={unit.id} value={unit.id}>
+                <SelectItem key={unit.id} value={unit.id}>
                   {unit.name}
-                </option>
+                </SelectItem>
               ))}
-            </select>
+              </SelectContent>
+            </Select>
           </div>
         ) : null}
 
         <div>
-          <label htmlFor="title" className="block text-meta font-medium text-text-secondary mb-2">
+          <Label htmlFor="title" className="mb-2 block text-meta font-medium text-text-secondary">
             제목 <span className="text-error">*</span>
-          </label>
-          <input
+          </Label>
+          <Input
             id="title"
             name="title"
             type="text"
@@ -297,7 +327,8 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="제목을 입력하세요"
-            className="w-full rounded-md border border-border bg-surface px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-ocean-blue focus:ring-offset-1"
+            aria-invalid={Boolean(titleError)}
+            className="w-full bg-surface"
           />
           {titleError ? <p className="text-error text-meta mt-1">{titleError}</p> : null}
         </div>
@@ -326,22 +357,22 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
         </div>
 
         <div>
-          <label
+          <Label
             htmlFor="responsePreference"
-            className="block text-meta font-medium text-text-secondary mb-2"
+            className="mb-2 block text-meta font-medium text-text-secondary"
           >
             어떤 응답을 원하시나요?
-          </label>
-          <select
-            id="responsePreference"
-            name="responsePreference"
-            defaultValue={record.responsePreference}
-            className="w-full rounded-md border border-border bg-surface px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-ocean-blue"
-          >
-            <option value="open">모든 응답을 환영합니다</option>
-            <option value="question_only">질문은 환영해요</option>
-            <option value="closed">그냥 읽어줘도 괜찮아요</option>
-          </select>
+          </Label>
+          <Select name="responsePreference" defaultValue={record.responsePreference}>
+            <SelectTrigger id="responsePreference" className="w-full bg-surface">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="open">모든 응답을 환영합니다</SelectItem>
+              <SelectItem value="question_only">질문은 환영해요</SelectItem>
+              <SelectItem value="closed">그냥 읽어줘도 괜찮아요</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         {tags.length > 0 && (
@@ -387,29 +418,29 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
         )}
 
         <div>
-          <label htmlFor="visibility" className="block text-meta font-medium text-text-secondary mb-2">
+          <Label htmlFor="visibility" className="mb-2 block text-meta font-medium text-text-secondary">
             공개 범위
-          </label>
-          <select
-            id="visibility"
-            name="visibility"
-            defaultValue={record.visibility}
-            className="rounded-md border border-border bg-surface px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-ocean-blue"
-          >
-            <option value="cohort">코호트 공개</option>
-            <option value="public">전체 공개</option>
-            <option value="draft">임시저장</option>
-          </select>
+          </Label>
+          <Select name="visibility" defaultValue={record.visibility}>
+            <SelectTrigger id="visibility" className="w-full bg-surface">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="cohort">코호트 공개</SelectItem>
+              <SelectItem value="public">전체 공개</SelectItem>
+              <SelectItem value="draft">임시저장</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="flex gap-3 pt-4 border-t border-border">
-          <button
+          <Button
             type="submit"
             disabled={isSubmitting}
-            className="rounded-md bg-ocean-blue text-white px-6 py-3 text-base font-medium hover:bg-deep-ocean transition-colors focus-visible:ring-2 focus-visible:ring-ocean-blue disabled:opacity-60"
+            className="h-auto rounded-md px-6 py-3 text-base font-medium"
           >
             {isSubmitting ? "저장 중..." : "수정 저장"}
-          </button>
+          </Button>
           <Link
             to={`/logs/${record.slug}`}
             className="border border-border text-text-secondary rounded-md px-6 py-3 text-base font-medium hover:bg-surface-secondary transition-colors no-underline"

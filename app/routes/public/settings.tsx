@@ -5,6 +5,16 @@ import { db } from "~/db/client.server";
 import { learnerProfiles } from "~/db/schema.server";
 import { eq } from "drizzle-orm";
 import HeroSection from "~/components/HeroSection";
+import { Button } from "~/components/ui/button";
+import { Checkbox } from "~/components/ui/checkbox";
+import { Label } from "~/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "설정 — DiveLog" }];
@@ -73,67 +83,82 @@ export default function SettingsPage({ loaderData }: Route.ComponentProps) {
       <div className="max-w-[600px] mx-auto py-12 px-4 md:py-20">
         <form method="post" className="flex flex-col gap-6">
           <div>
-            <label
+            <Label
               htmlFor="defaultVisibility"
-              className="block text-meta font-medium text-text-secondary mb-2"
+              className="mb-2 block text-meta font-medium text-text-secondary"
             >
               기본 공개 범위
-            </label>
-            <select
-              id="defaultVisibility"
+            </Label>
+            <Select
               name="defaultVisibility"
               defaultValue={learner?.defaultVisibility ?? "cohort"}
-              className="w-full rounded-sm border border-border bg-surface px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-ocean-blue"
             >
-              <option value="draft">임시저장</option>
-              <option value="cohort">코호트 공개</option>
-              <option value="public">전체 공개</option>
-            </select>
+              <SelectTrigger
+                id="defaultVisibility"
+                className="w-full rounded-sm border-border bg-surface text-base shadow-none focus-visible:border-ocean-blue focus-visible:ring-ocean-blue/20"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="draft">임시저장</SelectItem>
+                <SelectItem value="cohort">코호트 공개</SelectItem>
+                <SelectItem value="public">전체 공개</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div>
-            <label
+            <Label
               htmlFor="defaultResponsePreference"
-              className="block text-meta font-medium text-text-secondary mb-2"
+              className="mb-2 block text-meta font-medium text-text-secondary"
             >
               응답 선호도
-            </label>
-            <select
-              id="defaultResponsePreference"
+            </Label>
+            <Select
               name="defaultResponsePreference"
               defaultValue={learner?.defaultResponsePreference ?? "open"}
-              className="w-full rounded-sm border border-border bg-surface px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-ocean-blue"
             >
-              <option value="open">모든 응답</option>
-              <option value="question_only">질문만</option>
-              <option value="closed">응답 닫기</option>
-            </select>
+              <SelectTrigger
+                id="defaultResponsePreference"
+                className="w-full rounded-sm border-border bg-surface text-base shadow-none focus-visible:border-ocean-blue focus-visible:ring-ocean-blue/20"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="open">모든 응답</SelectItem>
+                <SelectItem value="question_only">질문만</SelectItem>
+                <SelectItem value="closed">응답 닫기</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
+            <div className="flex items-center gap-3">
+              <Checkbox
+                id="notificationEmailEnabled"
                 name="notificationEmailEnabled"
                 defaultChecked={learner?.notificationEmailEnabled ?? true}
-                className="w-4 h-4 rounded border-border text-ocean-blue focus:ring-2 focus:ring-ocean-blue"
+                className="border-border data-[state=checked]:border-ocean-blue data-[state=checked]:bg-ocean-blue"
               />
-              <span className="text-base text-text-primary">
+              <Label
+                htmlFor="notificationEmailEnabled"
+                className="cursor-pointer text-base font-normal text-text-primary"
+              >
                 이메일 알림 받기
-              </span>
-            </label>
+              </Label>
+            </div>
           </div>
 
           <div className="pt-4 border-t border-border">
             <p className="text-meta text-text-tertiary mb-4">
               이름·바이오 변경은 ada-kr-pos.com 계정 설정에서 합니다.
             </p>
-            <button
+            <Button
               type="submit"
-              className="bg-ocean-blue text-white rounded-md px-5 py-2.5 text-base font-medium hover:bg-deep-ocean transition-colors"
+              className="bg-ocean-blue text-base font-medium text-white hover:bg-deep-ocean"
             >
               저장
-            </button>
+            </Button>
           </div>
         </form>
       </div>
