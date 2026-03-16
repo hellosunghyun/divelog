@@ -60,6 +60,21 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   );
 }
 
+export function shouldRevalidate({
+  formMethod,
+  defaultShouldRevalidate,
+}: {
+  formMethod?: string;
+  defaultShouldRevalidate: boolean;
+}): boolean {
+  // mutation(POST/PUT/DELETE)에서만 revalidation
+  if (formMethod && formMethod !== "GET") {
+    return defaultShouldRevalidate;
+  }
+  // 일반 GET 네비게이션에서는 스킵
+  return false;
+}
+
 export function headers({ loaderHeaders }: { loaderHeaders: Headers }) {
   const debug = loaderHeaders.get("X-Auth-Debug");
   const headers = new Headers();
