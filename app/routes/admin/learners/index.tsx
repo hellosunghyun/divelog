@@ -5,6 +5,14 @@ import { createLogger } from "~/lib/logger.server";
 import { learnerProfiles } from "~/db/schema.server";
 import { asc } from "drizzle-orm";
 import EmptyState from "~/components/EmptyState";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "~/components/ui/table";
 
 export function meta(_: Route.MetaArgs) { return [{ title: "러너 관리" }]; }
 export async function loader({ request, context }: Route.LoaderArgs) {
@@ -19,29 +27,32 @@ export default function AdminLearnersPage({ loaderData }: Route.ComponentProps) 
       {loaderData.learners.length === 0 ? (
          <EmptyState variant="generic" message="등록된 러너가 없습니다" />
       ) : (
-        <div className="bg-admin-surface rounded-lg border border-admin-border overflow-hidden">
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="bg-admin-bg">
+        <Table>
+          <TableHeader>
+            <TableRow>
                 {["이름", "이메일", "코호트", "작업"].map((h) => (
-                  <th key={h} className="text-left px-4 py-3 text-caption font-semibold text-admin-text-secondary uppercase tracking-wide">{h}</th>
+                  <TableHead
+                    key={h}
+                    className="px-4 py-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground"
+                  >
+                    {h}
+                  </TableHead>
                 ))}
-              </tr>
-            </thead>
-            <tbody>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
               {loaderData.learners.map((l) => (
-                <tr key={l.userId} className="border-t border-admin-border hover:bg-admin-bg/50 transition-colors">
-                  <td className="px-4 py-3 text-meta text-admin-text">{l.displayName}</td>
-                  <td className="px-4 py-3 text-meta text-admin-text-secondary">{l.email ?? "-"}</td>
-                  <td className="px-4 py-3 text-meta text-admin-text-secondary">{l.cohort ?? "-"}</td>
-                  <td className="px-4 py-3">
+                <TableRow key={l.userId}>
+                  <TableCell className="px-4 py-2 text-sm text-admin-text">{l.displayName}</TableCell>
+                  <TableCell className="px-4 py-2 text-sm text-admin-text-secondary">{l.email ?? "-"}</TableCell>
+                  <TableCell className="px-4 py-2 text-sm text-admin-text-secondary">{l.cohort ?? "-"}</TableCell>
+                  <TableCell className="px-4 py-2">
                     <Link to={`/admin/learners/${l.userId}`} className="text-caption text-admin-accent hover:underline">상세</Link>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
-        </div>
+          </TableBody>
+        </Table>
       )}
     </div>
   );

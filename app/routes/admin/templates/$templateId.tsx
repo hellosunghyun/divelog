@@ -1,10 +1,19 @@
+import { useState } from "react";
 import { data, redirect } from "react-router";
 import type { Route } from "./+types/$templateId";
 import { Link } from "~/components/SmartLink";
+import { Button } from "~/components/ui/button";
+import { Checkbox } from "~/components/ui/checkbox";
+import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
+import { Textarea } from "~/components/ui/textarea";
 import { db } from "~/db/client.server";
 import { createLogger } from "~/lib/logger.server";
 import { templates } from "~/db/schema.server";
 import { eq } from "drizzle-orm";
+
+const ALL_VALUE = "__all__";
 
 export async function loader({ params, request, context }: Route.LoaderArgs) {
   const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.templates.$templateId" });
@@ -24,8 +33,9 @@ export async function action({ params, request, context }: Route.ActionArgs) {
 export function meta(_: Route.MetaArgs) { return [{ title: "템플릿 편집" }]; }
 export default function AdminTemplateEditPage({ loaderData }: Route.ComponentProps) {
   const { template } = loaderData;
-  const labelClass = "block text-caption text-admin-text-secondary mb-1.5";
-  const inputClass = "w-full px-3 py-2 rounded-md border border-admin-border text-sm font-sans focus:outline-none focus:ring-2 focus:ring-admin-accent focus:ring-offset-1";
+  const [contextValue, setContextValue] = useState(template.context ?? ALL_VALUE);
+  const [formValue, setFormValue] = useState(template.form ?? ALL_VALUE);
+  const [rhythmValue, setRhythmValue] = useState(template.rhythm ?? ALL_VALUE);
   return (
     <div>
       <div className="flex gap-4 items-center mb-6">
@@ -34,45 +44,72 @@ export default function AdminTemplateEditPage({ loaderData }: Route.ComponentPro
       </div>
       <form method="post" className="flex flex-col gap-4 max-w-[700px] bg-admin-surface rounded-md p-6 border border-admin-border">
         <div>
-          <label className={labelClass}>이름</label>
-          <input name="name" defaultValue={template.name} required className={inputClass} />
+          <Label htmlFor="name" className="mb-1.5 block text-caption text-admin-text-secondary">이름</Label>
+          <Input id="name" name="name" defaultValue={template.name} required className="h-10 rounded-md border-admin-border bg-admin-surface px-3 py-2 text-sm text-admin-text" />
         </div>
         <div>
-          <label className={labelClass}>설명</label>
-          <input name="description" defaultValue={template.description ?? ""} className={inputClass} />
+          <Label htmlFor="description" className="mb-1.5 block text-caption text-admin-text-secondary">설명</Label>
+          <Input id="description" name="description" defaultValue={template.description ?? ""} className="h-10 rounded-md border-admin-border bg-admin-surface px-3 py-2 text-sm text-admin-text" />
         </div>
         <div>
-          <label className={labelClass}>프롬프트 본문</label>
-          <textarea name="promptBody" defaultValue={template.promptBody ?? ""} rows={6} className={`${inputClass} resize-y`} />
+          <Label htmlFor="promptBody" className="mb-1.5 block text-caption text-admin-text-secondary">프롬프트 본문</Label>
+          <Textarea id="promptBody" name="promptBody" defaultValue={template.promptBody ?? ""} rows={6} className="min-h-0 rounded-md border-admin-border bg-admin-surface px-3 py-2 text-sm text-admin-text" />
         </div>
         <div className="grid grid-cols-3 gap-3">
           <div>
-            <label className={labelClass}>유형</label>
-            <select name="ctx" defaultValue={template.context ?? ""} className={inputClass}>
-              <option value="">전체</option><option value="personal">개인</option><option value="challenge">챌린지</option><option value="collaboration">협업</option>
-            </select>
+            <input type="hidden" name="ctx" value={contextValue === ALL_VALUE ? "" : contextValue} />
+            <Label htmlFor="ctx" className="mb-1.5 block text-caption text-admin-text-secondary">유형</Label>
+            <Select value={contextValue} onValueChange={setContextValue}>
+              <SelectTrigger id="ctx" className="h-10 rounded-md border-admin-border bg-admin-surface px-3 py-2 text-sm text-admin-text">
+                <SelectValue placeholder="유형 선택" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL_VALUE}>전체</SelectItem>
+                <SelectItem value="personal">개인</SelectItem>
+                <SelectItem value="challenge">챌린지</SelectItem>
+                <SelectItem value="collaboration">협업</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div>
-            <label className={labelClass}>형식</label>
-            <select name="form" defaultValue={template.form ?? ""} className={inputClass}>
-              <option value="">전체</option><option value="note">노트</option><option value="article">글</option>
-            </select>
+            <input type="hidden" name="form" value={formValue === ALL_VALUE ? "" : formValue} />
+            <Label htmlFor="form" className="mb-1.5 block text-caption text-admin-text-secondary">형식</Label>
+            <Select value={formValue} onValueChange={setFormValue}>
+              <SelectTrigger id="form" className="h-10 rounded-md border-admin-border bg-admin-surface px-3 py-2 text-sm text-admin-text">
+                <SelectValue placeholder="형식 선택" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL_VALUE}>전체</SelectItem>
+                <SelectItem value="note">노트</SelectItem>
+                <SelectItem value="article">글</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div>
-            <label className={labelClass}>리듬</label>
-            <select name="rhythm" defaultValue={template.rhythm ?? ""} className={inputClass}>
-              <option value="">전체</option><option value="sprint">스프린트</option><option value="weekly">주간</option><option value="monthly">월간</option><option value="free">자유</option>
-            </select>
+            <input type="hidden" name="rhythm" value={rhythmValue === ALL_VALUE ? "" : rhythmValue} />
+            <Label htmlFor="rhythm" className="mb-1.5 block text-caption text-admin-text-secondary">리듬</Label>
+            <Select value={rhythmValue} onValueChange={setRhythmValue}>
+              <SelectTrigger id="rhythm" className="h-10 rounded-md border-admin-border bg-admin-surface px-3 py-2 text-sm text-admin-text">
+                <SelectValue placeholder="리듬 선택" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL_VALUE}>전체</SelectItem>
+                <SelectItem value="sprint">스프린트</SelectItem>
+                <SelectItem value="weekly">주간</SelectItem>
+                <SelectItem value="monthly">월간</SelectItem>
+                <SelectItem value="free">자유</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
         <div>
-          <label className="flex gap-2 cursor-pointer text-sm">
-            <input type="checkbox" name="active" defaultChecked={template.active ?? true} className="w-4 h-4 rounded border-admin-border text-admin-accent focus:ring-admin-accent" />
-            활성화
-          </label>
+          <div className="flex items-center gap-2">
+            <Checkbox id="active" name="active" defaultChecked={template.active ?? true} className="border-admin-border data-[state=checked]:border-admin-accent data-[state=checked]:bg-admin-accent" />
+            <Label htmlFor="active" className="cursor-pointer text-sm font-normal text-admin-text">활성화</Label>
+          </div>
         </div>
         <div className="flex gap-3">
-          <button type="submit" className="px-5 py-2 rounded-md bg-admin-accent text-white text-sm font-medium hover:opacity-90 transition-opacity focus-visible:ring-2 focus-visible:ring-admin-accent">저장</button>
+          <Button type="submit" className="rounded-md bg-admin-accent px-5 py-2 text-sm font-medium text-white hover:opacity-90">저장</Button>
           <Link to="/admin/templates" className="px-5 py-2 rounded-md border border-admin-border text-admin-text-secondary text-sm hover:bg-admin-bg transition-colors">취소</Link>
         </div>
       </form>

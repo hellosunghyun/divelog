@@ -1,0 +1,12 @@
+=== Task 3 Form Primitives ===
+Created:
+- app/components/ui/input.tsx
+- app/components/ui/textarea.tsx
+- app/components/ui/label.tsx
+
+Checks:
+- All components import `cn` from `~/lib/utils`
+- `focus-visible:ring` pattern exists in `app/components/ui/input.tsx`
+- `focus-visible:ring` pattern exists in `app/components/ui/textarea.tsx`
+- Added dependency: `@radix-ui/react-label`
+- Build: SUCCESS (`npx react-router build`)

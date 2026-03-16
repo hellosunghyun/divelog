@@ -1,5 +1,16 @@
 import { useSearchParams } from "react-router";
 
+import { Label } from "~/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
+
+const ALL_FILTER_VALUE = "__all__";
+
 interface FilterOption {
   key: string;
   label: string;
@@ -28,20 +39,30 @@ export default function FilterBar({ filters }: FilterBarProps) {
     <div className="flex gap-3 flex-wrap items-center">
       {filters.map((filter) => (
         <div key={filter.key} className="flex items-center gap-2">
-          <label htmlFor={`filter-${filter.key}`} className="text-sm text-text-secondary">
+          <Label htmlFor={`filter-${filter.key}`} className="text-sm text-text-secondary">
             {filter.label}
-          </label>
-          <select
-            id={`filter-${filter.key}`}
-            value={searchParams.get(filter.key) ?? ""}
-            onChange={(e) => handleChange(filter.key, e.target.value)}
-            className="text-sm px-3 py-2.5 rounded-lg border border-border bg-surface text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
+          </Label>
+          <Select
+            value={searchParams.get(filter.key) ?? ALL_FILTER_VALUE}
+            onValueChange={(value) =>
+              handleChange(filter.key, value === ALL_FILTER_VALUE ? "" : value)
+            }
           >
-            <option value="">전체</option>
-            {filter.values.map((v) => (
-              <option key={v.value} value={v.value}>{v.label}</option>
-            ))}
-          </select>
+            <SelectTrigger
+              id={`filter-${filter.key}`}
+              className="h-9 min-w-32 rounded-lg border-border bg-surface px-3 py-2 text-sm text-text-primary shadow-none focus-visible:border-ocean-blue focus-visible:ring-ocean-blue/20"
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ALL_FILTER_VALUE}>전체</SelectItem>
+              {filter.values.map((v) => (
+                <SelectItem key={v.value} value={v.value}>
+                  {v.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       ))}
     </div>

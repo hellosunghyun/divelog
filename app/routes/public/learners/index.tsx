@@ -3,9 +3,18 @@ import { useSearchParams } from "react-router";
 import LearnerCard from "~/components/LearnerCard";
 import HeroSection from "~/components/HeroSection";
 import EmptyState from "~/components/EmptyState";
-import FilterBar from "~/components/FilterBar";
+import { Label } from "~/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
 import { getLearnersWithActivity, getDistinctCohorts } from "~/db/queries/learners.server";
 import { createLogger } from "~/lib/logger.server";
+
+const ALL_COHORT_VALUE = "__all__";
 
 export function meta(_args: Route.MetaArgs) {
    return [{ title: "러너 — DiveLog" }];
@@ -62,25 +71,33 @@ export default function LearnersPage({ loaderData }: Route.ComponentProps) {
         {filterOptions.length > 0 && (
           <div className="mb-8">
             <div className="flex items-center gap-3">
-              <label
+              <Label
                 htmlFor="filter-cohort"
                 className="text-meta text-text-secondary"
               >
                 Cohort
-              </label>
-              <select
-                id="filter-cohort"
-                value={currentCohort ?? ""}
-                onChange={(e) => handleFilterChange("cohort", e.target.value)}
-                className="text-meta px-2 py-1 rounded-lg border border-border bg-surface text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
+              </Label>
+              <Select
+                value={currentCohort ?? ALL_COHORT_VALUE}
+                onValueChange={(value) =>
+                  handleFilterChange("cohort", value === ALL_COHORT_VALUE ? "" : value)
+                }
               >
-                <option value="">전체</option>
-                {cohorts.map((cohort) => (
-                  <option key={cohort} value={cohort}>
-                    {cohort}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger
+                  id="filter-cohort"
+                  className="h-9 min-w-32 rounded-lg border-border bg-surface px-3 py-2 text-sm text-text-primary shadow-none focus-visible:border-ocean-blue focus-visible:ring-ocean-blue/20"
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={ALL_COHORT_VALUE}>전체</SelectItem>
+                  {cohorts.map((cohort) => (
+                    <SelectItem key={cohort} value={cohort}>
+                      {cohort}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         )}

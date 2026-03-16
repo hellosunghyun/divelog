@@ -5,6 +5,15 @@ import { createLogger } from "~/lib/logger.server";
 import { records, learnerProfiles } from "~/db/schema.server";
 import { eq, desc } from "drizzle-orm";
 import EmptyState from "~/components/EmptyState";
+import { Badge } from "~/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "~/components/ui/table";
 
 export function meta(_: Route.MetaArgs) { return [{ title: "기록 관리" }]; }
 export async function loader({ request, context }: Route.LoaderArgs) {
@@ -30,29 +39,40 @@ export default function AdminRecordsPage({ loaderData }: Route.ComponentProps) {
       {loaderData.records.length === 0 ? (
         <EmptyState variant="generic" message="기록이 없습니다" />
       ) : (
-        <table className="w-full border-collapse bg-admin-surface rounded-md">
-          <thead>
-            <tr className="border-b border-admin-border">
+        <Table>
+          <TableHeader>
+            <TableRow>
               {["제목", "작성자", "형식", "공개", "moderation", "작업"].map((h) => (
-                <th key={h} className="text-left px-3 py-2 text-xs text-admin-text-secondary font-semibold uppercase tracking-wide">{h}</th>
+                <TableHead
+                  key={h}
+                  className="px-3 py-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground"
+                >
+                  {h}
+                </TableHead>
               ))}
-            </tr>
-          </thead>
-          <tbody>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {loaderData.records.map(({ record, author }) => (
-              <tr key={record.id} className="border-b border-admin-border hover:bg-admin-bg transition-colors">
-                <td className="px-3 py-2 text-[13px] max-w-[200px] truncate">{record.title}</td>
-                <td className="px-3 py-2 text-[13px]">{author?.displayName ?? "-"}</td>
-                <td className="px-3 py-2 text-[13px]">{record.format}</td>
-                <td className="px-3 py-2 text-[13px]">{record.visibility}</td>
-                <td className={`px-3 py-2 text-[13px] ${record.moderationStatus === "flagged" ? "text-error" : ""}`}>{record.moderationStatus}</td>
-                <td className="px-3 py-2">
+              <TableRow key={record.id}>
+                <TableCell className="max-w-[200px] px-3 py-2 text-sm truncate">{record.title}</TableCell>
+                <TableCell className="px-3 py-2 text-sm">{author?.displayName ?? "-"}</TableCell>
+                <TableCell className="px-3 py-2 text-sm">{record.format}</TableCell>
+                <TableCell className="px-3 py-2 text-sm">
+                  <Badge variant="outline">{record.visibility}</Badge>
+                </TableCell>
+                <TableCell className="px-3 py-2 text-sm">
+                  <Badge variant={record.moderationStatus === "flagged" ? "destructive" : "secondary"}>
+                    {record.moderationStatus}
+                  </Badge>
+                </TableCell>
+                <TableCell className="px-3 py-2">
                   <Link to={`/admin/records/${record.id}`} className="text-xs text-admin-accent hover:underline">검토</Link>
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       )}
     </div>
   );

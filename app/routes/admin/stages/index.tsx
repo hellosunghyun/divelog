@@ -5,6 +5,14 @@ import { createLogger } from "~/lib/logger.server";
 import { stages } from "~/db/schema.server";
 import { sql } from "drizzle-orm";
 import EmptyState from "~/components/EmptyState";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "~/components/ui/table";
 
 function formatDate(timestamp: number | null): string {
   if (!timestamp) return "-";
@@ -25,31 +33,36 @@ export default function AdminStagesPage({ loaderData }: Route.ComponentProps) {
       {loaderData.stages.length === 0 ? (
         <EmptyState variant="generic" message="등록된 Stage가 없습니다" />
       ) : (
-        <table className="w-full border-collapse bg-admin-surface rounded-md">
-          <thead>
-            <tr className="border-b border-admin-border">
+        <Table>
+          <TableHeader>
+            <TableRow>
               {["순서", "이름", "유형", "상태", "시작일", "종료일", "현재", "작업"].map((h) => (
-                <th key={h} className="text-left px-3 py-2 text-xs text-admin-text-secondary font-semibold uppercase tracking-wide">{h}</th>
+                <TableHead
+                  key={h}
+                  className="px-3 py-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground"
+                >
+                  {h}
+                </TableHead>
               ))}
-            </tr>
-          </thead>
-          <tbody>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {loaderData.stages.map((s) => (
-              <tr key={s.id} className="border-b border-admin-border hover:bg-admin-bg transition-colors">
-                <td className="px-3 py-2 text-[13px]">{s.order}</td>
-                <td className="px-3 py-2 text-[13px] text-admin-text">{s.name}</td>
-                <td className="px-3 py-2 text-[13px]">{s.type}</td>
-                <td className="px-3 py-2 text-[13px]">{s.status}</td>
-                <td className="px-3 py-2 text-[13px] text-admin-text-secondary">{formatDate(s.startDate)}</td>
-                <td className="px-3 py-2 text-[13px] text-admin-text-secondary">{formatDate(s.endDate)}</td>
-                <td className="px-3 py-2 text-[13px]">{s.isCurrent ? "✓" : ""}</td>
-                <td className="px-3 py-2">
+              <TableRow key={s.id}>
+                <TableCell className="px-3 py-2 text-sm">{s.order}</TableCell>
+                <TableCell className="px-3 py-2 text-sm text-admin-text">{s.name}</TableCell>
+                <TableCell className="px-3 py-2 text-sm">{s.type}</TableCell>
+                <TableCell className="px-3 py-2 text-sm">{s.status}</TableCell>
+                <TableCell className="px-3 py-2 text-sm text-admin-text-secondary">{formatDate(s.startDate)}</TableCell>
+                <TableCell className="px-3 py-2 text-sm text-admin-text-secondary">{formatDate(s.endDate)}</TableCell>
+                <TableCell className="px-3 py-2 text-sm">{s.isCurrent ? "✓" : ""}</TableCell>
+                <TableCell className="px-3 py-2">
                   <Link to={`/admin/stages/${s.id}`} className="text-xs text-admin-accent hover:underline">편집</Link>
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       )}
     </div>
   );

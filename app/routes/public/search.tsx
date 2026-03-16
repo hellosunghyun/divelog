@@ -7,6 +7,8 @@ import SceneCard from "~/components/SceneCard";
 import LearnerCard from "~/components/LearnerCard";
 import HeroSection from "~/components/HeroSection";
 import EmptyState from "~/components/EmptyState";
+import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
 import { getPlainText } from "~/lib/content.server";
 import { normalizeContentFormat } from "~/lib/editor-extensions";
 import { createLogger } from "~/lib/logger.server";
@@ -107,19 +109,19 @@ export default function SearchPage({ loaderData }: Route.ComponentProps) {
 
       <div className="max-w-content mx-auto py-12 px-6">
         <Form className="mb-8 flex gap-3">
-          <input
+          <Input
             name="q"
             type="search"
             defaultValue={q}
             placeholder="검색어를 입력하세요..."
-            className="flex-1 rounded-lg border border-border bg-surface px-4 py-3 text-base text-text-primary placeholder:text-text-tertiary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
+            className="flex-1 rounded-lg border-border bg-surface text-text-primary shadow-none placeholder:text-text-tertiary focus-visible:border-ocean-blue focus-visible:ring-ocean-blue/20"
           />
-          <button
+          <Button
             type="submit"
-            className="rounded-full bg-deep-ocean text-white px-7 py-3 text-[15px] font-medium hover:bg-ocean-blue transition-all shadow-sm hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
+            className="h-12 rounded-full bg-deep-ocean px-7 text-[15px] font-medium text-white shadow-sm transition-all hover:bg-ocean-blue hover:shadow-md"
           >
             검색
-          </button>
+          </Button>
         </Form>
 
         {!q ? (

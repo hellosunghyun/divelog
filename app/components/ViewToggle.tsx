@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 import { useSearchParams } from "react-router";
 
+import { Button } from "~/components/ui/button";
+
 export type RecordView = "grid" | "timeline";
 
 interface ViewToggleProps {
@@ -55,12 +57,14 @@ export default function ViewToggle({ currentView }: ViewToggleProps) {
         const isActive = option.value === currentView;
 
         return (
-          <button
+          <Button
             key={option.value}
             type="button"
+            variant="ghost"
+            size="sm"
             onClick={() => handleViewChange(option.value)}
             aria-pressed={isActive}
-            className={`inline-flex h-11 min-w-11 items-center justify-center rounded-lg px-3 transition-colors duration-normal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2 ${
+            className={`h-11 min-w-11 rounded-lg px-3 transition-colors duration-normal focus-visible:ring-ocean-blue ${
               isActive
                 ? "bg-mist-blue text-ocean-blue"
                 : "text-text-secondary hover:bg-surface-secondary hover:text-text-primary"
@@ -69,7 +73,7 @@ export default function ViewToggle({ currentView }: ViewToggleProps) {
           >
             <span className="sr-only">{option.label}</span>
             {option.icon}
-          </button>
+          </Button>
         );
       })}
     </div>

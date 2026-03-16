@@ -1,6 +1,12 @@
 import { data, redirect } from "react-router";
 import type { Route } from "./+types/$stageId";
 import { Link } from "~/components/SmartLink";
+import { Button } from "~/components/ui/button";
+import { Checkbox } from "~/components/ui/checkbox";
+import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
+import { Textarea } from "~/components/ui/textarea";
 import { db } from "~/db/client.server";
 import { createLogger } from "~/lib/logger.server";
 import { stages } from "~/db/schema.server";
@@ -32,29 +38,55 @@ export default function AdminStageEditPage({ loaderData }: Route.ComponentProps)
       </div>
       <form method="post" className="flex flex-col gap-4 max-w-xl bg-admin-surface rounded-md p-6 border border-admin-border">
         <div>
-          <label className="block text-xs text-admin-text-secondary mb-1.5">이름</label>
-          <input name="name" defaultValue={stage.name} required className="w-full px-3 py-2 rounded-sm border border-admin-border bg-admin-surface text-sm focus:ring-2 focus:ring-admin-accent outline-none" />
+          <Label htmlFor="name" className="mb-1.5 block text-xs text-admin-text-secondary">이름</Label>
+          <Input
+            id="name"
+            name="name"
+            defaultValue={stage.name}
+            required
+            className="h-10 rounded-sm border-admin-border bg-admin-surface px-3 py-2 text-sm"
+          />
         </div>
         <div>
-          <label className="block text-xs text-admin-text-secondary mb-1.5">설명</label>
-          <textarea name="description" defaultValue={stage.description ?? ""} rows={3} className="w-full px-3 py-2 rounded-sm border border-admin-border bg-admin-surface text-sm resize-y outline-none" />
+          <Label htmlFor="description" className="mb-1.5 block text-xs text-admin-text-secondary">설명</Label>
+          <Textarea
+            id="description"
+            name="description"
+            defaultValue={stage.description ?? ""}
+            rows={3}
+            className="min-h-0 rounded-sm border-admin-border bg-admin-surface px-3 py-2 text-sm"
+          />
         </div>
         <div>
-          <label className="block text-xs text-admin-text-secondary mb-1.5">상태</label>
-          <select name="status" defaultValue={stage.status} className="w-full px-3 py-2 rounded-sm border border-admin-border bg-admin-surface text-sm outline-none">
-            <option value="upcoming">예정</option>
-            <option value="active">진행 중</option>
-            <option value="completed">완료</option>
-          </select>
+          <Label htmlFor="status" className="mb-1.5 block text-xs text-admin-text-secondary">상태</Label>
+          <Select name="status" defaultValue={stage.status}>
+            <SelectTrigger id="status" className="h-10 rounded-sm border-admin-border bg-admin-surface px-3 py-2 text-sm">
+              <SelectValue placeholder="상태 선택" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="upcoming">예정</SelectItem>
+              <SelectItem value="active">진행 중</SelectItem>
+              <SelectItem value="completed">완료</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         <div>
-          <label className="flex gap-2 cursor-pointer text-sm">
-            <input type="checkbox" name="isCurrent" defaultChecked={stage.isCurrent ?? false} className="accent-admin-accent" />
-            현재 Stage로 설정
-          </label>
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="isCurrent"
+              name="isCurrent"
+              defaultChecked={stage.isCurrent ?? false}
+              className="border-admin-border data-[state=checked]:border-admin-accent data-[state=checked]:bg-admin-accent"
+            />
+            <Label htmlFor="isCurrent" className="cursor-pointer text-sm font-normal text-admin-text">
+              현재 Stage로 설정
+            </Label>
+          </div>
         </div>
         <div className="flex gap-3">
-          <button type="submit" className="px-5 py-2 rounded-sm bg-admin-accent text-white border-none cursor-pointer text-sm hover:opacity-90">저장</button>
+          <Button type="submit" className="rounded-sm bg-admin-accent px-5 py-2 text-sm text-white hover:opacity-90">
+            저장
+          </Button>
           <Link to="/admin/stages" className="px-5 py-2 rounded-sm border border-admin-border text-admin-text-secondary text-sm hover:bg-admin-bg">취소</Link>
         </div>
       </form>

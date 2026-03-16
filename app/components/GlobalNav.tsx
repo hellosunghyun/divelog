@@ -1,5 +1,7 @@
 import { useRouteLoaderData, useLocation, useNavigate } from "react-router";
 import { Link } from "~/components/SmartLink";
+import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
 import { useState, useEffect, useRef } from "react";
 import { User, Inbox, Settings, ExternalLink, LogOut } from "lucide-react";
 
@@ -168,9 +170,11 @@ export default function GlobalNav() {
               </Link>
 
               <div className="relative self-center">
-                <button
+                <Button
                   ref={profileButtonRef}
                   type="button"
+                  variant="ghost"
+                  size="icon"
                   onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
                   className={`ml-1 flex items-center justify-center rounded-full transition-all ${focusRing} ${
                     isProfileMenuOpen || isActive("/me") || isActive("/settings")
@@ -192,7 +196,7 @@ export default function GlobalNav() {
                       {data.user?.name?.[0] ?? "?"}
                     </div>
                   )}
-                </button>
+                </Button>
 
                 {isProfileMenuOpen && (
                   <div
@@ -339,8 +343,10 @@ export default function GlobalNav() {
            )}
         </div>
 
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="icon"
           className={`lg:hidden p-2 -mr-2 rounded-lg text-text-secondary hover:text-text-primary hover:bg-mist-blue transition-colors ${focusRing}`}
           onClick={() => setIsMenuOpen(!isMenuOpen)}
           aria-label={isMenuOpen ? "메뉴 닫기" : "메뉴 열기"}
@@ -353,7 +359,7 @@ export default function GlobalNav() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6h16M4 12h16M4 18h16" />
             )}
           </svg>
-        </button>
+        </Button>
       </div>
 
     </header>
@@ -370,12 +376,12 @@ export default function GlobalNav() {
                 <circle cx="11" cy="11" r="8" />
                 <path d="m21 21-4.3-4.3" />
               </svg>
-              <input
+              <Input
                 ref={searchInputRef}
                 type="text"
                 placeholder="기록, 질문, 러너 검색..."
                 aria-label="검색"
-                className={`w-full bg-text-tertiary/10 border-none rounded-full pl-10 pr-4 py-2.5 text-base placeholder:text-text-tertiary ${focusRing}`}
+                className={`h-11 rounded-full border-0 bg-text-tertiary/10 pl-10 pr-4 py-2.5 text-base shadow-none placeholder:text-text-tertiary focus-visible:border-ocean-blue focus-visible:ring-ocean-blue/20 ${focusRing}`}
               />
             </form>
 

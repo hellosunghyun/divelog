@@ -1,0 +1,3 @@
+Task 7 note.tsx
+<Select name="visibility" defaultValue="cohort">
+<input type="hidden" name="stageId" value={stageValue === NO_STAGE_VALUE ? "" : stageValue} />

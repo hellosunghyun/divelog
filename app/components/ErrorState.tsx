@@ -1,3 +1,5 @@
+import { Button } from "~/components/ui/button";
+
 interface ErrorStateProps {
   type?: "system" | "permission" | "not_found";
   message?: string;
@@ -31,13 +33,14 @@ export default function ErrorState({ type = "system", message, onRetry }: ErrorS
         {message ?? content.body}
       </p>
       {onRetry && (
-        <button
+        <Button
           type="button"
+          variant="ghost"
           onClick={onRetry}
-          className="mt-4 px-5 py-2.5 rounded-full border border-border bg-transparent text-text-secondary text-base font-medium cursor-pointer hover:bg-surface-secondary transition-all duration-normal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
+          className="mt-4 h-auto rounded-full border border-border bg-transparent px-5 py-2.5 text-base font-medium text-text-secondary hover:bg-surface-secondary hover:text-text-primary focus-visible:ring-ocean-blue"
         >
           다시 시도
-        </button>
+        </Button>
       )}
     </div>
   );
