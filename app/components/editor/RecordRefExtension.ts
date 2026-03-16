@@ -1,6 +1,6 @@
 import { Mention } from "@tiptap/extension-mention";
 import { PluginKey } from "@tiptap/pm/state";
-import type { SuggestionProps } from "@tiptap/suggestion";
+import { exitSuggestion, type SuggestionProps } from "@tiptap/suggestion";
 
 interface RecordItem {
   id: string;
@@ -115,9 +115,15 @@ export function createRecordRefExtension() {
       char: "[[",
       pluginKey: recordRefPluginKey,
       allowedPrefixes: null,
+      allowSpaces: true,
+      allow: ({ editor, state }: { editor: any; state: any }) => {
+        const parent = state.selection.$from.parent;
+        return !editor.view.composing && parent.isTextblock && !parent.type.spec.code;
+      },
       items: async ({ query }: { query: string }) => fetchRecords(query),
       command: ({ editor, range, props }: { editor: any; range: any; props: any }) => {
         const label = props.title ?? props.label ?? props.id;
+        exitSuggestion(editor.view, recordRefPluginKey);
         editor
           .chain()
           .focus()
@@ -166,9 +172,12 @@ export function createRecordRefExtension() {
             update();
             position();
           },
-          onKeyDown: ({ event }: { event: KeyboardEvent }) => {
+          onKeyDown: ({ event, view }: { event: KeyboardEvent; view: any }) => {
             if (!currentProps || !popup || currentProps.items.length === 0) return false;
-            if (event.isComposing || event.keyCode === 229) return false;
+            if (event.isComposing || event.keyCode === 229) {
+              exitSuggestion(view, recordRefPluginKey);
+              return false;
+            }
             if (event.key === "ArrowUp") {
               event.preventDefault();
               selectedIndex = (selectedIndex + currentProps.items.length - 1) % currentProps.items.length;
@@ -188,9 +197,8 @@ export function createRecordRefExtension() {
               return true;
             }
             if (event.key === "Escape") {
-              popup?.remove();
-              popup = null;
-              if (scrollHandler) { window.removeEventListener("scroll", scrollHandler, true); scrollHandler = null; }
+              event.preventDefault();
+              exitSuggestion(view, recordRefPluginKey);
               return true;
             }
             return false;

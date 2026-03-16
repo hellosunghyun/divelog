@@ -8,7 +8,7 @@ import { Extension, EditorContent, useEditor } from "@tiptap/react";
 import { BubbleMenu } from "@tiptap/react/menus";
 import { StarterKit } from "@tiptap/starter-kit";
 import { common, createLowlight } from "lowlight";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { createSlashCommandExtension } from "./SlashCommandMenu";
 import { createUserMentionExtension } from "./MentionExtension";
@@ -51,6 +51,7 @@ export function ArticleEditor({
 }: ArticleEditorProps) {
   const parsedContent = useMemo(() => parseContent(content), [content]);
   const [jsonValue, setJsonValue] = useState<string>(content ?? "");
+  const lastSyncedRef = useRef(content ?? "");
   const [editorError, setEditorError] = useState<string | null>(null);
   const [isFocused, setIsFocused] = useState(false);
 
@@ -163,6 +164,7 @@ export function ArticleEditor({
       }
 
       setEditorError(null);
+      lastSyncedRef.current = nextValue;
       setJsonValue(nextValue);
       onChange?.(nextValue);
     },
@@ -197,24 +199,24 @@ export function ArticleEditor({
   );
 
   useEffect(() => {
-    const nextValue = content ?? "";
-    setJsonValue(nextValue);
-  }, [content]);
+    if (!editor) return;
+    const incoming = content ?? "";
+    if (incoming === lastSyncedRef.current) return;
 
-  useEffect(() => {
-    if (!editor) {
+    if (!incoming) {
+      editor.commands.clearContent(false);
+      setJsonValue("");
+      lastSyncedRef.current = "";
       return;
     }
 
-    if (parsedContent) {
-      editor.commands.setContent(parsedContent, { emitUpdate: false });
-      return;
-    }
+    const parsed = parseContent(incoming);
+    if (!parsed) return;
 
-    if (!content) {
-      editor.commands.clearContent(true);
-    }
-  }, [content, editor, parsedContent]);
+    editor.commands.setContent(parsed, { emitUpdate: false });
+    setJsonValue(incoming);
+    lastSyncedRef.current = incoming;
+  }, [content, editor]);
 
   const rootClassName = [
     "article-editor",

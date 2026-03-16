@@ -1,6 +1,6 @@
 import { Extension, type Editor, type Range } from "@tiptap/core";
 import { PluginKey } from "@tiptap/pm/state";
-import Suggestion, { type SuggestionOptions, type SuggestionProps } from "@tiptap/suggestion";
+import Suggestion, { exitSuggestion, type SuggestionOptions, type SuggestionProps } from "@tiptap/suggestion";
 
 const slashCommandPluginKey = new PluginKey("slashCommand");
 
@@ -74,8 +74,7 @@ function getSlashItems(options: Pick<SlashCommandMenuOptions, "uploadImage" | "o
       icon: "H1",
       keywords: ["제목", "헤더", "h1"],
       command: ({ editor, range }) => {
-        editor.chain().focus().deleteRange(range).run();
-        editor.chain().focus().toggleHeading({ level: 1 }).run();
+        editor.chain().focus().deleteRange(range).setHeading({ level: 1 }).run();
       },
     },
     {
@@ -84,8 +83,7 @@ function getSlashItems(options: Pick<SlashCommandMenuOptions, "uploadImage" | "o
       icon: "H2",
       keywords: ["제목", "헤더", "h2"],
       command: ({ editor, range }) => {
-        editor.chain().focus().deleteRange(range).run();
-        editor.chain().focus().toggleHeading({ level: 2 }).run();
+        editor.chain().focus().deleteRange(range).setHeading({ level: 2 }).run();
       },
     },
     {
@@ -94,8 +92,7 @@ function getSlashItems(options: Pick<SlashCommandMenuOptions, "uploadImage" | "o
       icon: "H3",
       keywords: ["제목", "헤더", "h3"],
       command: ({ editor, range }) => {
-        editor.chain().focus().deleteRange(range).run();
-        editor.chain().focus().toggleHeading({ level: 3 }).run();
+        editor.chain().focus().deleteRange(range).setHeading({ level: 3 }).run();
       },
     },
     {
@@ -104,8 +101,7 @@ function getSlashItems(options: Pick<SlashCommandMenuOptions, "uploadImage" | "o
       icon: "•",
       keywords: ["목록", "리스트", "bullet"],
       command: ({ editor, range }) => {
-        editor.chain().focus().deleteRange(range).run();
-        editor.chain().focus().toggleBulletList().run();
+        editor.chain().focus().deleteRange(range).toggleBulletList().run();
       },
     },
     {
@@ -114,8 +110,7 @@ function getSlashItems(options: Pick<SlashCommandMenuOptions, "uploadImage" | "o
       icon: "1.",
       keywords: ["목록", "리스트", "번호", "ordered"],
       command: ({ editor, range }) => {
-        editor.chain().focus().deleteRange(range).run();
-        editor.chain().focus().toggleOrderedList().run();
+        editor.chain().focus().deleteRange(range).toggleOrderedList().run();
       },
     },
     {
@@ -124,8 +119,7 @@ function getSlashItems(options: Pick<SlashCommandMenuOptions, "uploadImage" | "o
       icon: "❝",
       keywords: ["인용", "quote", "blockquote"],
       command: ({ editor, range }) => {
-        editor.chain().focus().deleteRange(range).run();
-        editor.chain().focus().toggleBlockquote().run();
+        editor.chain().focus().deleteRange(range).toggleBlockquote().run();
       },
     },
     {
@@ -134,8 +128,7 @@ function getSlashItems(options: Pick<SlashCommandMenuOptions, "uploadImage" | "o
       icon: "―",
       keywords: ["선", "divider", "hr"],
       command: ({ editor, range }) => {
-        editor.chain().focus().deleteRange(range).run();
-        editor.chain().focus().setHorizontalRule().run();
+        editor.chain().focus().deleteRange(range).setHorizontalRule().run();
       },
     },
     {
@@ -144,8 +137,7 @@ function getSlashItems(options: Pick<SlashCommandMenuOptions, "uploadImage" | "o
       icon: "</>",
       keywords: ["코드", "code", "snippet"],
       command: ({ editor, range }) => {
-        editor.chain().focus().deleteRange(range).run();
-        editor.chain().focus().toggleCodeBlock().run();
+        editor.chain().focus().deleteRange(range).toggleCodeBlock().run();
       },
     },
     {
@@ -202,8 +194,13 @@ export function createSlashCommandExtension(
         suggestion: {
           char: "/",
           pluginKey: slashCommandPluginKey,
+          allow: ({ editor, state }: { editor: any; state: any }) => {
+            const parent = state.selection.$from.parent;
+            return !editor.view.composing && parent.isTextblock && !parent.type.spec.code;
+          },
           items: ({ query }) => filterItems(getSlashItems(options), query).slice(0, 9),
           command: ({ editor, range, props }) => {
+            exitSuggestion(editor.view, slashCommandPluginKey);
             void props.command({
               editor,
               range,
@@ -363,12 +360,13 @@ export function createSlashCommandExtension(
                 buildList();
                 updatePosition();
               },
-              onKeyDown: ({ event }: { event: KeyboardEvent }) => {
+              onKeyDown: ({ event, view }: { event: KeyboardEvent; view: any }) => {
                 if (!currentProps || !menu || currentProps.items.length === 0) {
                   return false;
                 }
 
                 if (event.isComposing || event.keyCode === 229) {
+                  exitSuggestion(view, slashCommandPluginKey);
                   return false;
                 }
 
@@ -399,10 +397,8 @@ export function createSlashCommandExtension(
                 }
 
                 if (event.key === "Escape") {
-                  menu?.remove();
-                  menu = null;
-                  buttons = [];
-                  detachScrollListener();
+                  event.preventDefault();
+                  exitSuggestion(view, slashCommandPluginKey);
                   return true;
                 }
 

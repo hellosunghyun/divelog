@@ -1,6 +1,6 @@
 import { Mention } from "@tiptap/extension-mention";
 import { PluginKey } from "@tiptap/pm/state";
-import type { SuggestionProps } from "@tiptap/suggestion";
+import { exitSuggestion, type SuggestionProps } from "@tiptap/suggestion";
 
 interface MentionItem {
   id: string;
@@ -132,10 +132,15 @@ export function createUserMentionExtension() {
     suggestion: {
       char: "@",
       pluginKey: mentionPluginKey,
+      allow: ({ editor, state }: { editor: any; state: any }) => {
+        const parent = state.selection.$from.parent;
+        return !editor.view.composing && parent.isTextblock && !parent.type.spec.code;
+      },
       items: async ({ query }: { query: string }) => fetchLearners(query),
       command: ({ editor, range, props }: { editor: any; range: any; props: any }) => {
         const label = props.displayName ?? props.label ?? props.id;
         const slug = props.slug ?? props.id;
+        exitSuggestion(editor.view, mentionPluginKey);
         editor
           .chain()
           .focus()
@@ -184,9 +189,12 @@ export function createUserMentionExtension() {
             update();
             position();
           },
-          onKeyDown: ({ event }: { event: KeyboardEvent }) => {
+          onKeyDown: ({ event, view }: { event: KeyboardEvent; view: any }) => {
             if (!currentProps || !popup || currentProps.items.length === 0) return false;
-            if (event.isComposing || event.keyCode === 229) return false;
+            if (event.isComposing || event.keyCode === 229) {
+              exitSuggestion(view, mentionPluginKey);
+              return false;
+            }
             if (event.key === "ArrowUp") {
               event.preventDefault();
               selectedIndex = (selectedIndex + currentProps.items.length - 1) % currentProps.items.length;
@@ -206,9 +214,8 @@ export function createUserMentionExtension() {
               return true;
             }
             if (event.key === "Escape") {
-              popup?.remove();
-              popup = null;
-              if (scrollHandler) { window.removeEventListener("scroll", scrollHandler, true); scrollHandler = null; }
+              event.preventDefault();
+              exitSuggestion(view, mentionPluginKey);
               return true;
             }
             return false;
