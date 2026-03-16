@@ -39,7 +39,7 @@ export default function FilterBar({ filters }: FilterBarProps) {
     <div className="flex gap-3 flex-wrap items-center">
       {filters.map((filter) => (
         <div key={filter.key} className="flex items-center gap-2">
-          <Label htmlFor={`filter-${filter.key}`} className="text-sm text-text-secondary">
+          <Label htmlFor={`filter-${filter.key}`} className="text-sm text-text-secondary whitespace-nowrap">
             {filter.label}
           </Label>
           <Select

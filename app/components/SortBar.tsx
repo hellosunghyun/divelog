@@ -29,7 +29,7 @@ export default function SortBar({ options = DEFAULT_SORT_OPTIONS }: SortBarProps
 
   return (
     <div className="flex gap-2 items-center">
-      <Label htmlFor="sort-select" className="text-sm text-text-secondary">정렬</Label>
+      <Label htmlFor="sort-select" className="text-sm text-text-secondary whitespace-nowrap">정렬</Label>
       <Select
         value={searchParams.get("sort") ?? "recent"}
         onValueChange={(value) => {
