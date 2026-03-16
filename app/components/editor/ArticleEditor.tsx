@@ -16,7 +16,7 @@ import { TableRow } from "@tiptap/extension-table-row";
 import { TaskItem } from "@tiptap/extension-task-item";
 import { TaskList } from "@tiptap/extension-task-list";
 import { Underline } from "@tiptap/extension-underline";
-import { Extension, EditorContent, useEditor } from "@tiptap/react";
+import { Extension, EditorContent, useEditor, type Editor } from "@tiptap/react";
 import { BubbleMenu } from "@tiptap/react/menus";
 import { StarterKit } from "@tiptap/starter-kit";
 import { common, createLowlight } from "lowlight";
@@ -24,7 +24,7 @@ import { Callout } from "./CalloutExtension";
 import { createInlineTagExtension } from "./TagExtension";
 import { TocExtension } from "./TocExtension";
 import { ToggleBlock } from "./ToggleExtension";
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { createSlashCommandExtension } from "./SlashCommandMenu";
 import { createUserMentionExtension } from "./MentionExtension";
@@ -32,6 +32,67 @@ import { createRecordRefExtension } from "./RecordRefExtension";
 
 const lowlight = createLowlight(common);
 const MAX_CONTENT_SIZE = 100 * 1024;
+
+function pickImageFile(): Promise<File | null> {
+  return new Promise((resolve) => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/gif,image/jpeg,image/png,image/webp";
+    input.style.display = "none";
+    const finalize = (file: File | null) => { input.remove(); resolve(file); };
+    input.addEventListener("change", () => finalize(input.files?.item(0) ?? null));
+    input.addEventListener("cancel", () => finalize(null));
+    document.body.appendChild(input);
+    input.click();
+  });
+}
+
+function getCurrentBlockType(editor: Editor): string {
+  if (editor.isActive("heading", { level: 1 })) return "heading1";
+  if (editor.isActive("heading", { level: 2 })) return "heading2";
+  if (editor.isActive("heading", { level: 3 })) return "heading3";
+  if (editor.isActive("blockquote")) return "blockquote";
+  if (editor.isActive("codeBlock")) return "codeBlock";
+  return "paragraph";
+}
+
+function applyBlockType(editor: Editor, type: string) {
+  switch (type) {
+    case "heading1": editor.chain().focus().setHeading({ level: 1 }).run(); break;
+    case "heading2": editor.chain().focus().setHeading({ level: 2 }).run(); break;
+    case "heading3": editor.chain().focus().setHeading({ level: 3 }).run(); break;
+    case "blockquote": editor.chain().focus().setBlockquote().run(); break;
+    case "codeBlock": editor.chain().focus().setCodeBlock().run(); break;
+    default: editor.chain().focus().setParagraph().run();
+  }
+}
+
+function BubbleBtn({
+  onClick,
+  isActive,
+  label,
+  title,
+  children,
+}: {
+  onClick: () => void;
+  isActive: boolean;
+  label: string;
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      data-active={isActive}
+      aria-label={label}
+      title={title}
+      className="bubble-btn"
+    >
+      {children}
+    </button>
+  );
+}
 
 const TEXT_COLORS = [
   { color: "#DC2626", label: "빨강" }, { color: "#EA580C", label: "주황" },
@@ -351,6 +412,8 @@ export function ArticleEditor({
     .filter(Boolean)
     .join(" ");
 
+  const charCount = editor ? editor.getText().length : 0;
+
   return (
     <div className={rootClassName}>
       {editor ? (
@@ -358,152 +421,125 @@ export function ArticleEditor({
           editor={editor}
           shouldShow={({ editor: currentEditor }) => currentEditor.state.selection.empty === false}
         >
-          <div
-            className="flex items-center gap-1 p-1"
-            style={{
-              backgroundColor: "var(--color-surface)",
-              border: "1px solid var(--color-border)",
-              borderRadius: "var(--radius-sm)",
-              boxShadow: "var(--shadow-sm)",
-            }}
-          >
-            <button
-              type="button"
-              onClick={() => editor.chain().focus().toggleBold().run()}
-              data-active={editor.isActive("bold")}
-              aria-label="굵게"
-              title="굵게 (⌘B)"
-              className="min-h-11 min-w-11 rounded px-2 text-sm font-semibold transition-colors"
-              style={{
-                color: editor.isActive("bold")
-                  ? "var(--color-text-primary)"
-                  : "var(--color-text-secondary)",
-                backgroundColor: editor.isActive("bold")
-                  ? "var(--color-surface-secondary)"
-                  : "transparent",
+          <div className="bubble-toolbar">
+            <BubbleBtn onClick={() => editor.chain().focus().toggleBold().run()} isActive={editor.isActive("bold")} label="굵게" title="굵게 (⌘B)">
+              <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M4 2h4.5a3 3 0 0 1 0 6H4V2zm0 6h5a3 3 0 0 1 0 6H4V8z" fill="currentColor"/></svg>
+            </BubbleBtn>
+            <BubbleBtn onClick={() => editor.chain().focus().toggleItalic().run()} isActive={editor.isActive("italic")} label="기울임" title="기울임 (⌘I)">
+              <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M6 2h6v2H9.5l-3 8H9v2H3v-2h2.5l3-8H6V2z" fill="currentColor"/></svg>
+            </BubbleBtn>
+            <BubbleBtn onClick={() => editor.chain().focus().toggleUnderline().run()} isActive={editor.isActive("underline")} label="밑줄" title="밑줄 (⌘U)">
+              <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M3 2h2v6a3 3 0 0 0 6 0V2h2v6a5 5 0 0 1-10 0V2zm0 11h10v1H3v-1z" fill="currentColor"/></svg>
+            </BubbleBtn>
+            <BubbleBtn onClick={() => editor.chain().focus().toggleStrike().run()} isActive={editor.isActive("strike")} label="취소선" title="취소선">
+              <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M8 1a4 4 0 0 0-4 4h2a2 2 0 0 1 4 0c0 .7-.3 1.2-.8 1.6L8 7H1v2h6.5c.3.3.5.7.5 1a2 2 0 0 1-4 0H2a4 4 0 0 0 8 0c0-.9-.3-1.7-.8-2.3L10.5 7H15V5h-3.2A4 4 0 0 0 8 1z" fill="currentColor"/></svg>
+            </BubbleBtn>
+            <span className="bubble-sep" />
+            <BubbleBtn onClick={() => editor.chain().focus().toggleCode().run()} isActive={editor.isActive("code")} label="인라인 코드" title="인라인 코드">
+              <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M5.7 4.3L1 8l4.7 3.7 1.3-1.6L4 8l3-2.4L5.7 4.3zm4.6 0L9 5.6 12 8l-3 2.4 1.3 1.6L15 8l-4.7-3.7z" fill="currentColor"/></svg>
+            </BubbleBtn>
+            <BubbleBtn
+              onClick={() => {
+                const url = prompt("링크 URL을 입력하세요:");
+                if (url) editor.chain().focus().setLink({ href: url }).run();
               }}
+              isActive={editor.isActive("link")}
+              label="링크"
+              title="링크 추가"
             >
-              B
-            </button>
-
-            <button
-              type="button"
-              onClick={() => editor.chain().focus().toggleItalic().run()}
-              data-active={editor.isActive("italic")}
-              aria-label="기울임"
-              title="기울임 (⌘I)"
-              className="min-h-11 min-w-11 rounded px-2 text-sm font-semibold transition-colors"
-              style={{
-                color: editor.isActive("italic")
-                  ? "var(--color-text-primary)"
-                  : "var(--color-text-secondary)",
-                backgroundColor: editor.isActive("italic")
-                  ? "var(--color-surface-secondary)"
-                  : "transparent",
-              }}
-            >
-              I
-            </button>
-
-            <button
-              type="button"
-              onClick={() => editor.chain().focus().toggleUnderline().run()}
-              data-active={editor.isActive("underline")}
-              aria-label="밑줄"
-              title="밑줄 (⌘U)"
-              className="min-h-11 min-w-11 rounded px-2 text-sm font-semibold transition-colors"
-              style={{
-                color: editor.isActive("underline")
-                  ? "var(--color-text-primary)"
-                  : "var(--color-text-secondary)",
-                backgroundColor: editor.isActive("underline")
-                  ? "var(--color-surface-secondary)"
-                  : "transparent",
-              }}
-            >
-              U
-            </button>
-
-            <button
-              type="button"
-              onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-              data-active={editor.isActive("heading", { level: 1 })}
-              aria-label="제목 1"
-              title="제목 1"
-              className="min-h-11 min-w-11 rounded px-2 text-sm font-semibold transition-colors"
-              style={{
-                color: editor.isActive("heading", { level: 1 })
-                  ? "var(--color-text-primary)"
-                  : "var(--color-text-secondary)",
-                backgroundColor: editor.isActive("heading", { level: 1 })
-                  ? "var(--color-surface-secondary)"
-                  : "transparent",
-              }}
-            >
-              H1
-            </button>
-
-            <button
-              type="button"
-              onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-              data-active={editor.isActive("heading", { level: 2 })}
-              aria-label="제목 2"
-              title="제목 2"
-              className="min-h-11 min-w-11 rounded px-2 text-sm font-semibold transition-colors"
-              style={{
-                color: editor.isActive("heading", { level: 2 })
-                  ? "var(--color-text-primary)"
-                  : "var(--color-text-secondary)",
-                backgroundColor: editor.isActive("heading", { level: 2 })
-                  ? "var(--color-surface-secondary)"
-                  : "transparent",
-              }}
-            >
-              H2
-            </button>
-
-            <button
-              type="button"
-              onClick={() => editor.chain().focus().toggleCode().run()}
-              data-active={editor.isActive("code")}
-              aria-label="인라인 코드"
-              title="인라인 코드"
-              className="min-h-11 min-w-11 rounded px-2 text-sm font-semibold transition-colors"
-              style={{
-                color: editor.isActive("code")
-                  ? "var(--color-text-primary)"
-                  : "var(--color-text-secondary)",
-                backgroundColor: editor.isActive("code")
-                  ? "var(--color-surface-secondary)"
-                  : "transparent",
-              }}
-            >
-              Code
-            </button>
-
-            <button
-              type="button"
-              onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-              data-active={editor.isActive("codeBlock")}
-              aria-label="코드 블록"
-              title="코드 블록"
-              className="min-h-11 min-w-11 rounded px-2 text-sm font-semibold transition-colors"
-              style={{
-                color: editor.isActive("codeBlock")
-                  ? "var(--color-text-primary)"
-                  : "var(--color-text-secondary)",
-                backgroundColor: editor.isActive("codeBlock")
-                  ? "var(--color-surface-secondary)"
-                  : "transparent",
-              }}
-            >
-              ```
-            </button>
-
+              <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M6.5 3.5a3.5 3.5 0 0 1 5 5l-1.5 1.5-1-1 1.5-1.5a2 2 0 0 0-2.8-2.8L6.2 6.2l-1-1L6.5 3.5zm3 9a3.5 3.5 0 0 1-5-5L6 6l1 1-1.5 1.5a2 2 0 0 0 2.8 2.8L9.8 9.8l1 1L9.5 12.5zm-5-4l1-1 4-4-1-1-4 4 1 1z" fill="currentColor"/></svg>
+            </BubbleBtn>
+            <BubbleBtn onClick={() => editor.chain().focus().toggleHighlight().run()} isActive={editor.isActive("highlight")} label="형광펜" title="형광펜">
+              <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M9.5 1L15 6.5l-7 7-2.5.5.5-2.5L9.5 1zm1.4 1.4L5 8.3l-.3 1.3 1.3-.3 5.9-5.9-1-1zM2 13h5v1H2v-1z" fill="currentColor"/></svg>
+            </BubbleBtn>
+            <span className="bubble-sep" />
+            <BubbleBtn onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} isActive={editor.isActive("heading", { level: 1 })} label="제목 1" title="제목 1">
+              <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><text x="1" y="13" fontSize="11" fontWeight="700" fill="currentColor">H1</text></svg>
+            </BubbleBtn>
+            <BubbleBtn onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} isActive={editor.isActive("heading", { level: 2 })} label="제목 2" title="제목 2">
+              <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><text x="1" y="13" fontSize="11" fontWeight="700" fill="currentColor">H2</text></svg>
+            </BubbleBtn>
+            <BubbleBtn onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} isActive={editor.isActive("heading", { level: 3 })} label="제목 3" title="제목 3">
+              <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><text x="1" y="13" fontSize="11" fontWeight="700" fill="currentColor">H3</text></svg>
+            </BubbleBtn>
+            <span className="bubble-sep" />
             <ColorPickerMenu editor={editor} />
           </div>
         </BubbleMenu>
       ) : null}
+
+      {editor && (
+        <div className="editor-toolbar">
+          <select
+            className="editor-toolbar-select"
+            value={getCurrentBlockType(editor)}
+            onChange={(e) => applyBlockType(editor, e.target.value)}
+            aria-label="블록 타입"
+          >
+            <option value="paragraph">본문</option>
+            <option value="heading1">제목 1</option>
+            <option value="heading2">제목 2</option>
+            <option value="heading3">제목 3</option>
+            <option value="blockquote">인용구</option>
+            <option value="codeBlock">코드 블록</option>
+          </select>
+          <span className="bubble-sep" style={{ height: 20 }} />
+          <BubbleBtn onClick={() => editor.chain().focus().toggleBold().run()} isActive={editor.isActive("bold")} label="굵게" title="굵게 (⌘B)">
+            <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M4 2h4.5a3 3 0 0 1 0 6H4V2zm0 6h5a3 3 0 0 1 0 6H4V8z" fill="currentColor"/></svg>
+          </BubbleBtn>
+          <BubbleBtn onClick={() => editor.chain().focus().toggleItalic().run()} isActive={editor.isActive("italic")} label="기울임" title="기울임 (⌘I)">
+            <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M6 2h6v2H9.5l-3 8H9v2H3v-2h2.5l3-8H6V2z" fill="currentColor"/></svg>
+          </BubbleBtn>
+          <BubbleBtn onClick={() => editor.chain().focus().toggleUnderline().run()} isActive={editor.isActive("underline")} label="밑줄" title="밑줄 (⌘U)">
+            <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M3 2h2v6a3 3 0 0 0 6 0V2h2v6a5 5 0 0 1-10 0V2zm0 11h10v1H3v-1z" fill="currentColor"/></svg>
+          </BubbleBtn>
+          <BubbleBtn onClick={() => editor.chain().focus().toggleStrike().run()} isActive={editor.isActive("strike")} label="취소선" title="취소선">
+            <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M8 1a4 4 0 0 0-4 4h2a2 2 0 0 1 4 0c0 .7-.3 1.2-.8 1.6L8 7H1v2h6.5c.3.3.5.7.5 1a2 2 0 0 1-4 0H2a4 4 0 0 0 8 0c0-.9-.3-1.7-.8-2.3L10.5 7H15V5h-3.2A4 4 0 0 0 8 1z" fill="currentColor"/></svg>
+          </BubbleBtn>
+          <BubbleBtn onClick={() => editor.chain().focus().toggleCode().run()} isActive={editor.isActive("code")} label="인라인 코드" title="인라인 코드">
+            <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M5.7 4.3L1 8l4.7 3.7 1.3-1.6L4 8l3-2.4L5.7 4.3zm4.6 0L9 5.6 12 8l-3 2.4 1.3 1.6L15 8l-4.7-3.7z" fill="currentColor"/></svg>
+          </BubbleBtn>
+          <BubbleBtn
+            onClick={() => {
+              const url = prompt("링크 URL을 입력하세요:");
+              if (url) editor.chain().focus().setLink({ href: url }).run();
+            }}
+            isActive={editor.isActive("link")}
+            label="링크"
+            title="링크 추가"
+          >
+            <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M6.5 3.5a3.5 3.5 0 0 1 5 5l-1.5 1.5-1-1 1.5-1.5a2 2 0 0 0-2.8-2.8L6.2 6.2l-1-1L6.5 3.5zm3 9a3.5 3.5 0 0 1-5-5L6 6l1 1-1.5 1.5a2 2 0 0 0 2.8 2.8L9.8 9.8l1 1L9.5 12.5zm-5-4l1-1 4-4-1-1-4 4 1 1z" fill="currentColor"/></svg>
+          </BubbleBtn>
+          <BubbleBtn onClick={() => editor.chain().focus().toggleHighlight().run()} isActive={editor.isActive("highlight")} label="형광펜" title="형광펜">
+            <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M9.5 1L15 6.5l-7 7-2.5.5.5-2.5L9.5 1zm1.4 1.4L5 8.3l-.3 1.3 1.3-.3 5.9-5.9-1-1zM2 13h5v1H2v-1z" fill="currentColor"/></svg>
+          </BubbleBtn>
+          <span className="bubble-sep" style={{ height: 20 }} />
+          <BubbleBtn onClick={() => editor.chain().focus().toggleTaskList().run()} isActive={editor.isActive("taskList")} label="체크리스트" title="체크리스트">
+            <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M2 3h2v2H2V3zm4 0h8v2H6V3zm-4 5h2v2H2V8zm4 0h8v2H6V8zm-4 5h2v2H2v-2zm4 0h8v2H6v-2z" fill="currentColor"/></svg>
+          </BubbleBtn>
+          <BubbleBtn onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()} isActive={false} label="표" title="표 삽입">
+            <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M1 2h14v12H1V2zm2 2v2h4V4H3zm6 0v2h4V4H9zm-6 4v2h4V8H3zm6 0v2h4V8H9zm-6 4v2h4v-2H3zm6 0v2h4v-2H9z" fill="currentColor"/></svg>
+          </BubbleBtn>
+          <BubbleBtn
+            onClick={async () => {
+              const file = await pickImageFile();
+              if (file) {
+                try {
+                  const src = await uploadImage(file);
+                  editor.chain().focus().setImage({ src, alt: file.name }).run();
+                } catch (e) {
+                  setEditorError(e instanceof Error ? e.message : "이미지 업로드 실패");
+                }
+              }
+            }}
+            isActive={false}
+            label="이미지"
+            title="이미지 삽입"
+          >
+            <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M1 2h14v12H1V2zm2 2v8h10V4H3zm1 6l2-3 2 2 2-3 3 4H4z" fill="currentColor"/></svg>
+          </BubbleBtn>
+        </div>
+      )}
 
       <EditorContent
         editor={editor}
@@ -539,6 +575,10 @@ export function ArticleEditor({
           {editorError}
         </p>
       ) : null}
+
+      <div className="editor-footer">
+        <span className="editor-char-count">{charCount.toLocaleString()} 자</span>
+      </div>
 
       {name ? <input type="hidden" name={name} value={jsonValue} readOnly /> : null}
     </div>
