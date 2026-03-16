@@ -15,6 +15,8 @@
   },
   "dependencies": {
     "@adakrpos/auth": "^0.0.2",
+    "@sentry/cloudflare": "^10.43.0",
+    "@sentry/react-router": "^10.43.0",
     "@tiptap/core": "^3.20.1",
     "@tiptap/extension-code-block-lowlight": "^3.20.1",
     "@tiptap/extension-color": "^3.20.2",
