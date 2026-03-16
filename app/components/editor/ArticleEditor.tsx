@@ -24,7 +24,7 @@ import { Callout } from "./CalloutExtension";
 import { createInlineTagExtension } from "./TagExtension";
 import { TocExtension } from "./TocExtension";
 import { ToggleBlock } from "./ToggleExtension";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 
 import { createSlashCommandExtension } from "./SlashCommandMenu";
 import { createUserMentionExtension } from "./MentionExtension";
@@ -32,6 +32,101 @@ import { createRecordRefExtension } from "./RecordRefExtension";
 
 const lowlight = createLowlight(common);
 const MAX_CONTENT_SIZE = 100 * 1024;
+
+const TEXT_COLORS = [
+  { color: "#DC2626", label: "빨강" }, { color: "#EA580C", label: "주황" },
+  { color: "#CA8A04", label: "노랑" }, { color: "#16A34A", label: "초록" },
+  { color: "#146C94", label: "파랑" }, { color: "#7C3AED", label: "보라" },
+  { color: "#DB2777", label: "분홍" }, { color: "#92400E", label: "갈색" },
+  { color: "#6B7280", label: "회색" }, { color: "#1D1D1F", label: "기본" },
+];
+
+const BG_COLORS = [
+  { color: "#FEE2E2", label: "빨강" }, { color: "#FFEDD5", label: "주황" },
+  { color: "#FEF9C3", label: "노랑" }, { color: "#DCFCE7", label: "초록" },
+  { color: "#DBEAFE", label: "파랑" }, { color: "#EDE9FE", label: "보라" },
+  { color: "#FCE7F3", label: "분홍" }, { color: "#F5F0E6", label: "갈색" },
+  { color: "#F3F4F6", label: "회색" }, { color: "transparent", label: "없음" },
+];
+
+function ColorPickerDropdown({ editor, type, label, title }: { editor: any; type: "text" | "bg"; label: string; title: string }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const colors = type === "text" ? TEXT_COLORS : BG_COLORS;
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  const currentColor = type === "text"
+    ? (editor.getAttributes("textStyle")?.color ?? "#1D1D1F")
+    : (editor.getAttributes("highlight")?.color ?? "transparent");
+
+  const apply = (c: string) => {
+    if (type === "text") {
+      if (c === "#1D1D1F") editor.chain().focus().unsetColor().run();
+      else editor.chain().focus().setColor(c).run();
+    } else {
+      if (c === "transparent") editor.chain().focus().unsetHighlight().run();
+      else editor.chain().focus().toggleHighlight({ color: c }).run();
+    }
+    setOpen(false);
+  };
+
+  const btnStyle: CSSProperties = {
+    color: type === "text" ? currentColor : "var(--color-text-secondary)",
+    backgroundColor: type === "bg" && currentColor !== "transparent" ? currentColor : "transparent",
+    borderBottom: type === "text" ? `3px solid ${currentColor}` : "none",
+  };
+
+  return (
+    <div ref={ref} style={{ position: "relative" }}>
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        aria-label={title}
+        title={title}
+        className="min-h-11 min-w-11 rounded px-2 text-sm font-bold transition-colors"
+        style={btnStyle}
+      >
+        {label}
+      </button>
+      {open && (
+        <div style={{
+          position: "absolute", top: "100%", left: "50%", transform: "translateX(-50%)",
+          marginTop: 6, padding: 8, borderRadius: 12,
+          border: "1px solid var(--color-border)", background: "var(--color-surface)",
+          boxShadow: "0 4px 20px -2px rgba(11,36,71,0.1)", zIndex: 70, minWidth: 200,
+        }}>
+          <div style={{ fontSize: 12, color: "var(--color-text-tertiary)", marginBottom: 6, paddingLeft: 4 }}>
+            {type === "text" ? "글씨 색상" : "배경 색상"}
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 4 }}>
+            {colors.map((c) => (
+              <button
+                key={c.color}
+                type="button"
+                onClick={() => apply(c.color)}
+                title={c.label}
+                style={{
+                  width: 32, height: 32, borderRadius: 6, border: currentColor === c.color ? "2px solid var(--color-ocean-blue)" : "1px solid var(--color-border)",
+                  background: type === "text" ? "var(--color-surface)" : c.color === "transparent" ? "var(--color-surface)" : c.color,
+                  cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 14, fontWeight: 700, color: type === "text" ? c.color : "var(--color-text-primary)",
+                }}
+              >
+                {type === "text" ? "A" : c.color === "transparent" ? "✕" : ""}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 interface ArticleEditorProps {
   content?: string;
@@ -409,6 +504,19 @@ export function ArticleEditor({
             >
               ```
             </button>
+
+            <ColorPickerDropdown
+              editor={editor}
+              type="text"
+              label="A"
+              title="글씨 색상"
+            />
+            <ColorPickerDropdown
+              editor={editor}
+              type="bg"
+              label="A̲"
+              title="배경 색상"
+            />
           </div>
         </BubbleMenu>
       ) : null}
