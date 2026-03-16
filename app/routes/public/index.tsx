@@ -75,6 +75,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
       .from(sentences)
       .leftJoin(learnerProfiles, eq(sentences.savedById, learnerProfiles.userId))
       .leftJoin(records, eq(sentences.recordId, records.id))
+      .where(sql`${records.visibility} != 'draft'`)
       .orderBy(desc(sentences.createdAt))
       .limit(4),
     database.select().from(learnerProfiles).limit(4),

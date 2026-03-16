@@ -1,0 +1,68 @@
+TASK 15: 미사용 컴포넌트 활용 + cohort 필터 패턴 통일
+========================================================
+
+COMPLETED: 2025-03-17
+
+ISSUES FIXED:
+- M-9: ErrorState and LoadingSkeleton components exist but are never imported/used anywhere
+- L-1: Cohort filter style inconsistency — some queries use `sql`1=1`` as a no-op condition, others use conditional arrays
+
+CHANGES MADE:
+
+1. ErrorState Component Usage (M-9)
+   File: app/routes/_public.tsx
+   - Added import: import ErrorState from "~/components/ErrorState";
+   - Added ErrorBoundary function that renders ErrorState with type="system"
+   - ErrorBoundary wraps GlobalNav, main content area, and Footer
+   - Message: "페이지를 불러오는 중 오류가 발생했습니다."
+
+2. LoadingSkeleton Component Usage (M-9)
+   File: app/routes/public/search.tsx
+   - Added import: import LoadingSkeleton from "~/components/LoadingSkeleton";
+   - Added useNavigation hook from react-router
+   - Added loading state check: const isSearching = navigation.state === "loading";
+   - Renders LoadingSkeleton when isSearching is true
+   - Variant: "card", count: 3
+
+3. Cohort Filter Standardization (L-1)
+   Pattern: Replace `sql`1=1`` with conditional `undefined` in and() clauses
+   
+   File: app/db/queries/search.server.ts
+   - Line 28: cohort ? eq(records.cohort, cohort) : sql`1=1` → cohort ? eq(records.cohort, cohort) : undefined
+   - Line 63: cohort ? eq(learnerProfiles.cohort, cohort) : sql`1=1` → cohort ? eq(learnerProfiles.cohort, cohort) : undefined
+   - Added import: type SQL from "drizzle-orm"
+   
+   File: app/db/queries/questions.server.ts
+   - Line 28: cohort ? eq(records.cohort, cohort) : sql`1=1` → cohort ? eq(records.cohort, cohort) : undefined
+   
+   File: app/db/queries/memories.server.ts
+   - Line 22: cohort ? eq(collectiveMemories.cohort, cohort) : sql`1=1` → cohort ? eq(collectiveMemories.cohort, cohort) : undefined
+
+VERIFICATION:
+
+✓ npm run test: 78/78 tests passed
+  - Test Files: 6 passed
+  - Tests: 78 passed
+  - Duration: 319ms
+
+✓ npm run build: succeeded
+  - Client build: ✓ 2631 modules transformed
+  - SSR build: ✓ 2759 modules transformed
+  - Worker bundle: 3.4mb
+  - Build time: 108ms total
+
+✓ No TypeScript errors in modified files
+  - app/routes/_public.tsx: clean
+  - app/routes/public/search.tsx: clean
+  - app/db/queries/search.server.ts: clean
+  - app/db/queries/questions.server.ts: clean
+  - app/db/queries/memories.server.ts: clean
+
+COMPONENTS NOW USED:
+- ErrorState: Used in _public.tsx ErrorBoundary for error handling
+- LoadingSkeleton: Used in search.tsx for loading state during search
+
+PATTERN STANDARDIZATION:
+- All cohort filters now use conditional undefined pattern
+- Consistent with records.server.ts pattern (lines 19-39)
+- Drizzle ORM's and() function handles undefined values correctly

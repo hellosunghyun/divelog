@@ -19,7 +19,7 @@ export async function getCollectiveMemoryByStageSlug(
       and(
         eq(stages.slug, stageSlug),
         eq(collectiveMemories.status, "published"),
-        cohort ? eq(collectiveMemories.cohort, cohort) : sql`1=1`,
+        cohort ? eq(collectiveMemories.cohort, cohort) : undefined,
       ),
     )
     .limit(1);

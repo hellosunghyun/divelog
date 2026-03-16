@@ -1,0 +1,30 @@
+=== Task 12: Challenge/Collaboration Missing Sections (M-3, M-4) ===
+
+## Changes Made
+1. app/routes/public/challenges/$challengeSlug.tsx
+   - Added "전환점" section with EmptyState placeholder
+   - Added "회고" section with EmptyState placeholder
+   
+2. app/routes/public/groups/$groupSlug.tsx
+   - Added "전환점" section with EmptyState placeholder
+   - Added "회고" section with EmptyState placeholder
+
+## Test Results
+✓ 78/78 tests passing
+
+## Build Status
+⚠️ Build fails with pre-existing error in $learnerSlug.tsx:
+   "[commonjs--resolver] Server-only module referenced by client
+    '~/db/schema.server' imported by 'app/routes/public/learners/$learnerSlug.tsx'"
+   
+This error is NOT related to Task 12 changes. The $learnerSlug.tsx file was 
+modified by previous tasks in this worktree and has an unrelated build issue.
+
+## Verification
+My changes only add client-side JSX (EmptyState placeholders) and do not 
+introduce any new imports or server-only module references.
+
+Diff of Task 12 changes only:
+- Added 2 new sections to each file
+- Added mb-12 to "탐구 기록"/"기록" section for spacing
+- All changes are pure client-side React components

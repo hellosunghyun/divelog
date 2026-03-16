@@ -1,5 +1,5 @@
 import type { Route } from "./+types/search";
-import { Form, useSearchParams } from "react-router";
+import { Form, useSearchParams, useNavigation } from "react-router";
 import { db } from "~/db/client.server";
 import { records, questions, learnerProfiles, sentences } from "~/db/schema.server";
 import { like, or, desc, eq, and, sql } from "drizzle-orm";
@@ -9,6 +9,8 @@ import HeroSection from "~/components/HeroSection";
 import EmptyState from "~/components/EmptyState";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
+import HighlightedSentenceCard from "~/components/HighlightedSentenceCard";
+import LoadingSkeleton from "~/components/LoadingSkeleton";
 import { getPlainText } from "~/lib/content.server";
 import { normalizeContentFormat } from "~/lib/editor-extensions";
 import { createLogger } from "~/lib/logger.server";
@@ -37,34 +39,58 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const pattern = `%${q}%`;
   const database = db(context.cloudflare.env.DB);
 
-  const [foundRecords, foundQuestions, foundLearners, foundSentences] = await database.batch([
-    database
-      .select({
-        record: records,
-        author: {
-          displayName: learnerProfiles.displayName,
-          slug: learnerProfiles.slug,
-          profilePhotoUrl: learnerProfiles.profilePhotoUrl,
-        },
-      })
-      .from(records)
-      .leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
+   const [foundRecords, foundQuestions, foundLearners, foundSentences] = await database.batch([
+     database
+       .select({
+         record: records,
+         author: {
+           displayName: learnerProfiles.displayName,
+           slug: learnerProfiles.slug,
+           profilePhotoUrl: learnerProfiles.profilePhotoUrl,
+         },
+       })
+       .from(records)
+       .leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
+        .where(
+          and(
+            or(like(records.title, pattern), like(records.contentText, pattern)),
+            sql`${records.visibility} != 'draft'`
+          )
+        )
+       .orderBy(desc(records.createdAt))
+       .limit(10),
+     database
+       .select({
+         question: questions,
+       })
+       .from(questions)
+       .innerJoin(records, eq(questions.recordId, records.id))
        .where(
          and(
-           or(like(records.title, pattern), like(records.contentText, pattern)),
+           like(questions.content, pattern),
            sql`${records.visibility} != 'draft'`
          )
        )
-      .orderBy(desc(records.createdAt))
-      .limit(10),
-    database.select().from(questions).where(like(questions.content, pattern)).limit(10),
-    database
-      .select()
-      .from(learnerProfiles)
-      .where(like(learnerProfiles.displayName, pattern))
-      .limit(10),
-    database.select().from(sentences).where(like(sentences.content, pattern)).limit(10),
-  ]);
+       .limit(10),
+     database
+       .select()
+       .from(learnerProfiles)
+       .where(like(learnerProfiles.displayName, pattern))
+       .limit(10),
+     database
+       .select({
+         sentence: sentences,
+       })
+       .from(sentences)
+       .innerJoin(records, eq(sentences.recordId, records.id))
+       .where(
+         and(
+           like(sentences.content, pattern),
+           sql`${records.visibility} != 'draft'`
+         )
+       )
+       .limit(10),
+   ]);
 
   const recordsWithSnippets = foundRecords.map(({ record, author }) => {
     const plainTextContent = getPlainText(record.content, normalizeContentFormat(record.format));
@@ -93,6 +119,8 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 export default function SearchPage({ loaderData }: Route.ComponentProps) {
   const { q, tab, results } = loaderData;
   const [searchParams] = useSearchParams();
+  const navigation = useNavigation();
+  const isSearching = navigation.state === "loading";
   const total =
     results.records.length +
     results.questions.length +
@@ -124,7 +152,9 @@ export default function SearchPage({ loaderData }: Route.ComponentProps) {
           </Button>
         </Form>
 
-        {!q ? (
+        {isSearching ? (
+          <LoadingSkeleton variant="card" count={3} />
+        ) : !q ? (
            <EmptyState
              variant="search"
              message="검색어를 입력해서 기록, 질문, 러너를 찾아보세요."
@@ -197,24 +227,40 @@ export default function SearchPage({ loaderData }: Route.ComponentProps) {
               </section>
             )}
 
-            {(tab === "all" || tab === "questions") && results.questions.length > 0 && (
-              <section className="mb-10">
-                <h3 className="text-lg font-semibold text-text-primary tracking-tight mb-6">
-                  질문
-                </h3>
-                <div className="flex flex-col gap-4">
-                  {results.questions.map((q2) => (
-                    <p
-                      key={q2.id}
-                      className="p-5 bg-surface rounded-lg border border-border text-text-primary"
-                    >
-                      {q2.content}
-                    </p>
-                  ))}
-                </div>
-              </section>
-            )}
-          </div>
+             {(tab === "all" || tab === "questions") && results.questions.length > 0 && (
+               <section className="mb-10">
+                 <h3 className="text-lg font-semibold text-text-primary tracking-tight mb-6">
+                   질문
+                 </h3>
+                 <div className="flex flex-col gap-4">
+                   {results.questions.map((q2) => (
+                     <p
+                       key={q2.question.id}
+                       className="p-5 bg-surface rounded-lg border border-border text-text-primary"
+                     >
+                       {q2.question.content}
+                     </p>
+                   ))}
+                 </div>
+               </section>
+             )}
+
+             {(tab === "all" || tab === "sentences") && results.sentences.length > 0 && (
+               <section className="mb-10">
+                 <h3 className="text-lg font-semibold text-text-primary tracking-tight mb-6">
+                   문장
+                 </h3>
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                   {results.sentences.map((s) => (
+                     <HighlightedSentenceCard
+                       key={s.sentence.id}
+                       sentence={s.sentence}
+                     />
+                   ))}
+                 </div>
+               </section>
+             )}
+           </div>
         )}
       </div>
     </div>

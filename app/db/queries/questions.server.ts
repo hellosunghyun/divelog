@@ -25,7 +25,7 @@ export async function getOpenQuestions(d1: D1Database, cohort?: string) {
     .where(
       and(
         eq(questions.isOpen, true),
-        cohort ? eq(records.cohort, cohort) : sql`1=1`,
+        cohort ? eq(records.cohort, cohort) : undefined,
         sql`${records.visibility} != 'draft'`,
       ),
     )

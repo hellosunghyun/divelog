@@ -137,6 +137,86 @@ export default function GuidePage() {
           </p>
         </section>
 
+        <section className="mb-10">
+          <h2 className="text-2xl font-semibold leading-title text-text-primary mb-6">
+            자주 묻는 질문
+          </h2>
+          <div className="flex flex-col gap-6">
+            <div className="border-b border-border pb-6">
+              <h3 className="text-lg font-semibold text-text-primary mb-3">
+                기록이란 무엇인가요?
+              </h3>
+              <p className="text-base leading-relaxed text-text-secondary">
+                기록은 완성된 글이 아니어도 괜찮습니다. 탐구하는 과정을 남기는 곳입니다.
+                <strong className="text-text-primary"> 노트</strong>는 짧고 자유로운 기록에,
+                <strong className="text-text-primary"> 글</strong>은 조금 더 깊이 있는 탐구에 적합합니다.
+                아직 정리되지 않은 생각이나 막막한 질문도 모두 기록이 될 수 있습니다.
+              </p>
+            </div>
+
+            <div className="border-b border-border pb-6">
+              <h3 className="text-lg font-semibold text-text-primary mb-3">
+                응답 유형에는 어떤 것이 있나요?
+              </h3>
+              <p className="text-base leading-relaxed text-text-secondary">
+                다른 러너의 기록에 남길 수 있는 응답은 5가지입니다:
+              </p>
+              <ul className="mt-3 flex flex-col gap-2 pl-5 text-base text-text-secondary">
+                <li><strong className="text-text-primary">공명</strong> — 이 기록에서 무엇이 남았는지 말합니다</li>
+                <li><strong className="text-text-primary">질문</strong> — 더 듣고 싶은 지점을 엽니다</li>
+                <li><strong className="text-text-primary">연결</strong> — 내 경험이나 다른 기록과 이어봅니다</li>
+                <li><strong className="text-text-primary">제안</strong> — 다음 시도를 조심스럽게 제안합니다</li>
+                <li><strong className="text-text-primary">자기답변</strong> — 나 자신의 질문에 답합니다</li>
+              </ul>
+            </div>
+
+            <div className="border-b border-border pb-6">
+              <h3 className="text-lg font-semibold text-text-primary mb-3">
+                공개 범위(Visibility)는 어떻게 설정하나요?
+              </h3>
+              <p className="text-base leading-relaxed text-text-secondary">
+                기록의 공개 범위는 세 단계로 설정할 수 있습니다:
+              </p>
+              <ul className="mt-3 flex flex-col gap-2 pl-5 text-base text-text-secondary">
+                <li><strong className="text-text-primary">임시저장</strong> — 나만 볼 수 있습니다. 작성 중인 생각을 안전하게 보관합니다.</li>
+                <li><strong className="text-text-primary">코호트 공개</strong> — 같은 기수의 러너들에게 공개됩니다.</li>
+                <li><strong className="text-text-primary">전체 공개</strong> — 모든 사람이 볼 수 있습니다.</li>
+              </ul>
+              <p className="mt-3 text-base leading-relaxed text-text-secondary">
+                공개 범위는 언제든 변경할 수 있습니다. 처음에는 코호트 공개로 시작하고, 준비가 되면 전체 공개로 전환해도 좋습니다.
+              </p>
+            </div>
+
+            <div className="border-b border-border pb-6">
+              <h3 className="text-lg font-semibold text-text-primary mb-3">
+                협업은 어떻게 시작하나요?
+              </h3>
+              <p className="text-base leading-relaxed text-text-secondary">
+                협업 단위(Collaboration Unit)는 챌린지 진행 중 실제로 협업이 필요할 때 자연스럽게 형성됩니다.
+                개인 탐구가 먼저이며, 협업은 선택 사항입니다. 협업이 시작되면 팀 이름보다
+                <strong className="text-text-primary"> 무엇을 붙들고 있는가</strong>가 먼저 보이게 됩니다.
+              </p>
+            </div>
+
+            <div className="border-b border-border pb-6">
+              <h3 className="text-lg font-semibold text-text-primary mb-3">
+                설정은 어디서 변경하나요?
+              </h3>
+              <p className="text-base leading-relaxed text-text-secondary">
+                기본 공개 범위, 응답 선호도, 알림 설정 등은{" "}
+                <a href="/settings" className="text-ocean-blue hover:underline">
+                  설정 페이지
+                </a>
+                에서 변경할 수 있습니다. 프로필 정보(이름, 사진, 소개)는{" "}
+                <a href="https://ada-kr-pos.com" className="text-ocean-blue hover:underline" target="_blank" rel="noopener noreferrer">
+                  ada-kr-pos.com
+                </a>
+                에서 관리됩니다.
+              </p>
+            </div>
+          </div>
+        </section>
+
         <CTABand
           message="지금 시작할 준비가 됐다면, 첫 기록을 남겨보세요."
           primaryCta={{ label: "기록하기", href: "/write" }}

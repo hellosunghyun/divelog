@@ -1,0 +1,38 @@
+# Task 4: mentions/recordLinks visibility filter — COMPLETED
+
+## Changes Made
+
+### 1. app/db/queries/mentions.server.ts
+- Added imports: `and, sql` from drizzle-orm
+- Updated getMentionsOfUser() to filter records by visibility
+- Line 67: `sql\`${records.visibility} != 'draft'\`` added to WHERE clause
+- Pattern: Wraps existing condition in `and()` with visibility check
+
+### 2. app/db/queries/recordLinks.server.ts
+- Added imports: `and, sql` from drizzle-orm
+- Updated getRecordLinksByRecord() to filter target records by visibility
+  - Line 49: `sql\`${records.visibility} != 'draft'\`` added
+  - Wraps existing `or()` condition in `and()` with visibility check
+- Updated getIncomingLinks() to filter source records by visibility
+  - Line 71: `sql\`${records.visibility} != 'draft'\`` added
+  - Wraps existing condition in `and()` with visibility check
+
+## Verification
+
+✅ Tests: 78/78 passing (no regressions)
+✅ Build: Succeeds without errors
+✅ Grep verification: All 3 visibility filters confirmed in place
+  - mentions.server.ts:67
+  - recordLinks.server.ts:49 (getRecordLinksByRecord)
+  - recordLinks.server.ts:71 (getIncomingLinks)
+
+## Pattern Reference
+Matches getLinkedRecords() pattern from records.server.ts (lines 216, 255):
+```typescript
+sql\`${records.visibility} != 'draft'\`
+```
+
+## Issue Fixed
+C-6: getMentionsOfUser(), getRecordLinksByRecord(), getIncomingLinks() now check parent record visibility
+- Prevents leaking draft records through mention/link queries
+- Consistent with getLinkedRecords() implementation

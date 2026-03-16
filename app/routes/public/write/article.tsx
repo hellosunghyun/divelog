@@ -34,18 +34,25 @@ export function meta(_args: Route.MetaArgs) {
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {
-  await requireVerified(request, context);
+  const auth = await requireVerified(request, context);
 
   const database = db(context.cloudflare.env.DB);
-  const [currentStageResult, allStages, activeTemplates] = await database.batch([
+  const [currentStageResult, allStages, activeTemplates, learnerResult] = await database.batch([
     database.select().from(stages).where(eq(stages.isCurrent, true)).limit(1),
     database.select({ id: stages.id, name: stages.name, isCurrent: stages.isCurrent }).from(stages).orderBy(stages.order),
     database.select().from(templates).where(eq(templates.active, true)),
+    database.select().from(learnerProfiles).where(eq(learnerProfiles.userId, auth.user.id)).limit(1),
   ]);
+  const learner = learnerResult[0] ?? null;
+
   return {
     currentStage: currentStageResult[0] ?? null,
     stages: allStages,
     templates: activeTemplates,
+    learnerDefaults: {
+      defaultVisibility: learner?.defaultVisibility ?? "cohort",
+      defaultResponsePreference: learner?.defaultResponsePreference ?? "open",
+    },
   };
 }
 
@@ -55,6 +62,8 @@ export async function action({ request, context }: Route.ActionArgs) {
   const formData = await request.formData();
   const contentRaw = formData.get("content");
   const content = typeof contentRaw === "string" ? contentRaw : "";
+  const responsePreferenceRaw = formData.get("responsePreference");
+  const responsePreference = typeof responsePreferenceRaw === "string" ? responsePreferenceRaw : "open";
 
   let contentText = "";
   try {
@@ -97,7 +106,7 @@ export async function action({ request, context }: Route.ActionArgs) {
     type: "personal",
     rhythm: "free",
     visibility: parsed.data.visibility,
-    responsePreference: "open",
+    responsePreference,
     stageId: parsed.data.stageId ?? null,
     challengeId: null,
     collaborationUnitId: null,
@@ -149,7 +158,7 @@ export async function action({ request, context }: Route.ActionArgs) {
 }
 
 export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
-  const { currentStage, stages: availableStages, templates: availableTemplates } = loaderData;
+  const { currentStage, stages: availableStages, templates: availableTemplates, learnerDefaults } = loaderData;
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const [stageValue, setStageValue] = useState(currentStage?.id ?? NO_STAGE_VALUE);
@@ -183,7 +192,7 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
             >
               공개 범위
             </Label>
-            <Select name="visibility" defaultValue="cohort">
+            <Select name="visibility" defaultValue={learnerDefaults.defaultVisibility}>
               <SelectTrigger id="visibility" className="w-auto min-w-36 bg-surface">
                 <SelectValue />
               </SelectTrigger>
@@ -218,6 +227,12 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
               </SelectContent>
             </Select>
           </div>
+
+          <input
+            type="hidden"
+            name="responsePreference"
+            defaultValue={learnerDefaults.defaultResponsePreference}
+          />
         </div>
 
         <div>

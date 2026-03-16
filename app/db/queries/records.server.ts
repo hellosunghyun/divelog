@@ -60,7 +60,7 @@ export async function getRecords(d1: D1Database, filters: RecordFilterInput = { 
     .offset(offset);
 }
 
-export async function getRecordBySlug(d1: D1Database, slug: string) {
+export async function getRecordBySlug(d1: D1Database, slug: string, currentUserId?: string) {
   const database = db(d1);
   const result = await database
     .select({
@@ -77,7 +77,14 @@ export async function getRecordBySlug(d1: D1Database, slug: string) {
     .where(eq(records.slug, slug))
     .limit(1);
 
-  return result[0] ?? null;
+  const recordData = result[0] ?? null;
+  
+  // Defense-in-depth: if record is draft and user is not author, return null
+  if (recordData && recordData.record.visibility === "draft" && currentUserId && currentUserId !== recordData.record.authorId) {
+    return null;
+  }
+
+  return recordData;
 }
 
 export async function getRecordsByAuthor(d1: D1Database, authorId: string, includePrivate = false) {

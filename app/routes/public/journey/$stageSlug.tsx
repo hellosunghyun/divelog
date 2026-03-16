@@ -2,7 +2,7 @@ import { data } from "react-router";
 import type { Route } from "./+types/$stageSlug";
 import { Link } from "~/components/SmartLink";
 import { db } from "~/db/client.server";
-import { stages, records, questions, collaborationUnits, learnerProfiles } from "~/db/schema.server";
+import { stages, records, questions, collaborationUnits, learnerProfiles, collectiveMemories } from "~/db/schema.server";
 import { eq, and, desc, sql } from "drizzle-orm";
 import HeroSection from "~/components/HeroSection";
 import SceneCard from "~/components/SceneCard";
@@ -31,7 +31,7 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
     throw data("Stage를 찾을 수 없습니다", { status: 404 });
   }
 
-  const [stageRecords, stageQuestions, stageCollaborations] = await database.batch([
+  const [stageRecords, stageQuestions, stageCollaborations, collectiveMemoryResult] = await database.batch([
     database
       .select({
         record: records,
@@ -54,14 +54,21 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
       })
       .from(questions)
       .leftJoin(records, eq(questions.recordId, records.id))
-      .where(and(eq(records.stageId, stage.id), eq(questions.isOpen, true)))
+      .where(and(eq(records.stageId, stage.id), eq(questions.isOpen, true), sql`${records.visibility} != 'draft'`))
       .orderBy(desc(questions.createdAt))
       .limit(5),
     database.select().from(collaborationUnits).where(eq(collaborationUnits.stageId, stage.id)),
+    database
+      .select()
+      .from(collectiveMemories)
+      .where(and(eq(collectiveMemories.stageId, stage.id), eq(collectiveMemories.status, "published")))
+      .limit(1),
   ]);
 
+  const collectiveMemory = collectiveMemoryResult[0] ?? null;
+
   logger.info("loader_end");
-  return { stage, allStages, stageRecords, stageQuestions, stageCollaborations };
+  return { stage, allStages, stageRecords, stageQuestions, stageCollaborations, collectiveMemory };
 }
 
 export async function clientLoader({ params, serverLoader }: {
@@ -79,17 +86,18 @@ export function meta({ data: loaderData }: Route.MetaArgs) {
   if (!loaderData) {
     return [{ title: "Stage — DiveLog" }];
   }
+  const typedData = loaderData as Awaited<ReturnType<typeof loader>>;
   return [
-    { title: `${loaderData.stage.name} — DiveLog` },
+    { title: `${typedData.stage.name} — DiveLog` },
     {
       name: "description",
-      content: loaderData.stage.description ?? `${loaderData.stage.name} Stage의 기록들`,
+      content: typedData.stage.description ?? `${typedData.stage.name} Stage의 기록들`,
     },
   ];
 }
 
 export default function StageDetailPage({ loaderData }: Route.ComponentProps) {
-  const { stage, allStages, stageRecords, stageQuestions, stageCollaborations } = loaderData;
+  const { stage, allStages, stageRecords, stageQuestions, stageCollaborations, collectiveMemory } = loaderData as Awaited<ReturnType<typeof loader>>;
 
   return (
     <div>
@@ -123,17 +131,20 @@ export default function StageDetailPage({ loaderData }: Route.ComponentProps) {
               이 Stage의 열린 질문들
             </h2>
             <div className="flex flex-col gap-5">
-              {stageQuestions.map(({ question, recordSlug, recordTitle }) => (
-                <QuestionCard
-                  key={question.id}
-                  question={question}
-                  record={
-                    recordSlug && recordTitle
-                      ? { slug: recordSlug, title: recordTitle }
-                      : undefined
-                  }
-                />
-              ))}
+              {stageQuestions.map((item: any) => {
+                const { question, recordSlug, recordTitle } = item;
+                return (
+                  <QuestionCard
+                    key={question.id}
+                    question={question}
+                    record={
+                      recordSlug && recordTitle
+                        ? { slug: recordSlug, title: recordTitle }
+                        : undefined
+                    }
+                  />
+                );
+              })}
             </div>
           </section>
         )}
@@ -153,7 +164,7 @@ export default function StageDetailPage({ loaderData }: Route.ComponentProps) {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {stageCollaborations.map((unit) => (
+              {stageCollaborations.map((unit: any) => (
                 <CollaborationUnitCard key={unit.id} unit={unit} />
               ))}
             </div>
@@ -179,24 +190,46 @@ export default function StageDetailPage({ loaderData }: Route.ComponentProps) {
             />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {stageRecords.map(({ record, author }) => (
-                <SceneCard
-                  key={record.id}
-                  record={{
-                    slug: record.slug,
-                    title: record.title,
-                    content: record.content,
-                    format: record.format as "note" | "article",
-                    type: record.type as "personal" | "challenge" | "collaboration",
-                    rhythm: record.rhythm ?? undefined,
-                    createdAt: record.createdAt,
-                  }}
-                  author={author?.displayName ? { displayName: author.displayName, slug: author.slug ?? "" } : undefined}
-                />
-              ))}
+              {stageRecords.map((item: any) => {
+                const { record, author } = item;
+                return (
+                  <SceneCard
+                    key={record.id}
+                    record={{
+                      slug: record.slug,
+                      title: record.title,
+                      content: record.content,
+                      format: record.format as "note" | "article",
+                      type: record.type as "personal" | "challenge" | "collaboration",
+                      rhythm: record.rhythm ?? undefined,
+                      createdAt: record.createdAt,
+                    }}
+                    author={author?.displayName ? { displayName: author.displayName, slug: author.slug ?? "" } : undefined}
+                  />
+                );
+              })}
             </div>
           )}
         </section>
+
+        {collectiveMemory && (
+          <section className="mt-12">
+            <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-8">
+              Collective Memory
+            </h2>
+            <div className="p-6 bg-surface rounded-2xl border border-border">
+              <p className="text-text-secondary mb-4">
+                이 Stage의 Collective Memory가 발행되었습니다
+              </p>
+              <Link
+                to={`/memories/${stage.slug}`}
+                className="inline-block text-sm font-medium text-ocean-blue hover:text-deep-ocean transition-colors no-underline"
+              >
+                보러 가기 →
+              </Link>
+            </div>
+          </section>
+        )}
       </div>
     </div>
   );

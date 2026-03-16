@@ -23,7 +23,7 @@ import {
 import { Textarea } from "~/components/ui/textarea";
 import { db } from "~/db/client.server";
 import { saveSentence } from "~/db/queries/sentences.server";
-import { learnerProfiles, questions, records, responses, sentences } from "~/db/schema.server";
+import { learnerProfiles, questions, records, responses, sentences, stages } from "~/db/schema.server";
 import { createSelfAnswer, getSelfAnswersByRecord } from "~/db/queries/selfAnswers.server";
 import { getLinkedRecords } from "~/db/queries/records.server";
 import { getIncomingLinks } from "~/db/queries/recordLinks.server";
@@ -70,9 +70,15 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
         profilePhotoUrl: learnerProfiles.profilePhotoUrl,
         userId: learnerProfiles.userId,
       },
+      stage: {
+        id: stages.id,
+        name: stages.name,
+        slug: stages.slug,
+      },
     })
     .from(records)
     .leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
+    .leftJoin(stages, eq(records.stageId, stages.id))
     .where(eq(records.slug, recordSlug))
     .limit(1);
 
@@ -144,6 +150,7 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
   return {
     record: recordData.record,
     author: recordData.author,
+    stage: recordData.stage,
     questions: recordQuestions,
     responses: recordResponses,
     sentences: recordSentences,
@@ -170,7 +177,7 @@ export async function action({ request, context }: Route.ActionArgs) {
       type: formData.get("type"),
       recordId: formData.get("recordId"),
       questionId: formData.get("questionId") || undefined,
-      visibility: "cohort",
+      visibility: formData.get("visibility") || "cohort",
     });
 
     if (!parsed.success) {
@@ -179,13 +186,21 @@ export async function action({ request, context }: Route.ActionArgs) {
 
     // 응답 선호도에 따른 서버사이드 검증
     const targetRecord = await database
-      .select({ responsePreference: records.responsePreference })
+      .select({ responsePreference: records.responsePreference, visibility: records.visibility, authorId: records.authorId })
       .from(records)
       .where(eq(records.id, parsed.data.recordId))
       .limit(1);
 
     if (targetRecord.length > 0) {
       const pref = targetRecord[0].responsePreference;
+      const visibility = targetRecord[0].visibility;
+      const authorId = targetRecord[0].authorId;
+      
+      // Defense-in-depth: prevent responses on draft records (unless user is author)
+      if (visibility === "draft" && authorId !== auth.user.id) {
+        return { error: "이 기록에 응답할 수 없습니다." };
+      }
+      
       if (pref === "closed") {
         return { error: "이 기록은 응답이 닫혀 있습니다." };
       }
@@ -204,7 +219,7 @@ export async function action({ request, context }: Route.ActionArgs) {
       authorId: auth.user.id,
       type: parsed.data.type,
       content: parsed.data.content,
-      visibility: "cohort",
+      visibility: parsed.data.visibility,
       moderationStatus: "clean",
       createdAt: now,
       updatedAt: now,
@@ -228,6 +243,22 @@ export async function action({ request, context }: Route.ActionArgs) {
 
     if (!parsed.success) {
       return { error: parsed.error.issues[0]?.message ?? "문장을 확인해주세요." };
+    }
+
+    // Defense-in-depth: prevent saving sentences from draft records (unless user is author)
+    const targetRecord = await database
+      .select({ visibility: records.visibility, authorId: records.authorId })
+      .from(records)
+      .where(eq(records.id, parsed.data.recordId))
+      .limit(1);
+
+    if (targetRecord.length > 0) {
+      const visibility = targetRecord[0].visibility;
+      const authorId = targetRecord[0].authorId;
+      
+      if (visibility === "draft" && authorId !== auth.user.id) {
+        return { error: "이 기록에 문장을 저장할 수 없습니다." };
+      }
     }
 
     await saveSentence(context.cloudflare.env.DB, auth.user.id, parsed.data);
@@ -338,7 +369,7 @@ function isSelectionInsideElement(selection: Selection, element: HTMLElement | n
 }
 
 export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
-  const { record, author, questions: recordQuestions, responses: recordResponses, sentences: recordSentences, linkedRecords, incomingLinks, selfAnswers, tags: recordTags, currentUserId, contentHtml } = loaderData;
+  const { record, author, stage, questions: recordQuestions, responses: recordResponses, sentences: recordSentences, linkedRecords, incomingLinks, selfAnswers, tags: recordTags, currentUserId, contentHtml } = loaderData;
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const submit = useSubmit();
@@ -497,6 +528,30 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
           <p className="text-sm text-text-secondary mt-1">이 기록은 나만 볼 수 있습니다. 준비가 되면 공개 범위를 변경해보세요.</p>
         </div>
       )}
+
+      <nav aria-label="breadcrumb" className="mb-6">
+        <ol className="flex items-center gap-2 text-sm text-text-secondary">
+          <li>
+            <Link to="/logs" className="hover:text-ocean-blue transition-colors no-underline">
+              기록
+            </Link>
+          </li>
+          {stage && (
+            <>
+              <li aria-hidden="true" className="text-text-tertiary">/</li>
+              <li>
+                <Link to={`/journey/${stage.slug}`} className="hover:text-ocean-blue transition-colors no-underline">
+                  {stage.name}
+                </Link>
+              </li>
+            </>
+          )}
+          <li aria-hidden="true" className="text-text-tertiary">/</li>
+          <li className="text-text-primary truncate max-w-[200px]" aria-current="page">
+            {record.title}
+          </li>
+        </ol>
+      </nav>
 
       <header className="mb-10">
         <div className="flex gap-2 mb-4 flex-wrap">
@@ -710,6 +765,16 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div>
+                <label htmlFor="response-visibility" className="text-sm font-medium text-text-secondary mb-2 block">
+                  공개 범위
+                </label>
+                <select id="response-visibility" name="visibility" defaultValue="cohort" className="w-full rounded-lg border border-border bg-surface px-4 py-3 text-base text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2">
+                  <option value="cohort">코호트 공개</option>
+                  <option value="public">전체 공개</option>
+                </select>
               </div>
 
               {recordQuestions.length > 0 ? (

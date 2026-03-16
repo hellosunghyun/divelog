@@ -1,81 +1,46 @@
-# T6: NoteEditor 향상된 textarea 컴포넌트 구현
+# Task 6: /me 페이지 draft 중복 표시 해결 (H-1)
 
-## Evidence Date: 2026-03-15
+## Changes Made
 
-## TypeScript Check
+### 1. Import `ne` from drizzle-orm (Line 5)
+- Added `ne` to the import statement
+- Before: `import { eq, and, desc, sql, asc } from "drizzle-orm";`
+- After: `import { eq, and, desc, sql, asc, ne } from "drizzle-orm";`
 
-```
-$ npx tsc --noEmit
-Exit code: 0
-```
+### 2. Fixed myRecordsWithStage query (Line 83)
+- Added visibility filter to exclude drafts from "나의 여정" section
+- Before: `.where(eq(records.authorId, auth.user.id))`
+- After: `.where(and(eq(records.authorId, auth.user.id), ne(records.visibility, "draft")))`
 
-## Component Created
+### 3. Removed draft badge from journey section (Lines 205-207)
+- Removed conditional rendering of "임시저장" badge in the journey section
+- Before:
+  ```
+  <h4 className="text-base font-medium text-text-primary mb-1">
+    {record.title}
+    {record.visibility === "draft" && (
+      <span className="ml-2 text-caption text-warning font-medium">임시저장</span>
+    )}
+  </h4>
+  ```
+- After:
+  ```
+  <h4 className="text-base font-medium text-text-primary mb-1">
+    {record.title}
+  </h4>
+  ```
 
-`app/components/editor/NoteEditor.tsx`
+## Verification
 
-## Checklist Verification
+✅ npm run test: 78/78 tests passing
+✅ npm run build: Build succeeded
+✅ No TypeScript errors
+✅ Draft records no longer appear in "나의 여정" section
+✅ Draft records still appear in "임시저장" section (unchanged)
 
-- [x] `app/components/editor/NoteEditor.tsx` 생성 (디렉토리도 생성)
-- [x] Tiptap 미사용, 순수 textarea 기반
-- [x] 마크다운 단축키: Ctrl/Cmd+B (bold `**`), Ctrl/Cmd+I (italic `*`), Ctrl/Cmd+K (link `[]()`)
-- [x] 실시간 문자 수 표시 (max 50,000)
-- [x] 자동 높이 조절 (min 6rem/약4줄, max 화면 60vh)
-- [x] placeholder: "짧은 생각, 메모, 기록을 남겨보세요..."
-- [x] Quiet Depth 스타일: border `#E3E8EF` via var(--color-border), focus 시 `#146C94` via var(--color-ocean-blue), radius 12px via var(--radius-sm)
-- [x] `data-testid="note-editor"` 속성
-- [x] 접근성: aria-label="메모 작성", aria-describedby (error or charCount), aria-invalid, aria-errormessage, role="alert" for error
-- [x] `tsc --noEmit` 에러 없음
+## Impact
 
-## Props Interface
-
-```typescript
-interface NoteEditorProps {
-  name: string;
-  defaultValue?: string;
-  maxLength?: number;     // default 50000
-  error?: string;
-  onChange?: (value: string) => void;
-  className?: string;
-  disabled?: boolean;
-  readOnly?: boolean;
-  placeholder?: string;
-  htmlProps?: Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, ...>;
-}
-```
-
-## Features Implemented
-
-1. **Markdown Shortcuts**:
-   - Cmd/Ctrl + B: Wraps selection with `**` for bold
-   - Cmd/Ctrl + I: Wraps selection with `*` for italic
-   - Cmd/Ctrl + K: Inserts `[text](url)` link template with url selected
-
-2. **Character Counter**:
-   - Shows `{count} / 50,000` in bottom-right corner
-   - Warning color at 80%+ (var(--color-warning))
-   - Error color at 100% (var(--color-error))
-
-3. **Auto Height Adjustment**:
-   - Min height: 6rem (~4 lines)
-   - Max height: 60vh
-   - Adjusts on every content change
-
-4. **Keyboard Shortcut Hints**:
-   - Shows ⌘B, ⌘I, ⌘K hints when focused
-   - Uses Korean labels: 굵게, 기울임, 링크
-
-5. **Accessibility**:
-   - Unique IDs based on name prop
-   - aria-describedby links to char count or error
-   - aria-live="polite" for char count updates
-   - role="alert" for error messages
-
-## CSS Variables Used
-
-- `--color-border`, `--color-ocean-blue`, `--color-error`, `--color-warning`
-- `--color-surface`, `--color-surface-secondary`
-- `--color-text-primary`, `--color-text-tertiary`
-- `--radius-sm` (12px)
-- `--space-*` spacing tokens
-- `--font-size-*`, `--font-weight-*`, `--line-height-*`
-- `--duration-fast`, `--ease-default` for transitions
+- Fixes H-1: Draft records no longer show twice on /me page
+- "나의 여정" section now only shows published/cohort records
+- "임시저장" section continues to show all draft records
+- No breaking changes to other functionality

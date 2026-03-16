@@ -72,7 +72,7 @@ export default function ChallengeDetailPage({ loaderData }: Route.ComponentProps
           )}
         </section>
         
-        <section>
+        <section className="mb-12">
           <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-8">
             탐구 기록
           </h2>
@@ -83,6 +83,20 @@ export default function ChallengeDetailPage({ loaderData }: Route.ComponentProps
               {challengeRecords.map(({ record, author }) => <SceneCard key={record.id} record={record} author={author ?? undefined} />)}
             </div>
           )}
+        </section>
+
+        <section className="mb-12">
+          <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-8">
+            전환점
+          </h2>
+          <EmptyState variant="generic" message="아직 기록된 전환점이 없습니다." />
+        </section>
+
+        <section>
+          <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-8">
+            회고
+          </h2>
+          <EmptyState variant="generic" message="아직 작성된 회고가 없습니다." />
         </section>
       </div>
     </div>
