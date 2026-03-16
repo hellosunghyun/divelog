@@ -1,16 +1,20 @@
 import { eq } from "drizzle-orm";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "~/components/SmartLink";
-import { redirect, useActionData, useNavigation } from "react-router";
+import { redirect, useActionData, useLoaderData, useLocation, useNavigation } from "react-router";
 import type { Route } from "./+types/note";
 
+import { AutosaveIndicator } from "~/components/AutosaveIndicator";
 import { NoteEditor } from "~/components/editor/NoteEditor";
 import { db } from "~/db/client.server";
+import { deleteDraft, getDraftByAuthorAndFormat } from "~/db/queries/drafts.server";
 import { createQuestion } from "~/db/queries/questions.server";
 import { records, stages } from "~/db/schema.server";
+import { useAutosave } from "~/hooks/useAutosave";
 import { useUnsavedWarning } from "~/hooks/useUnsavedWarning";
 import { requireVerified } from "~/lib/auth.middleware";
 import { getPlainText } from "~/lib/content.server";
+import { clearLocalDraft, loadDraftFromLocal } from "~/lib/draft-storage";
 import { generateNoteTitle } from "~/lib/title.server";
 import { nanoid } from "~/lib/utils.server";
 import { createNoteSchema } from "~/lib/validation";
@@ -45,24 +49,52 @@ function getRandomWarmupPrompt() {
   return WARMUP_PROMPTS[Math.floor(Math.random() * WARMUP_PROMPTS.length)];
 }
 
+type NoteLoaderData = Awaited<ReturnType<typeof loader>>;
+
 export async function loader({ request, context }: Route.LoaderArgs) {
-  await requireVerified(request, context);
+  const auth = await requireVerified(request, context);
 
   const database = db(context.cloudflare.env.DB);
-  const [currentStageResult, allStages] = await database.batch([
+  const [currentStageResult, allStages, serverDraftRecord] = await Promise.all([
     database.select().from(stages).where(eq(stages.isCurrent, true)).limit(1),
     database
       .select({ id: stages.id, name: stages.name, isCurrent: stages.isCurrent })
       .from(stages)
       .orderBy(stages.order),
+    getDraftByAuthorAndFormat(context.cloudflare.env.DB, auth.user.id, "note"),
   ]);
+
+  const serverDraft =
+    serverDraftRecord && serverDraftRecord.content.trim().length > 0
+      ? {
+          content: serverDraftRecord.content,
+          stageId: serverDraftRecord.stageId,
+          rhythm: serverDraftRecord.rhythm,
+          visibility: serverDraftRecord.visibility,
+          responsePreference: serverDraftRecord.responsePreference,
+          savedAt: serverDraftRecord.updatedAt * 1000,
+        }
+      : null;
 
   return {
     currentStage: currentStageResult[0] ?? null,
     stages: allStages,
+    serverDraft,
     warmupPrompt: getRandomWarmupPrompt(),
   };
 }
+
+export async function clientLoader({ serverLoader }: Route.ClientLoaderArgs) {
+  const serverData = await serverLoader();
+  const localDraft = loadDraftFromLocal("note");
+
+  return {
+    ...serverData,
+    localDraft: localDraft && localDraft.content.length > 0 ? localDraft : null,
+  };
+}
+
+clientLoader.hydrate = true as const;
 
 export async function action({ request, context }: Route.ActionArgs) {
   const auth = await requireVerified(request, context);
@@ -73,7 +105,9 @@ export async function action({ request, context }: Route.ActionArgs) {
 
   const parsed = createNoteSchema.safeParse({
     content,
+    rhythm: formData.get("rhythm") || "free",
     visibility: formData.get("visibility") || "cohort",
+    responsePreference: formData.get("responsePreference") || "open",
     stageId: formData.get("stageId") || undefined,
     captureQuestion: formData.get("captureQuestion") || undefined,
     captureDirection: formData.get("captureDirection") || "inward",
@@ -106,9 +140,9 @@ export async function action({ request, context }: Route.ActionArgs) {
     contentText: plainText,
     format: "note",
     type: "personal",
-    rhythm: "free",
+    rhythm: parsed.data.rhythm,
     visibility: parsed.data.visibility,
-    responsePreference: "open",
+    responsePreference: parsed.data.responsePreference,
     stageId: parsed.data.stageId ?? null,
     challengeId: null,
     collaborationUnitId: null,
@@ -125,20 +159,65 @@ export async function action({ request, context }: Route.ActionArgs) {
     });
   }
 
+  await deleteDraft(context.cloudflare.env.DB, auth.user.id, "note");
+
   throw redirect(`/logs/${slug}`);
 }
 
-export default function WriteNotePage({ loaderData }: Route.ComponentProps) {
-  const { currentStage, stages: availableStages, warmupPrompt } = loaderData;
+export default function WriteNotePage() {
+  const { currentStage, stages: availableStages, warmupPrompt, serverDraft, localDraft } =
+    useLoaderData<typeof clientLoader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
+  const location = useLocation();
+  const recoveryDraft = serverDraft ?? localDraft;
   const [noteContent, setNoteContent] = useState("");
+  const [selectedVisibility, setSelectedVisibility] = useState<"draft" | "cohort" | "public">(
+    "cohort",
+  );
+  const [selectedStage, setSelectedStage] = useState(currentStage?.id ?? "");
+  const [selectedRhythm, setSelectedRhythm] = useState<(typeof RHYTHM_OPTIONS)[number]["value"]>("free");
+  const [selectedResponsePreference, setSelectedResponsePreference] = useState<
+    (typeof RESPONSE_PREFERENCE_OPTIONS)[number]["value"]
+  >("open");
   const [showSettings, setShowSettings] = useState(false);
+  const [showRecovery, setShowRecovery] = useState(Boolean(recoveryDraft));
   const [hasStartedTyping, setHasStartedTyping] = useState(false);
+  const [editorKey, setEditorKey] = useState(0);
   const isSubmitting = navigation.state === "submitting";
   const contentError = actionData?.errors?.content?.[0];
 
+  const getAutosaveFormData = useCallback(
+    () => ({
+      content: noteContent,
+      stageId: selectedStage || null,
+      rhythm: selectedRhythm,
+      visibility: selectedVisibility,
+      responsePreference: selectedResponsePreference,
+    }),
+    [noteContent, selectedResponsePreference, selectedRhythm, selectedStage, selectedVisibility],
+  );
+
+  const autosaveState = useAutosave({
+    format: "note",
+    getFormData: getAutosaveFormData,
+    enabled: true,
+    debounceMs: 3000,
+  });
+
   useUnsavedWarning(noteContent.length > 0);
+
+  useEffect(() => {
+    const isRedirectingAfterPublish =
+      navigation.state === "loading"
+      && navigation.formMethod === "post"
+      && navigation.formAction?.endsWith(location.pathname)
+      && navigation.location?.pathname !== location.pathname;
+
+    if (isRedirectingAfterPublish) {
+      clearLocalDraft("note");
+    }
+  }, [location.pathname, navigation.formAction, navigation.formMethod, navigation.location, navigation.state]);
 
   useEffect(() => {
     if (showSettings || !hasStartedTyping || noteContent.length < 20) {
@@ -157,9 +236,42 @@ export default function WriteNotePage({ loaderData }: Route.ComponentProps) {
   const handleContentChange = (value: string) => {
     setNoteContent(value);
 
+    if (showRecovery && value.length > 0) {
+      setShowRecovery(false);
+    }
+
     if (!hasStartedTyping && value.length > 0) {
       setHasStartedTyping(true);
     }
+  };
+
+  const handleRecoverDraft = () => {
+    if (!recoveryDraft) {
+      return;
+    }
+
+    setNoteContent(recoveryDraft.content);
+    setSelectedStage(recoveryDraft.stageId ?? "");
+    setSelectedRhythm(
+      (recoveryDraft.rhythm as (typeof RHYTHM_OPTIONS)[number]["value"] | undefined) ?? "free",
+    );
+    setSelectedVisibility(
+      (recoveryDraft.visibility as "draft" | "cohort" | "public" | undefined) ?? "cohort",
+    );
+    setSelectedResponsePreference(
+      (recoveryDraft.responsePreference as
+        | (typeof RESPONSE_PREFERENCE_OPTIONS)[number]["value"]
+        | undefined) ?? "open",
+    );
+    setShowRecovery(false);
+    setShowSettings(true);
+    setHasStartedTyping(true);
+    setEditorKey((currentValue: number) => currentValue + 1);
+  };
+
+  const handleDiscardDraft = () => {
+    clearLocalDraft("note");
+    setShowRecovery(false);
   };
 
   return (
@@ -178,13 +290,52 @@ export default function WriteNotePage({ loaderData }: Route.ComponentProps) {
 
       <form method="post" className="flex flex-col gap-5">
         <div>
+          {showRecovery && recoveryDraft ? (
+            <div
+              data-testid="draft-recovery-prompt"
+              className="mb-4 rounded-2xl border border-[--color-mist-blue] bg-[--color-mist-blue]/30 p-4"
+            >
+              <p className="mb-3 text-sm text-[--color-text-secondary]">
+                이전에 작성하던 메모가 있습니다.
+              </p>
+              <p className="mb-3 line-clamp-2 text-xs text-[--color-text-tertiary]">
+                {recoveryDraft.content.slice(0, 150)}
+              </p>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  data-testid="draft-recover-button"
+                  onClick={handleRecoverDraft}
+                  className="min-h-11 text-sm text-[--color-ocean-blue] hover:underline"
+                >
+                  이어서 작성하기
+                </button>
+                <button
+                  type="button"
+                  data-testid="draft-discard-button"
+                  onClick={handleDiscardDraft}
+                  className="min-h-11 text-sm text-[--color-text-tertiary] hover:underline"
+                >
+                  새로 시작
+                </button>
+              </div>
+            </div>
+          ) : null}
+
           <p
             data-testid="warm-up-prompt"
             className="mb-4 text-sm italic text-[--color-text-tertiary]"
           >
             {warmupPrompt}
           </p>
+          <div className="mb-3 flex justify-end">
+            <AutosaveIndicator
+              status={autosaveState.status}
+              lastSavedAt={autosaveState.lastSavedAt}
+            />
+          </div>
           <NoteEditor
+            key={editorKey}
             name="content"
             defaultValue={noteContent}
             onChange={handleContentChange}
@@ -227,7 +378,10 @@ export default function WriteNotePage({ loaderData }: Route.ComponentProps) {
               <select
                 id="visibility"
                 name="visibility"
-                defaultValue="cohort"
+                value={selectedVisibility}
+                onChange={(event) =>
+                  setSelectedVisibility(event.target.value as "draft" | "cohort" | "public")
+                }
                 className="w-full rounded-md border border-border bg-surface px-3 py-2 text-base focus:ring-2 focus:ring-ocean-blue focus:outline-none"
               >
                 <option value="cohort">코호트 공개</option>
@@ -246,11 +400,12 @@ export default function WriteNotePage({ loaderData }: Route.ComponentProps) {
               <select
                 id="stageId"
                 name="stageId"
-                defaultValue={currentStage?.id ?? ""}
+                value={selectedStage}
+                onChange={(event) => setSelectedStage(event.target.value)}
                 className="w-full rounded-md border border-border bg-surface px-3 py-2 text-base focus:ring-2 focus:ring-ocean-blue focus:outline-none"
               >
                 <option value="">구간 미지정</option>
-                {availableStages.map((stage) => (
+                {availableStages.map((stage: NoteLoaderData["stages"][number]) => (
                   <option key={stage.id} value={stage.id}>
                     {stage.name}
                     {stage.isCurrent ? " (현재)" : ""}
@@ -269,7 +424,10 @@ export default function WriteNotePage({ loaderData }: Route.ComponentProps) {
               <select
                 id="rhythm"
                 name="rhythm"
-                defaultValue="free"
+                value={selectedRhythm}
+                onChange={(event) =>
+                  setSelectedRhythm(event.target.value as (typeof RHYTHM_OPTIONS)[number]["value"])
+                }
                 className="w-full rounded-md border border-border bg-surface px-3 py-2 text-base focus:ring-2 focus:ring-ocean-blue focus:outline-none"
               >
                 {RHYTHM_OPTIONS.map((option) => (
@@ -290,7 +448,12 @@ export default function WriteNotePage({ loaderData }: Route.ComponentProps) {
               <select
                 id="responsePreference"
                 name="responsePreference"
-                defaultValue="open"
+                value={selectedResponsePreference}
+                onChange={(event) =>
+                  setSelectedResponsePreference(
+                    event.target.value as (typeof RESPONSE_PREFERENCE_OPTIONS)[number]["value"],
+                  )
+                }
                 className="w-full rounded-md border border-border bg-surface px-3 py-2 text-base focus:ring-2 focus:ring-ocean-blue focus:outline-none"
               >
                 {RESPONSE_PREFERENCE_OPTIONS.map((option) => (

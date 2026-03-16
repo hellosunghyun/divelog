@@ -13,6 +13,7 @@ export interface UseAutosaveOptions {
     stageId?: string | null;
     rhythm?: string;
     visibility?: string;
+    responsePreference?: string;
   };
   enabled?: boolean;
   debounceMs?: number;
@@ -31,7 +32,7 @@ export function useAutosave(options: UseAutosaveOptions): AutosaveState {
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
 
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const previousContentRef = useRef<string>("");
+  const previousSnapshotRef = useRef<string>("");
 
   // Determine status based on fetcher state
   useEffect(() => {
@@ -66,18 +67,30 @@ export function useAutosave(options: UseAutosaveOptions): AutosaveState {
     // Don't save empty content
     if (!currentContent || currentContent.trim() === "") {
       if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-        timeoutRef.current = null;
+          clearTimeout(timeoutRef.current);
+          timeoutRef.current = null;
+        }
+        previousSnapshotRef.current = "";
+        setStatus("idle");
+        return;
       }
+
+    const snapshot = JSON.stringify({
+      format,
+      title: formData.title ?? "",
+      content: currentContent,
+      contentJson: formData.contentJson ?? "",
+      stageId: formData.stageId ?? null,
+      rhythm: formData.rhythm ?? "free",
+      visibility: formData.visibility ?? "draft",
+      responsePreference: formData.responsePreference ?? "open",
+    });
+
+    if (snapshot === previousSnapshotRef.current) {
       return;
     }
 
-    // Check if content actually changed
-    if (currentContent === previousContentRef.current) {
-      return;
-    }
-
-    previousContentRef.current = currentContent;
+    previousSnapshotRef.current = snapshot;
 
     // Clear existing timeout
     if (timeoutRef.current) {
@@ -85,14 +98,15 @@ export function useAutosave(options: UseAutosaveOptions): AutosaveState {
     }
 
     // Save to local storage immediately
-      saveDraftToLocal(format, {
-        title: formData.title,
-        content: currentContent,
-        contentJson: formData.contentJson,
-        stageId: formData.stageId,
-        rhythm: formData.rhythm,
-        visibility: (formData.visibility as "draft" | "cohort" | "public") || "draft",
-      });
+    saveDraftToLocal(format, {
+      title: formData.title,
+      content: currentContent,
+      contentJson: formData.contentJson,
+      stageId: formData.stageId,
+      rhythm: formData.rhythm,
+      visibility: (formData.visibility as "draft" | "cohort" | "public") || "draft",
+      responsePreference: (formData.responsePreference as "open" | "question_only" | "closed") || "open",
+    });
 
     // Debounce server save
     timeoutRef.current = setTimeout(() => {
@@ -112,6 +126,7 @@ export function useAutosave(options: UseAutosaveOptions): AutosaveState {
           stageId: latestFormData.stageId || "",
           rhythm: latestFormData.rhythm || "",
           visibility: latestFormData.visibility || "draft",
+          responsePreference: latestFormData.responsePreference || "open",
         },
         { method: "POST", action: "/api/autosave" }
       );

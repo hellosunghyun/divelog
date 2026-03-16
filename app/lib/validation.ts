@@ -61,7 +61,9 @@ export type AutosaveDraftInput = z.infer<typeof autosaveDraftSchema>;
 
 export const createNoteSchema = z.object({
   content: z.string().min(1, "내용을 입력해주세요").max(50000),
+  rhythm: z.enum(["moment", "sprint", "weekly", "monthly", "stage", "reflection", "free"]).default("free"),
   visibility: z.enum(["draft", "cohort", "public"]).default("cohort"),
+  responsePreference: z.enum(["open", "question_only", "closed"]).default("open"),
   stageId: z.string().optional(),
   captureQuestion: z.string().optional(),
   captureDirection: z.enum(["inward", "outward", "next_stage"]).default("inward"),
