@@ -49,10 +49,9 @@ const BG_COLORS = [
   { color: "#F3F4F6", label: "회색" }, { color: "transparent", label: "없음" },
 ];
 
-function ColorPickerDropdown({ editor, type, label, title }: { editor: any; type: "text" | "bg"; label: string; title: string }) {
+function ColorPickerMenu({ editor }: { editor: any }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  const colors = type === "text" ? TEXT_COLORS : BG_COLORS;
 
   useEffect(() => {
     if (!open) return;
@@ -61,25 +60,18 @@ function ColorPickerDropdown({ editor, type, label, title }: { editor: any; type
     return () => document.removeEventListener("mousedown", handler);
   }, [open]);
 
-  const currentColor = type === "text"
-    ? (editor.getAttributes("textStyle")?.color ?? "#1D1D1F")
-    : (editor.getAttributes("highlight")?.color ?? "transparent");
+  const currentTextColor = editor.getAttributes("textStyle")?.color ?? "";
+  const currentBgColor = editor.getAttributes("highlight")?.color ?? "";
 
-  const apply = (c: string) => {
-    if (type === "text") {
-      if (c === "#1D1D1F") editor.chain().focus().unsetColor().run();
-      else editor.chain().focus().setColor(c).run();
-    } else {
-      if (c === "transparent") editor.chain().focus().unsetHighlight().run();
-      else editor.chain().focus().toggleHighlight({ color: c }).run();
-    }
+  const applyText = (c: string) => {
+    if (c === "#1D1D1F") editor.chain().focus().unsetColor().run();
+    else editor.chain().focus().setColor(c).run();
     setOpen(false);
   };
-
-  const btnStyle: CSSProperties = {
-    color: type === "text" ? currentColor : "var(--color-text-secondary)",
-    backgroundColor: type === "bg" && currentColor !== "transparent" ? currentColor : "transparent",
-    borderBottom: type === "text" ? `3px solid ${currentColor}` : "none",
+  const applyBg = (c: string) => {
+    if (c === "transparent") editor.chain().focus().unsetHighlight().run();
+    else editor.chain().focus().toggleHighlight({ color: c }).run();
+    setOpen(false);
   };
 
   return (
@@ -87,41 +79,44 @@ function ColorPickerDropdown({ editor, type, label, title }: { editor: any; type
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        aria-label={title}
-        title={title}
-        className="min-h-11 min-w-11 rounded px-2 text-sm font-bold transition-colors"
-        style={btnStyle}
+        aria-label="색상"
+        title="글씨/배경 색상"
+        className="min-h-11 rounded px-2 text-sm font-bold transition-colors"
+        style={{ color: currentTextColor || "var(--color-text-secondary)", borderBottom: `3px solid ${currentTextColor || "var(--color-text-secondary)"}` }}
       >
-        {label}
+        A
       </button>
       {open && (
         <div style={{
           position: "absolute", top: "100%", left: "50%", transform: "translateX(-50%)",
-          marginTop: 6, padding: 8, borderRadius: 12,
+          marginTop: 6, padding: 6, borderRadius: 12, width: 176,
           border: "1px solid var(--color-border)", background: "var(--color-surface)",
-          boxShadow: "0 4px 20px -2px rgba(11,36,71,0.1)", zIndex: 70, minWidth: 200,
+          boxShadow: "0 4px 20px -2px rgba(11,36,71,0.1)", zIndex: 70,
+          maxHeight: 360, overflowY: "auto",
         }}>
-          <div style={{ fontSize: 12, color: "var(--color-text-tertiary)", marginBottom: 6, paddingLeft: 4 }}>
-            {type === "text" ? "글씨 색상" : "배경 색상"}
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 4 }}>
-            {colors.map((c) => (
-              <button
-                key={c.color}
-                type="button"
-                onClick={() => apply(c.color)}
-                title={c.label}
-                style={{
-                  width: 32, height: 32, borderRadius: 6, border: currentColor === c.color ? "2px solid var(--color-ocean-blue)" : "1px solid var(--color-border)",
-                  background: type === "text" ? "var(--color-surface)" : c.color === "transparent" ? "var(--color-surface)" : c.color,
-                  cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 14, fontWeight: 700, color: type === "text" ? c.color : "var(--color-text-primary)",
-                }}
-              >
-                {type === "text" ? "A" : c.color === "transparent" ? "✕" : ""}
-              </button>
-            ))}
-          </div>
+          <div style={{ fontSize: 11, color: "var(--color-text-tertiary)", padding: "4px 8px", fontWeight: 600 }}>글씨 색상</div>
+          {TEXT_COLORS.map((c) => (
+            <button key={`t-${c.color}`} type="button"
+              className="color-row"
+              data-active={currentTextColor === c.color ? "true" : undefined}
+              onClick={() => applyText(c.color)}>
+              <span className="color-swatch" style={{ color: c.color }}>A</span>
+              <span>{c.label}</span>
+              {currentTextColor === c.color && <span style={{ marginLeft: "auto" }}>✓</span>}
+            </button>
+          ))}
+          <div style={{ height: 1, background: "var(--color-border)", margin: "4px 0" }} />
+          <div style={{ fontSize: 11, color: "var(--color-text-tertiary)", padding: "4px 8px", fontWeight: 600 }}>배경 색상</div>
+          {BG_COLORS.map((c) => (
+            <button key={`b-${c.color}`} type="button"
+              className="color-row"
+              data-active={currentBgColor === c.color ? "true" : undefined}
+              onClick={() => applyBg(c.color)}>
+              <span className="color-bg-swatch" style={{ background: c.color === "transparent" ? "var(--color-surface)" : c.color, border: c.color === "transparent" ? "1px dashed var(--color-border)" : "1px solid var(--color-border)" }} />
+              <span>{c.label}</span>
+              {currentBgColor === c.color && <span style={{ marginLeft: "auto" }}>✓</span>}
+            </button>
+          ))}
         </div>
       )}
     </div>
@@ -505,18 +500,7 @@ export function ArticleEditor({
               ```
             </button>
 
-            <ColorPickerDropdown
-              editor={editor}
-              type="text"
-              label="A"
-              title="글씨 색상"
-            />
-            <ColorPickerDropdown
-              editor={editor}
-              type="bg"
-              label="A̲"
-              title="배경 색상"
-            />
+            <ColorPickerMenu editor={editor} />
           </div>
         </BubbleMenu>
       ) : null}
