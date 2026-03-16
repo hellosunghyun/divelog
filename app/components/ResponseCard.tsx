@@ -21,7 +21,7 @@ const TYPE_LABELS: Record<ResponseType, { label: string; color: string; bgClass:
   question: { label: "질문", color: "text-ocean-blue", bgClass: "bg-mist-blue" },
   connection: { label: "연결", color: "text-bridge", bgClass: "bg-bridge-bg" },
   suggestion: { label: "제안", color: "text-challenge", bgClass: "bg-challenge-bg" },
-  self_answer: { label: "자기답변", color: "text-epilogue", bgClass: "bg-epilogue-bg" },
+  self_answer: { label: "자기답변", color: "text-ocean-blue", bgClass: "bg-mist-blue" },
 };
 
 function isResponseType(type: string): type is ResponseType {
@@ -29,6 +29,8 @@ function isResponseType(type: string): type is ResponseType {
 }
 
 export default function ResponseCard({ response, author, isSelfAnswer }: ResponseCardProps) {
+  const isSelfAnswerResponse = isSelfAnswer ?? response.type === "self_answer";
+
   const typeInfo = isResponseType(response.type)
     ? TYPE_LABELS[response.type]
     : {
@@ -40,10 +42,21 @@ export default function ResponseCard({ response, author, isSelfAnswer }: Respons
   return (
     <article
       data-testid="response-card"
-      className={`rounded-2xl border p-5 flex flex-col gap-3 shadow-card transition-all duration-normal hover:shadow-card-hover hover:-translate-y-0.5 ${
-        isSelfAnswer ? "bg-mist-blue border-reef-cyan" : "bg-surface border-border"
+      className={`rounded-2xl border p-5 flex flex-col gap-3 transition-all duration-normal ${
+        isSelfAnswerResponse
+          ? "bg-mist-blue/40 border-border border-l-4 border-l-reef-cyan"
+          : "bg-surface border-border shadow-card hover:shadow-card-hover hover:-translate-y-0.5"
       }`}
     >
+      {isSelfAnswerResponse && (
+        <div className="flex items-center gap-1.5 -mt-1 mb-1">
+          <span className="text-caption font-medium text-ocean-blue">↺ 자기답변</span>
+          <span className="text-caption text-text-tertiary">
+            시간이 지나 다시 돌아와 쓴 답변
+          </span>
+        </div>
+      )}
+
       <div className="flex items-center gap-2">
         <span
           className={`text-caption px-2 py-0.5 rounded-full font-medium ${typeInfo.bgClass} ${typeInfo.color}`}
