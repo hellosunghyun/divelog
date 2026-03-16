@@ -1,290 +1,238 @@
-import { and, count, desc, eq, gt, lte, sql } from "drizzle-orm";
+import { and, desc, eq, gte, sql } from "drizzle-orm";
+
 import { db } from "../client.server";
-import { collaborationUnits, questions, records, responses } from "../schema.server";
+import {
+  learnerProfiles,
+  questions,
+  records,
+  responses,
+  selfAnswers,
+  sentences,
+  stages,
+} from "../schema.server";
 
-export interface ActivityItem {
-  type: "record" | "question" | "response" | "collaboration";
-  summary: string;
-  count: number;
-  timestamp: number;
-  period: "today" | "this_week" | "last_week";
+export interface DigestItem {
+  type: "new_record" | "new_question" | "new_response" | "new_self_answer" | "new_sentence";
+  text: string;
+  linkTo: string;
+  authorName: string;
+  createdAt: number;
 }
 
-export interface ActivitySummary {
-  records: number;
-  questions: number;
-  responses: number;
-  collaborations: number;
-  latestTimestamp: number;
+interface DigestQueryOptions {
+  limit?: number;
+  stageId?: string;
 }
 
-function getTimeBoundaries(): {
-  now: number;
-  todayStart: number;
-  weekStart: number;
-  prevWeekStart: number;
-} {
-  const now = Math.floor(Date.now() / 1000);
-  const todayStart = now - 86400;
-  const weekStart = now - 7 * 86400;
-  const prevWeekStart = now - 14 * 86400;
-
-  return { now, todayStart, weekStart, prevWeekStart };
+interface RecordDigestRow {
+  slug: string;
+  title: string;
+  createdAt: number;
+  authorDisplayName: string | null;
 }
 
-async function getActivityForPeriod(
+interface QuestionDigestRow {
+  recordSlug: string;
+  questionContent: string;
+  createdAt: number;
+  authorDisplayName: string | null;
+}
+
+interface ResponseDigestRow {
+  recordSlug: string;
+  recordTitle: string;
+  createdAt: number;
+  authorDisplayName: string | null;
+}
+
+interface SelfAnswerDigestRow {
+  recordSlug: string;
+  createdAt: number;
+  authorDisplayName: string | null;
+}
+
+interface SentenceDigestRow {
+  recordSlug: string;
+  recordTitle: string;
+  createdAt: number;
+  authorDisplayName: string | null;
+}
+
+function getQuestionPreview(content: string): string {
+  const trimmed = content.trim();
+  if (trimmed.length <= 44) {
+    return trimmed;
+  }
+  return `${trimmed.slice(0, 44).trimEnd()}...`;
+}
+
+async function resolveStageCohort(
   database: ReturnType<typeof db>,
-  startTime: number,
-  endTime: number,
-): Promise<ActivitySummary> {
-  const [recordResult] = await database
-    .select({ count: count() })
-    .from(records)
-    .where(
-      and(
-        gt(records.createdAt, startTime),
-        lte(records.createdAt, endTime),
-        sql`${records.visibility} != 'draft'`,
-      ),
-    );
-
-  const [questionResult] = await database
-    .select({ count: count() })
-    .from(questions)
-    .innerJoin(records, eq(questions.recordId, records.id))
-    .where(
-      and(
-        gt(questions.createdAt, startTime),
-        lte(questions.createdAt, endTime),
-        sql`${records.visibility} != 'draft'`,
-      ),
-    );
-
-  const [responseResult] = await database
-    .select({ count: count() })
-    .from(responses)
-    .innerJoin(records, eq(responses.recordId, records.id))
-    .where(
-      and(
-        gt(responses.createdAt, startTime),
-        lte(responses.createdAt, endTime),
-        sql`${records.visibility} != 'draft'`,
-        eq(responses.moderationStatus, "clean"),
-      ),
-    );
-
-  const [collabResult] = await database
-    .select({ count: count() })
-    .from(collaborationUnits)
-    .where(
-      and(
-        gt(collaborationUnits.createdAt, startTime),
-        lte(collaborationUnits.createdAt, endTime),
-      ),
-    );
-
-  const [latestRecord] = await database
-    .select({ createdAt: records.createdAt })
-    .from(records)
-    .where(
-      and(
-        gt(records.createdAt, startTime),
-        lte(records.createdAt, endTime),
-        sql`${records.visibility} != 'draft'`,
-      ),
-    )
-    .orderBy(desc(records.createdAt))
-    .limit(1);
-
-  const [latestQuestion] = await database
-    .select({ createdAt: questions.createdAt })
-    .from(questions)
-    .innerJoin(records, eq(questions.recordId, records.id))
-    .where(
-      and(
-        gt(questions.createdAt, startTime),
-        lte(questions.createdAt, endTime),
-        sql`${records.visibility} != 'draft'`,
-      ),
-    )
-    .orderBy(desc(questions.createdAt))
-    .limit(1);
-
-  const [latestResponse] = await database
-    .select({ createdAt: responses.createdAt })
-    .from(responses)
-    .innerJoin(records, eq(responses.recordId, records.id))
-    .where(
-      and(
-        gt(responses.createdAt, startTime),
-        lte(responses.createdAt, endTime),
-        sql`${records.visibility} != 'draft'`,
-        eq(responses.moderationStatus, "clean"),
-      ),
-    )
-    .orderBy(desc(responses.createdAt))
-    .limit(1);
-
-  const timestamps = [
-    latestRecord?.createdAt ?? 0,
-    latestQuestion?.createdAt ?? 0,
-    latestResponse?.createdAt ?? 0,
-  ].filter((t) => t > 0);
-
-  const latestTimestamp = timestamps.length > 0 ? Math.max(...timestamps) : startTime;
-
-  return {
-    records: recordResult?.count ?? 0,
-    questions: questionResult?.count ?? 0,
-    responses: responseResult?.count ?? 0,
-    collaborations: collabResult?.count ?? 0,
-    latestTimestamp,
-  };
-}
-
-function generateSummary(type: ActivityItem["type"], count: number): string {
-  if (count === 0) return "";
-
-  switch (type) {
-    case "record":
-      return count === 1
-        ? "1개의 새 기록이 남겨졌습니다"
-        : `${count}개의 새 기록이 남겨졌습니다`;
-    case "question":
-      return count === 1
-        ? "1개의 새 질문이 올라왔습니다"
-        : `${count}개의 새 질문이 올라왔습니다`;
-    case "response":
-      return count === 1
-        ? "1개의 새 응답이 달렸습니다"
-        : `${count}개의 새 응답이 달렸습니다`;
-    case "collaboration":
-      return count === 1
-        ? "1개의 새 협업이 시작되었습니다"
-        : `${count}개의 새 협업이 시작되었습니다`;
-    default:
-      return "";
+  stageId?: string,
+): Promise<string | null> {
+  if (stageId) {
+    const [stage] = await database
+      .select({ cohort: stages.cohort })
+      .from(stages)
+      .where(eq(stages.id, stageId))
+      .limit(1);
+    return stage?.cohort ?? null;
   }
+
+  const [currentStage] = await database
+    .select({ cohort: stages.cohort })
+    .from(stages)
+    .where(eq(stages.isCurrent, true))
+    .limit(1);
+
+  return currentStage?.cohort ?? null;
 }
 
-export async function getRecentActivity(
+export async function getNarrativeDigest(
   d1: D1Database,
-  options?: { limit?: number },
-): Promise<ActivityItem[]> {
+  options: DigestQueryOptions = {},
+): Promise<DigestItem[]> {
   const database = db(d1);
-  const { now, todayStart, weekStart, prevWeekStart } = getTimeBoundaries();
-  const activities: ActivityItem[] = [];
+  const limit = options.limit ?? 8;
+  const twoWeeksAgo = Math.floor(Date.now() / 1000) - 14 * 24 * 60 * 60;
+  const stageCohort = await resolveStageCohort(database, options.stageId);
 
-  const todayActivity = await getActivityForPeriod(database, todayStart, now);
-  const todayItems = [
-    {
-      type: "record" as const,
-      count: todayActivity.records,
-      timestamp: todayActivity.latestTimestamp,
-    },
-    {
-      type: "question" as const,
-      count: todayActivity.questions,
-      timestamp: todayActivity.latestTimestamp,
-    },
-    {
-      type: "response" as const,
-      count: todayActivity.responses,
-      timestamp: todayActivity.latestTimestamp,
-    },
-    {
-      type: "collaboration" as const,
-      count: todayActivity.collaborations,
-      timestamp: todayActivity.latestTimestamp,
-    },
+  const recordWhere = stageCohort
+    ? and(
+        gte(records.createdAt, twoWeeksAgo),
+        sql`${records.visibility} != 'draft'`,
+        eq(records.cohort, stageCohort),
+      )
+    : and(gte(records.createdAt, twoWeeksAgo), sql`${records.visibility} != 'draft'`);
+
+  const [recordRows, questionRows, responseRows, selfAnswerRows, sentenceRows] = await Promise.all([
+    database
+      .select({
+        slug: records.slug,
+        title: records.title,
+        createdAt: records.createdAt,
+        authorDisplayName: learnerProfiles.displayName,
+      })
+      .from(records)
+      .leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
+      .where(recordWhere)
+      .orderBy(desc(records.createdAt))
+      .limit(limit) as Promise<RecordDigestRow[]>,
+    database
+      .select({
+        recordSlug: records.slug,
+        questionContent: questions.content,
+        createdAt: questions.createdAt,
+        authorDisplayName: learnerProfiles.displayName,
+      })
+      .from(questions)
+      .innerJoin(records, eq(questions.recordId, records.id))
+      .leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
+      .where(and(recordWhere, gte(questions.createdAt, twoWeeksAgo)))
+      .orderBy(desc(questions.createdAt))
+      .limit(limit) as Promise<QuestionDigestRow[]>,
+    database
+      .select({
+        recordSlug: records.slug,
+        recordTitle: records.title,
+        createdAt: responses.createdAt,
+        authorDisplayName: learnerProfiles.displayName,
+      })
+      .from(responses)
+      .innerJoin(records, eq(responses.recordId, records.id))
+      .leftJoin(learnerProfiles, eq(responses.authorId, learnerProfiles.userId))
+      .where(
+        and(
+          recordWhere,
+          gte(responses.createdAt, twoWeeksAgo),
+          eq(responses.moderationStatus, "clean"),
+          sql`${responses.type} != 'self_answer'`,
+        ),
+      )
+      .orderBy(desc(responses.createdAt))
+      .limit(limit) as Promise<ResponseDigestRow[]>,
+    database
+      .select({
+        recordSlug: records.slug,
+        createdAt: selfAnswers.createdAt,
+        authorDisplayName: learnerProfiles.displayName,
+      })
+      .from(selfAnswers)
+      .innerJoin(questions, eq(selfAnswers.questionId, questions.id))
+      .innerJoin(records, eq(questions.recordId, records.id))
+      .leftJoin(learnerProfiles, eq(selfAnswers.authorId, learnerProfiles.userId))
+      .where(and(recordWhere, gte(selfAnswers.createdAt, twoWeeksAgo)))
+      .orderBy(desc(selfAnswers.createdAt))
+      .limit(limit) as Promise<SelfAnswerDigestRow[]>,
+    database
+      .select({
+        recordSlug: records.slug,
+        recordTitle: records.title,
+        createdAt: sentences.createdAt,
+        authorDisplayName: learnerProfiles.displayName,
+      })
+      .from(sentences)
+      .innerJoin(records, eq(sentences.recordId, records.id))
+      .leftJoin(learnerProfiles, eq(sentences.savedById, learnerProfiles.userId))
+      .where(and(recordWhere, gte(sentences.createdAt, twoWeeksAgo)))
+      .orderBy(desc(sentences.createdAt))
+      .limit(limit) as Promise<SentenceDigestRow[]>,
+  ]);
+
+  const digestItems: DigestItem[] = [
+    ...recordRows.map((row) => {
+      const authorName = row.authorDisplayName?.trim() || "익명";
+      return {
+        type: "new_record" as const,
+        text: `${authorName}님이 새 기록을 남겼습니다: ${row.title}`,
+        linkTo: `/logs/${row.slug}`,
+        authorName,
+        createdAt: row.createdAt,
+      };
+    }),
+    ...questionRows.map((row) => {
+      const authorName = row.authorDisplayName?.trim() || "익명";
+      return {
+        type: "new_question" as const,
+        text: `${authorName}님이 질문을 남겼습니다: ${getQuestionPreview(row.questionContent)}`,
+        linkTo: `/logs/${row.recordSlug}#question`,
+        authorName,
+        createdAt: row.createdAt,
+      };
+    }),
+    ...responseRows.map((row) => {
+      const authorName = row.authorDisplayName?.trim() || "익명";
+      return {
+        type: "new_response" as const,
+        text: `${authorName}님이 ${row.recordTitle}에 응답을 남겼습니다`,
+        linkTo: `/logs/${row.recordSlug}`,
+        authorName,
+        createdAt: row.createdAt,
+      };
+    }),
+    ...selfAnswerRows.map((row) => {
+      const authorName = row.authorDisplayName?.trim() || "익명";
+      return {
+        type: "new_self_answer" as const,
+        text: `${authorName}님이 자신의 질문에 답했습니다`,
+        linkTo: `/logs/${row.recordSlug}#question`,
+        authorName,
+        createdAt: row.createdAt,
+      };
+    }),
+    ...sentenceRows.map((row) => {
+      const authorName = row.authorDisplayName?.trim() || "익명";
+      return {
+        type: "new_sentence" as const,
+        text: `${authorName}님이 ${row.recordTitle}에서 문장을 남겼습니다`,
+        linkTo: `/logs/${row.recordSlug}`,
+        authorName,
+        createdAt: row.createdAt,
+      };
+    }),
   ];
 
-  for (const item of todayItems) {
-    if (item.count > 0) {
-      activities.push({
-        type: item.type,
-        summary: generateSummary(item.type, item.count),
-        count: item.count,
-        timestamp: item.timestamp,
-        period: "today",
-      });
-    }
-  }
-
-  const weekActivity = await getActivityForPeriod(database, weekStart, todayStart);
-  const weekItems = [
-    {
-      type: "record" as const,
-      count: weekActivity.records,
-      timestamp: weekActivity.latestTimestamp,
-    },
-    {
-      type: "question" as const,
-      count: weekActivity.questions,
-      timestamp: weekActivity.latestTimestamp,
-    },
-    {
-      type: "response" as const,
-      count: weekActivity.responses,
-      timestamp: weekActivity.latestTimestamp,
-    },
-    {
-      type: "collaboration" as const,
-      count: weekActivity.collaborations,
-      timestamp: weekActivity.latestTimestamp,
-    },
-  ];
-
-  for (const item of weekItems) {
-    if (item.count > 0) {
-      activities.push({
-        type: item.type,
-        summary: generateSummary(item.type, item.count),
-        count: item.count,
-        timestamp: item.timestamp,
-        period: "this_week",
-      });
-    }
-  }
-
-  const lastWeekActivity = await getActivityForPeriod(database, prevWeekStart, weekStart);
-  const lastWeekItems = [
-    {
-      type: "record" as const,
-      count: lastWeekActivity.records,
-      timestamp: lastWeekActivity.latestTimestamp,
-    },
-    {
-      type: "question" as const,
-      count: lastWeekActivity.questions,
-      timestamp: lastWeekActivity.latestTimestamp,
-    },
-    {
-      type: "response" as const,
-      count: lastWeekActivity.responses,
-      timestamp: lastWeekActivity.latestTimestamp,
-    },
-    {
-      type: "collaboration" as const,
-      count: lastWeekActivity.collaborations,
-      timestamp: lastWeekActivity.latestTimestamp,
-    },
-  ];
-
-  for (const item of lastWeekItems) {
-    if (item.count > 0) {
-      activities.push({
-        type: item.type,
-        summary: generateSummary(item.type, item.count),
-        count: item.count,
-        timestamp: item.timestamp,
-        period: "last_week",
-      });
-    }
-  }
-
-  activities.sort((a, b) => b.timestamp - a.timestamp);
-
-  const limit = options?.limit ?? 10;
-  return activities.slice(0, limit);
+  return digestItems
+    .sort((a, b) => b.createdAt - a.createdAt)
+    .slice(0, Math.min(Math.max(limit, 5), 8));
 }

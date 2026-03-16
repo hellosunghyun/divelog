@@ -4,8 +4,8 @@ import { db } from "~/db/client.server";
 import { stages, records, questions, sentences, learnerProfiles } from "~/db/schema.server";
 import { eq, desc, and, sql, count } from "drizzle-orm";
 import HeroSection from "~/components/HeroSection";
-import ActivityFeed from "~/components/ActivityFeed";
-import { getRecentActivity } from "~/db/queries/activity.server";
+import { NarrativeDigest } from "~/components/NarrativeDigest";
+import { getNarrativeDigest } from "~/db/queries/activity.server";
 import { createLogger } from "~/lib/logger.server";
 
 export function meta(_args: Route.MetaArgs) {
@@ -84,7 +84,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const currentStage = currentStageResult[0] ?? null;
   const learnerCount = learnerCountResult[0]?.total ?? 0;
 
-  const recentActivity = await getRecentActivity(context.cloudflare.env.DB, { limit: 8 });
+  const digestItems = await getNarrativeDigest(context.cloudflare.env.DB, { limit: 8 });
 
   // Pre-compute plain text snippets on server to avoid client importing server-only modules
   const { getPlainText } = await import("~/lib/content.server");
@@ -94,7 +94,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   }));
 
   logger.info("loader_end");
-  return { allStages, currentStage, recentRecords: recentRecordsWithSnippets, openQuestions, recentSentences, spotlightLearners, learnerCount, recentActivity };
+  return { allStages, currentStage, recentRecords: recentRecordsWithSnippets, openQuestions, recentSentences, spotlightLearners, learnerCount, digestItems };
 }
 
 function formatRelativeTime(timestamp: number | null): string {
@@ -125,7 +125,7 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 export default function HomePage({ loaderData }: Route.ComponentProps) {
-  const { allStages, currentStage, recentRecords, openQuestions, recentSentences, spotlightLearners, learnerCount, recentActivity } = loaderData;
+  const { allStages, currentStage, recentRecords, openQuestions, recentSentences, spotlightLearners, learnerCount, digestItems } = loaderData;
 
   return (
     <div>
@@ -219,11 +219,11 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
           <div>
             <span className="text-xs font-bold tracking-[0.3em] text-ocean-blue/50 mb-2 block uppercase">여정 활동</span>
             <h2 className="text-3xl font-bold text-deep-ocean">여정에서 일어나는 일</h2>
-            <p className="text-text-secondary mt-2 text-md font-light">지난 2주간의 활동 요약</p>
-          </div>
-        </div>
-        <ActivityFeed activities={recentActivity} />
-      </section>
+             <p className="text-text-secondary mt-2 text-md font-light">최근 여정의 흐름을 문장으로 전합니다</p>
+           </div>
+         </div>
+         <NarrativeDigest items={digestItems} />
+       </section>
 
       {currentStage && (
         <section className="max-w-canvas mx-auto px-6 py-16" data-testid="questions-section">
