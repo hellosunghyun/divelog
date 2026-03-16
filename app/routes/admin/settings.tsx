@@ -1,9 +1,14 @@
 import { redirect } from "react-router";
 import type { Route } from "./+types/settings";
+import { Button } from "~/components/ui/button";
+import { Checkbox } from "~/components/ui/checkbox";
+import { Label } from "~/components/ui/label";
 import { db } from "~/db/client.server";
 import { createLogger } from "~/lib/logger.server";
 import { settings } from "~/db/schema.server";
 import { eq } from "drizzle-orm";
+
+type SettingRow = typeof settings.$inferSelect;
 
 export function meta(_: Route.MetaArgs) { return [{ title: "시스템 설정" }]; }
 export async function loader({ request, context }: Route.LoaderArgs) {
@@ -29,12 +34,12 @@ export async function action({ request, context }: Route.ActionArgs) {
 }
 export default function AdminSettingsPage({ loaderData }: Route.ComponentProps) {
   const { settings: allSettings } = loaderData;
-  const getVal = (key: string) => allSettings.find((s) => s.key === key)?.value === "true";
+  const getVal = (key: string) => allSettings.find((s: SettingRow) => s.key === key)?.value === "true";
   const BOOL_SETTINGS = [
     { key: "home_show_scenes", label: "홈 — 최근 기록 표시" },
     { key: "home_show_questions", label: "홈 — 열린 질문 표시" },
     { key: "home_show_sentences", label: "홈 — 문장 표시" },
-     { key: "home_show_learners", label: "홈 — 러너 스포트라이트" },
+    { key: "home_show_learners", label: "홈 — 러너 스포트라이트" },
     { key: "search_enabled", label: "검색 활성화" },
   ];
   return (
@@ -43,14 +48,14 @@ export default function AdminSettingsPage({ loaderData }: Route.ComponentProps) 
       <form method="post" className="max-w-[500px] bg-admin-surface rounded-md p-6 border border-admin-border flex flex-col gap-4">
         {BOOL_SETTINGS.map((s) => (
           <div key={s.key}>
-            <label className="flex items-center gap-3 cursor-pointer text-sm text-admin-text">
-              <input type="checkbox" name={s.key} defaultChecked={getVal(s.key)} className="w-4 h-4 rounded border-admin-border text-admin-accent focus:ring-admin-accent" />
-              {s.label}
-            </label>
+            <div className="flex items-center gap-3">
+              <Checkbox id={s.key} name={s.key} defaultChecked={getVal(s.key)} className="border-admin-border data-[state=checked]:border-admin-accent data-[state=checked]:bg-admin-accent" />
+              <Label htmlFor={s.key} className="cursor-pointer text-sm font-normal text-admin-text">{s.label}</Label>
+            </div>
           </div>
         ))}
         <div className="pt-2 border-t border-admin-border">
-          <button type="submit" className="px-5 py-2 rounded-md bg-admin-accent text-white text-sm font-medium hover:opacity-90 transition-opacity focus-visible:ring-2 focus-visible:ring-admin-accent focus-visible:ring-offset-2">저장</button>
+          <Button type="submit" className="rounded-md bg-admin-accent px-5 py-2 text-sm font-medium text-white hover:opacity-90">저장</Button>
         </div>
       </form>
     </div>

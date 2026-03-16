@@ -1,6 +1,10 @@
 import { data, redirect } from "react-router";
 import type { Route } from "./+types/$recordId";
 import { Link } from "~/components/SmartLink";
+import { Button } from "~/components/ui/button";
+import { Label } from "~/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
+import { Textarea } from "~/components/ui/textarea";
 import { db } from "~/db/client.server";
 import { createLogger } from "~/lib/logger.server";
 import { records } from "~/db/schema.server";
@@ -41,15 +45,29 @@ export default function AdminRecordDetailPage({ loaderData }: Route.ComponentPro
           <p className="text-[13px] text-admin-text-secondary whitespace-pre-wrap leading-relaxed">{plainTextPreview.substring(0, 500)}{plainTextPreview.length > 500 ? "..." : ""}</p>
         </div>
         <form method="post" className="bg-admin-surface rounded-md p-4 border border-admin-border flex flex-col gap-2 h-fit">
-          <label htmlFor="moderation-status" className="text-xs text-admin-text-secondary">Moderation</label>
-          <select id="moderation-status" name="moderationStatus" defaultValue={record.moderationStatus ?? "clean"} className="px-2.5 py-1.5 rounded-sm border border-admin-border text-[13px] outline-none">
-            <option value="clean">Clean</option>
-            <option value="flagged">Flagged</option>
-            <option value="hidden">Hidden</option>
-          </select>
-          <label htmlFor="moderation-note" className="text-xs text-admin-text-secondary">메모</label>
-          <textarea id="moderation-note" name="note" placeholder="메모 (선택)" rows={2} defaultValue={record.moderationNote ?? ""} className="px-2.5 py-1.5 rounded-sm border border-admin-border text-[13px] resize-y outline-none" />
-          <button type="submit" className="px-3 py-1.5 rounded-sm bg-admin-accent text-white border-none cursor-pointer text-[13px] hover:opacity-90">저장</button>
+          <Label htmlFor="moderation-status" className="text-xs text-admin-text-secondary">Moderation</Label>
+          <Select name="moderationStatus" defaultValue={record.moderationStatus ?? "clean"}>
+            <SelectTrigger id="moderation-status" className="h-9 rounded-sm border-admin-border px-2.5 py-1.5 text-[13px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="clean">Clean</SelectItem>
+              <SelectItem value="flagged">Flagged</SelectItem>
+              <SelectItem value="hidden">Hidden</SelectItem>
+            </SelectContent>
+          </Select>
+          <Label htmlFor="moderation-note" className="text-xs text-admin-text-secondary">메모</Label>
+          <Textarea
+            id="moderation-note"
+            name="note"
+            placeholder="메모 (선택)"
+            rows={2}
+            defaultValue={record.moderationNote ?? ""}
+            className="min-h-0 rounded-sm border-admin-border px-2.5 py-1.5 text-[13px]"
+          />
+          <Button type="submit" className="h-9 rounded-sm bg-admin-accent px-3 py-1.5 text-[13px] text-white hover:opacity-90">
+            저장
+          </Button>
         </form>
       </div>
     </div>

@@ -1,6 +1,10 @@
 import { data, redirect } from "react-router";
 import type { Route } from "./+types/$groupId";
 import { Link } from "~/components/SmartLink";
+import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
 import { db } from "~/db/client.server";
 import { createLogger } from "~/lib/logger.server";
 import { collaborationUnits } from "~/db/schema.server";
@@ -32,20 +36,32 @@ export default function AdminCollaborationDetailPage({ loaderData }: Route.Compo
       </div>
       <form method="post" className="flex flex-col gap-5 max-w-md bg-admin-surface rounded-lg p-6 border border-admin-border">
         <div>
-          <label htmlFor="status" className="block text-caption font-medium text-admin-text-secondary mb-2">상태</label>
-          <select id="status" name="status" defaultValue={unit.status} className="w-full px-3 py-2.5 rounded-md border border-admin-border bg-admin-surface text-sm text-admin-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-admin-accent focus-visible:ring-offset-2">
-            <option value="forming">구성 중</option>
-            <option value="active">탐구 중</option>
-            <option value="restructured">재편성됨</option>
-            <option value="archived">아카이브</option>
-          </select>
+          <Label htmlFor="status" className="mb-2 block text-caption text-admin-text-secondary">상태</Label>
+          <Select name="status" defaultValue={unit.status}>
+            <SelectTrigger id="status" className="h-10 rounded-md border-admin-border bg-admin-surface px-3 py-2.5 text-sm text-admin-text">
+              <SelectValue placeholder="상태 선택" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="forming">구성 중</SelectItem>
+              <SelectItem value="active">탐구 중</SelectItem>
+              <SelectItem value="restructured">재편성됨</SelectItem>
+              <SelectItem value="archived">아카이브</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         <div>
-          <label htmlFor="currentQuestion" className="block text-caption font-medium text-admin-text-secondary mb-2">현재 질문</label>
-          <input id="currentQuestion" name="currentQuestion" defaultValue={unit.currentQuestion ?? ""} className="w-full px-3 py-2.5 rounded-md border border-admin-border bg-admin-surface text-sm text-admin-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-admin-accent focus-visible:ring-offset-2" />
+          <Label htmlFor="currentQuestion" className="mb-2 block text-caption text-admin-text-secondary">현재 질문</Label>
+          <Input
+            id="currentQuestion"
+            name="currentQuestion"
+            defaultValue={unit.currentQuestion ?? ""}
+            className="h-10 rounded-md border-admin-border bg-admin-surface px-3 py-2.5 text-sm text-admin-text"
+          />
         </div>
         <div className="flex gap-3">
-          <button type="submit" className="px-5 py-2.5 rounded-lg bg-admin-accent text-white text-sm font-medium hover:opacity-90 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-admin-accent focus-visible:ring-offset-2">저장</button>
+          <Button type="submit" className="rounded-lg bg-admin-accent px-5 py-2.5 text-sm font-medium text-white hover:opacity-90">
+            저장
+          </Button>
           <Link to="/admin/collaboration" className="px-5 py-2.5 rounded-lg border border-admin-border text-admin-text-secondary text-sm font-medium hover:bg-admin-bg transition-colors no-underline">취소</Link>
         </div>
       </form>

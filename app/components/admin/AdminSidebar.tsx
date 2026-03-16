@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "~/components/SmartLink";
+import { Button } from "~/components/ui/button";
 import { useLocation } from "react-router";
 
 interface NavItem {
@@ -96,9 +97,10 @@ export default function AdminSidebar() {
 
           return (
             <div key={category.label}>
-              <button
+              <Button
                 type="button"
                 onClick={() => toggleCategory(category.label)}
+                variant="ghost"
                 className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-xs font-semibold uppercase tracking-wider transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-admin-accent focus-visible:ring-offset-2 focus-visible:ring-offset-admin-sidebar ${
                   hasActive
                     ? "text-admin-sidebar-text"
@@ -117,7 +119,7 @@ export default function AdminSidebar() {
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                 </svg>
-              </button>
+              </Button>
 
               {isOpen && (
                 <div className="mt-0.5 ml-2 space-y-0.5">

@@ -3,6 +3,17 @@ import { db } from "~/db/client.server";
 import { createLogger } from "~/lib/logger.server";
 import { auditLogs } from "~/db/schema.server";
 import { eq, desc } from "drizzle-orm";
+import { Badge } from "~/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "~/components/ui/table";
+
+type AuditLog = typeof auditLogs.$inferSelect;
 
 export function meta(_: Route.MetaArgs) { return [{ title: "감사 로그" }]; }
 export async function loader({ request, context }: Route.LoaderArgs) {
@@ -29,28 +40,43 @@ export default function AdminAuditPage({ loaderData }: Route.ComponentProps) {
           ))}
         </div>
       </div>
-      <div className="bg-admin-surface rounded-lg border border-admin-border overflow-hidden">
-        <table className="w-full border-collapse">
-          <thead>
-            <tr className="bg-admin-bg">
-              {["행위자", "대상 유형", "대상 ID", "액션", "시각"].map((h) => (
-                <th key={h} className="text-left px-4 py-3 text-caption font-semibold text-admin-text-secondary uppercase tracking-wide">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {logs.map((log) => (
-              <tr key={log.id} className="border-t border-admin-border hover:bg-admin-bg/50 transition-colors">
-                <td className="px-4 py-3 text-caption text-admin-text-secondary font-mono">{log.actorId.substring(0, 12)}</td>
-                <td className="px-4 py-3 text-meta text-admin-text">{log.targetType}</td>
-                <td className="px-4 py-3 text-caption text-admin-text-secondary font-mono">{log.targetId.substring(0, 12)}</td>
-                <td className="px-4 py-3 text-meta text-admin-text">{log.action}</td>
-                <td className="px-4 py-3 text-caption text-admin-text-secondary">{new Date((log.createdAt ?? 0) * 1000).toLocaleString("ko-KR")}</td>
-              </tr>
+      <Table>
+        <TableHeader className="bg-admin-bg">
+          <TableRow className="border-admin-border hover:bg-admin-bg">
+            {["행위자", "대상 유형", "대상 ID", "액션", "시각"].map((header) => (
+              <TableHead
+                key={header}
+                className="h-auto px-4 py-3 text-caption font-semibold text-admin-text-secondary uppercase tracking-wide"
+              >
+                {header}
+              </TableHead>
             ))}
-          </tbody>
-        </table>
-      </div>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {logs.map((log: AuditLog) => (
+            <TableRow key={log.id} className="border-admin-border hover:bg-admin-bg/50">
+              <TableCell className="px-4 py-3 font-mono text-caption text-admin-text-secondary">
+                {log.actorId.substring(0, 12)}
+              </TableCell>
+              <TableCell className="px-4 py-3 text-meta text-admin-text">
+                <Badge variant="outline" className="text-admin-text">
+                  {log.targetType}
+                </Badge>
+              </TableCell>
+              <TableCell className="px-4 py-3 font-mono text-caption text-admin-text-secondary">
+                {log.targetId.substring(0, 12)}
+              </TableCell>
+              <TableCell className="px-4 py-3 text-meta text-admin-text">
+                <Badge variant="secondary">{log.action}</Badge>
+              </TableCell>
+              <TableCell className="px-4 py-3 text-caption text-admin-text-secondary">
+                {new Date((log.createdAt ?? 0) * 1000).toLocaleString("ko-KR")}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
     </div>
   );
 }

@@ -1,6 +1,11 @@
 import { data, redirect } from "react-router";
 import type { Route } from "./+types/$challengeId";
 import { Link } from "~/components/SmartLink";
+import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
+import { Textarea } from "~/components/ui/textarea";
 import { db } from "~/db/client.server";
 import { createLogger } from "~/lib/logger.server";
 import { challenges } from "~/db/schema.server";
@@ -32,27 +37,51 @@ export default function AdminChallengeEditPage({ loaderData }: Route.ComponentPr
       </div>
       <form method="post" className="flex flex-col gap-5 max-w-xl bg-admin-surface rounded-lg p-6 border border-admin-border">
         <div>
-          <label htmlFor="name" className="block text-caption font-medium text-admin-text-secondary mb-2">이름</label>
-          <input id="name" name="name" defaultValue={challenge.name} required className="w-full px-3 py-2.5 rounded-md border border-admin-border bg-admin-surface text-sm text-admin-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-admin-accent focus-visible:ring-offset-2" />
+          <Label htmlFor="name" className="mb-2 block text-caption text-admin-text-secondary">이름</Label>
+          <Input
+            id="name"
+            name="name"
+            defaultValue={challenge.name}
+            required
+            className="h-10 rounded-md border-admin-border bg-admin-surface px-3 py-2.5 text-sm text-admin-text"
+          />
         </div>
         <div>
-          <label htmlFor="problemDefinition" className="block text-caption font-medium text-admin-text-secondary mb-2">문제 정의</label>
-          <textarea id="problemDefinition" name="problemDefinition" defaultValue={challenge.problemDefinition ?? ""} rows={3} className="w-full px-3 py-2.5 rounded-md border border-admin-border bg-admin-surface text-sm text-admin-text resize-y focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-admin-accent focus-visible:ring-offset-2" />
+          <Label htmlFor="problemDefinition" className="mb-2 block text-caption text-admin-text-secondary">문제 정의</Label>
+          <Textarea
+            id="problemDefinition"
+            name="problemDefinition"
+            defaultValue={challenge.problemDefinition ?? ""}
+            rows={3}
+            className="min-h-0 rounded-md border-admin-border bg-admin-surface px-3 py-2.5 text-sm text-admin-text"
+          />
         </div>
         <div>
-          <label htmlFor="currentQuestion" className="block text-caption font-medium text-admin-text-secondary mb-2">현재 질문</label>
-          <input id="currentQuestion" name="currentQuestion" defaultValue={challenge.currentQuestion ?? ""} className="w-full px-3 py-2.5 rounded-md border border-admin-border bg-admin-surface text-sm text-admin-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-admin-accent focus-visible:ring-offset-2" />
+          <Label htmlFor="currentQuestion" className="mb-2 block text-caption text-admin-text-secondary">현재 질문</Label>
+          <Input
+            id="currentQuestion"
+            name="currentQuestion"
+            defaultValue={challenge.currentQuestion ?? ""}
+            className="h-10 rounded-md border-admin-border bg-admin-surface px-3 py-2.5 text-sm text-admin-text"
+          />
         </div>
         <div>
-          <label htmlFor="status" className="block text-caption font-medium text-admin-text-secondary mb-2">상태</label>
-          <select id="status" name="status" defaultValue={challenge.status} className="w-full px-3 py-2.5 rounded-md border border-admin-border bg-admin-surface text-sm text-admin-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-admin-accent focus-visible:ring-offset-2">
-            <option value="active">진행 중</option>
-            <option value="completed">완료</option>
-            <option value="archived">아카이브</option>
-          </select>
+          <Label htmlFor="status" className="mb-2 block text-caption text-admin-text-secondary">상태</Label>
+          <Select name="status" defaultValue={challenge.status}>
+            <SelectTrigger id="status" className="h-10 rounded-md border-admin-border bg-admin-surface px-3 py-2.5 text-sm text-admin-text">
+              <SelectValue placeholder="상태 선택" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="active">진행 중</SelectItem>
+              <SelectItem value="completed">완료</SelectItem>
+              <SelectItem value="archived">아카이브</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         <div className="flex gap-3">
-          <button type="submit" className="px-5 py-2.5 rounded-lg bg-admin-accent text-white text-sm font-medium hover:opacity-90 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-admin-accent focus-visible:ring-offset-2">저장</button>
+          <Button type="submit" className="rounded-lg bg-admin-accent px-5 py-2.5 text-sm font-medium text-white hover:opacity-90">
+            저장
+          </Button>
           <Link to="/admin/challenges" className="px-5 py-2.5 rounded-lg border border-admin-border text-admin-text-secondary text-sm font-medium hover:bg-admin-bg transition-colors no-underline">취소</Link>
         </div>
       </form>

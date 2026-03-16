@@ -1,6 +1,11 @@
 import { data, redirect } from "react-router";
 import type { Route } from "./+types/$stageId";
 import { Link } from "~/components/SmartLink";
+import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
+import { Textarea } from "~/components/ui/textarea";
 import { db } from "~/db/client.server";
 import { createLogger } from "~/lib/logger.server";
 import { collectiveMemories } from "~/db/schema.server";
@@ -32,22 +37,27 @@ export default function AdminMemoryEditPage({ loaderData }: Route.ComponentProps
       </div>
       <form method="post" className="flex flex-col gap-4 max-w-2xl bg-admin-surface rounded-md p-6 border border-admin-border">
         <div>
-          <label className="block text-xs text-admin-text-secondary mb-1.5">요약</label>
-          <textarea name="summary" defaultValue={memory.summary ?? ""} rows={8} className="w-full px-3 py-2 rounded-sm border border-admin-border bg-admin-surface text-sm resize-y outline-none" />
+          <Label htmlFor="summary" className="mb-1.5 block text-xs text-admin-text-secondary">요약</Label>
+          <Textarea id="summary" name="summary" defaultValue={memory.summary ?? ""} rows={8} className="min-h-0 rounded-sm border-admin-border bg-admin-surface px-3 py-2 text-sm text-admin-text" />
         </div>
         <div>
-          <label className="block text-xs text-admin-text-secondary mb-1.5">다음 질문</label>
-          <input name="carryForwardQuestion" defaultValue={memory.carryForwardQuestion ?? ""} className="w-full px-3 py-2 rounded-sm border border-admin-border bg-admin-surface text-sm outline-none" />
+          <Label htmlFor="carryForwardQuestion" className="mb-1.5 block text-xs text-admin-text-secondary">다음 질문</Label>
+          <Input id="carryForwardQuestion" name="carryForwardQuestion" defaultValue={memory.carryForwardQuestion ?? ""} className="h-10 rounded-sm border-admin-border bg-admin-surface px-3 py-2 text-sm text-admin-text" />
         </div>
         <div>
-          <label className="block text-xs text-admin-text-secondary mb-1.5">상태</label>
-          <select name="status" defaultValue={memory.status} className="w-full px-3 py-2 rounded-sm border border-admin-border bg-admin-surface text-sm outline-none">
-            <option value="draft">초안</option>
-            <option value="published">발행</option>
-          </select>
+          <Label htmlFor="status" className="mb-1.5 block text-xs text-admin-text-secondary">상태</Label>
+          <Select name="status" defaultValue={memory.status}>
+            <SelectTrigger id="status" className="h-10 rounded-sm border-admin-border bg-admin-surface px-3 py-2 text-sm text-admin-text">
+              <SelectValue placeholder="상태 선택" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="draft">초안</SelectItem>
+              <SelectItem value="published">발행</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         <div className="flex gap-3">
-          <button type="submit" className="px-5 py-2 rounded-sm bg-admin-accent text-white border-none cursor-pointer text-sm hover:opacity-90">저장</button>
+          <Button type="submit" className="rounded-sm bg-admin-accent px-5 py-2 text-sm text-white hover:opacity-90">저장</Button>
           <Link to="/admin/memories" className="px-5 py-2 rounded-sm border border-admin-border text-admin-text-secondary text-sm hover:bg-admin-bg">취소</Link>
         </div>
       </form>

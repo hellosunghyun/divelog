@@ -5,6 +5,15 @@ import { createLogger } from "~/lib/logger.server";
 import { templates } from "~/db/schema.server";
 import { asc } from "drizzle-orm";
 import EmptyState from "~/components/EmptyState";
+import { Badge } from "~/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "~/components/ui/table";
 
 export function meta(_: Route.MetaArgs) { return [{ title: "템플릿" }]; }
 export async function loader({ request, context }: Route.LoaderArgs) {
@@ -19,26 +28,35 @@ export default function AdminTemplatesPage({ loaderData }: Route.ComponentProps)
       {loaderData.templates.length === 0 ? (
         <EmptyState variant="generic" message="등록된 템플릿이 없습니다" />
       ) : (
-        <table className="w-full border-collapse bg-admin-surface rounded-md overflow-hidden">
-          <thead>
-            <tr className="border-b border-admin-border">
+        <Table>
+          <TableHeader>
+            <TableRow>
               {["이름", "형식", "리듬", "활성", "작업"].map((h) => (
-                <th key={h} className="text-left px-4 py-2 text-caption font-semibold text-admin-text-secondary uppercase tracking-wide">{h}</th>
+                <TableHead
+                  key={h}
+                  className="px-4 py-2 text-xs uppercase tracking-widest text-muted-foreground"
+                >
+                  {h}
+                </TableHead>
               ))}
-            </tr>
-          </thead>
-          <tbody>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {loaderData.templates.map((t) => (
-              <tr key={t.id} className="border-b border-admin-border hover:bg-admin-bg transition-colors">
-                <td className="px-4 py-2 text-meta text-admin-text">{t.name}</td>
-                <td className="px-4 py-2 text-meta">{t.form ?? "-"}</td>
-                <td className="px-4 py-2 text-meta">{t.rhythm ?? "-"}</td>
-                <td className="px-4 py-2 text-meta">{t.active ? "✓" : "✗"}</td>
-                <td className="px-4 py-2"><Link to={`/admin/templates/${t.id}`} className="text-caption text-admin-accent hover:underline">편집</Link></td>
-              </tr>
+              <TableRow key={t.id}>
+                <TableCell className="px-4 py-2 text-sm text-admin-text">{t.name}</TableCell>
+                <TableCell className="px-4 py-2 text-sm text-admin-text-secondary">{t.form ?? "-"}</TableCell>
+                <TableCell className="px-4 py-2 text-sm text-admin-text-secondary">{t.rhythm ?? "-"}</TableCell>
+                <TableCell className="px-4 py-2 text-sm">
+                  <Badge variant={t.active ? "default" : "outline"}>{t.active ? "활성" : "비활성"}</Badge>
+                </TableCell>
+                <TableCell className="px-4 py-2">
+                  <Link to={`/admin/templates/${t.id}`} className="text-caption text-admin-accent hover:underline">편집</Link>
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       )}
     </div>
   );

@@ -1,6 +1,9 @@
 import { data, redirect } from "react-router";
 import type { Route } from "./+types/$responseId";
 import { Link } from "~/components/SmartLink";
+import { Button } from "~/components/ui/button";
+import { Label } from "~/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
 import { db } from "~/db/client.server";
 import { createLogger } from "~/lib/logger.server";
 import { responses, records } from "~/db/schema.server";
@@ -45,13 +48,18 @@ export default function AdminDialogueDetailPage({ loaderData }: Route.ComponentP
           <p className="text-sm text-admin-text mt-2 leading-relaxed">{response.content}</p>
         </div>
         <form method="post" className="bg-admin-surface rounded-lg p-5 border border-admin-border flex flex-col gap-3 h-fit">
-          <label htmlFor="moderationStatus" className="text-caption font-medium text-admin-text-secondary">Moderation</label>
-          <select id="moderationStatus" name="moderationStatus" defaultValue={response.moderationStatus ?? "clean"} className="w-full px-3 py-2.5 rounded-md border border-admin-border text-meta focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-admin-accent focus-visible:ring-offset-2">
-            <option value="clean">Clean</option>
-            <option value="flagged">Flagged</option>
-            <option value="hidden">Hidden</option>
-          </select>
-          <button type="submit" className="px-5 py-2.5 rounded-lg bg-admin-accent text-white text-sm font-medium hover:opacity-90 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-admin-accent focus-visible:ring-offset-2">저장</button>
+          <Label htmlFor="moderationStatus" className="text-caption font-medium text-admin-text-secondary">Moderation</Label>
+          <Select name="moderationStatus" defaultValue={response.moderationStatus ?? "clean"}>
+            <SelectTrigger id="moderationStatus" className="h-10 rounded-md border-admin-border bg-admin-surface px-3 py-2.5 text-meta text-admin-text">
+              <SelectValue placeholder="상태 선택" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="clean">Clean</SelectItem>
+              <SelectItem value="flagged">Flagged</SelectItem>
+              <SelectItem value="hidden">Hidden</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button type="submit" className="rounded-lg bg-admin-accent px-5 py-2.5 text-sm font-medium text-white hover:opacity-90">저장</Button>
         </form>
       </div>
     </div>

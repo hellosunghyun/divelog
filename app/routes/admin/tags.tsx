@@ -14,6 +14,29 @@ import {
   type TagWithUsage,
 } from "~/db/queries/tags.server";
 import EmptyState from "~/components/EmptyState";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "~/components/ui/alert-dialog";
+import { Badge } from "~/components/ui/badge";
+import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "~/components/ui/table";
 
 export function meta(_: Route.MetaArgs) {
   return [{ title: "태그 관리" }];
@@ -164,15 +187,15 @@ export default function AdminTagsPage({ loaderData, actionData }: Route.Componen
         <form method="post" className="flex flex-wrap gap-3 items-end">
           <input type="hidden" name="intent" value="create_tag" />
           <div className="flex flex-col gap-1">
-            <label htmlFor="name" className="text-caption text-admin-text-secondary">
+            <Label htmlFor="name" className="text-caption text-admin-text-secondary">
               이름 *
-            </label>
-            <input
+            </Label>
+            <Input
               type="text"
               id="name"
               name="name"
               required
-              className="px-3 py-2 text-caption border border-admin-border rounded-md bg-admin-bg text-admin-text focus:outline-none focus:ring-2 focus:ring-admin-accent"
+              className="h-10 rounded-md border-admin-border bg-admin-bg px-3 py-2 text-caption text-admin-text"
               placeholder="태그 이름"
               onInput={(e) => {
                 const slugInput = document.getElementById("slug") as HTMLInputElement;
@@ -183,15 +206,15 @@ export default function AdminTagsPage({ loaderData, actionData }: Route.Componen
             />
           </div>
           <div className="flex flex-col gap-1">
-            <label htmlFor="slug" className="text-caption text-admin-text-secondary">
+            <Label htmlFor="slug" className="text-caption text-admin-text-secondary">
               슬러그 *
-            </label>
-            <input
+            </Label>
+            <Input
               type="text"
               id="slug"
               name="slug"
               required
-              className="px-3 py-2 text-caption border border-admin-border rounded-md bg-admin-bg text-admin-text focus:outline-none focus:ring-2 focus:ring-admin-accent"
+              className="h-10 rounded-md border-admin-border bg-admin-bg px-3 py-2 text-caption text-admin-text"
               placeholder="tag-slug"
               onChange={(e) => {
                 e.currentTarget.dataset.manual = "true";
@@ -199,21 +222,21 @@ export default function AdminTagsPage({ loaderData, actionData }: Route.Componen
             />
           </div>
           <div className="flex flex-col gap-1">
-            <label htmlFor="description" className="text-caption text-admin-text-secondary">
+            <Label htmlFor="description" className="text-caption text-admin-text-secondary">
               설명
-            </label>
-            <input
+            </Label>
+            <Input
               type="text"
               id="description"
               name="description"
-              className="px-3 py-2 text-caption border border-admin-border rounded-md bg-admin-bg text-admin-text focus:outline-none focus:ring-2 focus:ring-admin-accent w-48"
+              className="h-10 w-48 rounded-md border-admin-border bg-admin-bg px-3 py-2 text-caption text-admin-text"
               placeholder="태그 설명"
             />
           </div>
           <div className="flex flex-col gap-1">
-            <label htmlFor="color" className="text-caption text-admin-text-secondary">
+            <Label htmlFor="color" className="text-caption text-admin-text-secondary">
               색상
-            </label>
+            </Label>
             <div className="flex items-center gap-2">
               <input
                 type="color"
@@ -225,81 +248,93 @@ export default function AdminTagsPage({ loaderData, actionData }: Route.Componen
               <span className="text-caption text-admin-text-secondary">#</span>
             </div>
           </div>
-          <button
-            type="submit"
-            className="px-4 py-2 text-caption font-medium bg-admin-accent text-white rounded-md hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-admin-accent focus:ring-offset-2"
-          >
+          <Button type="submit" className="h-10 px-4 text-caption font-medium">
             추가
-          </button>
+          </Button>
         </form>
       </div>
 
       {loaderData.tags.length === 0 ? (
         <EmptyState variant="generic" message="태그가 없습니다" />
       ) : (
-        <div className="bg-admin-surface rounded-lg border border-admin-border overflow-hidden">
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="bg-admin-bg">
-                {["색상", "이름", "슬러그", "설명", "사용 횟수", "생성일", "작업"].map((h) => (
-                  <th
-                    key={h}
-                    className="text-left px-4 py-3 text-caption font-semibold text-admin-text-secondary uppercase tracking-wide"
-                  >
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {loaderData.tags.map((tag: TagWithUsage) => (
-                <tr
-                  key={tag.id}
-                  className="border-t border-admin-border hover:bg-admin-bg/50 transition-colors"
+        <Table>
+          <TableHeader className="bg-admin-bg">
+            <TableRow className="border-admin-border hover:bg-admin-bg">
+              {["색상", "이름", "슬러그", "설명", "사용 횟수", "생성일", "작업"].map((header) => (
+                <TableHead
+                  key={header}
+                  className="h-auto px-4 py-3 text-caption font-semibold text-admin-text-secondary uppercase tracking-wide"
                 >
-                  <td className="px-4 py-3">
+                  {header}
+                </TableHead>
+              ))}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {loaderData.tags.map((tag: TagWithUsage) => {
+              const deleteFormId = `delete-tag-${tag.id}`;
+
+              return (
+                <TableRow key={tag.id} className="border-admin-border hover:bg-admin-bg/50">
+                  <TableCell className="px-4 py-3">
                     <div
-                      className="w-5 h-5 rounded border border-admin-border"
+                      className="h-5 w-5 rounded border border-admin-border"
                       style={{ backgroundColor: tag.color ?? "#6E6E73" }}
                     />
-                  </td>
-                  <td className="px-4 py-3 text-meta text-admin-text font-medium">
+                  </TableCell>
+                  <TableCell className="px-4 py-3 text-meta font-medium text-admin-text">
                     {tag.name}
-                  </td>
-                  <td className="px-4 py-3 text-meta text-admin-text-secondary font-mono">
-                    {tag.slug}
-                  </td>
-                  <td className="px-4 py-3 text-meta text-admin-text-secondary max-w-[200px] truncate">
+                  </TableCell>
+                  <TableCell className="px-4 py-3 font-mono text-meta text-admin-text-secondary">
+                    <Badge variant="outline">{tag.slug}</Badge>
+                  </TableCell>
+                  <TableCell className="max-w-[200px] px-4 py-3 text-meta text-admin-text-secondary">
                     {tag.description || "-"}
-                  </td>
-                  <td className="px-4 py-3 text-meta text-admin-text-secondary">
-                    {tag.usageCount}
-                  </td>
-                  <td className="px-4 py-3 text-meta text-admin-text-secondary">
+                  </TableCell>
+                  <TableCell className="px-4 py-3 text-meta text-admin-text-secondary">
+                    <Badge variant="secondary">{tag.usageCount}회</Badge>
+                  </TableCell>
+                  <TableCell className="px-4 py-3 text-meta text-admin-text-secondary">
                     {new Date(tag.createdAt * 1000).toLocaleDateString("ko-KR")}
-                  </td>
-                  <td className="px-4 py-3">
-                    <form method="post" className="inline">
+                  </TableCell>
+                  <TableCell className="px-4 py-3">
+                    <form id={deleteFormId} method="post" className="inline">
                       <input type="hidden" name="intent" value="delete_tag" />
                       <input type="hidden" name="id" value={tag.id} />
-                      <button
-                        type="submit"
-                        className="text-caption text-error hover:underline focus:outline-none focus:ring-2 focus:ring-error focus:ring-offset-2 rounded px-1"
-                        onClick={(e) => {
-                          if (!confirm("정말 이 태그를 삭제하시겠습니까?")) {
-                            e.preventDefault();
-                          }
-                        }}
-                      >
-                        삭제
-                      </button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button type="button" variant="destructive" size="sm">
+                            삭제
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>태그 삭제</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              정말 삭제하시겠습니까?
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>취소</AlertDialogCancel>
+                            <AlertDialogAction
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              onClick={() => {
+                                const form = document.getElementById(deleteFormId) as HTMLFormElement | null;
+                                form?.requestSubmit();
+                              }}
+                            >
+                              삭제
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </form>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
       )}
     </div>
   );
