@@ -178,7 +178,7 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
   useUnsavedWarning(hasChanges);
 
   return (
-    <div className="max-w-reading mx-auto py-12 px-4 md:py-20">
+    <div className="mx-auto py-12 px-4 md:py-20" style={{ maxWidth: 960 }}>
       <h1 className="text-3xl font-semibold text-text-primary mb-2">기록 수정</h1>
       <p className="text-base text-text-secondary mb-8">이전 기록을 지금의 생각에 맞게 다듬어보세요.</p>
 

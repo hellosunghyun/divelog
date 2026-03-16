@@ -1,10 +1,12 @@
 {
-  "active_plan": "/Users/hellosunghyun/Documents/Github/divelog/.sisyphus/plans/editor-and-enrichment.md",
+  "active_plan": "/Users/hellosunghyun/Documents/Github/divelog/.sisyphus/plans/editor-ui-dev.md",
   "started_at": "2026-03-15T09:26:48.427Z",
   "session_ids": [
-    "ses_30f33a888ffetj0SnlZGbKCJik"
+    "ses_30f33a888ffetj0SnlZGbKCJik",
+    "ses_30de203d5ffebmBtlVBYaPiWai",
+    "ses_30b3efb32ffedu9I2J2WhaFQaL"
   ],
-  "plan_name": "editor-and-enrichment",
+  "plan_name": "editor-ui-dev",
   "agent": "atlas",
   "worktree_path": "/Users/hellosunghyun/Documents/Github/divelog"
 }

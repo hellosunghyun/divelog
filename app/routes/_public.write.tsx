@@ -243,7 +243,7 @@ export default function WritePage({ loaderData }: Route.ComponentProps) {
   useUnsavedWarning(hasChanges);
 
   return (
-    <div className="max-w-reading mx-auto py-12 px-4 md:py-20">
+    <div className="mx-auto py-12 px-4 md:py-20" style={{ maxWidth: 960 }}>
       <h1 className="text-3xl font-semibold text-text-primary mb-2">
         기록하기
       </h1>

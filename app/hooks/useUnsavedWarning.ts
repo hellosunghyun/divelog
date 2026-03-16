@@ -3,21 +3,22 @@ import { useNavigation } from "react-router";
 
 export function useUnsavedWarning(hasChanges: boolean) {
   const hasChangesRef = useRef(hasChanges);
+  const dismissedRef = useRef(false);
   const navigation = useNavigation();
 
-  useEffect(() => {
-    hasChangesRef.current = hasChanges;
-  }, [hasChanges]);
+  hasChangesRef.current = hasChanges;
 
-  useEffect(() => {
-    if (navigation.state === "submitting" || (navigation.state === "loading" && navigation.location)) {
-      hasChangesRef.current = false;
-    }
-  }, [navigation.state, navigation.location]);
+  if (navigation.state === "submitting" || navigation.state === "loading") {
+    dismissedRef.current = true;
+  }
+
+  if (navigation.state === "idle" && dismissedRef.current) {
+    dismissedRef.current = false;
+  }
 
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (hasChangesRef.current) {
+      if (hasChangesRef.current && !dismissedRef.current) {
         e.preventDefault();
         e.returnValue = "";
       }
