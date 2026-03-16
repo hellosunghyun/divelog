@@ -86,21 +86,29 @@ describe("createArticleSchema", () => {
     expect(result.success).toBe(true);
   });
 
-  it("fails without title", async () => {
+  it("sets 기본 제목 when title is missing", async () => {
     const { createArticleSchema } = await import("../validation");
     const result = createArticleSchema.safeParse({
       content: JSON.stringify({ type: "doc", content: [] }),
     });
-    expect(result.success).toBe(false);
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.title).toBe("(무제)");
+    }
   });
 
-  it("fails with empty title", async () => {
+  it("sets 기본 제목 when title is empty", async () => {
     const { createArticleSchema } = await import("../validation");
     const result = createArticleSchema.safeParse({
       title: "",
       content: JSON.stringify({ type: "doc", content: [] }),
     });
-    expect(result.success).toBe(false);
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.title).toBe("(무제)");
+    }
   });
 
   it("fails with invalid JSON content", async () => {

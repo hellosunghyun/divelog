@@ -69,7 +69,17 @@ export type CreateNoteInput = z.infer<typeof createNoteSchema>;
 
 export const createArticleSchema = z
   .object({
-    title: z.string().min(1, "제목을 입력해주세요").max(200, "제목이 너무 깁니다"),
+    title: z.preprocess(
+      (value) => {
+        if (typeof value !== "string") {
+          return value;
+        }
+
+        const trimmedValue = value.trim();
+        return trimmedValue.length > 0 ? trimmedValue : undefined;
+      },
+      z.string().max(200, "제목이 너무 깁니다").optional().default("(무제)"),
+    ),
     content: z.string().min(1, "내용을 입력해주세요").max(50000),
     visibility: z.enum(["draft", "cohort", "public"]).default("cohort"),
     stageId: z.string().optional(),

@@ -1,5 +1,5 @@
 import { eq, sql } from "drizzle-orm";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "~/components/SmartLink";
 import { redirect, useActionData, useNavigation } from "react-router";
 import type { Route } from "./+types/article";
@@ -21,6 +21,57 @@ export function meta(_args: Route.MetaArgs) {
   return [{ title: "글쓰기 — DiveLog" }];
 }
 
+const ARTICLE_WARMUP_PROMPTS = [
+  "깊이 들어가고 싶은 생각이 있나요?",
+  "최근 기록에서 더 이어가고 싶은 것은?",
+  "아직 정리되지 않은 경험을 풀어보세요.",
+] as const;
+
+function getRandomWarmupPrompt() {
+  return ARTICLE_WARMUP_PROMPTS[Math.floor(Math.random() * ARTICLE_WARMUP_PROMPTS.length)];
+}
+
+function hasMeaningfulArticleContent(value: string) {
+  if (value.trim().length === 0) {
+    return false;
+  }
+
+  try {
+    const parsed = JSON.parse(value) as unknown;
+    return hasMeaningfulNode(parsed);
+  } catch {
+    return value.trim().length > 0;
+  }
+}
+
+function hasMeaningfulNode(node: unknown): boolean {
+  if (!node || typeof node !== "object") {
+    return false;
+  }
+
+  if (Array.isArray(node)) {
+    return node.some((childNode) => hasMeaningfulNode(childNode));
+  }
+
+  const text = "text" in node && typeof node.text === "string" ? node.text : "";
+  if (text.trim().length > 0) {
+    return true;
+  }
+
+  const type = "type" in node && typeof node.type === "string" ? node.type : "";
+  if (
+    type.length > 0 &&
+    type !== "doc" &&
+    type !== "paragraph" &&
+    type !== "text"
+  ) {
+    return true;
+  }
+
+  const content = "content" in node ? node.content : undefined;
+  return Array.isArray(content) && content.some((childNode) => hasMeaningfulNode(childNode));
+}
+
 export async function loader({ request, context }: Route.LoaderArgs) {
   await requireVerified(request, context);
 
@@ -34,6 +85,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     currentStage: currentStageResult[0] ?? null,
     stages: allStages,
     templates: activeTemplates,
+    warmupPrompt: getRandomWarmupPrompt(),
   };
 }
 
@@ -57,6 +109,7 @@ export async function action({ request, context }: Route.ActionArgs) {
     content,
     visibility: formData.get("visibility") || "cohort",
     stageId: formData.get("stageId") || undefined,
+    templateId: formData.get("templateId") || undefined,
   });
 
   if (!parsed.success) {
@@ -65,7 +118,8 @@ export async function action({ request, context }: Route.ActionArgs) {
 
   const database = db(context.cloudflare.env.DB);
   const id = nanoid();
-  const baseSlug = parsed.data.title
+  const title = parsed.data.title || "(무제)";
+  const baseSlug = title
     .toLowerCase()
     .replace(/[^a-z0-9가-힣]/g, "-")
     .replace(/-+/g, "-")
@@ -78,7 +132,7 @@ export async function action({ request, context }: Route.ActionArgs) {
     id,
     slug,
     authorId: auth.user.id,
-    title: parsed.data.title,
+    title,
     content,
     contentText,
     format: "article",
@@ -118,7 +172,7 @@ export async function action({ request, context }: Route.ActionArgs) {
             recipientId: row.userId,
             type: "mention",
             title: `${actorName}님이 기록에서 당신을 언급했습니다`,
-            content: parsed.data.title,
+            content: title,
             recordId: id,
           });
         }
@@ -134,17 +188,48 @@ export async function action({ request, context }: Route.ActionArgs) {
 }
 
 export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
-  const { currentStage, stages: availableStages, templates: availableTemplates } = loaderData;
+  const {
+    currentStage,
+    stages: availableStages,
+    templates: availableTemplates,
+    warmupPrompt,
+  } = loaderData;
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const [title, setTitle] = useState("");
   const [articleContent, setArticleContent] = useState("");
+  const [showSettings, setShowSettings] = useState(false);
+  const [hasStartedTyping, setHasStartedTyping] = useState(false);
+  const [hasAutoRevealedSettings, setHasAutoRevealedSettings] = useState(false);
   const isSubmitting = navigation.state === "submitting";
   const errors = actionData?.errors;
   const titleError = errors && "title" in errors ? errors.title?.[0] : undefined;
   const contentError = errors && "content" in errors ? errors.content?.[0] : undefined;
 
   useUnsavedWarning(title.length > 0 || articleContent.length > 0);
+
+  useEffect(() => {
+    if (showSettings || hasAutoRevealedSettings || !hasStartedTyping) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      setShowSettings(true);
+      setHasAutoRevealedSettings(true);
+    }, 800);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [hasAutoRevealedSettings, hasStartedTyping, showSettings]);
+
+  const handleArticleChange = (value: string) => {
+    setArticleContent(value);
+
+    if (!hasStartedTyping && hasMeaningfulArticleContent(value)) {
+      setHasStartedTyping(true);
+    }
+  };
 
   return (
     <div className="mx-auto px-4 py-12 md:py-20" style={{ maxWidth: 960 }}>
@@ -158,99 +243,131 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
       <p className="mb-8 text-base text-text-secondary">여유롭게 탐구의 기록을 남기세요.</p>
 
       <form method="post" className="flex flex-col gap-6">
-        <div className="flex flex-wrap items-center gap-4">
-          <div>
-            <label
-              htmlFor="visibility"
-              className="mb-1.5 block text-meta font-medium text-text-secondary"
-            >
-              공개 범위
-            </label>
-            <select
-              id="visibility"
-              name="visibility"
-              defaultValue="cohort"
-              className="rounded-md border border-border bg-surface px-3 py-2 text-base focus:ring-2 focus:ring-ocean-blue focus:outline-none"
-            >
-              <option value="cohort">코호트 공개</option>
-              <option value="public">전체 공개</option>
-              <option value="draft">임시저장</option>
-            </select>
-          </div>
-
-          <div>
-            <label
-              htmlFor="stageId"
-              className="mb-1.5 block text-meta font-medium text-text-secondary"
-            >
-              구간
-            </label>
-            <select
-              id="stageId"
-              name="stageId"
-              defaultValue={currentStage?.id ?? ""}
-              className="rounded-md border border-border bg-surface px-3 py-2 text-base focus:ring-2 focus:ring-ocean-blue focus:outline-none"
-            >
-              <option value="">구간 미지정</option>
-              {availableStages.map((stage) => (
-                <option key={stage.id} value={stage.id}>
-                  {stage.name}
-                  {stage.isCurrent ? " (현재)" : ""}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
         <div>
-          <label htmlFor="title" className="mb-2 block text-meta font-medium text-text-secondary">
-            제목 <span className="text-error">*</span>
-          </label>
-          <input
-            id="title"
-            name="title"
-            type="text"
-            required
-            placeholder="제목을 입력하세요"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="w-full rounded-md border border-border bg-surface px-4 py-3 text-base focus:ring-2 focus:ring-ocean-blue focus:ring-offset-1 focus:outline-none"
-          />
-          {titleError ? <p className="mt-1 text-meta text-error">{titleError}</p> : null}
-        </div>
-
-        <div>
+          <p
+            data-testid="article-warm-up-prompt"
+            className="mb-4 text-sm italic text-[--color-text-tertiary]"
+          >
+            {warmupPrompt}
+          </p>
           <p className="mb-2 block text-meta font-medium text-text-secondary">
             내용 <span className="text-error">*</span>
           </p>
           <ArticleEditor
             name="content"
             content={articleContent}
-            onChange={setArticleContent}
+            onChange={handleArticleChange}
             placeholder="여기에 글을 쓰세요. `/`를 입력하면 블록을 추가할 수 있습니다."
           />
           {contentError ? <p className="mt-1 text-meta text-error">{contentError}</p> : null}
         </div>
 
-        {availableTemplates.length > 0 && (
-          <div>
-            <label htmlFor="templateId" className="mb-2 block text-meta font-medium text-text-secondary">
-              템플릿 (선택)
-            </label>
-            <select
-              id="templateId"
-              name="templateId"
-              className="w-full rounded-md border border-border bg-surface px-3 py-2 text-base focus:ring-2 focus:ring-ocean-blue focus:outline-none"
-            >
-              <option value="">템플릿 없이 시작</option>
-              {availableTemplates.map((tmpl) => (
-                <option key={tmpl.id} value={tmpl.id}>
-                  {tmpl.name}
-                </option>
-              ))}
-            </select>
+        <div>
+          <button
+            type="button"
+            data-testid="article-settings-toggle"
+            aria-expanded={showSettings}
+            onClick={() => setShowSettings((currentValue) => !currentValue)}
+            className="min-h-11 text-sm text-text-tertiary underline underline-offset-4 hover:text-text-secondary"
+          >
+            {showSettings ? "제목과 설정 숨기기" : "제목과 설정 보기"}
+          </button>
+        </div>
+
+        <div
+          data-testid="article-settings-panel"
+          aria-hidden={!showSettings}
+          className={`transition-all duration-300 ${
+            showSettings
+              ? "translate-y-0 opacity-100 pointer-events-auto"
+              : "-translate-y-2 opacity-0 pointer-events-none h-0 overflow-hidden"
+          }`}
+        >
+          <div className="space-y-5 rounded-[24px] border border-border bg-surface-secondary/60 p-5 md:p-6">
+            <div>
+              <label htmlFor="title" className="mb-2 block text-meta font-medium text-text-secondary">
+                제목
+              </label>
+              <input
+                id="title"
+                name="title"
+                type="text"
+                placeholder="제목 (나중에 붙여도 됩니다)"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="w-full rounded-md border border-border bg-surface px-4 py-3 text-base focus:ring-2 focus:ring-ocean-blue focus:ring-offset-1 focus:outline-none"
+              />
+              {titleError ? <p className="mt-1 text-meta text-error">{titleError}</p> : null}
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              <div>
+                <label
+                  htmlFor="visibility"
+                  className="mb-1.5 block text-meta font-medium text-text-secondary"
+                >
+                  공개 범위
+                </label>
+                <select
+                  id="visibility"
+                  name="visibility"
+                  defaultValue="cohort"
+                  className="w-full rounded-md border border-border bg-surface px-3 py-2 text-base focus:ring-2 focus:ring-ocean-blue focus:outline-none"
+                >
+                  <option value="cohort">코호트 공개</option>
+                  <option value="public">전체 공개</option>
+                  <option value="draft">임시저장</option>
+                </select>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="stageId"
+                  className="mb-1.5 block text-meta font-medium text-text-secondary"
+                >
+                  구간
+                </label>
+                <select
+                  id="stageId"
+                  name="stageId"
+                  defaultValue={currentStage?.id ?? ""}
+                  className="w-full rounded-md border border-border bg-surface px-3 py-2 text-base focus:ring-2 focus:ring-ocean-blue focus:outline-none"
+                >
+                  <option value="">구간 미지정</option>
+                  {availableStages.map((stage) => (
+                    <option key={stage.id} value={stage.id}>
+                      {stage.name}
+                      {stage.isCurrent ? " (현재)" : ""}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {availableTemplates.length > 0 ? (
+                <div>
+                  <label
+                    htmlFor="templateId"
+                    className="mb-1.5 block text-meta font-medium text-text-secondary"
+                  >
+                    템플릿 (선택)
+                  </label>
+                  <select
+                    id="templateId"
+                    name="templateId"
+                    className="w-full rounded-md border border-border bg-surface px-3 py-2 text-base focus:ring-2 focus:ring-ocean-blue focus:outline-none"
+                  >
+                    <option value="">템플릿 없이 시작</option>
+                    {availableTemplates.map((tmpl) => (
+                      <option key={tmpl.id} value={tmpl.id}>
+                        {tmpl.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              ) : null}
+            </div>
           </div>
-        )}
+        </div>
 
         <div className="flex gap-3 border-t border-border pt-4">
           <button
