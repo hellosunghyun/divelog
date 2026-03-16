@@ -2,10 +2,13 @@ import { data } from "react-router";
 import type { Route } from "./+types/_admin.admin.learners.$learnerId";
 import { Link } from "react-router";
 import { db } from "../db/client.server";
+import { createLogger } from "../lib/logger.server";
 import { learnerProfiles, records } from "../db/schema.server";
 import { eq, desc } from "drizzle-orm";
 
-export async function loader({ params, context }: Route.LoaderArgs) {
+export async function loader({ params, request, context }: Route.LoaderArgs) {
+  const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.learners.$learnerId" });
+  logger.info("loader_start");
   const database = db(context.cloudflare.env.DB);
   const learner = await database.select().from(learnerProfiles).where(eq(learnerProfiles.userId, params.learnerId)).limit(1);
   if (!learner[0]) throw data("Learner not found", { status: 404 });

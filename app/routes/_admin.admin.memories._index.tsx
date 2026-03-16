@@ -1,12 +1,15 @@
 import type { Route } from "./+types/_admin.admin.memories._index";
 import { Link } from "react-router";
 import { db } from "../db/client.server";
+import { createLogger } from "../lib/logger.server";
 import { collectiveMemories, stages } from "../db/schema.server";
 import { eq, desc } from "drizzle-orm";
 import EmptyState from "../components/EmptyState";
 
 export function meta(_: Route.MetaArgs) { return [{ title: "Collective Memory" }]; }
-export async function loader({ context }: Route.LoaderArgs) {
+export async function loader({ request, context }: Route.LoaderArgs) {
+  const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.memories" });
+  logger.info("loader_start");
   return { memories: await db(context.cloudflare.env.DB).select({ memory: collectiveMemories, stage: { name: stages.name, slug: stages.slug } }).from(collectiveMemories).leftJoin(stages, eq(collectiveMemories.stageId, stages.id)).orderBy(desc(collectiveMemories.createdAt)) };
 }
 export default function AdminMemoriesPage({ loaderData }: Route.ComponentProps) {

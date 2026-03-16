@@ -2,17 +2,23 @@ import { data, redirect } from "react-router";
 import type { Route } from "./+types/_admin.admin.memories.$stageId";
 import { Link } from "react-router";
 import { db } from "../db/client.server";
+import { createLogger } from "../lib/logger.server";
 import { collectiveMemories } from "../db/schema.server";
 import { eq } from "drizzle-orm";
 
-export async function loader({ params, context }: Route.LoaderArgs) {
+export async function loader({ params, request, context }: Route.LoaderArgs) {
+  const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.memories.$stageId" });
+  logger.info("loader_start");
   const memory = await db(context.cloudflare.env.DB).select().from(collectiveMemories).where(eq(collectiveMemories.id, params.stageId)).limit(1);
   if (!memory[0]) throw data("Memory not found", { status: 404 });
   return { memory: memory[0] };
 }
 export async function action({ params, request, context }: Route.ActionArgs) {
+  const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.memories.$stageId" });
   const f = await request.formData();
+  logger.info("action_start", { intent: "update_memory" });
   await db(context.cloudflare.env.DB).update(collectiveMemories).set({ summary: (f.get("summary") as string) || null, carryForwardQuestion: (f.get("carryForwardQuestion") as string) || null, status: f.get("status") as string, updatedAt: Math.floor(Date.now() / 1000) }).where(eq(collectiveMemories.id, params.stageId));
+  logger.info("admin_update_memory", { stageId: params.stageId });
   throw redirect("/admin/memories");
 }
 export function meta(_: Route.MetaArgs) { return [{ title: "Memory 편집" }]; }

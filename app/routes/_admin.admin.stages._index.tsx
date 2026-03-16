@@ -1,12 +1,15 @@
 import type { Route } from "./+types/_admin.admin.stages._index";
 import { Link } from "react-router";
 import { db } from "../db/client.server";
+import { createLogger } from "../lib/logger.server";
 import { stages } from "../db/schema.server";
 import { sql } from "drizzle-orm";
 import EmptyState from "../components/EmptyState";
 
 export function meta(_: Route.MetaArgs) { return [{ title: "Stage 관리" }]; }
-export async function loader({ context }: Route.LoaderArgs) {
+export async function loader({ request, context }: Route.LoaderArgs) {
+  const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.stages" });
+  logger.info("loader_start");
   return { stages: await db(context.cloudflare.env.DB).select().from(stages).orderBy(sql`"order" ASC`) };
 }
 export default function AdminStagesPage({ loaderData }: Route.ComponentProps) {

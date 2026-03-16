@@ -1,10 +1,13 @@
 import type { Route } from "./+types/_admin.admin.audit";
 import { db } from "../db/client.server";
+import { createLogger } from "../lib/logger.server";
 import { auditLogs } from "../db/schema.server";
 import { eq, desc } from "drizzle-orm";
 
 export function meta(_: Route.MetaArgs) { return [{ title: "감사 로그" }]; }
 export async function loader({ request, context }: Route.LoaderArgs) {
+  const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.audit" });
+  logger.info("loader_start");
   const url = new URL(request.url);
   const targetType = url.searchParams.get("type");
   const database = db(context.cloudflare.env.DB);

@@ -1,12 +1,15 @@
 import type { Route } from "./+types/_admin.admin.learners._index";
 import { Link } from "react-router";
 import { db } from "../db/client.server";
+import { createLogger } from "../lib/logger.server";
 import { learnerProfiles } from "../db/schema.server";
 import { asc } from "drizzle-orm";
 import EmptyState from "../components/EmptyState";
 
 export function meta(_: Route.MetaArgs) { return [{ title: "Learner 관리" }]; }
-export async function loader({ context }: Route.LoaderArgs) {
+export async function loader({ request, context }: Route.LoaderArgs) {
+  const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.learners" });
+  logger.info("loader_start");
   return { learners: await db(context.cloudflare.env.DB).select().from(learnerProfiles).orderBy(asc(learnerProfiles.displayName)) };
 }
 export default function AdminLearnersPage({ loaderData }: Route.ComponentProps) {

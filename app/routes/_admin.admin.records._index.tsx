@@ -1,12 +1,15 @@
 import type { Route } from "./+types/_admin.admin.records._index";
 import { Link } from "react-router";
 import { db } from "../db/client.server";
+import { createLogger } from "../lib/logger.server";
 import { records, learnerProfiles } from "../db/schema.server";
 import { eq, desc } from "drizzle-orm";
 import EmptyState from "../components/EmptyState";
 
 export function meta(_: Route.MetaArgs) { return [{ title: "기록 관리" }]; }
 export async function loader({ request, context }: Route.LoaderArgs) {
+  const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.records" });
+  logger.info("loader_start");
   const url = new URL(request.url);
   const filter = url.searchParams.get("filter");
   const database = db(context.cloudflare.env.DB);

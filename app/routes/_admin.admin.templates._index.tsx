@@ -1,12 +1,15 @@
 import type { Route } from "./+types/_admin.admin.templates._index";
 import { Link } from "react-router";
 import { db } from "../db/client.server";
+import { createLogger } from "../lib/logger.server";
 import { templates } from "../db/schema.server";
 import { asc } from "drizzle-orm";
 import EmptyState from "../components/EmptyState";
 
 export function meta(_: Route.MetaArgs) { return [{ title: "템플릿" }]; }
-export async function loader({ context }: Route.LoaderArgs) {
+export async function loader({ request, context }: Route.LoaderArgs) {
+  const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.templates" });
+  logger.info("loader_start");
   return { templates: await db(context.cloudflare.env.DB).select().from(templates).orderBy(asc(templates.name)) };
 }
 export default function AdminTemplatesPage({ loaderData }: Route.ComponentProps) {

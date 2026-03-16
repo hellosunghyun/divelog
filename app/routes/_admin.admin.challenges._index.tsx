@@ -1,12 +1,15 @@
 import type { Route } from "./+types/_admin.admin.challenges._index";
 import { Link } from "react-router";
 import { db } from "../db/client.server";
+import { createLogger } from "../lib/logger.server";
 import { challenges } from "../db/schema.server";
 import { asc } from "drizzle-orm";
 import EmptyState from "../components/EmptyState";
 
 export function meta(_: Route.MetaArgs) { return [{ title: "챌린지 관리" }]; }
-export async function loader({ context }: Route.LoaderArgs) {
+export async function loader({ request, context }: Route.LoaderArgs) {
+  const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.challenges" });
+  logger.info("loader_start");
   return { challenges: await db(context.cloudflare.env.DB).select().from(challenges).orderBy(asc(challenges.name)) };
 }
 export default function AdminChallengesPage({ loaderData }: Route.ComponentProps) {

@@ -2,10 +2,13 @@ import { data, redirect } from "react-router";
 import type { Route } from "./+types/_admin.admin.dialogue.$responseId";
 import { Link } from "react-router";
 import { db } from "../db/client.server";
+import { createLogger } from "../lib/logger.server";
 import { responses, records } from "../db/schema.server";
 import { eq } from "drizzle-orm";
 
-export async function loader({ params, context }: Route.LoaderArgs) {
+export async function loader({ params, request, context }: Route.LoaderArgs) {
+  const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.dialogue.$responseId" });
+  logger.info("loader_start");
   const database = db(context.cloudflare.env.DB);
   const response = await database.select().from(responses).where(eq(responses.id, params.responseId)).limit(1);
   if (!response[0]) throw data("Response not found", { status: 404 });
@@ -13,8 +16,12 @@ export async function loader({ params, context }: Route.LoaderArgs) {
   return { response: response[0], record: record[0] ?? null };
 }
 export async function action({ params, request, context }: Route.ActionArgs) {
+  const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.dialogue.$responseId" });
   const f = await request.formData();
-  await db(context.cloudflare.env.DB).update(responses).set({ moderationStatus: f.get("moderationStatus") as string, updatedAt: Math.floor(Date.now() / 1000) }).where(eq(responses.id, params.responseId));
+  logger.info("action_start", { intent: "moderate_response" });
+  const moderationStatus = f.get("moderationStatus") as string;
+  await db(context.cloudflare.env.DB).update(responses).set({ moderationStatus, updatedAt: Math.floor(Date.now() / 1000) }).where(eq(responses.id, params.responseId));
+  logger.info("admin_moderate_response", { responseId: params.responseId, newStatus: moderationStatus });
   throw redirect("/admin/dialogue");
 }
 export function meta(_: Route.MetaArgs) { return [{ title: "Dialogue 검토" }]; }

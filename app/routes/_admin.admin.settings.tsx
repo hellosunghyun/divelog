@@ -1,22 +1,30 @@
 import { redirect } from "react-router";
 import type { Route } from "./+types/_admin.admin.settings";
 import { db } from "../db/client.server";
+import { createLogger } from "../lib/logger.server";
 import { settings } from "../db/schema.server";
 import { eq } from "drizzle-orm";
 
 export function meta(_: Route.MetaArgs) { return [{ title: "시스템 설정" }]; }
-export async function loader({ context }: Route.LoaderArgs) {
+export async function loader({ request, context }: Route.LoaderArgs) {
+  const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.settings" });
+  logger.info("loader_start");
   return { settings: await db(context.cloudflare.env.DB).select().from(settings) };
 }
 export async function action({ request, context }: Route.ActionArgs) {
+  const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.settings" });
   const f = await request.formData();
+  logger.info("action_start", { intent: "update_settings" });
   const database = db(context.cloudflare.env.DB);
   const now = Math.floor(Date.now() / 1000);
   const keys = ["home_show_scenes", "home_show_questions", "home_show_sentences", "home_show_learners", "search_enabled"];
+  const changedKeys: string[] = [];
   for (const key of keys) {
     const value = f.get(key) === "on" ? "true" : "false";
+    changedKeys.push(key);
     await database.update(settings).set({ value, updatedAt: now }).where(eq(settings.key, key));
   }
+  logger.info("admin_update_settings", { changedKeys });
   throw redirect("/admin/settings");
 }
 export default function AdminSettingsPage({ loaderData }: Route.ComponentProps) {

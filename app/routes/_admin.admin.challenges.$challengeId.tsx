@@ -2,17 +2,23 @@ import { data, redirect } from "react-router";
 import type { Route } from "./+types/_admin.admin.challenges.$challengeId";
 import { Link } from "react-router";
 import { db } from "../db/client.server";
+import { createLogger } from "../lib/logger.server";
 import { challenges } from "../db/schema.server";
 import { eq } from "drizzle-orm";
 
-export async function loader({ params, context }: Route.LoaderArgs) {
+export async function loader({ params, request, context }: Route.LoaderArgs) {
+  const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.challenges.$challengeId" });
+  logger.info("loader_start");
   const ch = await db(context.cloudflare.env.DB).select().from(challenges).where(eq(challenges.id, params.challengeId)).limit(1);
   if (!ch[0]) throw data("Challenge not found", { status: 404 });
   return { challenge: ch[0] };
 }
 export async function action({ params, request, context }: Route.ActionArgs) {
+  const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.challenges.$challengeId" });
   const f = await request.formData();
+  logger.info("action_start", { intent: "update_challenge" });
   await db(context.cloudflare.env.DB).update(challenges).set({ name: f.get("name") as string, problemDefinition: (f.get("problemDefinition") as string) || null, currentQuestion: (f.get("currentQuestion") as string) || null, status: f.get("status") as string, updatedAt: Math.floor(Date.now() / 1000) }).where(eq(challenges.id, params.challengeId));
+  logger.info("admin_update_challenge", { challengeId: params.challengeId });
   throw redirect("/admin/challenges");
 }
 export function meta(_: Route.MetaArgs) { return [{ title: "챌린지 편집" }]; }

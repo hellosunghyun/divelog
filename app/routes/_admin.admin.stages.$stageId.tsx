@@ -2,17 +2,23 @@ import { data, redirect } from "react-router";
 import type { Route } from "./+types/_admin.admin.stages.$stageId";
 import { Link } from "react-router";
 import { db } from "../db/client.server";
+import { createLogger } from "../lib/logger.server";
 import { stages } from "../db/schema.server";
 import { eq } from "drizzle-orm";
 
-export async function loader({ params, context }: Route.LoaderArgs) {
+export async function loader({ params, request, context }: Route.LoaderArgs) {
+  const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.stages.$stageId" });
+  logger.info("loader_start");
   const stage = await db(context.cloudflare.env.DB).select().from(stages).where(eq(stages.id, params.stageId)).limit(1);
   if (!stage[0]) throw data("Stage not found", { status: 404 });
   return { stage: stage[0] };
 }
 export async function action({ params, request, context }: Route.ActionArgs) {
+  const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.stages.$stageId" });
   const f = await request.formData();
+  logger.info("action_start", { intent: "update_stage" });
   await db(context.cloudflare.env.DB).update(stages).set({ name: f.get("name") as string, description: (f.get("description") as string) || null, status: f.get("status") as string, isCurrent: f.get("isCurrent") === "on", updatedAt: Math.floor(Date.now() / 1000) }).where(eq(stages.id, params.stageId));
+  logger.info("admin_update_stage", { stageId: params.stageId });
   throw redirect("/admin/stages");
 }
 export function meta(_: Route.MetaArgs) { return [{ title: "Stage 편집" }]; }
