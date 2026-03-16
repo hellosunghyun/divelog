@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import { Link } from "~/components/SmartLink";
 
 interface QuestionCardProps {
   question: {
@@ -36,6 +36,7 @@ export default function QuestionCard({ question, record, onRespond }: QuestionCa
         <div className="mb-4">
           <Link
             to={`/logs/${record.slug}`}
+            prefetch="viewport"
             className="text-sm text-text-tertiary no-underline"
           >
             ← {record.title}

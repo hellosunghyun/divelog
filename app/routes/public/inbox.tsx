@@ -6,7 +6,8 @@ import { requireAuth } from "~/lib/auth.middleware";
 import { createLogger } from "~/lib/logger.server";
 import HeroSection from "~/components/HeroSection";
 import EmptyState from "~/components/EmptyState";
-import { Link, Form } from "react-router";
+import { Link } from "~/components/SmartLink";
+import { Form } from "react-router";
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "인박스 — DiveLog" }];

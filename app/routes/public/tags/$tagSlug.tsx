@@ -1,5 +1,6 @@
 import type { Route } from "./+types/$tagSlug";
-import { Link, data } from "react-router";
+import { Link } from "~/components/SmartLink";
+import { data } from "react-router";
 import { getTagBySlug, getRecordsByTag } from "~/db/queries/tags.server";
 import { getPlainText } from "~/lib/content.server";
 import { normalizeContentFormat } from "~/lib/editor-extensions";

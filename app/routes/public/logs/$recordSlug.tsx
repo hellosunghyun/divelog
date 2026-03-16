@@ -1,5 +1,6 @@
 import { and, desc, eq } from "drizzle-orm";
-import { data, Link, redirect, useActionData, useNavigation, useSubmit } from "react-router";
+import { Link } from "~/components/SmartLink";
+import { data, redirect, useActionData, useNavigation, useSubmit } from "react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import EmptyState from "~/components/EmptyState";

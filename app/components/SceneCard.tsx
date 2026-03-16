@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import { Link } from "~/components/SmartLink";
 
 interface SceneCardProps {
   record: {
@@ -77,6 +77,7 @@ export default function SceneCard({
       {/* Title */}
       <Link
         to={`/logs/${record.slug}`}
+        prefetch="viewport"
         className="text-lg font-semibold text-text-primary leading-title no-underline"
       >
         <h3 className="tracking-tight">{record.title}</h3>
@@ -93,6 +94,7 @@ export default function SceneCard({
           author.slug ? (
             <Link
               to={`/learners/${author.slug}`}
+              prefetch="viewport"
               className="text-meta text-text-secondary no-underline hover:text-ocean-blue transition-colors"
             >
               {author.displayName}

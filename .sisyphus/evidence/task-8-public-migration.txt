@@ -1,0 +1,28 @@
+=== Task 8: Public Route SmartLink Migration Evidence ===
+Date: Mon Mar 16 21:12:52 KST 2026
+
+=== react-router Link import 잔여 확인 (0건이어야 함) ===
+(없음 — PASS)
+
+=== SmartLink import 확인 ===
+app/routes/public/write/index.tsx:1:import { Link } from "~/components/SmartLink";
+app/routes/public/write/note.tsx:3:import { Link } from "~/components/SmartLink";
+app/routes/public/write/article.tsx:3:import { Link } from "~/components/SmartLink";
+app/routes/public/index.tsx:2:import { Link } from "~/components/SmartLink";
+app/routes/public/me.tsx:11:import { Link } from "~/components/SmartLink";
+app/routes/public/challenges/index.tsx:2:import { Link } from "~/components/SmartLink";
+app/routes/public/challenges/$challengeSlug.tsx:3:import { Link } from "~/components/SmartLink";
+app/routes/public/inbox.tsx:9:import { Link } from "~/components/SmartLink";
+app/routes/public/groups/$groupSlug.tsx:3:import { Link } from "~/components/SmartLink";
+app/routes/public/journey/index.tsx:2:import { Link } from "~/components/SmartLink";
+app/routes/public/journey/$stageSlug.tsx:3:import { Link } from "~/components/SmartLink";
+app/routes/public/learners/$learnerSlug.tsx:3:import { Link } from "~/components/SmartLink";
+app/routes/public/tags/index.tsx:2:import { Link } from "~/components/SmartLink";
+app/routes/public/tags/$tagSlug.tsx:2:import { Link } from "~/components/SmartLink";
+app/routes/public/logs/$recordSlug.edit.tsx:2:import { Link } from "~/components/SmartLink";
+app/routes/public/logs/$recordSlug.details.tsx:2:import { Link } from "~/components/SmartLink";
+app/routes/public/logs/$recordSlug.tsx:2:import { Link } from "~/components/SmartLink";
+app/routes/public/memories/$stageSlug.tsx:3:import { Link } from "~/components/SmartLink";
+
+=== tsc ===
+PASS

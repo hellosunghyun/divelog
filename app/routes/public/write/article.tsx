@@ -1,6 +1,7 @@
 import { eq, sql } from "drizzle-orm";
 import { useState } from "react";
-import { Link, redirect, useActionData, useNavigation } from "react-router";
+import { Link } from "~/components/SmartLink";
+import { redirect, useActionData, useNavigation } from "react-router";
 import type { Route } from "./+types/article";
 
 import { ArticleEditor } from "~/components/editor/ArticleEditor";

@@ -1,0 +1,40 @@
+=== TASK 4: shouldRevalidate Implementation ===
+
+FILE: app/routes/_public.tsx
+LOCATION: Lines 63-76
+
+IMPLEMENTATION:
+export function shouldRevalidate({
+  formMethod,
+  defaultShouldRevalidate,
+}: {
+  formMethod?: string;
+  defaultShouldRevalidate: boolean;
+}): boolean {
+  // mutation(POST/PUT/DELETE)에서만 revalidation
+  if (formMethod && formMethod !== "GET") {
+    return defaultShouldRevalidate;
+  }
+  // 일반 GET 네비게이션에서는 스킵
+  return false;
+}
+
+VERIFICATION:
+✓ Function exported correctly
+✓ formMethod parameter used (not formAction)
+✓ GET navigation returns false (prevents revalidation)
+✓ Mutations (POST/PUT/DELETE) return defaultShouldRevalidate
+✓ Loader function unchanged
+✓ No TypeScript errors in _public.tsx
+✓ Comments explain mutation detection and GET skip logic
+
+GREP RESULTS:
+63:export function shouldRevalidate({
+64:  formMethod,
+67:  formMethod?: string;
+71:  if (formMethod && formMethod !== "GET") {
+
+TSC CHECK:
+No _public errors
+
+TASK COMPLETE ✓

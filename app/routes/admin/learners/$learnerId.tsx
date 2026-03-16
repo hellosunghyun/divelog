@@ -1,6 +1,6 @@
 import { data } from "react-router";
 import type { Route } from "./+types/$learnerId";
-import { Link } from "react-router";
+import { Link } from "~/components/SmartLink";
 import { db } from "~/db/client.server";
 import { createLogger } from "~/lib/logger.server";
 import { learnerProfiles, records } from "~/db/schema.server";

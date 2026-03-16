@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import { Link } from "~/components/SmartLink";
 
 interface Stage {
   id: string;
@@ -45,16 +45,17 @@ export default function StageStrip({ stages, currentStageSlug }: StageStripProps
           stageClasses += " bg-transparent text-text-secondary border border-border font-normal";
         }
 
-        return (
-          <Link
-            key={stage.id}
-            to={`/journey/${stage.slug}`}
-            className={stageClasses}
-            aria-current={isCurrent ? "page" : undefined}
-          >
-            {stage.name}
-          </Link>
-        );
+         return (
+           <Link
+             key={stage.id}
+             to={`/journey/${stage.slug}`}
+             prefetch="render"
+             className={stageClasses}
+             aria-current={isCurrent ? "page" : undefined}
+           >
+             {stage.name}
+           </Link>
+         );
       })}
     </nav>
   );

@@ -1,5 +1,5 @@
 import type { Route } from "./+types/index";
-import { Link } from "react-router";
+import { Link } from "~/components/SmartLink";
 import { db } from "~/db/client.server";
 import { createLogger } from "~/lib/logger.server";
 import { records, learnerProfiles } from "~/db/schema.server";

@@ -1,0 +1,6 @@
+✓ SmartLink.tsx type check passed - 0 errors
+
+File: app/components/SmartLink.tsx
+Exports: SmartLink (named), Link (aliased)
+Default prefetch: 'intent'
+Props: All React Router Link props + prefetch override

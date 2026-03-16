@@ -1,4 +1,5 @@
-import { Link, useRouteLoaderData, useLocation, useNavigate } from "react-router";
+import { useRouteLoaderData, useLocation, useNavigate } from "react-router";
+import { Link } from "~/components/SmartLink";
 import { useState, useEffect, useRef } from "react";
 import { User, Inbox, Settings, ExternalLink, LogOut } from "lucide-react";
 
@@ -155,12 +156,14 @@ export default function GlobalNav() {
 
               <Link
                 to="/write/note"
+                prefetch="render"
                 className={`border border-border text-text-secondary ml-1 px-4 py-1.5 rounded-full text-[13px] font-medium hover:bg-surface-secondary transition-colors no-underline ${focusRing}`}
               >
                 짧은 메모
               </Link>
               <Link
                 to="/write/article"
+                prefetch="render"
                 className={`bg-ocean-blue text-white ml-1 px-4 py-1.5 rounded-full text-[13px] font-semibold hover:bg-ocean-blue/90 transition-all flex items-center gap-1.5 no-underline ${focusRing}`}
               >
                 <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -319,17 +322,19 @@ export default function GlobalNav() {
               </div>
             </>
            ) : (
-             <>
-               <Link
-                 to="/write/note"
-                 className={`border border-border text-text-secondary ml-1 px-4 py-1.5 rounded-full text-[13px] font-medium hover:bg-surface-secondary transition-colors no-underline ${focusRing}`}
-               >
-                 짧은 메모
-               </Link>
-               <Link
-                 to="/write/article"
-                 className={`bg-ocean-blue text-white ml-1 px-4 py-1.5 rounded-full text-[13px] font-semibold hover:bg-ocean-blue/90 transition-all flex items-center gap-1.5 no-underline ${focusRing}`}
-               >
+               <>
+                <Link
+                  to="/write/note"
+                  prefetch="render"
+                  className={`border border-border text-text-secondary ml-1 px-4 py-1.5 rounded-full text-[13px] font-medium hover:bg-surface-secondary transition-colors no-underline ${focusRing}`}
+                >
+                  짧은 메모
+                </Link>
+                <Link
+                  to="/write/article"
+                  prefetch="render"
+                  className={`bg-ocean-blue text-white ml-1 px-4 py-1.5 rounded-full text-[13px] font-semibold hover:bg-ocean-blue/90 transition-all flex items-center gap-1.5 no-underline ${focusRing}`}
+                >
                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                    <path d="M12 20h9" />
                    <path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z" />
@@ -439,17 +444,19 @@ export default function GlobalNav() {
                      어드민
                    </Link>
                  )}
-                 <div className="mt-4 flex flex-col gap-2">
-                  <Link
-                    to="/write/note"
-                    className={`w-full border border-border text-text-secondary py-3 px-5 rounded-full text-sm font-medium text-center hover:bg-surface-secondary transition-colors no-underline ${focusRing}`}
-                  >
-                    짧은 메모
-                  </Link>
-                  <Link
-                    to="/write/article"
-                    className={`w-full bg-ocean-blue text-white py-3 px-5 rounded-full text-sm font-semibold text-center flex items-center justify-center gap-2 hover:bg-ocean-blue/90 transition-all no-underline ${focusRing}`}
-                  >
+                  <div className="mt-4 flex flex-col gap-2">
+                   <Link
+                     to="/write/note"
+                     prefetch="render"
+                     className={`w-full border border-border text-text-secondary py-3 px-5 rounded-full text-sm font-medium text-center hover:bg-surface-secondary transition-colors no-underline ${focusRing}`}
+                   >
+                     짧은 메모
+                   </Link>
+                   <Link
+                     to="/write/article"
+                     prefetch="render"
+                     className={`w-full bg-ocean-blue text-white py-3 px-5 rounded-full text-sm font-semibold text-center flex items-center justify-center gap-2 hover:bg-ocean-blue/90 transition-all no-underline ${focusRing}`}
+                   >
                     <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                       <path d="M12 20h9" />
                       <path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z" />
@@ -484,17 +491,19 @@ export default function GlobalNav() {
             ) : (
                <>
                  <div className="h-px bg-border-subtle my-4" />
-                 <div className="mt-4 flex flex-col gap-3">
-                   <Link
-                     to="/write/note"
-                     className={`w-full border border-border text-text-secondary py-3 px-5 rounded-full text-sm font-medium text-center hover:bg-surface-secondary transition-colors no-underline ${focusRing}`}
-                   >
-                     짧은 메모
-                   </Link>
-                   <Link
-                     to="/write/article"
-                     className={`w-full bg-ocean-blue text-white py-3 px-5 rounded-full text-sm font-semibold text-center flex items-center justify-center gap-2 hover:bg-ocean-blue/90 transition-all no-underline ${focusRing}`}
-                   >
+                  <div className="mt-4 flex flex-col gap-3">
+                    <Link
+                      to="/write/note"
+                      prefetch="render"
+                      className={`w-full border border-border text-text-secondary py-3 px-5 rounded-full text-sm font-medium text-center hover:bg-surface-secondary transition-colors no-underline ${focusRing}`}
+                    >
+                      짧은 메모
+                    </Link>
+                    <Link
+                      to="/write/article"
+                      prefetch="render"
+                      className={`w-full bg-ocean-blue text-white py-3 px-5 rounded-full text-sm font-semibold text-center flex items-center justify-center gap-2 hover:bg-ocean-blue/90 transition-all no-underline ${focusRing}`}
+                    >
                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                        <path d="M12 20h9" />
                        <path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z" />

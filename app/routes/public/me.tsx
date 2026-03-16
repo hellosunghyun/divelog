@@ -8,7 +8,7 @@ import HighlightedSentenceCard from "~/components/HighlightedSentenceCard";
 import QuestionCard from "~/components/QuestionCard";
 import EmptyState from "~/components/EmptyState";
 import HeroSection from "~/components/HeroSection";
-import { Link } from "react-router";
+import { Link } from "~/components/SmartLink";
 import { createLogger } from "~/lib/logger.server";
 
 export function meta(_args: Route.MetaArgs) {

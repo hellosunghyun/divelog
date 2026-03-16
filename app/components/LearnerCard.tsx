@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import { Link } from "~/components/SmartLink";
 
 interface LearnerCardProps {
   learner: {
@@ -44,13 +44,14 @@ export default function LearnerCard({ learner, recentRecord, stage }: LearnerCar
             {learner.displayName[0]}
           </div>
         )}
-        <div>
-          <Link 
-            to={`/learners/${learner.slug}`} 
-            className="font-semibold text-text-primary text-base tracking-tight no-underline hover:text-ocean-blue transition-colors"
-          >
-            {learner.displayName}
-          </Link>
+         <div>
+           <Link 
+             to={`/learners/${learner.slug}`}
+             prefetch="viewport"
+             className="font-semibold text-text-primary text-base tracking-tight no-underline hover:text-ocean-blue transition-colors"
+           >
+             {learner.displayName}
+           </Link>
           {stage && (
             <p className="text-caption text-text-tertiary">{stage.name}</p>
           )}
@@ -63,14 +64,15 @@ export default function LearnerCard({ learner, recentRecord, stage }: LearnerCar
         </p>
       )}
 
-      {recentRecord && (
-        <Link 
-          to={`/logs/${recentRecord.slug}`} 
-          className="text-meta text-text-tertiary no-underline hover:text-ocean-blue transition-colors"
-        >
-          최근: {recentRecord.title}
-        </Link>
-      )}
+       {recentRecord && (
+         <Link 
+           to={`/logs/${recentRecord.slug}`}
+           prefetch="viewport"
+           className="text-meta text-text-tertiary no-underline hover:text-ocean-blue transition-colors"
+         >
+           최근: {recentRecord.title}
+         </Link>
+       )}
     </article>
   );
 }

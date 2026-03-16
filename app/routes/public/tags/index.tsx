@@ -1,5 +1,5 @@
 import type { Route } from "./+types/index";
-import { Link } from "react-router";
+import { Link } from "~/components/SmartLink";
 import { getAllTags } from "~/db/queries/tags.server";
 import EmptyState from "~/components/EmptyState";
 import HeroSection from "~/components/HeroSection";

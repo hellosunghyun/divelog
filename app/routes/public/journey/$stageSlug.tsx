@@ -1,6 +1,6 @@
 import { data } from "react-router";
 import type { Route } from "./+types/$stageSlug";
-import { Link } from "react-router";
+import { Link } from "~/components/SmartLink";
 import { db } from "~/db/client.server";
 import { stages, records, questions, collaborationUnits, learnerProfiles } from "~/db/schema.server";
 import { eq, and, desc, sql } from "drizzle-orm";

@@ -1,0 +1,27 @@
+=== Task 9: Admin Link import migration ===
+
+=== react-router에서 Link import 잔여 확인 (0건이어야 함) ===
+(없음 - PASS)
+
+=== SmartLink import 확인 ===
+app/routes/admin/index.tsx:6:import { Link } from "~/components/SmartLink";
+app/routes/admin/collaboration/index.tsx:2:import { Link } from "~/components/SmartLink";
+app/routes/admin/collaboration/$groupId.tsx:3:import { Link } from "~/components/SmartLink";
+app/routes/admin/records/index.tsx:2:import { Link } from "~/components/SmartLink";
+app/routes/admin/records/$recordId.tsx:3:import { Link } from "~/components/SmartLink";
+app/routes/admin/stages/index.tsx:2:import { Link } from "~/components/SmartLink";
+app/routes/admin/stages/$stageId.tsx:3:import { Link } from "~/components/SmartLink";
+app/routes/admin/challenges/index.tsx:2:import { Link } from "~/components/SmartLink";
+app/routes/admin/challenges/$challengeId.tsx:3:import { Link } from "~/components/SmartLink";
+app/routes/admin/learners/index.tsx:2:import { Link } from "~/components/SmartLink";
+app/routes/admin/learners/$learnerId.tsx:3:import { Link } from "~/components/SmartLink";
+app/routes/admin/dialogue/index.tsx:2:import { Link } from "~/components/SmartLink";
+app/routes/admin/dialogue/$responseId.tsx:3:import { Link } from "~/components/SmartLink";
+app/routes/admin/templates/index.tsx:2:import { Link } from "~/components/SmartLink";
+app/routes/admin/templates/$templateId.tsx:3:import { Link } from "~/components/SmartLink";
+app/routes/admin/memories/index.tsx:2:import { Link } from "~/components/SmartLink";
+app/routes/admin/memories/$stageId.tsx:3:import { Link } from "~/components/SmartLink";
+app/components/admin/AdminSidebar.tsx:2:import { Link } from "~/components/SmartLink";
+
+=== tsc ===
+PASS (exit 0)
