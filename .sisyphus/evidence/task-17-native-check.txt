@@ -1,0 +1,6 @@
+=== Native Element Check ===
+select remaining: 0
+button remaining: 0
+table remaining: 0
+label remaining (tag-chip exceptions only): 2
+input remaining (tag-chip exceptions only): 2

@@ -238,13 +238,7 @@ export default function AdminTagsPage({ loaderData, actionData }: Route.Componen
               색상
             </Label>
             <div className="flex items-center gap-2">
-              <input
-                type="color"
-                id="color"
-                name="color"
-                defaultValue="#6E6E73"
-                className="w-8 h-8 border border-admin-border rounded cursor-pointer"
-              />
+              <input type="color" id="color" name="color" defaultValue="#6E6E73" className="w-8 h-8 border border-admin-border rounded cursor-pointer" />
               <span className="text-caption text-admin-text-secondary">#</span>
             </div>
           </div>

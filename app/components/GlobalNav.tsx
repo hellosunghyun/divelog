@@ -1,5 +1,6 @@
 import { useRouteLoaderData, useLocation, useNavigate } from "react-router";
 import { Link } from "~/components/SmartLink";
+import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { useState, useEffect, useRef } from "react";
 import { User, Inbox, Settings, ExternalLink, LogOut } from "lucide-react";
@@ -169,9 +170,11 @@ export default function GlobalNav() {
               </Link>
 
               <div className="relative self-center">
-                <button
+                <Button
                   ref={profileButtonRef}
                   type="button"
+                  variant="ghost"
+                  size="icon"
                   onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
                   className={`ml-1 flex items-center justify-center rounded-full transition-all ${focusRing} ${
                     isProfileMenuOpen || isActive("/me") || isActive("/settings")
@@ -193,7 +196,7 @@ export default function GlobalNav() {
                       {data.user?.name?.[0] ?? "?"}
                     </div>
                   )}
-                </button>
+                </Button>
 
                 {isProfileMenuOpen && (
                   <div
@@ -340,8 +343,10 @@ export default function GlobalNav() {
            )}
         </div>
 
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="icon"
           className={`lg:hidden p-2 -mr-2 rounded-lg text-text-secondary hover:text-text-primary hover:bg-mist-blue transition-colors ${focusRing}`}
           onClick={() => setIsMenuOpen(!isMenuOpen)}
           aria-label={isMenuOpen ? "메뉴 닫기" : "메뉴 열기"}
@@ -354,7 +359,7 @@ export default function GlobalNav() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6h16M4 12h16M4 18h16" />
             )}
           </svg>
-        </button>
+        </Button>
       </div>
 
     </header>

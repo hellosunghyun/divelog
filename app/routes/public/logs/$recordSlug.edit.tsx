@@ -259,11 +259,7 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
             <Label htmlFor="templateId" className="mb-2 block text-meta font-medium text-text-secondary">
               템플릿 (선택)
             </Label>
-            <input
-              type="hidden"
-              name="templateId"
-              value={templateValue === NO_SELECTION_VALUE ? "" : templateValue}
-            />
+            <input type="hidden" name="templateId" value={templateValue === NO_SELECTION_VALUE ? "" : templateValue} />
             <Select value={templateValue} onValueChange={setTemplateValue}>
               <SelectTrigger id="templateId" className="w-full bg-surface">
                 <SelectValue />
@@ -280,11 +276,7 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
           </div>
         ) : null}
 
-        <input
-          type="hidden"
-          name="stageId"
-          value={record.stageId ?? currentStage?.id ?? ""}
-        />
+        <input type="hidden" name="stageId" value={record.stageId ?? currentStage?.id ?? ""} />
 
         {collaborations.length > 0 ? (
           <div>
@@ -294,11 +286,7 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
             >
               협업 유닛 (선택)
             </Label>
-            <input
-              type="hidden"
-              name="collaborationUnitId"
-              value={collaborationValue === NO_SELECTION_VALUE ? "" : collaborationValue}
-            />
+            <input type="hidden" name="collaborationUnitId" value={collaborationValue === NO_SELECTION_VALUE ? "" : collaborationValue} />
             <Select value={collaborationValue} onValueChange={setCollaborationValue}>
               <SelectTrigger id="collaborationUnitId" className="w-full bg-surface">
                 <SelectValue />

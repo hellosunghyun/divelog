@@ -153,11 +153,7 @@ export default function WriteNotePage({ loaderData }: Route.ComponentProps) {
             >
               구간
             </Label>
-            <input
-              type="hidden"
-              name="stageId"
-              value={stageValue === NO_STAGE_VALUE ? "" : stageValue}
-            />
+            <input type="hidden" name="stageId" value={stageValue === NO_STAGE_VALUE ? "" : stageValue} />
             <Select value={stageValue} onValueChange={setStageValue}>
               <SelectTrigger id="stageId" className="w-auto min-w-40 bg-surface">
                 <SelectValue />

@@ -12,6 +12,7 @@ import SceneCard from "~/components/SceneCard";
 import { ContentRenderer } from "~/components/ContentRenderer";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -617,9 +618,9 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
                           <input type="hidden" name="recordId" value={record.id} />
                           
                           <div>
-                            <label htmlFor={`self-answer-content-${question.id}`} className="text-sm font-medium text-text-secondary mb-2 block">
+                            <Label htmlFor={`self-answer-content-${question.id}`} className="text-sm font-medium text-text-secondary mb-2 block">
                               나의 답변
-                            </label>
+                            </Label>
                             <Textarea
                               id={`self-answer-content-${question.id}`}
                               name="content"
@@ -694,9 +695,9 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
               <input type="hidden" name="recordId" value={record.id} />
 
               <div>
-                <label htmlFor="response-type" className="text-sm font-medium text-text-secondary mb-2 block">
+                <Label htmlFor="response-type" className="text-sm font-medium text-text-secondary mb-2 block">
                   응답 유형
-                </label>
+                </Label>
                 <Select name="type" required defaultValue={responseTypeOptions[0]?.value}>
                   <SelectTrigger id="response-type" className="w-full bg-surface">
                     <SelectValue placeholder="응답 유형 선택" />
@@ -713,14 +714,10 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
 
               {recordQuestions.length > 0 ? (
                 <div>
-                  <label htmlFor="question-id" className="text-sm font-medium text-text-secondary mb-2 block">
+                  <Label htmlFor="question-id" className="text-sm font-medium text-text-secondary mb-2 block">
                     연결할 질문 (선택)
-                  </label>
-                  <input
-                    type="hidden"
-                    name="questionId"
-                    value={responseQuestionValue === NO_QUESTION_VALUE ? "" : responseQuestionValue}
-                  />
+                  </Label>
+                  <input type="hidden" name="questionId" value={responseQuestionValue === NO_QUESTION_VALUE ? "" : responseQuestionValue} />
                   <Select value={responseQuestionValue} onValueChange={setResponseQuestionValue}>
                     <SelectTrigger id="question-id" className="w-full bg-surface">
                       <SelectValue placeholder="질문 선택" />
@@ -738,9 +735,9 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
               ) : null}
 
               <div>
-                <label htmlFor="response-content" className="text-sm font-medium text-text-secondary mb-2 block">
+                <Label htmlFor="response-content" className="text-sm font-medium text-text-secondary mb-2 block">
                   내용
-                </label>
+                </Label>
                 <Textarea
                   id="response-content"
                   name="content"
@@ -763,9 +760,9 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
               <h3 className="text-lg font-semibold text-text-primary tracking-tight">문장 저장하기</h3>
 
               <div>
-                <label htmlFor="sentence-content" className="text-sm font-medium text-text-secondary mb-2 block">
+                <Label htmlFor="sentence-content" className="text-sm font-medium text-text-secondary mb-2 block">
                   남겨두고 싶은 문장
-                </label>
+                </Label>
                 <Input
                   id="sentence-content"
                   name="content"
@@ -776,9 +773,9 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
               </div>
 
               <div>
-                <label htmlFor="sentence-reason" className="text-sm font-medium text-text-secondary mb-2 block">
+                <Label htmlFor="sentence-reason" className="text-sm font-medium text-text-secondary mb-2 block">
                   이유 (선택)
-                </label>
+                </Label>
                 <Textarea
                   id="sentence-reason"
                   name="reason"

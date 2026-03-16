@@ -202,11 +202,7 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
             >
               구간
             </Label>
-            <input
-              type="hidden"
-              name="stageId"
-              value={stageValue === NO_STAGE_VALUE ? "" : stageValue}
-            />
+            <input type="hidden" name="stageId" value={stageValue === NO_STAGE_VALUE ? "" : stageValue} />
             <Select value={stageValue} onValueChange={setStageValue}>
               <SelectTrigger id="stageId" className="w-auto min-w-40 bg-surface">
                 <SelectValue />
@@ -260,11 +256,7 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
             <Label htmlFor="templateId" className="mb-2 block text-meta font-medium text-text-secondary">
               템플릿 (선택)
             </Label>
-            <input
-              type="hidden"
-              name="templateId"
-              value={templateValue === NO_TEMPLATE_VALUE ? "" : templateValue}
-            />
+            <input type="hidden" name="templateId" value={templateValue === NO_TEMPLATE_VALUE ? "" : templateValue} />
             <Select value={templateValue} onValueChange={setTemplateValue}>
               <SelectTrigger id="templateId" className="w-full bg-surface">
                 <SelectValue placeholder="템플릿 없이 시작" />
