@@ -448,7 +448,7 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
           </Button>
           <Link
             to={`/logs/${record.slug}`}
-            className="border border-border text-text-secondary rounded-md px-6 py-3 text-base font-medium hover:bg-surface-secondary transition-colors no-underline"
+            className="inline-flex items-center justify-center border border-border text-text-secondary rounded-md px-6 py-3 text-base font-medium hover:bg-surface-secondary transition-colors no-underline"
           >
             취소
           </Link>

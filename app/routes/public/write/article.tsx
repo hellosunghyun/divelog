@@ -298,7 +298,7 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
           </Button>
           <Link
             to="/write"
-            className="rounded-md border border-border px-6 py-3 text-base font-medium text-text-secondary no-underline transition-colors hover:bg-surface-secondary"
+            className="inline-flex items-center justify-center rounded-md border border-border px-6 py-3 text-base font-medium text-text-secondary no-underline transition-colors hover:bg-surface-secondary"
           >
             취소
           </Link>
