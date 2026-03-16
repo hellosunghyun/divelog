@@ -157,11 +157,11 @@ export default function MySpacePage({ loaderData }: Route.ComponentProps) {
                       </p>
                     </Link>
                   ))}
-                  {recordsByStage["no-stage"].length > 5 && (
-                    <p className="text-sm text-text-tertiary mt-2">
-                      외 {recordsByStage["no-stage"].length - 5}개의 기록
-                    </p>
-                  )}
+                   {recordsByStage["no-stage"].length > 5 && (
+                     <p className="text-sm text-text-tertiary mt-2">
+                       외 {recordsByStage["no-stage"].length - 5}개의 기록이 더 있습니다
+                     </p>
+                   )}
                 </div>
               </div>
             )}
@@ -183,9 +183,9 @@ export default function MySpacePage({ loaderData }: Route.ComponentProps) {
                     <h3 className="text-lg font-semibold text-text-primary tracking-tight">
                       {stage.name}
                     </h3>
-                    <span className="text-caption text-text-tertiary">
-                      {toneStyle.label} · {stageRecords.length}개의 기록
-                    </span>
+                     <span className="text-caption text-text-tertiary">
+                       {toneStyle.label} {stageRecords.length > 0 ? "· 기록이 시작되었습니다" : "· 아직 기록이 없습니다"}
+                     </span>
                   </div>
                   
                   {stageRecords.length === 0 ? (
@@ -208,11 +208,11 @@ export default function MySpacePage({ loaderData }: Route.ComponentProps) {
                           </p>
                         </Link>
                       ))}
-                      {stageRecords.length > 3 && (
-                        <p className="text-sm text-text-tertiary mt-2">
-                          외 {stageRecords.length - 3}개의 기록
-                        </p>
-                      )}
+                       {stageRecords.length > 3 && (
+                         <p className="text-sm text-text-tertiary mt-2">
+                           외 {stageRecords.length - 3}개의 기록이 더 있습니다
+                         </p>
+                       )}
                     </div>
                   )}
                 </div>

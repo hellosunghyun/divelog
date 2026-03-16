@@ -186,9 +186,9 @@ export default function LearnerDetailPage({ loaderData }: Route.ComponentProps) 
                   <span className="text-text-primary font-medium">
                     {stage.stageName ?? "Stage 없음"}
                   </span>
-                  <span className="text-meta text-text-secondary">
-                    {stage.count}개의 기록
-                  </span>
+                   <span className="text-meta text-text-secondary">
+                     {stage.count > 0 ? "기록이 시작되었습니다" : "아직 기록이 없습니다"}
+                   </span>
                 </Link>
               ))}
             </div>
