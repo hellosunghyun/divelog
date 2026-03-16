@@ -247,36 +247,70 @@ function getSlashItems(options: Pick<SlashCommandMenuOptions, "uploadImage" | "o
       description: "텍스트를 빨간색으로",
       icon: "🔴",
       keywords: ["빨강", "red", "색상", "color"],
-      command: ({ editor, range }) => {
-        editor.chain().focus().deleteRange(range).setColor("#DC2626").run();
-      },
+      command: ({ editor, range }) => { editor.chain().focus().deleteRange(range).setColor("#DC2626").run(); },
     },
     {
-      title: "파랑 텍스트",
-      description: "텍스트를 파란색으로",
-      icon: "🔵",
-      keywords: ["파랑", "blue", "색상", "color"],
-      command: ({ editor, range }) => {
-        editor.chain().focus().deleteRange(range).setColor("#146C94").run();
-      },
+      title: "주황 텍스트",
+      description: "텍스트를 주황색으로",
+      icon: "🟠",
+      keywords: ["주황", "orange", "색상", "color"],
+      command: ({ editor, range }) => { editor.chain().focus().deleteRange(range).setColor("#EA580C").run(); },
+    },
+    {
+      title: "노랑 텍스트",
+      description: "텍스트를 노란색으로",
+      icon: "🟡",
+      keywords: ["노랑", "yellow", "색상", "color"],
+      command: ({ editor, range }) => { editor.chain().focus().deleteRange(range).setColor("#CA8A04").run(); },
     },
     {
       title: "초록 텍스트",
       description: "텍스트를 초록색으로",
       icon: "🟢",
       keywords: ["초록", "green", "색상", "color"],
-      command: ({ editor, range }) => {
-        editor.chain().focus().deleteRange(range).setColor("#16A34A").run();
-      },
+      command: ({ editor, range }) => { editor.chain().focus().deleteRange(range).setColor("#16A34A").run(); },
+    },
+    {
+      title: "파랑 텍스트",
+      description: "텍스트를 파란색으로",
+      icon: "🔵",
+      keywords: ["파랑", "blue", "색상", "color"],
+      command: ({ editor, range }) => { editor.chain().focus().deleteRange(range).setColor("#146C94").run(); },
     },
     {
       title: "보라 텍스트",
       description: "텍스트를 보라색으로",
       icon: "🟣",
       keywords: ["보라", "purple", "색상", "color"],
-      command: ({ editor, range }) => {
-        editor.chain().focus().deleteRange(range).setColor("#7C3AED").run();
-      },
+      command: ({ editor, range }) => { editor.chain().focus().deleteRange(range).setColor("#7C3AED").run(); },
+    },
+    {
+      title: "분홍 텍스트",
+      description: "텍스트를 분홍색으로",
+      icon: "💗",
+      keywords: ["분홍", "pink", "색상", "color"],
+      command: ({ editor, range }) => { editor.chain().focus().deleteRange(range).setColor("#DB2777").run(); },
+    },
+    {
+      title: "갈색 텍스트",
+      description: "텍스트를 갈색으로",
+      icon: "🟤",
+      keywords: ["갈색", "brown", "색상", "color"],
+      command: ({ editor, range }) => { editor.chain().focus().deleteRange(range).setColor("#92400E").run(); },
+    },
+    {
+      title: "회색 텍스트",
+      description: "텍스트를 회색으로",
+      icon: "⚪",
+      keywords: ["회색", "gray", "grey", "색상", "color"],
+      command: ({ editor, range }) => { editor.chain().focus().deleteRange(range).setColor("#6B7280").run(); },
+    },
+    {
+      title: "색상 초기화",
+      description: "텍스트 색상을 기본으로 되돌리기",
+      icon: "✖",
+      keywords: ["초기화", "reset", "기본", "색상", "color"],
+      command: ({ editor, range }) => { editor.chain().focus().deleteRange(range).unsetColor().run(); },
     },
     {
       title: "목차",
