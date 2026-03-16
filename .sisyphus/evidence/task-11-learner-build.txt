@@ -1,0 +1,58 @@
+# Task 11: Learner 상세 누락 섹션 추가 (M-2)
+
+## Summary
+Added two missing sections to the Learner detail page (/learners/:learnerSlug):
+1. "기록 아카이브" section — records grouped by stage with count per stage
+2. "협업 이력" section — collaboration units the learner participated in
+
+## Changes Made
+
+### File: app/routes/public/learners/$learnerSlug.tsx
+
+#### Imports Added
+- Added `stages`, `collaborationUnits`, `collaborationMembers` from schema.server.ts
+- Added `ne` from drizzle-orm
+- Added `CollaborationUnitCard` component import
+
+#### Loader Queries Added
+1. **recordsByStage query**: 
+   - Query records with stage info via leftJoin
+   - Group by stageId and count records per stage
+   - Returns `Array<{ stageId: string | null; stageName: string | null; stageSlug: string | null; count: number }>`
+
+2. **collaborationUnits query**:
+   - Query collaborationUnits via innerJoin with collaborationMembers
+   - Filters by learner.userId
+   - Returns array of collaboration unit objects
+
+#### Component Sections Added
+1. **"기록 아카이브" section** (after 남겨둔 문장들):
+   - List of stage rows with stage name + "N개의 기록" count
+   - Each row links to /journey/:stageSlug
+   - Only shown if recordsByStage.length > 0
+
+2. **"협업 이력" section** (last section):
+   - Uses CollaborationUnitCard for each unit
+   - Shows EmptyState with custom message if no units
+   - 2-column grid on desktop
+
+## Test Results
+```
+npm run test
+Test Files  6 passed (6)
+Tests       78 passed (78)
+Duration    256ms
+```
+
+## Build Results
+```
+npm run build
+✓ built client in 4.87s
+✓ built server in 4.65s
+```
+
+## Verification
+- All 78 tests pass
+- Build succeeds
+- No TypeScript errors
+- Follows Quiet Depth design guidelines

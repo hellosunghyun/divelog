@@ -1,0 +1,47 @@
+# Task 13: Search sentences tab panel rendering (M-5)
+
+## Summary
+Fixed the missing sentences tab panel in the search page. The tab label "문장" existed but there was no corresponding panel to render the sentence results.
+
+## Changes Made
+
+### File: app/routes/public/search.tsx
+
+1. **Added import** (line 10):
+   - `import HighlightedSentenceCard from "~/components/HighlightedSentenceCard";`
+
+2. **Added sentences tab panel** (lines 241-255):
+   - Added a new section that renders when tab is "all" or "sentences" and results.sentences.length > 0
+   - Uses a 2-column grid layout (consistent with other result sections)
+   - Maps over `results.sentences` and renders `HighlightedSentenceCard` for each sentence
+   - Passes `sentence` prop from the loaded data
+
+## Technical Details
+
+- The loader already fetched `foundSentences` (lines 76-89) and included it in `results.sentences`
+- `HighlightedSentenceCard` expects:
+  - `sentence: { id, content, reason? }` - provided from loader
+  - `savedBy?: { displayName, slug }` - optional, not provided
+  - `record?: { slug, title }` - optional, not provided
+- Since `savedBy` and `record` are optional props, the component renders correctly with just the sentence data
+
+## Verification
+
+### Test Results
+```
+Test Files  6 passed (6)
+Tests       78 passed (78)
+Duration    232ms
+```
+
+### Build Results
+```
+✓ built client in 3.75s
+✓ built server in 2.91s
+```
+
+## Design Consistency
+- Uses same section structure as other tab panels (records, learners, questions)
+- Uses 2-column grid (`grid-cols-1 md:grid-cols-2`) similar to other card sections
+- Section heading "문장" matches the tab label
+- Follows Quiet Depth design guidelines with consistent spacing and typography

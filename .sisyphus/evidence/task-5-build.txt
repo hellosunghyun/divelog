@@ -1,96 +1,68 @@
-T5: Tiptap 의존성 설치 및 에디터 베이스 설정 — BUILD EVIDENCE
-================================================================
+# Task 5: Response/Sentence Generation Action Draft Check + getRecordBySlug Defense-in-Depth
 
-TASK COMPLETION: ✅ SUCCESS
+## Completion Status: ✅ COMPLETE
 
-1. DEPENDENCIES INSTALLED
-   ✅ @tiptap/react@3.20.1
-   ✅ @tiptap/pm@3.20.1
-   ✅ @tiptap/starter-kit@3.20.1
-   ✅ @tiptap/html@3.20.1
-   ✅ @tiptap/extension-placeholder@3.20.1
-   ✅ @tiptap/extension-image@3.20.1
-   ✅ @tiptap/extension-code-block-lowlight@3.20.1
-   ✅ lowlight@3.3.0
-   ✅ @tiptap/extension-underline@3.20.1
-   
-   All packages installed to dependencies (not devDependencies)
-   Total: 87 packages added
+### Changes Made
 
-2. FILES CREATED
-   ✅ app/lib/editor-config.ts
-      - EDITOR_EXTENSIONS constant with all Tiptap extensions
-      - StarterKit configured (CodeBlock disabled for CodeBlockLowlight)
-      - Placeholder extension with Korean placeholder text
-      - Image extension configured (Phase 2 ready)
-      - CodeBlockLowlight with syntax highlighting
-      - Underline extension
-      - EDITOR_CONFIG constant for common settings
-      - EditorContent and EditorOptions type definitions
-      - No TypeScript errors (verified with npx tsc --noEmit)
+#### 1. getRecordBySlug() in app/db/queries/records.server.ts (lines 63-87)
+- Added optional `currentUserId?: string` parameter
+- Added defense-in-depth check: if record is draft and currentUserId is provided but doesn't match authorId, return null
+- Backward compatible: currentUserId is optional, all existing callers still work
 
-   ✅ app/styles/editor.css
-      - ProseMirror base container styles
-      - Focus state with Quiet Depth focus ring (#146C94)
-      - Paragraph, heading (h1-h6) styles
-      - Inline formatting (bold, italic, underline, strikethrough, code)
-      - Link styles with Ocean Blue color
-      - List styles (ul, ol, nested)
-      - Blockquote with left border and secondary background
-      - Code block with Surface Secondary background (#F2F5F8)
-      - Horizontal rule
-      - Image styles
-      - Selection highlight with Mist Blue
-      - Accessibility support (focus-visible)
-      - Reduced motion support
+#### 2. create_response action in app/routes/public/logs/$recordSlug.tsx (lines 169-184)
+- Extended query to select visibility and authorId in addition to responsePreference
+- Added draft visibility check: if record is draft and user is not author, return error "이 기록에 응답할 수 없습니다."
+- Check happens BEFORE responsePreference validation (defense-in-depth)
 
-   ✅ app/app.css
-      - Added import: @import "./styles/editor.css";
-      - Positioned after global.css import
-      - Ensures editor styles are included in build
+#### 3. save_sentence action in app/routes/public/logs/$recordSlug.tsx (lines 211-239)
+- Added query to fetch target record's visibility and authorId
+- Added draft visibility check: if record is draft and user is not author, return error "이 기록에 문장을 저장할 수 없습니다."
+- Check happens BEFORE saveSentence() call
 
-3. BUILD VERIFICATION
-   ✅ pnpm build — SUCCESS
-      - Client build: 206 modules transformed, 976ms
-      - SSR build: 310 modules transformed, 929ms
-      - Worker bundle: 1.4mb
-      - Exit code: 0
-      - No build errors
+### Verification Results
 
-4. TYPE CHECKING
-   ✅ app/lib/editor-config.ts — NO ERRORS
-      - Verified with: npx tsc --noEmit app/lib/editor-config.ts
-      - All imports resolve correctly
-      - All types are valid
-      - No TypeScript errors in new code
+#### Test Results
+✅ npm run test: 78/78 tests PASSED
+- Test Files: 6 passed
+- Tests: 78 passed
+- Duration: 258ms
 
-5. DESIGN COMPLIANCE
-   ✅ Quiet Depth Design System
-      - Border color: #E3E8EF (--color-border)
-      - Focus ring: #146C94 (--color-ocean-blue)
-      - Surface secondary: #F2F5F8 (code block background)
-      - Text colors: primary, secondary, tertiary
-      - Spacing: 4px multiples (--space-*)
-      - Border radius: --radius-sm (12px) for editor
-      - Typography: system-ui font stack, proper line-heights
-      - Motion: reduced-motion support included
+#### Build Results
+✅ npm run build: SUCCESS
+- Client build: ✓ 2629 modules transformed
+- Server build: ✓ 2757 modules transformed
+- Worker bundle: 3.4mb
+- Build completed in 92ms
 
-6. CONFIGURATION DETAILS
-   - Placeholder text: "무엇이 남았는지부터 적어도 좋습니다." (Korean)
-   - Autofocus: disabled by default
-   - Spell check: enabled
-   - Whitespace preservation: enabled
-   - Code block language: plaintext default
-   - Image base64: disabled (Phase 2)
+#### Draft Check Verification (grep)
+✅ All 3 locations have draft visibility checks:
 
-DELIVERABLES CHECKLIST
-✅ All Tiptap packages installed to dependencies
-✅ app/lib/editor-config.ts created with extension definitions
-✅ app/styles/editor.css created with ProseMirror overrides
-✅ editor.css imported in app/app.css
-✅ pnpm build successful (exit code 0)
-✅ TypeScript type check passed for new files
-✅ Quiet Depth design tokens applied
-✅ Evidence file created
+1. app/db/queries/records.server.ts:83
+   if (recordData && recordData.record.visibility === "draft" && currentUserId && currentUserId !== recordData.record.authorId)
 
-STATUS: READY FOR NEXT TASK (T6: Editor Component Implementation)
+2. app/routes/public/logs/$recordSlug.tsx:182
+   if (visibility === "draft" && authorId !== auth.user.id)
+   [create_response action]
+
+3. app/routes/public/logs/$recordSlug.tsx:241
+   if (visibility === "draft" && authorId !== auth.user.id)
+   [save_sentence action]
+
+### Defense-in-Depth Layers
+
+1. **Route Loader** (line 78-81): Existing check prevents draft records from being loaded for non-authors
+2. **create_response Action** (line 182-184): New check prevents responses on draft records
+3. **save_sentence Action** (line 241-243): New check prevents sentence saves on draft records
+4. **getRecordBySlug()** (line 83-85): New optional check for programmatic access
+
+### Issues Fixed
+- ✅ C-1: getRecordBySlug() now has visibility filter (defense-in-depth)
+- ✅ C-7: Response creation action now verifies target record is not draft
+- ✅ H-9: save_sentence action now verifies target record is not draft
+
+### Notes
+- All error messages use Korean as per AGENTS.md language requirement
+- Comments added to explain security-critical defense-in-depth checks
+- No changes to schema.server.ts or auth files
+- No changes to existing draft check in route loader (kept for defense-in-depth)
+- self_answer action already correctly checks authorId (no changes needed)

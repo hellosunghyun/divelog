@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { useState } from "react";
 import { Link } from "~/components/SmartLink";
 import { redirect, useActionData, useNavigation } from "react-router";
@@ -15,10 +15,12 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { db } from "~/db/client.server";
-import { records, stages } from "~/db/schema.server";
+import { syncMentionsForRecord } from "~/db/queries/mentions.server";
+import { learnerProfiles, notifications, records, stages } from "~/db/schema.server";
 import { useUnsavedWarning } from "~/hooks/useUnsavedWarning";
 import { requireVerified } from "~/lib/auth.middleware";
 import { getPlainText } from "~/lib/content.server";
+import { extractUserMentions } from "~/lib/extract-references.server";
 import { generateNoteTitle } from "~/lib/title.server";
 import { nanoid } from "~/lib/utils.server";
 import { createNoteSchema } from "~/lib/validation";
@@ -30,20 +32,27 @@ export function meta(_args: Route.MetaArgs) {
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {
-  await requireVerified(request, context);
+  const auth = await requireVerified(request, context);
 
   const database = db(context.cloudflare.env.DB);
-  const [currentStageResult, allStages] = await database.batch([
+  const [currentStageResult, allStages, learnerResult] = await database.batch([
     database.select().from(stages).where(eq(stages.isCurrent, true)).limit(1),
     database
       .select({ id: stages.id, name: stages.name, isCurrent: stages.isCurrent })
       .from(stages)
       .orderBy(stages.order),
+    database.select().from(learnerProfiles).where(eq(learnerProfiles.userId, auth.user.id)).limit(1),
   ]);
+
+  const learner = learnerResult[0] ?? null;
 
   return {
     currentStage: currentStageResult[0] ?? null,
     stages: allStages,
+    learnerDefaults: {
+      defaultVisibility: learner?.defaultVisibility ?? "cohort",
+      defaultResponsePreference: learner?.defaultResponsePreference ?? "open",
+    },
   };
 }
 
@@ -53,6 +62,8 @@ export async function action({ request, context }: Route.ActionArgs) {
   const formData = await request.formData();
   const contentRaw = formData.get("content");
   const content = typeof contentRaw === "string" ? contentRaw : "";
+  const responsePreferenceRaw = formData.get("responsePreference");
+  const responsePreference = typeof responsePreferenceRaw === "string" ? responsePreferenceRaw : "open";
 
   const parsed = createNoteSchema.safeParse({
     content,
@@ -89,7 +100,7 @@ export async function action({ request, context }: Route.ActionArgs) {
     type: "personal",
     rhythm: "free",
     visibility: parsed.data.visibility,
-    responsePreference: "open",
+    responsePreference,
     stageId: parsed.data.stageId ?? null,
     challengeId: null,
     collaborationUnitId: null,
@@ -97,11 +108,58 @@ export async function action({ request, context }: Route.ActionArgs) {
     updatedAt: now,
   });
 
+  const mentionSlugs = [...new Set(Array.from(content.matchAll(/(^|\s)@([a-z0-9][a-z0-9_-]*)/gi), (match) => match[2].toLowerCase()))];
+  const mentionedUsers =
+    mentionSlugs.length > 0
+      ? extractUserMentions(
+          JSON.stringify({
+            type: "doc",
+            content: mentionSlugs.map((mentionSlug) => ({
+              type: "mention",
+              attrs: { id: mentionSlug, label: mentionSlug },
+            })),
+          }),
+        )
+      : [];
+
+  if (mentionedUsers.length > 0) {
+    await syncMentionsForRecord(
+      context.cloudflare.env.DB,
+      id,
+      auth.user.id,
+      mentionedUsers.map((mention) => mention.slug),
+    );
+
+    const uniqueMentionSlugs = [...new Set(mentionedUsers.map((mention) => mention.slug).filter(Boolean))];
+    if (uniqueMentionSlugs.length > 0) {
+      const mentionedLearners = await database
+        .select({ userId: learnerProfiles.userId })
+        .from(learnerProfiles)
+        .where(sql`${learnerProfiles.slug} IN (${sql.join(uniqueMentionSlugs.map((mentionSlug) => sql`${mentionSlug}`), sql`, `)})`);
+
+      const actorName = auth.user.nickname ?? auth.user.name ?? "누군가";
+      for (const row of mentionedLearners) {
+        if (row.userId !== auth.user.id) {
+          await database.insert(notifications).values({
+            id: nanoid(),
+            recipientId: row.userId,
+            type: "mention",
+            title: `${actorName}님이 기록에서 당신을 언급했습니다`,
+            content: title,
+            recordId: id,
+            isRead: false,
+            createdAt: now,
+          });
+        }
+      }
+    }
+  }
+
   throw redirect(`/logs/${slug}`);
 }
 
 export default function WriteNotePage({ loaderData }: Route.ComponentProps) {
-  const { currentStage, stages: availableStages } = loaderData;
+  const { currentStage, stages: availableStages, learnerDefaults } = loaderData;
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const [noteContent, setNoteContent] = useState("");
@@ -134,7 +192,7 @@ export default function WriteNotePage({ loaderData }: Route.ComponentProps) {
             >
               공개 범위
             </Label>
-            <Select name="visibility" defaultValue="cohort">
+            <Select name="visibility" defaultValue={learnerDefaults.defaultVisibility}>
               <SelectTrigger id="visibility" className="w-auto min-w-36 bg-surface">
                 <SelectValue />
               </SelectTrigger>
@@ -169,6 +227,12 @@ export default function WriteNotePage({ loaderData }: Route.ComponentProps) {
               </SelectContent>
             </Select>
           </div>
+
+          <input
+            type="hidden"
+            name="responsePreference"
+            defaultValue={learnerDefaults.defaultResponsePreference}
+          />
         </div>
 
         <div>

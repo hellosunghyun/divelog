@@ -2,7 +2,7 @@ import type { Route } from "./+types/me";
 import { requireAuth } from "~/lib/auth.middleware";
 import { db } from "~/db/client.server";
 import { records, sentences, questions, learnerProfiles, stages } from "~/db/schema.server";
-import { eq, and, desc, sql, asc } from "drizzle-orm";
+import { eq, and, desc, sql, asc, ne } from "drizzle-orm";
 import SceneCard from "~/components/SceneCard";
 import HighlightedSentenceCard from "~/components/HighlightedSentenceCard";
 import QuestionCard from "~/components/QuestionCard";
@@ -80,7 +80,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
       })
       .from(records)
       .leftJoin(stages, eq(records.stageId, stages.id))
-      .where(eq(records.authorId, auth.user.id))
+      .where(and(eq(records.authorId, auth.user.id), ne(records.visibility, "draft")))
       .orderBy(desc(records.createdAt)),
   ]);
 
@@ -202,9 +202,6 @@ export default function MySpacePage({ loaderData }: Route.ComponentProps) {
                         >
                           <h4 className="text-base font-medium text-text-primary mb-1">
                             {record.title}
-                            {record.visibility === "draft" && (
-                              <span className="ml-2 text-caption text-warning font-medium">임시저장</span>
-                            )}
                           </h4>
                           <p className="text-sm text-text-secondary line-clamp-2">
                             {record.contentText?.substring(0, 100) ?? record.content.substring(0, 100)}

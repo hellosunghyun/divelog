@@ -1,20 +1,3 @@
-Task: T7 ArticleEditor implementation verification
-Date: 2026-03-15
-
-Command: npx tsc --noEmit
-Result: SUCCESS (exit code 0, no TypeScript errors)
-
-Command: pnpm build
-Result: SUCCESS (exit code 0)
-
-Key output lines:
-- > divelog@ build /Users/hellosunghyun/Documents/Github/divelog
-- > react-router build && node scripts/patch-worker.mjs
-- ✓ built in 775ms (client)
-- ✓ built in 670ms (ssr)
-- [patch-worker] bundled build/client/_worker.js for Cloudflare Pages
-
-[2026-03-17 00:15:16] Task 7 verification
 
 > test
 > vitest run
@@ -25,8 +8,8 @@ Key output lines:
 
 [2m Test Files [22m [1m[32m6 passed[39m[22m[90m (6)[39m
 [2m      Tests [22m [1m[32m78 passed[39m[22m[90m (78)[39m
-[2m   Start at [22m 00:15:16
-[2m   Duration [22m 252ms[2m (transform 235ms, setup 0ms, import 289ms, tests 95ms, environment 0ms)[22m
+[2m   Start at [22m 00:18:00
+[2m   Duration [22m 235ms[2m (transform 175ms, setup 0ms, import 260ms, tests 90ms, environment 2ms)[22m
 
 
 > build
@@ -109,7 +92,7 @@ build/client/assets/index-cKuEF9Tp.js                         2.94 kB │ gzip: 
 build/client/assets/settings-D67NTDco.js                      3.00 kB │ gzip:   1.31 kB │ map:     7.62 kB
 build/client/assets/inbox-BL0LAxZC.js                         3.22 kB │ gzip:   1.40 kB │ map:     8.97 kB
 build/client/assets/index-Cfy8HIzZ.js                         3.32 kB │ gzip:   1.57 kB │ map:     8.21 kB
-build/client/assets/note-BKVFFyGX.js                          3.41 kB │ gzip:   1.56 kB │ map:    10.35 kB
+build/client/assets/note-BKVFFyGX.js                          3.41 kB │ gzip:   1.56 kB │ map:    12.21 kB
 build/client/assets/_templateId-fW1FBFTx.js                   3.69 kB │ gzip:   1.39 kB │ map:     8.45 kB
 build/client/assets/_challengeId-Bsqj8aQA.js                  3.72 kB │ gzip:   1.19 kB │ map:     7.11 kB
 build/client/assets/search-D39USsbM.js                        3.85 kB │ gzip:   1.65 kB │ map:    11.86 kB
@@ -123,7 +106,7 @@ build/client/assets/tags-VRek3_pb.js                          5.42 kB │ gzip: 
 build/client/assets/_admin-CKOtXQQH.js                        5.44 kB │ gzip:   2.04 kB │ map:    13.18 kB
 build/client/assets/me-CICSx_Gh.js                            6.31 kB │ gzip:   2.12 kB │ map:    19.01 kB
 build/client/assets/guide-BE08nRdE.js                         6.81 kB │ gzip:   2.32 kB │ map:    12.13 kB
-build/client/assets/_recordSlug.edit-8KjqP3Os.js              8.53 kB │ gzip:   2.88 kB │ map:    24.67 kB
+build/client/assets/_recordSlug.edit-8KjqP3Os.js              8.53 kB │ gzip:   2.88 kB │ map:    25.38 kB
 build/client/assets/index-FQml7miy.js                         9.34 kB │ gzip:   3.57 kB │ map:    32.10 kB
 build/client/assets/_public-CCI16qcq.js                      20.44 kB │ gzip:   4.81 kB │ map:    50.54 kB
 build/client/assets/index-Do4yWGis.js                        20.70 kB │ gzip:   5.50 kB │ map:    47.60 kB
@@ -137,7 +120,7 @@ build/client/assets/ArticleEditor-BanJKwXw.js               697.57 kB │ gzip: 
 - Using dynamic import() to code-split the application
 - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
 - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
-✓ built in 3.61s
+✓ built in 3.59s
 vite v7.3.1 building ssr environment for production...
 [sentry-vite-plugin] Info: Sending telemetry data on issues and performance to Sentry. To disable telemetry, set `options.telemetry` to `false`.
 transforming...
@@ -162,9 +145,9 @@ build/server/wrangler.json                          1.75 kB
 build/server/assets/server-build-FrfJyyae.css      80.09 kB
 build/server/index.js                               0.66 kB │ map:     0.10 kB
 build/server/assets/compress-image-CkRocFyx.js      2.08 kB │ map:     3.25 kB
-build/server/assets/worker-entry-BEn5B3Hj.js      546.93 kB │ map: 1,391.71 kB
-build/server/assets/server-build-DpesXMgV.js    2,796.05 kB │ map: 5,227.66 kB
-✓ built in 3.07s
+build/server/assets/worker-entry-CZd1UIUn.js      546.93 kB │ map: 1,391.71 kB
+build/server/assets/server-build-COqMcmlC.js    2,798.00 kB │ map: 5,231.96 kB
+✓ built in 3.67s
 error: Auth token is required for this request. Please run `sentry-cli login` and try again!
 
 Add --log-level=[info|debug] or export SENTRY_LOG_LEVEL=[info|debug] to see more output.
@@ -177,5 +160,11 @@ Please attach the full debug log to all bug reports.
 
   build/worker.js  3.4mb ⚠️
 
-⚡ Done in 105ms
+⚡ Done in 99ms
 [patch-worker] bundled build/client/_worker.js for Cloudflare Pages
+app/routes/public/logs/$recordSlug.edit.tsx:12:import { syncMentionsForRecord } from "~/db/queries/mentions.server";
+app/routes/public/logs/$recordSlug.edit.tsx:14:import { syncRecordLinksForRecord } from "~/db/queries/recordLinks.server";
+app/routes/public/logs/$recordSlug.edit.tsx:139:    await syncMentionsForRecord(
+app/routes/public/logs/$recordSlug.edit.tsx:146:    await syncRecordLinksForRecord(context.cloudflare.env.DB, recordData.record.id, recordRefs);
+app/routes/public/write/note.tsx:9:import { syncMentionsForRecord } from "~/db/queries/mentions.server";
+app/routes/public/write/note.tsx:115:    await syncMentionsForRecord(

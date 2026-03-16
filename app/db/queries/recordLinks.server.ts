@@ -1,4 +1,4 @@
-import { eq, or } from "drizzle-orm";
+import { eq, or, and, sql } from "drizzle-orm";
 import { db } from "../client.server";
 import { recordLinks, records, learnerProfiles } from "../schema.server";
 import { nanoid } from "../../lib/utils.server";
@@ -41,9 +41,12 @@ export async function getRecordLinksByRecord(d1: D1Database, recordId: string) {
     .leftJoin(records, eq(recordLinks.targetRecordId, records.id))
     .leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
     .where(
-      or(
-        eq(recordLinks.sourceRecordId, recordId),
-        eq(recordLinks.targetRecordId, recordId),
+      and(
+        or(
+          eq(recordLinks.sourceRecordId, recordId),
+          eq(recordLinks.targetRecordId, recordId),
+        ),
+        sql`${records.visibility} != 'draft'`,
       ),
     );
 }
@@ -62,5 +65,10 @@ export async function getIncomingLinks(d1: D1Database, targetRecordId: string) {
     .from(recordLinks)
     .leftJoin(records, eq(recordLinks.sourceRecordId, records.id))
     .leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
-    .where(eq(recordLinks.targetRecordId, targetRecordId));
+    .where(
+      and(
+        eq(recordLinks.targetRecordId, targetRecordId),
+        sql`${records.visibility} != 'draft'`,
+      ),
+    );
 }

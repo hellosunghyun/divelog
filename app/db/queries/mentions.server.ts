@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 import { db } from "../client.server";
 import { mentions, learnerProfiles } from "../schema.server";
 import { nanoid } from "../../lib/utils.server";
@@ -61,6 +61,11 @@ export async function getMentionsOfUser(d1: D1Database, userId: string, limit = 
     .from(mentions)
     .leftJoin(records, eq(mentions.recordId, records.id))
     .leftJoin(learnerProfiles, eq(mentions.mentionedById, learnerProfiles.userId))
-    .where(eq(mentions.mentionedUserId, userId))
+    .where(
+      and(
+        eq(mentions.mentionedUserId, userId),
+        sql`${records.visibility} != 'draft'`,
+      ),
+    )
     .limit(limit);
 }

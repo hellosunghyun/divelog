@@ -1,0 +1,38 @@
+Task 14 - Record Detail breadcrumb + Guide FAQ
+
+=== npm run test ===
+78 tests passing
+
+=== npm run build ===
+Build succeeded (output truncated for evidence)
+
+Client build:
+- guide-D-tEXT5Q.js (11.43 kB)
+- _recordSlug-biBDh_ox.js (21.97 kB)
+
+Server build:
+- worker-entry-CB7Sd6pe.js (546.93 kB)
+- server-build-C0Hnw6zi.js (2,818.26 kB)
+
+=== LSP Diagnostics ===
+No diagnostics found on either file
+
+=== Changes Made ===
+
+1. app/routes/public/logs/$recordSlug.tsx:
+   - Added stages import to schema imports
+   - Updated loader to join stages table and return stage data
+   - Added breadcrumb navigation with aria-label="breadcrumb"
+   - Breadcrumb structure: 기록 > {stage.name} > {record.title}
+   - Stage link only shown when stage exists
+
+2. app/routes/public/guide.tsx:
+   - Added FAQ section with 5 Q&A items:
+     1. 기록이란 무엇인가요? (Note vs Article)
+     2. 응답 유형에는 어떤 것이 있나요? (5가지 응답 유형)
+     3. 공개 범위(Visibility)는 어떻게 설정하나요? (draft/cohort/public)
+     4. 협업은 어떻게 시작하나요? (Collaboration Unit)
+     5. 설정은 어디서 변경하나요? (/settings 링크)
+   - Korean language, warm and non-judgmental tone
+   - Clean Q&A format with border separators
+

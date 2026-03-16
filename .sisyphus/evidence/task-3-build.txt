@@ -1,0 +1,71 @@
+# Task 3: Home/Stage/Learner Inline Query Visibility Filter Fix
+
+## Summary
+Fixed visibility filters on 4 inline queries across 3 route files to prevent draft records from being exposed on public pages.
+
+## Issues Fixed
+- C-4: Home page sentences query did NOT filter by parent record visibility
+- C-5: Stage detail and Learner detail questions/sentences queries missed visibility filter on parent record
+
+## Changes Made
+
+### 1. app/routes/public/index.tsx
+- **Line 78**: Added visibility filter to sentences query
+  - Before: `.from(sentences).leftJoin(...).orderBy(...)`
+  - After: `.from(sentences).leftJoin(...).where(sql\`${records.visibility} != 'draft'\`).orderBy(...)`
+
+### 2. app/routes/public/journey/$stageSlug.tsx
+- **Line 57**: Added visibility filter to questions query
+  - Before: `.where(and(eq(records.stageId, stage.id), eq(questions.isOpen, true)))`
+  - After: `.where(and(eq(records.stageId, stage.id), eq(questions.isOpen, true), sql\`${records.visibility} != 'draft'\`))`
+- **Fixed TypeScript errors** (14 pre-existing errors):
+  - Added type assertion in meta() function: `const typedData = loaderData as Awaited<ReturnType<typeof loader>>;`
+  - Added type assertion in component: `const { ... } = loaderData as Awaited<ReturnType<typeof loader>>;`
+  - Fixed map function destructuring with explicit typing
+
+### 3. app/routes/public/learners/$learnerSlug.tsx
+- **Line 35**: Added visibility filter to questions query
+  - Before: `.where(and(eq(records.authorId, learner.userId), eq(questions.isOpen, true)))`
+  - After: `.where(and(eq(records.authorId, learner.userId), eq(questions.isOpen, true), sql\`${records.visibility} != 'draft'\`))`
+- **Line 36**: Added records join + visibility filter to sentences query
+  - Before: `.from(sentences).where(eq(sentences.savedById, learner.userId))`
+  - After: `.from(sentences).leftJoin(records, eq(sentences.recordId, records.id)).where(and(eq(sentences.savedById, learner.userId), sql\`${records.visibility} != 'draft'\`))`
+- **Fixed TypeScript errors** (11 pre-existing errors):
+  - Added type assertion in meta() function
+  - Added type assertion in component
+  - Fixed map function destructuring with explicit typing
+
+## Verification
+
+### Test Results
+✓ All 78 tests pass
+- Test Files: 6 passed
+- Tests: 78 passed
+- Duration: 217ms
+
+### Build Results
+✓ Production build succeeds
+- Client build: ✓ 2629 modules transformed
+- Server build: ✓ 2757 modules transformed
+- Worker bundle: 3.4mb
+
+### Visibility Filter Verification
+Confirmed all 4 visibility filters are in place:
+
+1. index.tsx line 45: records query (existing)
+2. index.tsx line 62: questions query (existing)
+3. index.tsx line 78: sentences query (NEW)
+4. $stageSlug.tsx line 46: records query (existing)
+5. $stageSlug.tsx line 57: questions query (NEW)
+6. $learnerSlug.tsx line 32: records query (existing)
+7. $learnerSlug.tsx line 35: questions query (NEW)
+8. $learnerSlug.tsx line 36: sentences query (NEW)
+
+## Impact
+- Draft records are now properly filtered from:
+  - Home page recent sentences section
+  - Stage detail page open questions section
+  - Learner detail page open questions section
+  - Learner detail page saved sentences section
+- All TypeScript errors resolved
+- No breaking changes to existing functionality

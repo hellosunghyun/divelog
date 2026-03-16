@@ -1,0 +1,185 @@
+# TASK 1: 환경 검증 + 테스트 기반라인 확립
+## Baseline Report
+Date: 2026-03-17
+Worktree: /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix
+Branch: fix/codebase-contradictions
+
+---
+
+## 1. npm run typecheck
+Status: ❌ FAILED (TypeScript errors detected)
+Exit Code: 1
+
+Summary:
+- cf-typegen: ✅ PASSED
+- react-router typegen: ✅ PASSED
+- tsc -b: ❌ FAILED
+
+Error Count: 25 errors across 2 files
+- app/routes/public/journey/$stageSlug.tsx: 14 errors
+  - Property 'stage' does not exist on type '{}'
+  - Property 'allStages' does not exist on type 'unknown'
+  - Property 'stageRecords' does not exist on type 'unknown'
+  - Property 'stageQuestions' does not exist on type 'unknown'
+  - Property 'stageCollaborations' does not exist on type 'unknown'
+  - Binding element 'question' implicitly has an 'any' type
+  - Binding element 'recordSlug' implicitly has an 'any' type
+  - Binding element 'recordTitle' implicitly has an 'any' type
+  - Parameter 'unit' implicitly has an 'any' type
+  - Binding element 'record' implicitly has an 'any' type
+  - Binding element 'author' implicitly has an 'any' type
+
+- app/routes/public/learners/$learnerSlug.tsx: 11 errors
+  - Property 'learner' does not exist on type '{}'
+  - Property 'learnerRecords' does not exist on type 'unknown'
+  - Property 'learnerQuestions' does not exist on type 'unknown'
+  - Property 'learnerSentences' does not exist on type 'unknown'
+  - Binding element 'question' implicitly has an 'any' type
+  - Binding element 'recordSlug' implicitly has an 'any' type
+  - Binding element 'recordTitle' implicitly has an 'any' type
+  - Binding element 'record' implicitly has an 'any' type
+  - Binding element 'sentence' implicitly has an 'any' type
+
+Root Cause: Missing Route.LoaderData type annotations in loader functions
+Impact: Blocks production builds; requires type fixes in Task 2
+
+---
+
+## 2. npm run test
+Status: ✅ PASSED
+Exit Code: 0
+
+Test Results:
+- Test Files: 6 passed (6)
+- Tests: 78 passed (78)
+- Duration: 292ms
+  - Transform: 145ms
+  - Setup: 0ms
+  - Import: 244ms
+  - Tests: 120ms
+  - Environment: 4ms
+
+Test Coverage:
+- All utility-level tests passing
+- No route/query integration tests (as expected)
+- No failures or skipped tests
+
+---
+
+## 3. npm run build
+Status: ⚠️ PASSED WITH WARNINGS
+Exit Code: 0
+
+Build Summary:
+- Client build: ✅ PASSED
+  - Modules: 2757 transformed
+  - Chunks: 50+ generated
+  - Warnings: Large chunks (>500KB) detected
+    - ArticleEditor: 697.57 kB (gzip: 215.58 kB)
+    - entry.client: 418.74 kB (gzip: 135.71 kB)
+    - chunk-EPOLDU6W: 124.91 kB (gzip: 42.34 kB)
+  - Duration: 3.35s
+
+- Server build: ✅ PASSED
+  - Modules: 2757 transformed
+  - Chunks: 4 generated
+  - Warnings: Dynamic/static import conflicts (non-blocking)
+    - auth.server.ts
+    - schema.server.ts
+    - content.server.ts
+    - drizzle-orm
+  - Duration: 2.74s
+
+- Worker build: ✅ PASSED
+  - Size: 3.4 MB
+  - Duration: 94ms
+
+- Sentry Integration: ⚠️ SKIPPED
+  - Auth token not configured (expected in local dev)
+  - No impact on build success
+
+Overall: Build artifact generated successfully at build/
+
+---
+
+## 4. D1 Migrations
+Status: ✅ PASSED
+Exit Code: 0
+
+Migrations Applied:
+1. 0000_empty_mister_sinister.sql ✅
+2. 0001_dear_jamie_braddock.sql ✅
+3. 0002_majestic_bastion.sql ✅
+4. 0003_bored_mister_fear.sql ✅
+5. 0004_add_email_to_learner_profiles.sql ✅
+
+Database: D1 (12a8007b-d92c-45cf-8bab-2d5692d704c1)
+Location: .wrangler/state/v3/d1
+
+---
+
+## 5. D1 Seed Data
+Status: ✅ PASSED
+Exit Code: 0
+
+Seed Execution:
+- All INSERT/UPDATE statements executed successfully
+- No errors or constraint violations
+- Database ready for testing
+
+---
+
+## 6. records.cohort Population Status
+Status: ✅ VERIFIED
+
+Query: SELECT cohort, COUNT(*) as count FROM records GROUP BY cohort;
+
+Results:
+┌─────────────┬───────┐
+│ cohort      │ count │
+├─────────────┼───────┤
+│ cohort-2026 │    25 │
+└─────────────┴───────┘
+
+Key Findings:
+- All 25 records have cohort = 'cohort-2026'
+- NO NULL values in records.cohort column
+- Cohort filtering will work without NULL handling
+- Seed data is consistent and complete
+
+---
+
+## BASELINE SUMMARY
+
+| Check | Status | Notes |
+|-------|--------|-------|
+| typecheck | ❌ FAILED | 25 TS errors in 2 route files (loader type annotations) |
+| test | ✅ PASSED | 78/78 tests passing |
+| build | ✅ PASSED | Artifact generated; Sentry auth skipped (expected) |
+| migrations | ✅ PASSED | All 5 migrations applied |
+| seed | ✅ PASSED | 25 records inserted |
+| records.cohort | ✅ VERIFIED | All 25 records have cohort='cohort-2026', no NULLs |
+
+---
+
+## IMPLICATIONS FOR WAVE 1
+
+✅ Ready to proceed with Tasks 2-5:
+- Database schema is correct and populated
+- Test infrastructure is working
+- Build pipeline is functional
+- Cohort filtering can proceed without NULL handling
+
+⚠️ Blocker for production:
+- TypeScript errors must be fixed before deployment
+- Task 2 will address loader type annotations
+
+---
+
+## NEXT STEPS (Task 2)
+
+1. Add Route.LoaderData type to $stageSlug.tsx loader
+2. Add Route.LoaderData type to $learnerSlug.tsx loader
+3. Verify typecheck passes
+4. Proceed with cohort filtering implementation (Task 3)
+

@@ -20,10 +20,13 @@ import {
 } from "~/components/ui/select";
 import { db } from "~/db/client.server";
 import { collaborationUnits, recordTags, stages, templates } from "~/db/schema.server";
+import { syncMentionsForRecord } from "~/db/queries/mentions.server";
 import { getRecordBySlug, updateRecord } from "~/db/queries/records.server";
+import { syncRecordLinksForRecord } from "~/db/queries/recordLinks.server";
 import { getAllTags, getTagsByRecord } from "~/db/queries/tags.server";
 import { requireVerified } from "~/lib/auth.middleware";
 import { getPlainText } from "~/lib/content.server";
+import { extractRecordRefs, extractUserMentions } from "~/lib/extract-references.server";
 import { createLogger } from "~/lib/logger.server";
 import { createRecordSchema } from "~/lib/validation";
 import { cleanupRemovedImages } from "~/lib/r2-cleanup.server";
@@ -46,7 +49,7 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
   }
 
   const database = db(context.cloudflare.env.DB);
-  const recordData = await getRecordBySlug(context.cloudflare.env.DB, recordSlug);
+  const recordData = await getRecordBySlug(context.cloudflare.env.DB, recordSlug, auth.user.id);
 
   if (!recordData) {
     throw new Response("Not Found", { status: 404 });
@@ -86,7 +89,7 @@ export async function action({ params, request, context }: Route.ActionArgs) {
   }
 
   const formData = await request.formData();
-  const recordData = await getRecordBySlug(context.cloudflare.env.DB, recordSlug);
+  const recordData = await getRecordBySlug(context.cloudflare.env.DB, recordSlug, auth.user.id);
 
   if (!recordData || recordData.record.authorId !== auth.user.id) {
     return data({ error: "권한이 없습니다." }, { status: 403 });
@@ -141,6 +144,20 @@ export async function action({ params, request, context }: Route.ActionArgs) {
     challengeId: parsed.data.challengeId,
     collaborationUnitId: parsed.data.collaborationUnitId,
   });
+
+  if (parsed.data.format === "article") {
+    const mentionedUsers = extractUserMentions(parsed.data.content);
+    const recordRefs = extractRecordRefs(parsed.data.content);
+
+    await syncMentionsForRecord(
+      context.cloudflare.env.DB,
+      recordData.record.id,
+      auth.user.id,
+      mentionedUsers.map((mention) => mention.slug),
+    );
+
+    await syncRecordLinksForRecord(context.cloudflare.env.DB, recordData.record.id, recordRefs);
+  }
 
   logger.info("record_update", { recordId: recordData.record.id });
 

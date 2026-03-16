@@ -36,7 +36,7 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
     throw new Response("Not Found", { status: 404 });
   }
 
-  const recordData = await getRecordBySlug(context.cloudflare.env.DB, recordSlug);
+  const recordData = await getRecordBySlug(context.cloudflare.env.DB, recordSlug, auth.user.id);
 
   if (!recordData) {
     throw new Response("Not Found", { status: 404 });
@@ -70,7 +70,7 @@ export async function action({ params, request, context }: Route.ActionArgs) {
     throw data({ error: "기록을 찾을 수 없습니다." }, { status: 404 });
   }
 
-  const recordData = await getRecordBySlug(context.cloudflare.env.DB, recordSlug);
+  const recordData = await getRecordBySlug(context.cloudflare.env.DB, recordSlug, auth.user.id);
 
   if (!recordData || recordData.record.authorId !== auth.user.id) {
     return data({ error: "기록을 찾을 수 없습니다." }, { status: 404 });

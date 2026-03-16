@@ -1,0 +1,31 @@
+# Task 9: Response Visibility User Selection (H-6)
+
+## Changes Made
+
+### 1. app/lib/validation.ts
+- ✅ Confirmed: createResponseSchema already has `visibility: z.enum(["cohort", "public"]).default("cohort")` (line 110)
+- No changes needed - schema was already correct
+
+### 2. app/routes/public/logs/$recordSlug.tsx - Action Handler
+- ✅ Line 162: Changed from hardcoded `visibility: "cohort"` to `visibility: formData.get("visibility") || "cohort"`
+- ✅ Line 204: Changed from hardcoded `visibility: "cohort"` to `visibility: parsed.data.visibility`
+
+### 3. app/routes/public/logs/$recordSlug.tsx - Response Form UI
+- ✅ Added visibility select dropdown after response type select (lines 714-720)
+- Label: "공개 범위" (Public Range)
+- Options:
+  - "cohort" → "코호트 공개" (Cohort Public)
+  - "public" → "전체 공개" (Fully Public)
+- Default value: "cohort"
+- Styling: Consistent with existing form selects (rounded-lg, border, focus ring)
+
+## Test Results
+✅ npm run test: 78/78 tests PASSED
+✅ npm run build: SUCCESS
+
+## Verification
+- Users can now select response visibility when creating responses
+- Validation schema enforces only "cohort" or "public" values
+- Default is "cohort" for backward compatibility
+- No changes to existing response visibility values in database
+- No response editing/deletion functionality added (as required)
