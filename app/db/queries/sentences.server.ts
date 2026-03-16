@@ -5,6 +5,8 @@ import { nanoid } from "../../lib/utils.server";
 import { db } from "../client.server";
 import { learnerProfiles, sentences } from "../schema.server";
 
+export type Sentence = typeof sentences.$inferSelect;
+
 export async function getSentencesByRecord(d1: D1Database, recordId: string) {
   const database = db(d1);
 
@@ -47,4 +49,16 @@ export async function getSentencesByUser(d1: D1Database, userId: string) {
     .from(sentences)
     .where(eq(sentences.savedById, userId))
     .orderBy(desc(sentences.createdAt));
+}
+
+export async function getSentenceById(d1: D1Database, sentenceId: string): Promise<Sentence | null> {
+  const database = db(d1);
+
+  const [sentence] = await database
+    .select()
+    .from(sentences)
+    .where(eq(sentences.id, sentenceId))
+    .limit(1);
+
+  return sentence ?? null;
 }

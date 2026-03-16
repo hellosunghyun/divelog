@@ -9,6 +9,7 @@ import { NoteEditor } from "~/components/editor/NoteEditor";
 import { db } from "~/db/client.server";
 import { deleteDraft, getDraftByAuthorAndFormat } from "~/db/queries/drafts.server";
 import { createQuestion } from "~/db/queries/questions.server";
+import { getSentenceById } from "~/db/queries/sentences.server";
 import { records, stages } from "~/db/schema.server";
 import { useAutosave } from "~/hooks/useAutosave";
 import { useUnsavedWarning } from "~/hooks/useUnsavedWarning";
@@ -53,16 +54,21 @@ type NoteLoaderData = Awaited<ReturnType<typeof loader>>;
 
 export async function loader({ request, context }: Route.LoaderArgs) {
   const auth = await requireVerified(request, context);
+  const url = new URL(request.url);
+  const fromSentence = url.searchParams.get("from") === "sentence";
+  const sentenceId = fromSentence ? url.searchParams.get("id") : null;
 
   const database = db(context.cloudflare.env.DB);
-  const [currentStageResult, allStages, serverDraftRecord] = await Promise.all([
+  const [currentStageResult, allStages, serverDraftRecord, sourceSentence] = await Promise.all([
     database.select().from(stages).where(eq(stages.isCurrent, true)).limit(1),
     database
       .select({ id: stages.id, name: stages.name, isCurrent: stages.isCurrent })
       .from(stages)
       .orderBy(stages.order),
     getDraftByAuthorAndFormat(context.cloudflare.env.DB, auth.user.id, "note"),
+    sentenceId ? getSentenceById(context.cloudflare.env.DB, sentenceId) : Promise.resolve(null),
   ]);
+  const prefillContent = sourceSentence ? `> ${sourceSentence.content}\n\n` : "";
 
   const serverDraft =
     serverDraftRecord && serverDraftRecord.content.trim().length > 0
@@ -81,6 +87,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     stages: allStages,
     serverDraft,
     warmupPrompt: getRandomWarmupPrompt(),
+    prefillContent,
   };
 }
 
@@ -165,13 +172,13 @@ export async function action({ request, context }: Route.ActionArgs) {
 }
 
 export default function WriteNotePage() {
-  const { currentStage, stages: availableStages, warmupPrompt, serverDraft, localDraft } =
+  const { currentStage, stages: availableStages, warmupPrompt, serverDraft, localDraft, prefillContent } =
     useLoaderData<typeof clientLoader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const location = useLocation();
-  const recoveryDraft = serverDraft ?? localDraft;
-  const [noteContent, setNoteContent] = useState("");
+  const recoveryDraft = prefillContent ? null : serverDraft ?? localDraft;
+  const [noteContent, setNoteContent] = useState(prefillContent);
   const [selectedVisibility, setSelectedVisibility] = useState<"draft" | "cohort" | "public">(
     "cohort",
   );
@@ -182,10 +189,21 @@ export default function WriteNotePage() {
   >("open");
   const [showSettings, setShowSettings] = useState(false);
   const [showRecovery, setShowRecovery] = useState(Boolean(recoveryDraft));
-  const [hasStartedTyping, setHasStartedTyping] = useState(false);
+  const [hasStartedTyping, setHasStartedTyping] = useState(Boolean(prefillContent));
   const [editorKey, setEditorKey] = useState(0);
   const isSubmitting = navigation.state === "submitting";
   const contentError = actionData?.errors?.content?.[0];
+
+  useEffect(() => {
+    if (!prefillContent) {
+      return;
+    }
+
+    setNoteContent(prefillContent);
+    setShowRecovery(false);
+    setHasStartedTyping(true);
+    setEditorKey((currentValue: number) => currentValue + 1);
+  }, [prefillContent]);
 
   const getAutosaveFormData = useCallback(
     () => ({

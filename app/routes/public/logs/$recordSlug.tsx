@@ -1,6 +1,6 @@
 import { and, desc, eq } from "drizzle-orm";
 import { Link } from "~/components/SmartLink";
-import { data, useActionData, useNavigation, useSubmit } from "react-router";
+import { Form, data, useActionData, useNavigation, useSubmit } from "react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import EmptyState from "~/components/EmptyState";
@@ -12,7 +12,8 @@ import SelfAnswerCard from "~/components/SelfAnswerCard";
 import SceneCard from "~/components/SceneCard";
 import { ContentRenderer } from "~/components/ContentRenderer";
 import { db } from "~/db/client.server";
-import { saveSentence } from "~/db/queries/sentences.server";
+import { createQuestion } from "~/db/queries/questions.server";
+import { getSentenceById, saveSentence } from "~/db/queries/sentences.server";
 import { learnerProfiles, questions, records, responses, sentences } from "~/db/schema.server";
 import { createSelfAnswer, getSelfAnswersByRecord } from "~/db/queries/selfAnswers.server";
 import { getLinkedRecords } from "~/db/queries/records.server";
@@ -278,6 +279,38 @@ export async function action({ request, context }: Route.ActionArgs) {
     });
 
     return { success: "응답이 등록되었습니다." };
+  }
+
+  if (intent === "create_question_from_sentence") {
+    const sentenceId = formData.get("sentenceId")?.toString();
+    const recordId = formData.get("recordId")?.toString();
+    const sentenceContent = formData.get("sentenceContent")?.toString().trim();
+
+    if (!sentenceId || !recordId) {
+      return { error: "문장 정보를 확인해주세요." };
+    }
+
+    const sentence = await getSentenceById(context.cloudflare.env.DB, sentenceId);
+
+    if (!sentence || sentence.recordId !== recordId) {
+      return { error: "문장을 찾을 수 없습니다." };
+    }
+
+    const questionContent = sentenceContent || sentence.content;
+
+    if (!questionContent) {
+      return { error: "문장 내용을 확인해주세요." };
+    }
+
+    await createQuestion(context.cloudflare.env.DB, {
+      recordId,
+      content: questionContent,
+      direction: "inward",
+    });
+
+    logger.info("question_create_from_sentence", { sentenceId, recordId });
+
+    return { success: "이 문장에서 질문을 만들었습니다." };
   }
 
   if (intent === "save_sentence") {
@@ -1289,7 +1322,29 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
           {recordSentences.length > 0 ? (
             <div className="flex flex-col gap-5">
               {recordSentences.map(({ sentence, savedBy }) => (
-                <HighlightedSentenceCard key={sentence.id} sentence={sentence} savedBy={savedBy ?? undefined} />
+                <div key={sentence.id} className="flex flex-col gap-2">
+                  <HighlightedSentenceCard sentence={sentence} savedBy={savedBy ?? undefined} />
+                  <div className="flex flex-wrap gap-2">
+                    <Form method="post">
+                      <input type="hidden" name="intent" value="create_question_from_sentence" />
+                      <input type="hidden" name="sentenceId" value={sentence.id} />
+                      <input type="hidden" name="recordId" value={record.id} />
+                      <input type="hidden" name="sentenceContent" value={sentence.content} />
+                      <button
+                        type="submit"
+                        className="min-h-11 text-xs text-[--color-text-tertiary] transition-colors hover:text-[--color-ocean-blue] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
+                      >
+                        이 문장으로 질문 만들기
+                      </button>
+                    </Form>
+                    <Link
+                      to={`/write/note?from=sentence&id=${encodeURIComponent(sentence.id)}`}
+                      className="inline-flex min-h-11 items-center text-xs text-[--color-text-tertiary] no-underline transition-colors hover:text-[--color-ocean-blue] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
+                    >
+                      이 문장으로 기록 시작하기
+                    </Link>
+                  </div>
+                </div>
               ))}
             </div>
           ) : (
