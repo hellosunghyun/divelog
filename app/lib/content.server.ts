@@ -97,6 +97,22 @@ function renderNode(node: TiptapNode): string {
             text = `<a href="${href}">${text}</a>`;
             break;
           }
+          case "textStyle": {
+            const color = mark.attrs?.color;
+            if (color) text = `<span style="color:${escapeHtml(String(color))}">${text}</span>`;
+            break;
+          }
+          case "highlight": {
+            const bgColor = mark.attrs?.color;
+            text = bgColor ? `<mark style="background-color:${escapeHtml(String(bgColor))}">${text}</mark>` : `<mark>${text}</mark>`;
+            break;
+          }
+          case "superscript":
+            text = `<sup>${text}</sup>`;
+            break;
+          case "subscript":
+            text = `<sub>${text}</sub>`;
+            break;
         }
       }
     }
@@ -135,7 +151,12 @@ function renderNode(node: TiptapNode): string {
     case "image": {
       const src = escapeHtml((node.attrs?.src as string) ?? "");
       const alt = escapeHtml((node.attrs?.alt as string) ?? "");
-      return `<img src="${src}" alt="${alt}" class="editor-image">`;
+      const width = node.attrs?.width ? ` style="width:${escapeHtml(String(node.attrs.width))};max-width:100%"` : "";
+      const caption = (node.attrs?.caption as string) ?? "";
+      if (caption) {
+        return `<figure class="image-figure"><img src="${src}" alt="${alt}"${width}><figcaption>${escapeHtml(caption)}</figcaption></figure>`;
+      }
+      return `<img src="${src}" alt="${alt}"${width} class="editor-image">`;
     }
     case "userMention":
     case "mention": {
@@ -170,8 +191,13 @@ function renderNode(node: TiptapNode): string {
       return `<td>${children}</td>`;
     case "tableHeader":
       return `<th>${children}</th>`;
-    case "highlight":
-      return `<mark>${children}</mark>`;
+    case "inlineTag": {
+      const tagId = escapeHtml((node.attrs?.id as string) ?? "");
+      const tagLabel = escapeHtml((node.attrs?.label as string) ?? "");
+      return `<span class="inline-tag" data-tag="${tagId}">#${tagLabel}</span>`;
+    }
+    case "toc":
+      return '<nav class="table-of-contents" data-toc>목차</nav>';
     default:
       return children;
   }

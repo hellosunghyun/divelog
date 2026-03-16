@@ -14,6 +14,7 @@ import { saveSentence } from "../db/queries/sentences.server";
 import { learnerProfiles, questions, records, responses, sentences } from "../db/schema.server";
 import { createSelfAnswer, getSelfAnswersByRecord } from "../db/queries/selfAnswers.server";
 import { getLinkedRecords } from "../db/queries/records.server";
+import { getIncomingLinks } from "../db/queries/recordLinks.server";
 import { getTagsByRecord } from "../db/queries/tags.server";
 import { requireVerified } from "../lib/auth.middleware";
 import { getPlainText, renderContentToHtml } from "../lib/content.server";
@@ -102,6 +103,7 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
 
   const selfAnswersData = await getSelfAnswersByRecord(context.cloudflare.env.DB, recordData.record.id);
   const recordTags = await getTagsByRecord(context.cloudflare.env.DB, recordData.record.id);
+  const incomingLinks = await getIncomingLinks(context.cloudflare.env.DB, recordData.record.id);
   const recordFormat = normalizeContentFormat(recordData.record.format);
   const contentHtml = renderContentToHtml(recordData.record.content, recordFormat);
   const plainTextContent = getPlainText(recordData.record.content, recordFormat);
@@ -113,6 +115,7 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
     responses: recordResponses,
     sentences: recordSentences,
     linkedRecords,
+    incomingLinks,
     selfAnswers: selfAnswersData,
     tags: recordTags,
     currentUserId,
@@ -288,7 +291,7 @@ function isSelectionInsideElement(selection: Selection, element: HTMLElement | n
 }
 
 export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
-  const { record, author, questions: recordQuestions, responses: recordResponses, sentences: recordSentences, linkedRecords, selfAnswers, tags: recordTags, currentUserId, contentHtml } = loaderData;
+  const { record, author, questions: recordQuestions, responses: recordResponses, sentences: recordSentences, linkedRecords, incomingLinks, selfAnswers, tags: recordTags, currentUserId, contentHtml } = loaderData;
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const submit = useSubmit();
@@ -756,6 +759,26 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
           </div>
         )}
       </section>
+
+      {incomingLinks.length > 0 && (
+        <section className="mb-12">
+          <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-6">
+            이 글을 참조한 기록
+          </h2>
+          <div className="flex flex-col gap-3">
+            {incomingLinks.map((link) => (
+              <Link
+                key={link.linkId}
+                to={`/logs/${link.sourceSlug}`}
+                className="block p-4 rounded-xl bg-surface-secondary border border-border hover:border-ocean-blue/30 transition-colors no-underline"
+              >
+                <p className="text-base font-medium text-text-primary">{link.sourceTitle ?? "기록"}</p>
+                <p className="text-sm text-text-tertiary mt-1">{link.sourceAuthorName}</p>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section>
         <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-8">

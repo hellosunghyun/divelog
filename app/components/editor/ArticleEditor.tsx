@@ -1,7 +1,9 @@
 "use client";
 
 import { CodeBlockLowlight } from "@tiptap/extension-code-block-lowlight";
+import { Color } from "@tiptap/extension-color";
 import { Highlight } from "@tiptap/extension-highlight";
+import { TextStyle } from "@tiptap/extension-text-style";
 import { ResizableImage } from "./ResizableImage";
 import { Link } from "@tiptap/extension-link";
 import { Placeholder } from "@tiptap/extension-placeholder";
@@ -19,6 +21,8 @@ import { BubbleMenu } from "@tiptap/react/menus";
 import { StarterKit } from "@tiptap/starter-kit";
 import { common, createLowlight } from "lowlight";
 import { Callout } from "./CalloutExtension";
+import { createInlineTagExtension } from "./TagExtension";
+import { TocExtension } from "./TocExtension";
 import { ToggleBlock } from "./ToggleExtension";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
@@ -122,6 +126,7 @@ export function ArticleEditor({
 
   const userMentionExtension = useMemo(() => createUserMentionExtension(), []);
   const recordRefExtension = useMemo(() => createRecordRefExtension(), []);
+  const inlineTagExtension = useMemo(() => createInlineTagExtension(), []);
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -138,8 +143,10 @@ export function ArticleEditor({
         defaultLanguage: "swift",
       }),
       ResizableImage.configure({ allowBase64: false }),
+      TextStyle,
+      Color,
       Link.configure({ autolink: true, openOnClick: false, defaultProtocol: "https" }),
-      Highlight.configure({ multicolor: false }),
+      Highlight.configure({ multicolor: true }),
       TaskList,
       TaskItem.configure({ nested: true }),
       Table.configure({ resizable: false }),
@@ -150,10 +157,12 @@ export function ArticleEditor({
       Subscript,
       Callout,
       ToggleBlock,
+      TocExtension,
       slashCommandExtension,
       formSubmitExtension,
       userMentionExtension,
       recordRefExtension,
+      inlineTagExtension,
     ],
     content: parsedContent,
     editorProps: {

@@ -448,7 +448,60 @@
   color: var(--color-deep-ocean);
 }
 
-/* Reduced motion support */
+.inline-tag {
+  background: var(--color-surface-secondary);
+  color: var(--color-ocean-blue);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-weight: 500;
+  font-size: 0.9em;
+  cursor: default;
+}
+
+.table-of-contents,
+.toc-placeholder {
+  border: 1px dashed var(--color-border);
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin: 0.5em 0;
+  color: var(--color-text-tertiary);
+  font-size: 14px;
+}
+
+.image-figure {
+  margin: 0.5em 0;
+  text-align: center;
+}
+
+.image-figure img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
+.image-figure figcaption {
+  text-align: center;
+  font-size: 13px;
+  color: var(--color-text-tertiary);
+  margin-top: 6px;
+}
+
+.image-caption-input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  text-align: center;
+  font-size: 13px;
+  color: var(--color-text-tertiary);
+  outline: none;
+  padding: 4px 0;
+}
+
+.image-caption-input::placeholder {
+  color: var(--color-text-tertiary);
+  opacity: 0.6;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .ProseMirror {
     transition: none;

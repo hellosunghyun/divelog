@@ -242,6 +242,51 @@ function getSlashItems(options: Pick<SlashCommandMenuOptions, "uploadImage" | "o
         }
       },
     },
+    {
+      title: "빨강 텍스트",
+      description: "텍스트를 빨간색으로",
+      icon: "🔴",
+      keywords: ["빨강", "red", "색상", "color"],
+      command: ({ editor, range }) => {
+        editor.chain().focus().deleteRange(range).setColor("#DC2626").run();
+      },
+    },
+    {
+      title: "파랑 텍스트",
+      description: "텍스트를 파란색으로",
+      icon: "🔵",
+      keywords: ["파랑", "blue", "색상", "color"],
+      command: ({ editor, range }) => {
+        editor.chain().focus().deleteRange(range).setColor("#146C94").run();
+      },
+    },
+    {
+      title: "초록 텍스트",
+      description: "텍스트를 초록색으로",
+      icon: "🟢",
+      keywords: ["초록", "green", "색상", "color"],
+      command: ({ editor, range }) => {
+        editor.chain().focus().deleteRange(range).setColor("#16A34A").run();
+      },
+    },
+    {
+      title: "보라 텍스트",
+      description: "텍스트를 보라색으로",
+      icon: "🟣",
+      keywords: ["보라", "purple", "색상", "color"],
+      command: ({ editor, range }) => {
+        editor.chain().focus().deleteRange(range).setColor("#7C3AED").run();
+      },
+    },
+    {
+      title: "목차",
+      description: "헤딩 기반 자동 목차",
+      icon: "📑",
+      keywords: ["목차", "toc", "table of contents", "차례"],
+      command: ({ editor, range }) => {
+        editor.chain().focus().deleteRange(range).insertContent({ type: "toc" }).run();
+      },
+    },
   ];
 }
 
@@ -275,7 +320,7 @@ export function createSlashCommandExtension(
             const parent = state.selection.$from.parent;
             return !editor.view.composing && parent.isTextblock && !parent.type.spec.code;
           },
-          items: ({ query }) => filterItems(getSlashItems(options), query).slice(0, 9),
+          items: ({ query }) => filterItems(getSlashItems(options), query).slice(0, 12),
           command: ({ editor, range, props }) => {
             exitSuggestion(editor.view, slashCommandPluginKey);
             void props.command({

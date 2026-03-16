@@ -13,6 +13,7 @@ export const ResizableImage = Image.extend({
       ...this.parent?.(),
       width: { default: "100%", parseHTML: (el) => el.style.width || el.getAttribute("width") || "100%", renderHTML: (attrs) => ({ style: `width: ${attrs.width}` }) },
       dataAlign: { default: "center", parseHTML: (el) => el.getAttribute("data-align") || "center", renderHTML: (attrs) => ({ "data-align": attrs.dataAlign }) },
+      caption: { default: "", parseHTML: (el) => el.closest("figure")?.querySelector("figcaption")?.textContent ?? "", renderHTML: () => ({}) },
     };
   },
 
@@ -88,6 +89,22 @@ export const ResizableImage = Image.extend({
 
       wrapper.appendChild(img);
 
+      const captionInput = document.createElement("input");
+      captionInput.type = "text";
+      captionInput.className = "image-caption-input";
+      captionInput.placeholder = "캡션 추가...";
+      captionInput.value = node.attrs.caption || "";
+      captionInput.addEventListener("blur", () => {
+        const pos = typeof getPos === "function" ? getPos() : undefined;
+        if (pos !== undefined) {
+          editor.chain().setNodeSelection(pos).updateAttributes("image", { caption: captionInput.value }).run();
+        }
+      });
+      captionInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") { e.preventDefault(); captionInput.blur(); }
+      });
+      wrapper.appendChild(captionInput);
+
       return {
         dom: wrapper,
         update: (updatedNode) => {
@@ -96,6 +113,9 @@ export const ResizableImage = Image.extend({
           img.alt = updatedNode.attrs.alt || "";
           img.style.width = updatedNode.attrs.width || "100%";
           wrapper.setAttribute("data-align", updatedNode.attrs.dataAlign || "center");
+          if (captionInput !== document.activeElement) {
+            captionInput.value = updatedNode.attrs.caption || "";
+          }
           return true;
         },
         destroy: () => {

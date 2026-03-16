@@ -47,3 +47,20 @@ export async function getRecordLinksByRecord(d1: D1Database, recordId: string) {
       ),
     );
 }
+
+export async function getIncomingLinks(d1: D1Database, targetRecordId: string) {
+  const database = db(d1);
+  return database
+    .select({
+      linkId: recordLinks.id,
+      sourceRecordId: recordLinks.sourceRecordId,
+      sourceTitle: records.title,
+      sourceSlug: records.slug,
+      sourceAuthorName: learnerProfiles.displayName,
+      sourceAuthorSlug: learnerProfiles.slug,
+    })
+    .from(recordLinks)
+    .leftJoin(records, eq(recordLinks.sourceRecordId, records.id))
+    .leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
+    .where(eq(recordLinks.targetRecordId, targetRecordId));
+}

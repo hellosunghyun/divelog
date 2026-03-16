@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { Link, redirect, useActionData, useNavigation } from "react-router";
 import { useState } from "react";
 import type { Route } from "./+types/_public.write";
@@ -6,7 +6,7 @@ import type { Route } from "./+types/_public.write";
 import { ArticleEditor } from "../components/editor/ArticleEditor";
 import NoteEditor from "../components/editor/NoteEditor";
 import { db } from "../db/client.server";
-import { collaborationUnits, questions, records, recordTags, stages, templates } from "../db/schema.server";
+import { collaborationUnits, learnerProfiles, notifications, questions, records, recordTags, stages, templates } from "../db/schema.server";
 import { requireVerified } from "../lib/auth.middleware";
 import { getPlainText } from "../lib/content.server";
 import { createQuestionSchema, createRecordSchema } from "../lib/validation";
@@ -164,6 +164,30 @@ export async function action({ request, context }: Route.ActionArgs) {
         auth.user.id,
         mentionedUsers.map((m) => m.slug),
       );
+
+      const mentionSlugs = [...new Set(mentionedUsers.map((m) => m.slug).filter(Boolean))];
+      if (mentionSlugs.length > 0) {
+        const mentionedLearners = await database
+          .select({ userId: learnerProfiles.userId })
+          .from(learnerProfiles)
+          .where(sql`${learnerProfiles.slug} IN (${sql.join(mentionSlugs.map((s) => sql`${s}`), sql`, `)})`);
+
+        const actorName = auth.user.nickname ?? auth.user.name ?? "누군가";
+        for (const row of mentionedLearners) {
+          if (row.userId !== auth.user.id) {
+            await database.insert(notifications).values({
+              id: nanoid(),
+              recipientId: row.userId,
+              type: "mention",
+              title: `${actorName}님이 기록에서 당신을 언급했습니다`,
+              content: parsed.data.title,
+              recordId: id,
+              isRead: false,
+              createdAt: now,
+            });
+          }
+        }
+      }
     }
 
     if (recordRefs.length > 0) {
