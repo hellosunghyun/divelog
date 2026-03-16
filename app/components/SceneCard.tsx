@@ -5,8 +5,8 @@ interface SceneCardProps {
     slug: string;
     title: string;
     content: string;
-    format: "note" | "article";
-    type: "personal" | "challenge" | "collaboration";
+    format: string;
+    type: string;
     rhythm?: string;
     createdAt: number;
   };
