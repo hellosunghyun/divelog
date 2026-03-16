@@ -26,16 +26,22 @@ export async function getOptionalUser(request: Request, context: AppLoadContext)
 }
 
 export async function requireAuth(request: Request, context: AppLoadContext) {
+  const { getAuthDebug } = await import("./auth.server");
   const auth = await getAuth(request, context.cloudflare.env.ADAKRPOS_API_KEY);
 
   if (!auth.isAuthenticated) {
     const url = new URL(request.url);
     const hasSessionCookie = (request.headers.get("cookie") ?? "").includes("adakrpos_session");
+    const debugInfo = getAuthDebug(request);
+    const hasApiKey = !!context.cloudflare.env.ADAKRPOS_API_KEY;
 
     if (hasSessionCookie) {
-      throw new Response(authRetryPage(url.pathname), {
+      throw new Response(authRetryPage(url.pathname, debugInfo, hasApiKey), {
         status: 200,
-        headers: { "Content-Type": "text/html; charset=utf-8" },
+        headers: {
+          "Content-Type": "text/html; charset=utf-8",
+          "X-Auth-Debug": debugInfo,
+        },
       });
     }
 
@@ -45,7 +51,7 @@ export async function requireAuth(request: Request, context: AppLoadContext) {
   return auth;
 }
 
-function authRetryPage(returnPath: string): string {
+function authRetryPage(returnPath: string, debugInfo: string, hasApiKey: boolean): string {
   return `<!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -62,6 +68,7 @@ function authRetryPage(returnPath: string): string {
     .btn { display: inline-block; background: #146C94; color: #fff; padding: 12px 28px; border-radius: 999px; text-decoration: none; font-size: 14px; font-weight: 600; }
     .btn-secondary { display: inline-block; color: #6E6E73; padding: 8px 16px; font-size: 13px; text-decoration: none; margin-top: 12px; }
     #status { font-size: 13px; color: #8C8C91; margin-bottom: 16px; }
+    .debug { font-size: 11px; color: #8C8C91; margin-top: 24px; padding-top: 16px; border-top: 1px solid #E3E8EF; word-break: break-all; }
   </style>
 </head>
 <body>
@@ -75,6 +82,7 @@ function authRetryPage(returnPath: string): string {
       <br>
       <a class="btn-secondary" href="/">홈으로 이동</a>
     </div>
+    <div class="debug">debug: ${debugInfo} | apiKey: ${hasApiKey ? "있음" : "없음"}</div>
   </div>
   <script>
     let attempt = 0;
@@ -84,12 +92,21 @@ function authRetryPage(returnPath: string): string {
       document.getElementById('status').textContent = '확인 중... (' + attempt + '/' + maxAttempts + ')';
       try {
         const res = await fetch(window.location.pathname, { credentials: 'include', redirect: 'manual' });
-        if (res.type === 'opaqueredirect' || res.status === 200) {
+        if (res.type === 'opaqueredirect') {
           document.getElementById('status').textContent = '인증 확인 완료! 이동 중...';
           window.location.reload();
           return;
         }
-      } catch (e) {}
+        const debugHeader = res.headers.get('x-auth-debug') || '';
+        if (debugHeader.startsWith('ok:')) {
+          document.getElementById('status').textContent = '인증 확인 완료! 이동 중...';
+          window.location.reload();
+          return;
+        }
+        document.querySelector('.debug').textContent = 'attempt ' + attempt + ': ' + debugHeader + ' | status: ' + res.status;
+      } catch (e) {
+        document.querySelector('.debug').textContent = 'attempt ' + attempt + ': fetch error: ' + e.message;
+      }
       if (attempt >= maxAttempts) {
         document.getElementById('spinner').style.display = 'none';
         document.getElementById('status').textContent = '인증을 확인할 수 없습니다.';
