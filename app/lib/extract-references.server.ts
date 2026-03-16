@@ -1,3 +1,7 @@
+import { createModuleLogger } from "./logger.server";
+
+const logger = createModuleLogger("extract-references.server");
+
 type TiptapNode = {
   type?: string;
   content?: TiptapNode[];
@@ -28,7 +32,8 @@ function walkNodes(jsonStr: string, visitor: (node: TiptapNode) => void): void {
       }
     }
     traverse(doc);
-  } catch {
+  } catch (err) {
+    logger.warn("reference_extract_error", { error: err instanceof Error ? err.message : String(err) });
     return;
   }
 }
