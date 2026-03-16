@@ -9,6 +9,7 @@ import { db } from "../db/client.server";
 import { collaborationUnits, learnerProfiles, notifications, questions, records, recordTags, stages, templates } from "../db/schema.server";
 import { requireVerified } from "../lib/auth.middleware";
 import { getPlainText } from "../lib/content.server";
+import { createLogger } from "../lib/logger.server";
 import { createQuestionSchema, createRecordSchema } from "../lib/validation";
 import { nanoid } from "../lib/utils.server";
 import { getAllTags } from "../db/queries/tags.server";
@@ -22,6 +23,8 @@ export function meta(_args: Route.MetaArgs) {
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {
+  const logger = createLogger(request, context.cloudflare.env).child({ route: "write" });
+  logger.info("loader_start");
   await requireVerified(request, context);
 
   const database = db(context.cloudflare.env.DB);
@@ -45,6 +48,8 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
+  const logger = createLogger(request, context.cloudflare.env).child({ route: "write" });
+  logger.info("action_start");
   const auth = await requireVerified(request, context);
 
   const formData = await request.formData();
@@ -59,6 +64,7 @@ export async function action({ request, context }: Route.ActionArgs) {
       JSON.parse(content);
       contentText = getPlainText(content, "article");
     } catch {
+      logger.debug("write_content_parse_fallback");
       contentText = content;
     }
   } else {
@@ -129,6 +135,12 @@ export async function action({ request, context }: Route.ActionArgs) {
     collaborationUnitId: parsed.data.collaborationUnitId ?? null,
     createdAt: now,
     updatedAt: now,
+  });
+
+  logger.info("record_create", {
+    recordId: id,
+    format: parsed.data.format ?? "note",
+    type: parsed.data.type ?? "personal",
   });
 
   if (questionContent.length > 0) {

@@ -19,6 +19,7 @@ import { getTagsByRecord } from "../db/queries/tags.server";
 import { requireVerified } from "../lib/auth.middleware";
 import { getPlainText, renderContentToHtml } from "../lib/content.server";
 import { normalizeContentFormat } from "../lib/editor-extensions";
+import { createLogger } from "../lib/logger.server";
 import { nanoid } from "../lib/utils.server";
 import { createResponseSchema, saveSentenceSchema } from "../lib/validation";
 import { getOptionalUser } from "../lib/auth.middleware";
@@ -27,6 +28,8 @@ import type { Route } from "./+types/_public.logs.$recordSlug";
 
 export async function loader({ params, context, request }: Route.LoaderArgs) {
   const { recordSlug } = params;
+  const logger = createLogger(request, context.cloudflare.env).child({ route: "logs_detail" });
+  logger.info("loader_start");
   const database = db(context.cloudflare.env.DB);
   const optionalAuth = await getOptionalUser(request, context);
 
@@ -48,6 +51,7 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
   const recordData = recordResult[0];
 
   if (!recordData) {
+    logger.info("not_found", { slug: recordSlug });
     throw data("기록을 찾을 수 없습니다.", { status: 404 });
   }
 
@@ -55,6 +59,7 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
   const isAuthor = currentUserId === recordData.record.authorId;
 
   if (recordData.record.visibility === "draft" && !isAuthor) {
+    logger.info("not_found", { slug: recordSlug });
     throw data("기록을 찾을 수 없습니다.", { status: 404 });
   }
 
@@ -125,6 +130,7 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
+  const logger = createLogger(request, context.cloudflare.env).child({ route: "logs_detail" });
   const auth = await requireVerified(request, context);
   const formData = await request.formData();
   const intent = formData.get("intent");
@@ -176,6 +182,12 @@ export async function action({ request, context }: Route.ActionArgs) {
       updatedAt: now,
     });
 
+    logger.info(parsed.data.type === "question" ? "question_create" : "response_create", {
+      responseId: id,
+      recordId: parsed.data.recordId,
+      type: parsed.data.type,
+    });
+
     return { success: "응답이 등록되었습니다." };
   }
 
@@ -191,6 +203,10 @@ export async function action({ request, context }: Route.ActionArgs) {
     }
 
     await saveSentence(context.cloudflare.env.DB, auth.user.id, parsed.data);
+
+    logger.info("sentence_save", {
+      recordId: parsed.data.recordId,
+    });
 
     return { success: "문장이 저장되었습니다." };
   }
@@ -226,6 +242,8 @@ export async function action({ request, context }: Route.ActionArgs) {
       questionId,
       content: content.trim(),
     });
+
+    logger.info("self_answer_create", { questionId, recordId });
 
     return { success: "자기 답변이 등록되었습니다." };
   }

@@ -3,10 +3,13 @@ import type { Route } from "./+types/_public";
 import { getAuth, getAuthDebug } from "../lib/auth.server";
 import { getOrCreateLearnerProfile } from "../db/queries/learners.server";
 import { ensureAdminByEmail } from "../lib/auth.middleware";
+import { createLogger } from "../lib/logger.server";
 import GlobalNav from "../components/GlobalNav";
 import Footer from "../components/Footer";
 
 export async function loader({ request, context }: Route.LoaderArgs) {
+  const logger = createLogger(request, context.cloudflare.env).child({ route: "_public" });
+  logger.info("loader_start");
   const auth = await getAuth(request, context.cloudflare.env.ADAKRPOS_API_KEY);
 
   if (auth.isAuthenticated && auth.user) {
@@ -15,7 +18,11 @@ export async function loader({ request, context }: Route.LoaderArgs) {
       Promise.all([
         getOrCreateLearnerProfile(context.cloudflare.env.DB, auth.user),
         ensureAdminByEmail(context, auth.user.id, auth.user.verifiedEmail),
-      ]).catch(() => {}),
+      ]).catch((err) =>
+        logger.error("background_task_error", {
+          error: err instanceof Error ? err.message : String(err),
+        })
+      ),
     );
   }
 
