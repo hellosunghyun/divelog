@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import EmptyState from "~/components/EmptyState";
 import HighlightedSentenceCard from "~/components/HighlightedSentenceCard";
 import QuestionCard from "~/components/QuestionCard";
+import { QuestionTimeline } from "~/components/QuestionTimeline";
 import ResponseCard from "~/components/ResponseCard";
 import SelfAnswerCard from "~/components/SelfAnswerCard";
 import SceneCard from "~/components/SceneCard";
@@ -625,13 +626,44 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
           <div className="flex flex-col gap-8">
             {recordQuestions.map((question) => {
               const questionSelfAnswers = selfAnswersByQuestion.get(question.id) ?? [];
+              const questionResponses = recordResponses
+                .filter(({ response }) => response.questionId === question.id)
+                .map(({ response, author: responseAuthor }) => ({
+                  id: response.id,
+                  content: response.content,
+                  type: response.type,
+                  authorName: responseAuthor?.displayName ?? "이름 없는 러너",
+                  createdAt: response.createdAt,
+                  questionId: response.questionId ?? undefined,
+                }));
+              const hasTimelineNodes = questionSelfAnswers.length > 0 || questionResponses.length > 0;
               const isExpanded = expandedQuestionId === question.id;
 
               return (
                 <div key={question.id} className="flex flex-col gap-4">
-                  <QuestionCard question={question} />
-                  
-                  {questionSelfAnswers.length > 0 && (
+                  {hasTimelineNodes ? (
+                    <QuestionTimeline
+                      question={{
+                        id: question.id,
+                        content: question.content,
+                        direction: question.direction,
+                        createdAt: question.createdAt,
+                        authorName: author?.displayName ?? "기록 작성자",
+                      }}
+                      selfAnswers={questionSelfAnswers.map(({ selfAnswer, author: selfAnswerAuthor }) => ({
+                        id: selfAnswer.id,
+                        content: selfAnswer.content,
+                        authorName: selfAnswerAuthor?.displayName ?? "기록 작성자",
+                        createdAt: selfAnswer.createdAt,
+                      }))}
+                      responses={questionResponses}
+                      isOwn={isRecordAuthor}
+                    />
+                  ) : (
+                    <QuestionCard question={question} />
+                  )}
+
+                  {!hasTimelineNodes && questionSelfAnswers.length > 0 && (
                     <div className="ml-4 flex flex-col gap-3">
                       {questionSelfAnswers.map(({ selfAnswer, author: selfAnswerAuthor }) => (
                         <SelfAnswerCard
