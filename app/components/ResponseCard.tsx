@@ -28,6 +28,26 @@ function isResponseType(type: string): type is ResponseType {
   return type in TYPE_LABELS;
 }
 
+function formatRelativeTime(timestamp: number): string {
+  const now = Date.now();
+  const diff = now - timestamp * 1000;
+
+  const minutes = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
+
+  if (minutes < 1) return "방금 전";
+  if (minutes < 60) return `${minutes}분 전`;
+  if (hours < 24) return `${hours}시간 전`;
+  if (days < 7) return `${days}일 전`;
+
+  const date = new Date(timestamp * 1000);
+  return new Intl.DateTimeFormat("ko-KR", {
+    month: "short",
+    day: "numeric",
+  }).format(date);
+}
+
 export default function ResponseCard({ response, author, isSelfAnswer }: ResponseCardProps) {
   const isSelfAnswerResponse = isSelfAnswer ?? response.type === "self_answer";
 
@@ -42,14 +62,17 @@ export default function ResponseCard({ response, author, isSelfAnswer }: Respons
   return (
     <article
       data-testid="response-card"
-      className={`rounded-2xl border p-5 flex flex-col gap-3 transition-all duration-normal ${
-        isSelfAnswerResponse
+      className={`
+        rounded-[20px] border p-5 sm:p-6 flex flex-col gap-3
+        transition-shadow duration-normal
+        ${isSelfAnswerResponse
           ? "bg-mist-blue/40 border-border border-l-4 border-l-reef-cyan"
-          : "bg-surface border-border shadow-card hover:shadow-card-hover hover:-translate-y-0.5"
-      }`}
+          : "bg-surface border-border hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)]"
+        }
+      `}
     >
       {isSelfAnswerResponse && (
-        <div className="flex items-center gap-1.5 -mt-1 mb-1">
+        <div className="flex items-center gap-1.5 -mt-1">
           <span className="text-caption font-medium text-ocean-blue">↺ 자기답변</span>
           <span className="text-caption text-text-tertiary">
             시간이 지나 다시 돌아와 쓴 답변
@@ -63,20 +86,32 @@ export default function ResponseCard({ response, author, isSelfAnswer }: Respons
         >
           {typeInfo.label}
         </span>
-        {author && (
-          <Link
-            to={`/learners/${author.slug}`}
-            prefetch="viewport"
-            className="text-meta text-text-tertiary no-underline"
-          >
-            {author.displayName}
-          </Link>
-        )}
       </div>
 
-      <p className="text-base leading-body text-text-primary m-0">
+      <p className="text-base leading-relaxed text-text-primary m-0">
         {response.content}
       </p>
+
+      <div className="flex items-center gap-2 mt-1 pt-3 border-t border-border">
+        {author ? (
+          <>
+            <Link
+              to={`/learners/${author.slug}`}
+              prefetch="viewport"
+              className="text-meta text-text-secondary no-underline hover:text-ocean-blue transition-colors"
+            >
+              {author.displayName}
+            </Link>
+            <span className="text-meta text-text-tertiary">·</span>
+          </>
+        ) : null}
+        <time
+          dateTime={new Date(response.createdAt * 1000).toISOString()}
+          className="text-meta text-text-tertiary"
+        >
+          {formatRelativeTime(response.createdAt)}
+        </time>
+      </div>
     </article>
   );
 }
