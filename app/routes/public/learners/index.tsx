@@ -1,11 +1,11 @@
-import type { Route } from "./+types/_public.learners._index";
+import type { Route } from "./+types/index";
 import { useSearchParams } from "react-router";
-import LearnerCard from "../components/LearnerCard";
-import HeroSection from "../components/HeroSection";
-import EmptyState from "../components/EmptyState";
-import FilterBar from "../components/FilterBar";
-import { getLearnersWithActivity, getDistinctCohorts } from "../db/queries/learners.server";
-import { createLogger } from "../lib/logger.server";
+import LearnerCard from "~/components/LearnerCard";
+import HeroSection from "~/components/HeroSection";
+import EmptyState from "~/components/EmptyState";
+import FilterBar from "~/components/FilterBar";
+import { getLearnersWithActivity, getDistinctCohorts } from "~/db/queries/learners.server";
+import { createLogger } from "~/lib/logger.server";
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "Learner — divelog" }];

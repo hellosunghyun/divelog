@@ -1,12 +1,12 @@
-import type { Route } from "./+types/_public.journey";
+import type { Route } from "./+types/index";
 import { Link } from "react-router";
-import { db } from "../db/client.server";
-import { stages } from "../db/schema.server";
+import { db } from "~/db/client.server";
+import { stages } from "~/db/schema.server";
 import { sql } from "drizzle-orm";
-import StageStrip from "../components/StageStrip";
-import HeroSection from "../components/HeroSection";
-import EmptyState from "../components/EmptyState";
-import { createLogger } from "../lib/logger.server";
+import StageStrip from "~/components/StageStrip";
+import HeroSection from "~/components/HeroSection";
+import EmptyState from "~/components/EmptyState";
+import { createLogger } from "~/lib/logger.server";
 
 export function meta(_args: Route.MetaArgs) {
   return [

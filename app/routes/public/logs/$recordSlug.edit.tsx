@@ -2,20 +2,20 @@ import { eq } from "drizzle-orm";
 import { data, Link, redirect, useActionData, useNavigation } from "react-router";
 import { useState } from "react";
 
-import type { Route } from "./+types/_public.logs.$recordSlug.edit";
+import type { Route } from "./+types/$recordSlug.edit";
 
-import { ArticleEditor } from "../components/editor/ArticleEditor";
-import NoteEditor from "../components/editor/NoteEditor";
-import { db } from "../db/client.server";
-import { collaborationUnits, recordTags, stages, templates } from "../db/schema.server";
-import { getRecordBySlug, updateRecord } from "../db/queries/records.server";
-import { getAllTags, getTagsByRecord } from "../db/queries/tags.server";
-import { requireVerified } from "../lib/auth.middleware";
-import { getPlainText } from "../lib/content.server";
-import { createLogger } from "../lib/logger.server";
-import { createRecordSchema } from "../lib/validation";
-import { cleanupRemovedImages } from "../lib/r2-cleanup.server";
-import { useUnsavedWarning } from "../hooks/useUnsavedWarning";
+import { ArticleEditor } from "~/components/editor/ArticleEditor";
+import NoteEditor from "~/components/editor/NoteEditor";
+import { db } from "~/db/client.server";
+import { collaborationUnits, recordTags, stages, templates } from "~/db/schema.server";
+import { getRecordBySlug, updateRecord } from "~/db/queries/records.server";
+import { getAllTags, getTagsByRecord } from "~/db/queries/tags.server";
+import { requireVerified } from "~/lib/auth.middleware";
+import { getPlainText } from "~/lib/content.server";
+import { createLogger } from "~/lib/logger.server";
+import { createRecordSchema } from "~/lib/validation";
+import { cleanupRemovedImages } from "~/lib/r2-cleanup.server";
+import { useUnsavedWarning } from "~/hooks/useUnsavedWarning";
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "기록 수정 — divelog" }];

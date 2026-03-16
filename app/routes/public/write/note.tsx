@@ -1,17 +1,17 @@
 import { eq } from "drizzle-orm";
 import { useState } from "react";
 import { Link, redirect, useActionData, useNavigation } from "react-router";
-import type { Route } from "./+types/_public.write.note";
+import type { Route } from "./+types/note";
 
-import { NoteEditor } from "../components/editor/NoteEditor";
-import { db } from "../db/client.server";
-import { records, stages } from "../db/schema.server";
-import { useUnsavedWarning } from "../hooks/useUnsavedWarning";
-import { requireVerified } from "../lib/auth.middleware";
-import { getPlainText } from "../lib/content.server";
-import { generateNoteTitle } from "../lib/title.server";
-import { nanoid } from "../lib/utils.server";
-import { createNoteSchema } from "../lib/validation";
+import { NoteEditor } from "~/components/editor/NoteEditor";
+import { db } from "~/db/client.server";
+import { records, stages } from "~/db/schema.server";
+import { useUnsavedWarning } from "~/hooks/useUnsavedWarning";
+import { requireVerified } from "~/lib/auth.middleware";
+import { getPlainText } from "~/lib/content.server";
+import { generateNoteTitle } from "~/lib/title.server";
+import { nanoid } from "~/lib/utils.server";
+import { createNoteSchema } from "~/lib/validation";
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "짧은 기록 — divelog" }];

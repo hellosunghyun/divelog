@@ -1,8 +1,8 @@
 import { useSearchParams } from "react-router";
-import type { Route } from "./+types/_public.guide";
-import HeroSection from "../components/HeroSection";
-import CTABand from "../components/CTABand";
-import { createLogger } from "../lib/logger.server";
+import type { Route } from "./+types/guide";
+import HeroSection from "~/components/HeroSection";
+import CTABand from "~/components/CTABand";
+import { createLogger } from "~/lib/logger.server";
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "가이드 — divelog" }];

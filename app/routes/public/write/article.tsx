@@ -1,19 +1,19 @@
 import { eq, sql } from "drizzle-orm";
 import { useState } from "react";
 import { Link, redirect, useActionData, useNavigation } from "react-router";
-import type { Route } from "./+types/_public.write.article";
+import type { Route } from "./+types/article";
 
-import { ArticleEditor } from "../components/editor/ArticleEditor";
-import { db } from "../db/client.server";
-import { learnerProfiles, notifications, records, stages, templates } from "../db/schema.server";
-import { useUnsavedWarning } from "../hooks/useUnsavedWarning";
-import { requireVerified } from "../lib/auth.middleware";
-import { getPlainText } from "../lib/content.server";
-import { syncMentionsForRecord } from "../db/queries/mentions.server";
-import { syncRecordLinksForRecord } from "../db/queries/recordLinks.server";
-import { extractUserMentions, extractRecordRefs } from "../lib/extract-references.server";
-import { nanoid } from "../lib/utils.server";
-import { createArticleSchema } from "../lib/validation";
+import { ArticleEditor } from "~/components/editor/ArticleEditor";
+import { db } from "~/db/client.server";
+import { learnerProfiles, notifications, records, stages, templates } from "~/db/schema.server";
+import { useUnsavedWarning } from "~/hooks/useUnsavedWarning";
+import { requireVerified } from "~/lib/auth.middleware";
+import { getPlainText } from "~/lib/content.server";
+import { syncMentionsForRecord } from "~/db/queries/mentions.server";
+import { syncRecordLinksForRecord } from "~/db/queries/recordLinks.server";
+import { extractUserMentions, extractRecordRefs } from "~/lib/extract-references.server";
+import { nanoid } from "~/lib/utils.server";
+import { createArticleSchema } from "~/lib/validation";
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "글 쓰기 — divelog" }];

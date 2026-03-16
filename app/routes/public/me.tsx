@@ -1,15 +1,15 @@
-import type { Route } from "./+types/_public.me";
-import { requireAuth } from "../lib/auth.middleware";
-import { db } from "../db/client.server";
-import { records, sentences, questions, learnerProfiles, stages } from "../db/schema.server";
+import type { Route } from "./+types/me";
+import { requireAuth } from "~/lib/auth.middleware";
+import { db } from "~/db/client.server";
+import { records, sentences, questions, learnerProfiles, stages } from "~/db/schema.server";
 import { eq, and, desc, sql, asc } from "drizzle-orm";
-import SceneCard from "../components/SceneCard";
-import HighlightedSentenceCard from "../components/HighlightedSentenceCard";
-import QuestionCard from "../components/QuestionCard";
-import EmptyState from "../components/EmptyState";
-import HeroSection from "../components/HeroSection";
+import SceneCard from "~/components/SceneCard";
+import HighlightedSentenceCard from "~/components/HighlightedSentenceCard";
+import QuestionCard from "~/components/QuestionCard";
+import EmptyState from "~/components/EmptyState";
+import HeroSection from "~/components/HeroSection";
 import { Link } from "react-router";
-import { createLogger } from "../lib/logger.server";
+import { createLogger } from "~/lib/logger.server";
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "내 공간 — divelog" }];

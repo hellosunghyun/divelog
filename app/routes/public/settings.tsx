@@ -1,10 +1,10 @@
-import type { Route } from "./+types/_public.settings";
-import { requireAuth } from "../lib/auth.middleware";
-import { createLogger } from "../lib/logger.server";
-import { db } from "../db/client.server";
-import { learnerProfiles } from "../db/schema.server";
+import type { Route } from "./+types/settings";
+import { requireAuth } from "~/lib/auth.middleware";
+import { createLogger } from "~/lib/logger.server";
+import { db } from "~/db/client.server";
+import { learnerProfiles } from "~/db/schema.server";
 import { eq } from "drizzle-orm";
-import HeroSection from "../components/HeroSection";
+import HeroSection from "~/components/HeroSection";
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "설정 — divelog" }];

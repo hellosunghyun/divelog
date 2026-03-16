@@ -1,14 +1,14 @@
 import { data } from "react-router";
-import type { Route } from "./+types/_public.groups.$groupSlug";
+import type { Route } from "./+types/$groupSlug";
 import { Link } from "react-router";
-import { db } from "../db/client.server";
-import { collaborationUnits, collaborationMembers, learnerProfiles, records } from "../db/schema.server";
+import { db } from "~/db/client.server";
+import { collaborationUnits, collaborationMembers, learnerProfiles, records } from "~/db/schema.server";
 import { eq, and, desc, sql } from "drizzle-orm";
-import SceneCard from "../components/SceneCard";
-import LearnerCard from "../components/LearnerCard";
-import HeroSection from "../components/HeroSection";
-import EmptyState from "../components/EmptyState";
-import { createLogger } from "../lib/logger.server";
+import SceneCard from "~/components/SceneCard";
+import LearnerCard from "~/components/LearnerCard";
+import HeroSection from "~/components/HeroSection";
+import EmptyState from "~/components/EmptyState";
+import { createLogger } from "~/lib/logger.server";
 
 export async function loader({ params, request, context }: Route.LoaderArgs) {
   const { groupSlug } = params;

@@ -1,7 +1,7 @@
 import { data } from "react-router";
-import type { Route } from "./+types/_public.memories.$stageSlug";
+import type { Route } from "./+types/$stageSlug";
 import { Link } from "react-router";
-import { db } from "../db/client.server";
+import { db } from "~/db/client.server";
 import {
   collectiveMemories,
   stages,
@@ -11,13 +11,13 @@ import {
   questions,
   records,
   sentences,
-} from "../db/schema.server";
+} from "~/db/schema.server";
 import { eq, and } from "drizzle-orm";
-import HeroSection from "../components/HeroSection";
-import QuestionCard from "../components/QuestionCard";
-import HighlightedSentenceCard from "../components/HighlightedSentenceCard";
-import SceneCard from "../components/SceneCard";
-import { createLogger } from "../lib/logger.server";
+import HeroSection from "~/components/HeroSection";
+import QuestionCard from "~/components/QuestionCard";
+import HighlightedSentenceCard from "~/components/HighlightedSentenceCard";
+import SceneCard from "~/components/SceneCard";
+import { createLogger } from "~/lib/logger.server";
 
 export async function loader({ params, request, context }: Route.LoaderArgs) {
   const { stageSlug } = params;

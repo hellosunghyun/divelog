@@ -1,11 +1,11 @@
-import type { Route } from "./+types/_public.challenges._index";
+import type { Route } from "./+types/index";
 import { Link } from "react-router";
-import { db } from "../db/client.server";
-import { challenges } from "../db/schema.server";
+import { db } from "~/db/client.server";
+import { challenges } from "~/db/schema.server";
 import { asc } from "drizzle-orm";
-import HeroSection from "../components/HeroSection";
-import EmptyState from "../components/EmptyState";
-import { createLogger } from "../lib/logger.server";
+import HeroSection from "~/components/HeroSection";
+import EmptyState from "~/components/EmptyState";
+import { createLogger } from "~/lib/logger.server";
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "챌린지 — divelog" }];

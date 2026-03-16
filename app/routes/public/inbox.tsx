@@ -1,11 +1,11 @@
-import type { Route } from "./+types/_public.inbox";
-import { db } from "../db/client.server";
-import { notifications } from "../db/schema.server";
+import type { Route } from "./+types/inbox";
+import { db } from "~/db/client.server";
+import { notifications } from "~/db/schema.server";
 import { eq, and, desc } from "drizzle-orm";
-import { requireAuth } from "../lib/auth.middleware";
-import { createLogger } from "../lib/logger.server";
-import HeroSection from "../components/HeroSection";
-import EmptyState from "../components/EmptyState";
+import { requireAuth } from "~/lib/auth.middleware";
+import { createLogger } from "~/lib/logger.server";
+import HeroSection from "~/components/HeroSection";
+import EmptyState from "~/components/EmptyState";
 import { Link, Form } from "react-router";
 
 export function meta(_args: Route.MetaArgs) {

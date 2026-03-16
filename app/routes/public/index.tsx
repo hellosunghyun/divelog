@@ -1,12 +1,12 @@
-import type { Route } from "./+types/_public._index";
+import type { Route } from "./+types/index";
 import { Link } from "react-router";
-import { db } from "../db/client.server";
-import { stages, records, questions, sentences, learnerProfiles } from "../db/schema.server";
+import { db } from "~/db/client.server";
+import { stages, records, questions, sentences, learnerProfiles } from "~/db/schema.server";
 import { eq, desc, and, sql, count } from "drizzle-orm";
-import HeroSection from "../components/HeroSection";
-import ActivityFeed from "../components/ActivityFeed";
-import { getRecentActivity } from "../db/queries/activity.server";
-import { createLogger } from "../lib/logger.server";
+import HeroSection from "~/components/HeroSection";
+import ActivityFeed from "~/components/ActivityFeed";
+import { getRecentActivity } from "~/db/queries/activity.server";
+import { createLogger } from "~/lib/logger.server";
 
 export function meta(_args: Route.MetaArgs) {
   return [
@@ -87,7 +87,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const recentActivity = await getRecentActivity(context.cloudflare.env.DB, { limit: 8 });
 
   // Pre-compute plain text snippets on server to avoid client importing server-only modules
-  const { getPlainText } = await import("../lib/content.server");
+  const { getPlainText } = await import("~/lib/content.server");
   const recentRecordsWithSnippets = recentRecords.map(row => ({
     ...row,
     snippet: getPlainText(row.content ?? "", (row.format === "article" ? "article" : "note") as "note" | "article").substring(0, 120),

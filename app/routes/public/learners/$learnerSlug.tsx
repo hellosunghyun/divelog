@@ -1,15 +1,15 @@
 import { data } from "react-router";
-import type { Route } from "./+types/_public.learners.$learnerSlug";
+import type { Route } from "./+types/$learnerSlug";
 import { Link } from "react-router";
-import { db } from "../db/client.server";
-import { learnerProfiles, records, questions, sentences } from "../db/schema.server";
+import { db } from "~/db/client.server";
+import { learnerProfiles, records, questions, sentences } from "~/db/schema.server";
 import { eq, and, desc, sql } from "drizzle-orm";
-import SceneCard from "../components/SceneCard";
-import QuestionCard from "../components/QuestionCard";
-import HighlightedSentenceCard from "../components/HighlightedSentenceCard";
-import EmptyState from "../components/EmptyState";
-import HeroSection from "../components/HeroSection";
-import { createLogger } from "../lib/logger.server";
+import SceneCard from "~/components/SceneCard";
+import QuestionCard from "~/components/QuestionCard";
+import HighlightedSentenceCard from "~/components/HighlightedSentenceCard";
+import EmptyState from "~/components/EmptyState";
+import HeroSection from "~/components/HeroSection";
+import { createLogger } from "~/lib/logger.server";
 
 export async function loader({ params, request, context }: Route.LoaderArgs) {
   const { learnerSlug } = params;

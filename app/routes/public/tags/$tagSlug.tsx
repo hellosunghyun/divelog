@@ -1,12 +1,12 @@
-import type { Route } from "./+types/_public.tags.$tagSlug";
+import type { Route } from "./+types/$tagSlug";
 import { Link, data } from "react-router";
-import { getTagBySlug, getRecordsByTag } from "../db/queries/tags.server";
-import { getPlainText } from "../lib/content.server";
-import { normalizeContentFormat } from "../lib/editor-extensions";
-import SceneCard from "../components/SceneCard";
-import EmptyState from "../components/EmptyState";
-import HeroSection from "../components/HeroSection";
-import { createLogger } from "../lib/logger.server";
+import { getTagBySlug, getRecordsByTag } from "~/db/queries/tags.server";
+import { getPlainText } from "~/lib/content.server";
+import { normalizeContentFormat } from "~/lib/editor-extensions";
+import SceneCard from "~/components/SceneCard";
+import EmptyState from "~/components/EmptyState";
+import HeroSection from "~/components/HeroSection";
+import { createLogger } from "~/lib/logger.server";
 
 export function meta({ data: loaderData }: Route.MetaArgs) {
   if (!loaderData?.tag) {

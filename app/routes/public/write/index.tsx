@@ -1,22 +1,22 @@
 import { eq, sql } from "drizzle-orm";
 import { Link, redirect, useActionData, useNavigation } from "react-router";
 import { useState } from "react";
-import type { Route } from "./+types/_public.write";
+import type { Route } from "./+types/index";
 
-import { ArticleEditor } from "../components/editor/ArticleEditor";
-import NoteEditor from "../components/editor/NoteEditor";
-import { db } from "../db/client.server";
-import { collaborationUnits, learnerProfiles, notifications, questions, records, recordTags, stages, templates } from "../db/schema.server";
-import { requireVerified } from "../lib/auth.middleware";
-import { getPlainText } from "../lib/content.server";
-import { createLogger } from "../lib/logger.server";
-import { createQuestionSchema, createRecordSchema } from "../lib/validation";
-import { nanoid } from "../lib/utils.server";
-import { getAllTags } from "../db/queries/tags.server";
-import { extractUserMentions, extractRecordRefs } from "../lib/extract-references.server";
-import { syncMentionsForRecord } from "../db/queries/mentions.server";
-import { syncRecordLinksForRecord } from "../db/queries/recordLinks.server";
-import { useUnsavedWarning } from "../hooks/useUnsavedWarning";
+import { ArticleEditor } from "~/components/editor/ArticleEditor";
+import NoteEditor from "~/components/editor/NoteEditor";
+import { db } from "~/db/client.server";
+import { collaborationUnits, learnerProfiles, notifications, questions, records, recordTags, stages, templates } from "~/db/schema.server";
+import { requireVerified } from "~/lib/auth.middleware";
+import { getPlainText } from "~/lib/content.server";
+import { createLogger } from "~/lib/logger.server";
+import { createQuestionSchema, createRecordSchema } from "~/lib/validation";
+import { nanoid } from "~/lib/utils.server";
+import { getAllTags } from "~/db/queries/tags.server";
+import { extractUserMentions, extractRecordRefs } from "~/lib/extract-references.server";
+import { syncMentionsForRecord } from "~/db/queries/mentions.server";
+import { syncRecordLinksForRecord } from "~/db/queries/recordLinks.server";
+import { useUnsavedWarning } from "~/hooks/useUnsavedWarning";
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "기록하기 — divelog" }];

@@ -1,15 +1,15 @@
-import type { Route } from "./+types/_public.search";
+import type { Route } from "./+types/search";
 import { Form, useSearchParams } from "react-router";
-import { db } from "../db/client.server";
-import { records, questions, learnerProfiles, sentences } from "../db/schema.server";
+import { db } from "~/db/client.server";
+import { records, questions, learnerProfiles, sentences } from "~/db/schema.server";
 import { like, or, desc, eq, and, sql } from "drizzle-orm";
-import SceneCard from "../components/SceneCard";
-import LearnerCard from "../components/LearnerCard";
-import HeroSection from "../components/HeroSection";
-import EmptyState from "../components/EmptyState";
-import { getPlainText } from "../lib/content.server";
-import { normalizeContentFormat } from "../lib/editor-extensions";
-import { createLogger } from "../lib/logger.server";
+import SceneCard from "~/components/SceneCard";
+import LearnerCard from "~/components/LearnerCard";
+import HeroSection from "~/components/HeroSection";
+import EmptyState from "~/components/EmptyState";
+import { getPlainText } from "~/lib/content.server";
+import { normalizeContentFormat } from "~/lib/editor-extensions";
+import { createLogger } from "~/lib/logger.server";
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "검색 — divelog" }];

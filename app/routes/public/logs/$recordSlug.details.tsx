@@ -2,15 +2,15 @@ import { eq } from "drizzle-orm";
 import { data, Link, redirect, useActionData, useNavigation } from "react-router";
 import { useState } from "react";
 
-import type { Route } from "./+types/_public.logs.$recordSlug.details";
+import type { Route } from "./+types/$recordSlug.details";
 
-import { db } from "../db/client.server";
-import { questions, records, recordTags } from "../db/schema.server";
-import { getRecordBySlug } from "../db/queries/records.server";
-import { getAllTags, getTagsByRecord } from "../db/queries/tags.server";
-import { requireVerified } from "../lib/auth.middleware";
-import { updateRecordMetadataSchema } from "../lib/validation";
-import { nanoid } from "../lib/utils.server";
+import { db } from "~/db/client.server";
+import { questions, records, recordTags } from "~/db/schema.server";
+import { getRecordBySlug } from "~/db/queries/records.server";
+import { getAllTags, getTagsByRecord } from "~/db/queries/tags.server";
+import { requireVerified } from "~/lib/auth.middleware";
+import { updateRecordMetadataSchema } from "~/lib/validation";
+import { nanoid } from "~/lib/utils.server";
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "세부 설정 — divelog" }];

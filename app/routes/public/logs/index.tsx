@@ -1,18 +1,18 @@
-import type { Route } from "./+types/_public.logs._index";
+import type { Route } from "./+types/index";
 import { useSearchParams, useNavigate } from "react-router";
-import { db } from "../db/client.server";
-import { records, stages, learnerProfiles } from "../db/schema.server";
+import { db } from "~/db/client.server";
+import { records, stages, learnerProfiles } from "~/db/schema.server";
 import { eq, and, desc, sql, ne } from "drizzle-orm";
-import SceneCard from "../components/SceneCard";
-import FilterBar from "../components/FilterBar";
-import SortBar from "../components/SortBar";
-import ViewToggle from "../components/ViewToggle";
-import TimelineView from "../components/TimelineView";
-import EmptyState from "../components/EmptyState";
-import HeroSection from "../components/HeroSection";
-import { getPlainText } from "../lib/content.server";
-import { normalizeContentFormat } from "../lib/editor-extensions";
-import { createLogger } from "../lib/logger.server";
+import SceneCard from "~/components/SceneCard";
+import FilterBar from "~/components/FilterBar";
+import SortBar from "~/components/SortBar";
+import ViewToggle from "~/components/ViewToggle";
+import TimelineView from "~/components/TimelineView";
+import EmptyState from "~/components/EmptyState";
+import HeroSection from "~/components/HeroSection";
+import { getPlainText } from "~/lib/content.server";
+import { normalizeContentFormat } from "~/lib/editor-extensions";
+import { createLogger } from "~/lib/logger.server";
 
 export function meta({ data: loaderData }: Route.MetaArgs) {
   return [

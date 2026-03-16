@@ -1,9 +1,9 @@
-import type { Route } from "./+types/_public.tags";
+import type { Route } from "./+types/index";
 import { Link } from "react-router";
-import { getAllTags } from "../db/queries/tags.server";
-import EmptyState from "../components/EmptyState";
-import HeroSection from "../components/HeroSection";
-import { createLogger } from "../lib/logger.server";
+import { getAllTags } from "~/db/queries/tags.server";
+import EmptyState from "~/components/EmptyState";
+import HeroSection from "~/components/HeroSection";
+import { createLogger } from "~/lib/logger.server";
 
 export function meta() {
   return [
