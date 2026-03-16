@@ -7,15 +7,20 @@ import {
   collaborationUnits,
   collectiveMemories,
   curationSlots,
+  drafts,
   learnerProfiles,
   memoryQuestions,
   memoryRecords,
   memorySentences,
   notifications,
+  personalStageReflections,
+  questionCarryOvers,
+  questionReminders,
   questions,
   recordTags,
   records,
   responses,
+  savedRecords,
   selfAnswers,
   sentences,
   settings,
@@ -36,6 +41,10 @@ export const learnerProfilesRelations = relations(learnerProfiles, ({ many, one 
   notifications: many(notifications),
   collaborationMembers: many(collaborationMembers),
   selfAnswers: many(selfAnswers),
+  drafts: many(drafts),
+  questionReminders: many(questionReminders),
+  savedRecords: many(savedRecords),
+  personalStageReflections: many(personalStageReflections),
 }));
 
 export const stagesRelations = relations(stages, ({ many }) => ({
@@ -44,12 +53,17 @@ export const stagesRelations = relations(stages, ({ many }) => ({
   collaborationUnits: many(collaborationUnits),
   collectiveMemories: many(collectiveMemories),
   learnersAtStage: many(learnerProfiles),
+  drafts: many(drafts),
+  carryOversFrom: many(questionCarryOvers, { relationName: "carry_over_from_stage" }),
+  carryOversTo: many(questionCarryOvers, { relationName: "carry_over_to_stage" }),
+  personalStageReflections: many(personalStageReflections),
 }));
 
 export const challengesRelations = relations(challenges, ({ many }) => ({
   challengeStages: many(challengeStages),
   collaborationUnits: many(collaborationUnits),
   records: many(records),
+  drafts: many(drafts),
 }));
 
 export const challengeStagesRelations = relations(challengeStages, ({ one }) => ({
@@ -109,6 +123,7 @@ export const recordsRelations = relations(records, ({ many, one }) => ({
   sentences: many(sentences),
   memoryRecords: many(memoryRecords),
   recordTags: many(recordTags),
+  savedRecords: many(savedRecords),
 }));
 
 export const questionsRelations = relations(questions, ({ many, one }) => ({
@@ -119,6 +134,9 @@ export const questionsRelations = relations(questions, ({ many, one }) => ({
   responses: many(responses),
   selfAnswers: many(selfAnswers),
   memoryQuestions: many(memoryQuestions),
+  reminders: many(questionReminders),
+  carryOversAsOriginal: many(questionCarryOvers, { relationName: "carry_over_original_question" }),
+  carryOversAsNew: many(questionCarryOvers, { relationName: "carry_over_new_question" }),
 }));
 
 export const selfAnswersRelations = relations(selfAnswers, ({ one }) => ({
@@ -236,6 +254,77 @@ export const recordTagsRelations = relations(recordTags, ({ one }) => ({
   tag: one(tags, {
     fields: [recordTags.tagId],
     references: [tags.id],
+  }),
+}));
+
+export const draftsRelations = relations(drafts, ({ one }) => ({
+  author: one(learnerProfiles, {
+    fields: [drafts.authorId],
+    references: [learnerProfiles.userId],
+  }),
+  stage: one(stages, {
+    fields: [drafts.stageId],
+    references: [stages.id],
+  }),
+  challenge: one(challenges, {
+    fields: [drafts.challengeId],
+    references: [challenges.id],
+  }),
+}));
+
+export const questionRemindersRelations = relations(questionReminders, ({ one }) => ({
+  question: one(questions, {
+    fields: [questionReminders.questionId],
+    references: [questions.id],
+  }),
+  learner: one(learnerProfiles, {
+    fields: [questionReminders.learnerId],
+    references: [learnerProfiles.userId],
+  }),
+}));
+
+export const questionCarryOversRelations = relations(questionCarryOvers, ({ one }) => ({
+  originalQuestion: one(questions, {
+    fields: [questionCarryOvers.originalQuestionId],
+    references: [questions.id],
+    relationName: "carry_over_original_question",
+  }),
+  newQuestion: one(questions, {
+    fields: [questionCarryOvers.newQuestionId],
+    references: [questions.id],
+    relationName: "carry_over_new_question",
+  }),
+  fromStage: one(stages, {
+    fields: [questionCarryOvers.fromStageId],
+    references: [stages.id],
+    relationName: "carry_over_from_stage",
+  }),
+  toStage: one(stages, {
+    fields: [questionCarryOvers.toStageId],
+    references: [stages.id],
+    relationName: "carry_over_to_stage",
+  }),
+}));
+
+export const savedRecordsRelations = relations(savedRecords, ({ one }) => ({
+  learner: one(learnerProfiles, {
+    fields: [savedRecords.learnerId],
+    references: [learnerProfiles.userId],
+  }),
+  record: one(records, {
+    fields: [savedRecords.recordId],
+    references: [records.id],
+  }),
+}));
+
+export const personalStageReflectionsRelations = relations(personalStageReflections, ({ one }) => ({
+  stage: one(stages, {
+    fields: [personalStageReflections.stageId],
+    references: [stages.id],
+  }),
+  learner: one(learnerProfiles, {
+    fields: [personalStageReflections.learnerId],
+    references: [learnerProfiles.userId],
   }),
 }));
 

@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { integer, primaryKey, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { index, integer, primaryKey, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 const now = () => sql`(unixepoch())`;
 
@@ -130,6 +130,8 @@ export const questions = sqliteTable("questions", {
   direction: text("direction").notNull().default("outward"),
   isOpen: integer("is_open", { mode: "boolean" }).notNull().default(true),
   createdAt: integer("created_at").notNull().default(now()),
+  updatedAt: integer("updated_at").default(now()),
+  closedAt: integer("closed_at"),
 });
 
 export const selfAnswers = sqliteTable("self_answers", {
@@ -350,4 +352,91 @@ export const recordLinks = sqliteTable(
     quotedText: text("quoted_text"),
     createdAt: integer("created_at").notNull().default(now()),
   },
+);
+
+export const drafts = sqliteTable(
+  "drafts",
+  {
+    id: text("id").primaryKey().notNull(),
+    authorId: text("author_id")
+      .notNull()
+      .references(() => learnerProfiles.userId),
+    format: text("format").notNull(),
+    title: text("title"),
+    content: text("content").notNull().default(""),
+    contentJson: text("content_json"),
+    stageId: text("stage_id").references(() => stages.id),
+    challengeId: text("challenge_id").references(() => challenges.id),
+    rhythm: text("rhythm").notNull().default("free"),
+    visibility: text("visibility").notNull().default("draft"),
+    responsePreference: text("response_preference").notNull().default("open"),
+    createdAt: integer("created_at").notNull().default(now()),
+    updatedAt: integer("updated_at").notNull().default(now()),
+  },
+  (table) => [uniqueIndex("idx_drafts_author_format").on(table.authorId, table.format)],
+);
+
+export const questionReminders = sqliteTable(
+  "question_reminders",
+  {
+    id: text("id").primaryKey().notNull(),
+    questionId: text("question_id")
+      .notNull()
+      .references(() => questions.id, { onDelete: "cascade" }),
+    learnerId: text("learner_id")
+      .notNull()
+      .references(() => learnerProfiles.userId, { onDelete: "cascade" }),
+    remindAt: integer("remind_at").notNull(),
+    sentAt: integer("sent_at"),
+    createdAt: integer("created_at").notNull().default(now()),
+  },
+  (table) => [index("idx_reminders_learner").on(table.learnerId, table.sentAt)],
+);
+
+export const questionCarryOvers = sqliteTable("question_carry_overs", {
+  id: text("id").primaryKey().notNull(),
+  originalQuestionId: text("original_question_id")
+    .notNull()
+    .references(() => questions.id, { onDelete: "cascade" }),
+  newQuestionId: text("new_question_id").references(() => questions.id, { onDelete: "set null" }),
+  fromStageId: text("from_stage_id")
+    .notNull()
+    .references(() => stages.id),
+  toStageId: text("to_stage_id")
+    .notNull()
+    .references(() => stages.id),
+  carriedAt: integer("carried_at").notNull().default(now()),
+});
+
+export const savedRecords = sqliteTable(
+  "saved_records",
+  {
+    learnerId: text("learner_id")
+      .notNull()
+      .references(() => learnerProfiles.userId, { onDelete: "cascade" }),
+    recordId: text("record_id")
+      .notNull()
+      .references(() => records.id, { onDelete: "cascade" }),
+    savedAt: integer("saved_at").notNull().default(now()),
+  },
+  (table) => [primaryKey({ columns: [table.learnerId, table.recordId] })],
+);
+
+export const personalStageReflections = sqliteTable(
+  "personal_stage_reflections",
+  {
+    id: text("id").primaryKey().notNull(),
+    stageId: text("stage_id")
+      .notNull()
+      .references(() => stages.id),
+    learnerId: text("learner_id")
+      .notNull()
+      .references(() => learnerProfiles.userId, { onDelete: "cascade" }),
+    letGo: text("let_go"),
+    carryQuestion: text("carry_question"),
+    lastingSentence: text("lasting_sentence"),
+    createdAt: integer("created_at").notNull().default(now()),
+    updatedAt: integer("updated_at").notNull().default(now()),
+  },
+  (table) => [uniqueIndex("idx_reflections_stage_learner").on(table.stageId, table.learnerId)],
 );
