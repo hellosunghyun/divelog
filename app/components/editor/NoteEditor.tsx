@@ -88,6 +88,14 @@ export function NoteEditor({
       insertLink();
       return;
     }
+
+    if (isModKey && e.key === "Enter") {
+      e.preventDefault();
+      const form = textarea.closest("form");
+      const submitBtn = form?.querySelector<HTMLButtonElement>('button[type="submit"]');
+      submitBtn?.click();
+      return;
+    }
   };
 
   const wrapSelection = (prefix: string, suffix: string) => {
@@ -279,11 +287,18 @@ export function NoteEditor({
             </kbd>{" "}
             링크
           </span>
-          <span style={{ fontSize: "12px", color: "var(--color-text-tertiary)" }}>
-            @이름 태그
-          </span>
-          <span style={{ fontSize: "12px", color: "var(--color-text-tertiary)" }}>
-            [[제목]] 참조
+          <span>
+            <kbd
+              style={{
+                padding: "1px 4px",
+                backgroundColor: "var(--color-surface-secondary)",
+                borderRadius: "4px",
+                fontSize: "11px",
+              }}
+            >
+              ⌘↵
+            </kbd>{" "}
+            저장
           </span>
         </div>
       )}
