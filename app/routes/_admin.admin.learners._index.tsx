@@ -20,7 +20,7 @@ export default function AdminLearnersPage({ loaderData }: Route.ComponentProps) 
           <table className="w-full border-collapse">
             <thead>
               <tr className="bg-admin-bg">
-                {["이름", "Slug", "코호트", "작업"].map((h) => (
+                {["이름", "이메일", "코호트", "작업"].map((h) => (
                   <th key={h} className="text-left px-4 py-3 text-caption font-semibold text-admin-text-secondary uppercase tracking-wide">{h}</th>
                 ))}
               </tr>
@@ -29,7 +29,7 @@ export default function AdminLearnersPage({ loaderData }: Route.ComponentProps) 
               {loaderData.learners.map((l) => (
                 <tr key={l.userId} className="border-t border-admin-border hover:bg-admin-bg/50 transition-colors">
                   <td className="px-4 py-3 text-meta text-admin-text">{l.displayName}</td>
-                  <td className="px-4 py-3 text-meta text-admin-text-secondary">{l.slug}</td>
+                  <td className="px-4 py-3 text-meta text-admin-text-secondary">{l.email ?? "-"}</td>
                   <td className="px-4 py-3 text-meta text-admin-text-secondary">{l.cohort ?? "-"}</td>
                   <td className="px-4 py-3">
                     <Link to={`/admin/learners/${l.userId}`} className="text-caption text-admin-accent hover:underline">상세</Link>

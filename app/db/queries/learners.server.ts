@@ -6,6 +6,8 @@ import { learnerProfiles, records, stages } from "../schema.server";
 
 interface AdakrposUser {
   id: string;
+  email: string | null;
+  verifiedEmail: string | null;
   name: string | null;
   nickname: string | null;
   profilePhotoUrl: string | null;
@@ -78,6 +80,7 @@ export async function getOrCreateLearnerProfile(d1: D1Database, user: AdakrposUs
       .update(learnerProfiles)
       .set({
         displayName,
+        email: user.verifiedEmail ?? user.email ?? null,
         profilePhotoUrl: normalizePhotoUrl(user.profilePhotoUrl),
         cohort: user.cohort ?? null,
         updatedAt: now,
@@ -121,6 +124,7 @@ export async function getOrCreateLearnerProfile(d1: D1Database, user: AdakrposUs
     userId: user.id,
     slug,
     displayName,
+    email: user.verifiedEmail ?? user.email ?? null,
     profilePhotoUrl: normalizePhotoUrl(user.profilePhotoUrl),
     cohort: user.cohort ?? null,
     createdAt: now,

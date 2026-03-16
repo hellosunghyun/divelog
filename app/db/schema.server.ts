@@ -7,6 +7,7 @@ export const learnerProfiles = sqliteTable("learner_profiles", {
   userId: text("user_id").primaryKey(),
   slug: text("slug").notNull().unique(),
   displayName: text("display_name").notNull(),
+  email: text("email"),
   profilePhotoUrl: text("profile_photo_url"),
   cohort: text("cohort"),
   bio: text("bio"),
