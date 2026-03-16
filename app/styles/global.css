@@ -1,5 +1,32 @@
 @import "./tokens.css";
 
+/* ===== shadcn/ui Theme Variables — Quiet Depth Mapping ===== */
+/* maps to: https://ui.shadcn.com/docs/theming */
+:root {
+  --background: #F6F8FB;        /* Quiet Depth: color-bg */
+  --foreground: #1D1D1F;        /* Quiet Depth: color-text-primary */
+  --card: #FFFFFF;              /* Quiet Depth: color-surface */
+  --card-foreground: #1D1D1F;
+  --popover: #FFFFFF;
+  --popover-foreground: #1D1D1F;
+  --primary: #146C94;           /* Quiet Depth: color-ocean-blue */
+  --primary-foreground: #FFFFFF;
+  --secondary: #F2F5F8;         /* Quiet Depth: color-surface-secondary */
+  --secondary-foreground: #1D1D1F;
+  --muted: #F2F5F8;
+  --muted-foreground: #6E6E73;  /* Quiet Depth: color-text-secondary */
+  --accent: #EAF4FA;            /* Quiet Depth: color-mist-blue */
+  --accent-foreground: #0B2447; /* Quiet Depth: color-deep-ocean */
+  --destructive: #DC2626;       /* Quiet Depth: color-error */
+  --destructive-foreground: #FFFFFF;
+  --border: #E3E8EF;            /* Quiet Depth: color-border */
+  --input: #E3E8EF;
+  --ring: #146C94;              /* Quiet Depth: color-ocean-blue */
+  --radius: 0.75rem;            /* 12px — input elements (cards use 20-24px directly) */
+}
+
+
+
 @layer base {
   html {
     font-family: var(--font-sans);
