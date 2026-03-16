@@ -1,18 +1,20 @@
-import type { Route } from "./+types/me";
-import { requireAuth } from "~/lib/auth.middleware";
-import { db } from "~/db/client.server";
-import { records, sentences, questions, learnerProfiles, stages } from "~/db/schema.server";
-import { eq, and, desc, sql, asc } from "drizzle-orm";
+import { and, asc, desc, eq } from "drizzle-orm";
+
 import SceneCard from "~/components/SceneCard";
-import HighlightedSentenceCard from "~/components/HighlightedSentenceCard";
-import QuestionCard from "~/components/QuestionCard";
 import EmptyState from "~/components/EmptyState";
 import HeroSection from "~/components/HeroSection";
 import { Link } from "~/components/SmartLink";
+import { db } from "~/db/client.server";
+import { getUnansweredQuestionsByAuthor } from "~/db/queries/questions.server";
+import { getRecentlyRespondedRecords } from "~/db/queries/responses.server";
+import { learnerProfiles, records, stages } from "~/db/schema.server";
+import { requireAuth } from "~/lib/auth.middleware";
 import { createLogger } from "~/lib/logger.server";
 
+import type { Route } from "./+types/me";
+
 export function meta(_args: Route.MetaArgs) {
-  return [{ title: "내 공간 — DiveLog" }];
+  return [{ title: "내 공간 - DiveLog" }];
 }
 
 const STAGE_TONE_MAP: Record<string, { bg: string; border: string; label: string }> = {
@@ -26,50 +28,46 @@ function getStageToneStyle(stageType: string) {
   return STAGE_TONE_MAP[stageType] ?? STAGE_TONE_MAP.prelude;
 }
 
-export async function loader({ request, context }: Route.LoaderArgs) {
+type StageWithRecord = {
+  record: typeof records.$inferSelect;
+  stageId: string | null;
+  stageName: string | null;
+  stageType: string | null;
+  stageSlug: string | null;
+};
+
+type LoaderData = {
+  learner: typeof learnerProfiles.$inferSelect | null;
+  unansweredQuestions: Awaited<ReturnType<typeof getUnansweredQuestionsByAuthor>>;
+  recentlyResponded: Awaited<ReturnType<typeof getRecentlyRespondedRecords>>;
+  drafts: { record: typeof records.$inferSelect }[];
+  stages: typeof stages.$inferSelect[];
+  recordsByStage: Record<string, StageWithRecord[]>;
+};
+
+export async function loader({ request, context }: Route.LoaderArgs): Promise<LoaderData> {
   const logger = createLogger(request, context.cloudflare.env).child({ route: "me" });
   logger.info("loader_start");
+
   const auth = await requireAuth(request, context);
   const database = db(context.cloudflare.env.DB);
 
-  const [drafts, mySentences, myQuestions, unansweredQuestions, allStages, myRecordsWithStage] = await database.batch([
+  const [unansweredQuestions, recentlyResponded, drafts, allStages, myRecordsWithStage]: [
+    LoaderData["unansweredQuestions"],
+    LoaderData["recentlyResponded"],
+    LoaderData["drafts"],
+    LoaderData["stages"],
+    StageWithRecord[],
+  ] = await Promise.all([
+    getUnansweredQuestionsByAuthor(context.cloudflare.env.DB, auth.user.id, 10),
+    getRecentlyRespondedRecords(context.cloudflare.env.DB, auth.user.id, 5),
     database
       .select({ record: records })
       .from(records)
       .where(and(eq(records.authorId, auth.user.id), eq(records.visibility, "draft")))
       .orderBy(desc(records.updatedAt))
       .limit(5),
-    database
-      .select({ sentence: sentences })
-      .from(sentences)
-      .where(eq(sentences.savedById, auth.user.id))
-      .orderBy(desc(sentences.createdAt))
-      .limit(6),
-    database
-      .select({ question: questions, recordSlug: records.slug, recordTitle: records.title })
-      .from(questions)
-      .leftJoin(records, eq(questions.recordId, records.id))
-      .where(
-        and(eq(records.authorId, auth.user.id), eq(questions.isOpen, true))
-      )
-      .orderBy(desc(questions.createdAt))
-      .limit(5),
-    database
-      .select({ question: questions, recordSlug: records.slug, recordTitle: records.title })
-      .from(questions)
-      .leftJoin(records, eq(questions.recordId, records.id))
-      .where(
-        and(
-          eq(records.authorId, auth.user.id),
-          eq(questions.isOpen, true),
-          sql`NOT EXISTS (SELECT 1 FROM self_answers WHERE self_answers.question_id = ${questions.id})`
-        )
-      )
-      .limit(5),
-    database
-      .select()
-      .from(stages)
-      .orderBy(asc(stages.order)),
+    database.select().from(stages).orderBy(asc(stages.order)),
     database
       .select({
         record: records,
@@ -90,7 +88,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     .where(eq(learnerProfiles.userId, auth.user.id))
     .limit(1);
 
-  const recordsByStage: Record<string, typeof myRecordsWithStage> = {};
+  const recordsByStage: Record<string, StageWithRecord[]> = {};
   for (const row of myRecordsWithStage) {
     const stageId = row.stageId ?? "no-stage";
     if (!recordsByStage[stageId]) {
@@ -100,19 +98,20 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   }
 
   logger.info("loader_end");
+
   return {
     learner: learnerResult[0] ?? null,
-    drafts,
-    mySentences,
-    myQuestions,
     unansweredQuestions,
+    recentlyResponded,
+    drafts,
     stages: allStages,
     recordsByStage,
   };
 }
 
 export default function MySpacePage({ loaderData }: Route.ComponentProps) {
-  const { learner, drafts, mySentences, myQuestions, unansweredQuestions, stages, recordsByStage } = loaderData;
+  const { learner, unansweredQuestions, recentlyResponded, drafts, stages, recordsByStage } =
+    loaderData as LoaderData;
 
   return (
     <div>
@@ -123,112 +122,60 @@ export default function MySpacePage({ loaderData }: Route.ComponentProps) {
       />
 
       <div className="max-w-content mx-auto py-16 px-6 md:py-24">
-        <section className="mb-16">
+        <section className="mb-12" data-testid="unanswered-questions-section">
           <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-8">
-            나의 여정
+            아직 답하지 않은 내 질문
           </h2>
-          <div className="flex flex-col gap-6">
-            {(recordsByStage["no-stage"]?.length ?? 0) > 0 && (
-              <div
-                className="rounded-2xl border p-6"
-                style={{
-                  backgroundColor: "var(--color-surface-secondary)",
-                  borderColor: "var(--color-border)",
-                  borderLeftWidth: "4px",
-                }}
-              >
-                <div className="flex items-center gap-3 mb-4">
-                  <h3 className="text-lg font-semibold text-text-primary tracking-tight">
-                    구간 미지정
-                  </h3>
-                </div>
-                <div className="flex flex-col gap-3">
-                  {recordsByStage["no-stage"].slice(0, 5).map(({ record }) => (
+          {unansweredQuestions.length === 0 ? (
+            <p className="text-sm text-text-tertiary">모든 질문에 답했습니다.</p>
+          ) : (
+            <div className="flex flex-col gap-4">
+              {unansweredQuestions.map((question) => (
+                <div key={question.id} className="rounded-2xl border border-border p-5 bg-surface">
+                  <p className="text-base text-text-primary leading-relaxed mb-3">{question.content}</p>
+                  <div className="flex flex-wrap items-center gap-2 text-xs text-text-tertiary">
+                    <span>{question.recordTitle}</span>
+                    <span aria-hidden="true">-</span>
                     <Link
-                      key={record.id}
-                      to={`/logs/${record.slug}`}
-                      className="block p-4 rounded-xl bg-surface border border-border-subtle hover:border-border transition-colors no-underline"
+                      to={`/logs/${question.recordSlug}#question-${question.id}`}
+                      className="text-ocean-blue font-medium no-underline hover:text-deep-ocean"
                     >
-                      <h4 className="text-base font-medium text-text-primary mb-1">
-                        {record.title}
-                      </h4>
-                      <p className="text-sm text-text-secondary line-clamp-2">
-                        {record.contentText?.substring(0, 100) ?? record.content.substring(0, 100)}
-                      </p>
+                      답변하기
                     </Link>
-                  ))}
-                  {recordsByStage["no-stage"].length > 5 && (
-                    <p className="text-sm text-text-tertiary mt-2">
-                      외 {recordsByStage["no-stage"].length - 5}개의 기록
-                    </p>
-                  )}
-                </div>
-              </div>
-            )}
-            {stages.map((stage) => {
-              const stageRecords = recordsByStage[stage.id] ?? [];
-              const toneStyle = getStageToneStyle(stage.type);
-              
-              return (
-                <div
-                  key={stage.id}
-                  className="rounded-2xl border p-6"
-                  style={{
-                    backgroundColor: toneStyle.bg,
-                    borderColor: toneStyle.border,
-                    borderLeftWidth: "4px",
-                  }}
-                >
-                  <div className="flex items-center gap-3 mb-4">
-                    <h3 className="text-lg font-semibold text-text-primary tracking-tight">
-                      {stage.name}
-                    </h3>
-                    <span className="text-caption text-text-tertiary">
-                      {toneStyle.label} · {stageRecords.length}개의 기록
-                    </span>
                   </div>
-                  
-                  {stageRecords.length === 0 ? (
-                    <p className="text-sm text-text-tertiary">
-                      아직 이 구간에 기록이 없습니다. 무엇이든 남겨보세요.
-                    </p>
-                  ) : (
-                    <div className="flex flex-col gap-3">
-                      {stageRecords.slice(0, 3).map(({ record }) => (
-                        <Link
-                          key={record.id}
-                          to={`/logs/${record.slug}`}
-                          className="block p-4 rounded-xl bg-surface border border-border-subtle hover:border-border transition-colors no-underline"
-                        >
-                          <h4 className="text-base font-medium text-text-primary mb-1">
-                            {record.title}
-                            {record.visibility === "draft" && (
-                              <span className="ml-2 text-caption text-warning font-medium">임시저장</span>
-                            )}
-                          </h4>
-                          <p className="text-sm text-text-secondary line-clamp-2">
-                            {record.contentText?.substring(0, 100) ?? record.content.substring(0, 100)}
-                          </p>
-                        </Link>
-                      ))}
-                      {stageRecords.length > 3 && (
-                        <p className="text-sm text-text-tertiary mt-2">
-                          외 {stageRecords.length - 3}개의 기록
-                        </p>
-                      )}
-                    </div>
-                  )}
                 </div>
-              );
-            })}
-          </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        <section className="mb-12">
+          <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-8">
+            최근 응답이 달린 내 기록
+          </h2>
+          {recentlyResponded.length === 0 ? (
+            <p className="text-sm text-text-tertiary">최근 7일 내 새 응답이 달린 기록이 없습니다.</p>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {recentlyResponded.map((record) => (
+                <Link
+                  key={record.id}
+                  to={`/logs/${record.slug}`}
+                  className="no-underline rounded-2xl border border-border p-5 bg-surface hover:border-border-subtle transition-colors"
+                >
+                  <div className="flex items-center justify-between gap-4">
+                    <span className="text-base font-medium text-text-primary">{record.title}</span>
+                    <span className="text-sm text-text-secondary">{record.recentResponseCount}개 새 응답</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
         </section>
 
         <section className="mb-12">
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-xl font-semibold text-text-primary tracking-tight">
-              임시저장
-            </h2>
+            <h2 className="text-xl font-semibold text-text-primary tracking-tight">이어서 작성하기</h2>
             <Link to="/write" className="text-sm text-ocean-blue hover:text-ocean-blue transition-colors no-underline">
               + 새 기록
             </Link>
@@ -262,65 +209,96 @@ export default function MySpacePage({ loaderData }: Route.ComponentProps) {
           )}
         </section>
 
-        <section className="mb-12">
-          <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-8">
-            저장한 문장들
-          </h2>
-          {mySentences.length === 0 ? (
-            <EmptyState variant="generic" message="저장한 문장이 없습니다." />
-          ) : (
-            <div className="flex flex-col gap-4">
-              {mySentences.map(({ sentence }) => (
-                <HighlightedSentenceCard key={sentence.id} sentence={sentence} />
-              ))}
-            </div>
-          )}
-        </section>
+        <section className="mb-16">
+          <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-8">내 기록 여정</h2>
+          <div className="flex flex-col gap-6">
+            {(recordsByStage["no-stage"]?.length ?? 0) > 0 && (
+              <div
+                className="rounded-2xl border p-6"
+                style={{
+                  backgroundColor: "var(--color-surface-secondary)",
+                  borderColor: "var(--color-border)",
+                  borderLeftWidth: "4px",
+                }}
+              >
+                <div className="flex items-center gap-3 mb-4">
+                  <h3 className="text-lg font-semibold text-text-primary tracking-tight">구간 미지정</h3>
+                </div>
+                <div className="flex flex-col gap-3">
+                  {recordsByStage["no-stage"].slice(0, 5).map(({ record }) => (
+                    <Link
+                      key={record.id}
+                      to={`/logs/${record.slug}`}
+                      className="block p-4 rounded-xl bg-surface border border-border-subtle hover:border-border transition-colors no-underline"
+                    >
+                      <h4 className="text-base font-medium text-text-primary mb-1">{record.title}</h4>
+                      <p className="text-sm text-text-secondary line-clamp-2">
+                        {record.contentText?.substring(0, 100) ?? record.content.substring(0, 100)}
+                      </p>
+                    </Link>
+                  ))}
+                  {recordsByStage["no-stage"].length > 5 && (
+                    <p className="text-sm text-text-tertiary mt-2">
+                      외 {recordsByStage["no-stage"].length - 5}개의 기록
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
 
-        <section className="mb-12">
-          <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-8">
-            내 질문들
-          </h2>
-          {myQuestions.length === 0 ? (
-            <EmptyState variant="questions" />
-          ) : (
-            <div className="flex flex-col gap-5">
-              {myQuestions.map(({ question, recordSlug, recordTitle }) => (
-                <QuestionCard
-                  key={question.id}
-                  question={question}
-                  record={
-                    recordSlug && recordTitle
-                      ? { slug: recordSlug, title: recordTitle }
-                      : undefined
-                  }
-                />
-              ))}
-            </div>
-          )}
-        </section>
+            {stages.map((stage) => {
+              const stageRecords = recordsByStage[stage.id] ?? [];
+              const toneStyle = getStageToneStyle(stage.type);
 
-        <section>
-          <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-8">
-            미답변 질문들
-          </h2>
-          {unansweredQuestions.length === 0 ? (
-            <EmptyState variant="questions" message="아직 답하지 않은 질문이 없습니다. 기록에 질문을 남기면 나중에 스스로 답해볼 수 있습니다." />
-          ) : (
-            <div className="flex flex-col gap-5">
-              {unansweredQuestions.map(({ question, recordSlug, recordTitle }) => (
-                <QuestionCard
-                  key={question.id}
-                  question={question}
-                  record={
-                    recordSlug && recordTitle
-                      ? { slug: recordSlug, title: recordTitle }
-                      : undefined
-                  }
-                />
-              ))}
-            </div>
-          )}
+              return (
+                <div
+                  key={stage.id}
+                  className="rounded-2xl border p-6"
+                  style={{
+                    backgroundColor: toneStyle.bg,
+                    borderColor: toneStyle.border,
+                    borderLeftWidth: "4px",
+                  }}
+                >
+                  <div className="flex items-center gap-3 mb-4">
+                    <h3 className="text-lg font-semibold text-text-primary tracking-tight">{stage.name}</h3>
+                    <span className="text-caption text-text-tertiary">
+                      {toneStyle.label} - {stageRecords.length}개의 기록
+                    </span>
+                  </div>
+
+                  {stageRecords.length === 0 ? (
+                    <p className="text-sm text-text-tertiary">
+                      아직 이 구간에 기록이 없습니다. 무엇이든 남겨보세요.
+                    </p>
+                  ) : (
+                    <div className="flex flex-col gap-3">
+                      {stageRecords.slice(0, 3).map(({ record }) => (
+                        <Link
+                          key={record.id}
+                          to={`/logs/${record.slug}`}
+                          className="block p-4 rounded-xl bg-surface border border-border-subtle hover:border-border transition-colors no-underline"
+                        >
+                          <h4 className="text-base font-medium text-text-primary mb-1">
+                            {record.title}
+                            {record.visibility === "draft" && (
+                              <span className="ml-2 text-caption text-warning font-medium">임시저장</span>
+                            )}
+                          </h4>
+                          <p className="text-sm text-text-secondary line-clamp-2">
+                            {record.contentText?.substring(0, 100) ?? record.content.substring(0, 100)}
+                          </p>
+                        </Link>
+                      ))}
+                      {stageRecords.length > 3 && (
+                        <p className="text-sm text-text-tertiary mt-2">외 {stageRecords.length - 3}개의 기록</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </section>
       </div>
     </div>

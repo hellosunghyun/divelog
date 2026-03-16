@@ -125,3 +125,34 @@ export async function getUnansweredQuestions(d1: D1Database, authorId: string) {
     .where(and(eq(records.authorId, authorId), eq(questions.isOpen, true)))
     .orderBy(desc(questions.createdAt));
 }
+
+export type UnansweredQuestionByAuthor = typeof questions.$inferSelect & {
+  recordSlug: string;
+  recordTitle: string;
+};
+
+export async function getUnansweredQuestionsByAuthor(
+  d1: D1Database,
+  authorId: string,
+  limit = 10,
+): Promise<UnansweredQuestionByAuthor[]> {
+  const database = db(d1);
+
+  return database
+    .select({
+      ...questions,
+      recordSlug: records.slug,
+      recordTitle: records.title,
+    })
+    .from(questions)
+    .innerJoin(records, eq(questions.recordId, records.id))
+    .where(
+      and(
+        eq(records.authorId, authorId),
+        eq(questions.isOpen, true),
+        sql`NOT EXISTS (SELECT 1 FROM self_answers WHERE self_answers.question_id = ${questions.id})`,
+      ),
+    )
+    .orderBy(desc(questions.createdAt))
+    .limit(limit);
+}
