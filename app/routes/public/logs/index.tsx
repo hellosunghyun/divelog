@@ -1,8 +1,8 @@
 import type { Route } from "./+types/index";
 import { useSearchParams, useNavigate } from "react-router";
 import { db } from "~/db/client.server";
-import { records, stages, learnerProfiles } from "~/db/schema.server";
-import { eq, and, desc, sql, ne } from "drizzle-orm";
+import { records, stages, learnerProfiles, questions, selfAnswers, recordLinks } from "~/db/schema.server";
+import { eq, and, desc, sql, ne, count } from "drizzle-orm";
 import SceneCard from "~/components/SceneCard";
 import FilterBar from "~/components/FilterBar";
 import SortBar from "~/components/SortBar";
@@ -73,6 +73,17 @@ export async function loader({ request, context }: Route.LoaderArgs) {
           name: stages.name,
           type: stages.type,
         },
+        questionCount: sql<number>`(
+          SELECT COUNT(*) FROM ${questions} WHERE ${questions.recordId} = ${records.id}
+        )`.mapWith(Number),
+        selfAnswerCount: sql<number>`(
+          SELECT COUNT(*) FROM ${selfAnswers} sa
+          INNER JOIN ${questions} q ON sa.${selfAnswers.questionId} = q.${questions.id}
+          WHERE q.${questions.recordId} = ${records.id}
+        )`.mapWith(Number),
+        linkedCount: sql<number>`(
+          SELECT COUNT(*) FROM ${recordLinks} WHERE ${recordLinks.targetRecordId} = ${records.id}
+        )`.mapWith(Number),
       })
       .from(records)
       .leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
@@ -216,16 +227,19 @@ export default function LogsPage({ loaderData }: Route.ComponentProps) {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {filteredRecords.map((record) => (
                 <SceneCard
-                  key={record.id}
-                  record={{
-                    slug: record.slug,
-                    title: record.title,
-                    content: record.content,
-                    format: record.format as "note" | "article",
-                    type: record.type as "personal" | "challenge" | "collaboration",
-                    rhythm: record.rhythm ?? undefined,
-                    createdAt: record.createdAt,
-                  }}
+                   key={record.id}
+                   record={{
+                     slug: record.slug,
+                     title: record.title,
+                     content: record.content,
+                     format: record.format as "note" | "article",
+                     type: record.type as "personal" | "challenge" | "collaboration",
+                     rhythm: record.rhythm ?? undefined,
+                     createdAt: record.createdAt,
+                     questionCount: record.questionCount,
+                     selfAnswerCount: record.selfAnswerCount,
+                     linkedCount: record.linkedCount,
+                   }}
                   contentSnippet={record.contentSnippet}
                   author={
                     record.author?.displayName
