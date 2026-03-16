@@ -207,6 +207,104 @@
   animation: shimmer 2s ease-in-out infinite;
 }
 
+/* Additional Quiet Depth animation keyframes */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes pulseSoft {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+@utility animate-slide-up {
+  animation: slideUp var(--duration-normal, 300ms) var(--ease-out, ease-out) both;
+}
+
+@utility animate-slide-down {
+  animation: slideDown var(--duration-normal, 300ms) var(--ease-out, ease-out) both;
+}
+
+@utility animate-scale-in {
+  animation: scaleIn var(--duration-normal, 300ms) var(--ease-out, ease-out) both;
+}
+
+@utility animate-pulse-soft {
+  animation: pulseSoft 2s ease-in-out infinite;
+}
+
+@utility transition-premium {
+  transition: all var(--duration-normal, 300ms) var(--ease-premium, cubic-bezier(0.32, 0.72, 0, 1));
+}
+
+@utility transition-spring {
+  transition: all var(--duration-normal, 300ms) var(--ease-spring, cubic-bezier(0.34, 1.56, 0.64, 1));
+}
+
+@utility hover-lift {
+  transition: transform var(--duration-fast, 150ms) var(--ease-premium, cubic-bezier(0.32, 0.72, 0, 1)),
+              box-shadow var(--duration-fast, 150ms) var(--ease-premium, cubic-bezier(0.32, 0.72, 0, 1));
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-tinted-md, 0 4px 16px -2px rgba(11,36,71,0.06));
+  }
+}
+
+@utility active-press {
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+/* Accessibility: reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .animate-slide-up,
+  .animate-slide-down,
+  .animate-scale-in,
+  .animate-pulse-soft {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+  .transition-premium,
+  .transition-spring,
+  .hover-lift {
+    transition-duration: 0.01ms !important;
+  }
+}
+
 .deep-ocean-hero {
   background: radial-gradient(circle at 50% 120%, #146C94 0%, #0B2447 100%);
   position: relative;

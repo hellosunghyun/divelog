@@ -3,7 +3,7 @@ import { Link } from "~/components/SmartLink";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { useState, useEffect, useRef } from "react";
-import { User, Inbox, Settings, ExternalLink, LogOut } from "lucide-react";
+import { User, Envelope, GearSix, ArrowSquareOut, SignOut } from "@phosphor-icons/react";
 
 interface PublicLoaderData {
   isAuthenticated: boolean;
@@ -239,7 +239,7 @@ export default function GlobalNav() {
                         }`}
                         role="menuitem"
                       >
-                        <User className="w-4 h-4 shrink-0" aria-hidden="true" />
+                        <User size={16} weight="light" className="shrink-0" aria-hidden="true" />
                         내 공간
                       </Link>
                       <Link
@@ -251,7 +251,7 @@ export default function GlobalNav() {
                         }`}
                         role="menuitem"
                       >
-                        <Inbox className="w-4 h-4 shrink-0" aria-hidden="true" />
+                         <Envelope size={16} weight="light" className="shrink-0" aria-hidden="true" />
                         인박스
                       </Link>
                        <Link
@@ -263,7 +263,7 @@ export default function GlobalNav() {
                          }`}
                          role="menuitem"
                        >
-                         <Settings className="w-4 h-4 shrink-0" aria-hidden="true" />
+                          <GearSix size={16} weight="light" className="shrink-0" aria-hidden="true" />
                          설정
                        </Link>
                      </div>
@@ -297,7 +297,7 @@ export default function GlobalNav() {
                          className={`flex items-center gap-3 px-4 py-2.5 text-sm text-text-primary hover:bg-surface-secondary transition-colors no-underline ${focusRing}`}
                          role="menuitem"
                        >
-                         <ExternalLink className="w-4 h-4 shrink-0" aria-hidden="true" />
+                          <ArrowSquareOut size={16} weight="light" className="shrink-0" aria-hidden="true" />
                          프로필 수정
                          <span className="ml-auto text-caption text-text-tertiary">ada-kr-pos.com</span>
                        </a>
@@ -311,7 +311,7 @@ export default function GlobalNav() {
                         className={`flex items-center gap-3 px-4 py-2.5 text-sm text-text-secondary hover:text-error hover:bg-error/5 transition-colors no-underline ${focusRing}`}
                         role="menuitem"
                       >
-                        <LogOut className="w-4 h-4 shrink-0" aria-hidden="true" />
+                         <SignOut size={16} weight="light" className="shrink-0" aria-hidden="true" />
                         로그아웃
                       </a>
                     </div>
@@ -480,7 +480,7 @@ export default function GlobalNav() {
                   rel="noopener noreferrer"
                   className={`flex items-center gap-2 text-sm text-text-secondary hover:text-ocean-blue transition-colors no-underline ${focusRing}`}
                 >
-                  <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
+                   <ArrowSquareOut size={14} weight="light" aria-hidden="true" />
                   프로필 수정
                   <span className="text-caption text-text-tertiary ml-1">ada-kr-pos.com</span>
                 </a>

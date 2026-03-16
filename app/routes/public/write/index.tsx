@@ -1,5 +1,5 @@
 import { Link } from "~/components/SmartLink";
-import { FileText, MessageSquare } from "lucide-react";
+import { FileText, ChatTeardrop } from "@phosphor-icons/react";
 import type { Route } from "./+types/index";
 import { requireVerified } from "~/lib/auth.middleware";
 
@@ -27,7 +27,7 @@ export default function WritePage() {
         >
           <div className="flex items-start gap-4">
             <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-mist-blue flex items-center justify-center">
-              <MessageSquare size={20} className="text-ocean-blue" />
+              <ChatTeardrop size={20} weight="light" className="text-ocean-blue" />
             </div>
             <div>
               <h2 className="text-lg font-semibold text-text-primary mb-1">
@@ -46,7 +46,7 @@ export default function WritePage() {
         >
           <div className="flex items-start gap-4">
             <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-mist-blue flex items-center justify-center">
-              <FileText size={20} className="text-ocean-blue" />
+              <FileText size={20} weight="light" className="text-ocean-blue" />
             </div>
             <div>
               <h2 className="text-lg font-semibold text-text-primary mb-1">
