@@ -26,24 +26,25 @@ export default function HeroSection({ variant, title, subtitle, accentTone, badg
 
   if (isHome) {
     return (
-      <section className="deep-ocean-hero min-h-[560px] flex items-center justify-center text-center px-6">
+      <section className="deep-ocean-hero min-h-[420px] sm:min-h-[500px] lg:min-h-[560px] flex items-center justify-center text-center px-6">
         <div className="hero-caustics" aria-hidden="true" />
-        <div className="relative z-10 max-w-4xl py-12">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-white/90 text-[11px] font-semibold tracking-[0.15em] mb-8 border border-white/10">
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" aria-hidden="true" />
-            {badge ?? "REFLECTIVE ARCHIVING"}
-          </div>
-          <h1 className="text-5xl md:text-7xl font-extrabold text-white mb-8 leading-[1.1] tracking-tight text-glow">
+        <div className="relative z-10 max-w-4xl py-10 sm:py-12 lg:py-16">
+          {badge && (
+            <div className="inline-block px-3 py-1 rounded-full bg-white/[0.08] backdrop-blur-sm text-white/70 text-[11px] font-medium tracking-[0.08em] mb-6 sm:mb-8 border border-white/[0.06]">
+              {badge}
+            </div>
+          )}
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-semibold text-white mb-6 sm:mb-8 leading-[1.1] tracking-[-0.02em]">
             {title}
           </h1>
           {subtitle && (
-            <p className="text-lg md:text-xl text-mist-blue/70 font-light leading-relaxed mb-10 max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg md:text-xl text-white/60 font-normal leading-relaxed mb-8 sm:mb-10 max-w-2xl mx-auto">
               {subtitle}
             </p>
           )}
-          {children && <div className="flex flex-col sm:flex-row items-center justify-center gap-4">{children}</div>}
+          {children && <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">{children}</div>}
         </div>
-        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#F6F8FB] to-transparent" aria-hidden="true" />
+        <div className="absolute bottom-0 left-0 right-0 h-24 sm:h-32 bg-gradient-to-t from-[#F6F8FB] to-transparent" aria-hidden="true" />
       </section>
     );
   }

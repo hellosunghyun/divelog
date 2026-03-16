@@ -151,9 +151,30 @@
 }
 
 .deep-ocean-hero {
-  background: radial-gradient(circle at 50% 120%, #146C94 0%, #0B2447 100%);
+  background: 
+    linear-gradient(180deg, 
+      #0B2447 0%, 
+      #0D2D52 20%,
+      #146C94 60%,
+      #1A7DA8 80%,
+      #2A8DB8 100%
+    );
   position: relative;
   overflow: hidden;
+}
+
+.deep-ocean-hero::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(ellipse 100% 60% at 50% -10%, rgba(108, 196, 214, 0.12) 0%, transparent 50%),
+    radial-gradient(ellipse 80% 40% at 20% 40%, rgba(255, 255, 255, 0.03) 0%, transparent 40%),
+    radial-gradient(ellipse 60% 30% at 75% 30%, rgba(255, 255, 255, 0.02) 0%, transparent 35%);
+  pointer-events: none;
 }
 
 .deep-ocean-hero::after {
@@ -162,8 +183,8 @@
   bottom: 0;
   left: 0;
   right: 0;
-  height: 15%;
-  background: linear-gradient(to bottom, transparent 0%, #F6F8FB 100%);
+  height: 20%;
+  background: linear-gradient(to top, #F6F8FB 0%, transparent 100%);
   pointer-events: none;
 }
 
@@ -171,9 +192,11 @@
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
   background: 
-    radial-gradient(circle at 20% 30%, rgba(255,255,255,0.05) 0%, transparent 40%),
-    radial-gradient(circle at 80% 20%, rgba(255,255,255,0.03) 0%, transparent 30%);
+    radial-gradient(ellipse 40% 25% at 25% 20%, rgba(108, 196, 214, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse 35% 20% at 70% 15%, rgba(255, 255, 255, 0.03) 0%, transparent 45%),
+    radial-gradient(ellipse 50% 30% at 50% 80%, rgba(20, 108, 148, 0.08) 0%, transparent 50%);
   pointer-events: none;
+  opacity: 0.7;
 }
 
 .quiet-depth-card {
@@ -190,10 +213,6 @@
   background: rgba(255, 255, 255, 0.95);
   box-shadow: 0 12px 30px -4px rgba(11, 36, 71, 0.08);
   border-color: rgba(20, 108, 148, 0.15);
-}
-
-.text-glow {
-  text-shadow: 0 0 40px rgba(255, 255, 255, 0.15);
 }
 
 .journey-line {
