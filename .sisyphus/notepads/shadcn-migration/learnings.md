@@ -248,3 +248,11 @@
 - hidden/color input은 예외 대상이지만 멀티라인 JSX에서는 단순 grep 필터가 누락될 수 있어, `type="hidden"`/`type="color"`를 한 줄로 정리하면 검증 신뢰도가 올라간다.
 - 최종 검증 단계에서 `@/lib/utils`, `as any`, `@ts-ignore`, `@ts-expect-error`는 모두 0건이어야 하고, 예외 허용 파일(tag-chip, editor/ui)만 남는 상태를 명시적으로 기록해야 이후 회귀를 막기 쉽다.
 - 빌드(`npx react-router build`)와 타입체크(`tsc --noEmit`)가 둘 다 통과한 뒤 LSP diagnostics까지 clean 확인하면 마이그레이션 마감 품질 기준을 안정적으로 충족할 수 있다.
+
+## Task 18: Playwright Public QA
+
+### Key Findings
+- `pnpm dev`만으로는 `/logs`가 D1 테이블 부재로 500을 내므로, Playwright 검증 전에 `wrangler d1 migrations apply DB --local`과 `wrangler d1 execute DB --local --file=seeds/seed.sql`로 로컬 DB를 준비해야 Public 화면이 정상 렌더링된다.
+- `/logs`의 FilterBar는 실제 DOM에서 `button[role="combobox"]` 4개로 렌더링되고 `document.querySelectorAll('select').length === 0`이라서 shadcn/Radix Select 치환 자체는 확인됐다.
+- Stage Select는 Playwright에서 열기 후 `Prelude` 선택이 가능했고, 선택 직후 URL이 `?stage=stage-prelude`로 바뀌며 listbox가 0개로 돌아가 드롭다운 닫힘 동작도 확인됐다.
+- 다만 dev 서버 기준 `/logs`와 `/journey` 모두 한국어 본문 일부에서 hydration mismatch page error가 재현됐고, 첫 로드 시 Vite의 `Outdated Optimize Dep` 504가 섞여 초기 콘솔 상태를 오염시켰다.

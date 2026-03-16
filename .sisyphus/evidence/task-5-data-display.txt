@@ -1,0 +1,23 @@
+=== Task 5 Data Display + Overlay ===
+alert-dialog.tsx
+badge.tsx
+button.tsx
+checkbox.tsx
+dialog.tsx
+input.tsx
+label.tsx
+radio-group.tsx
+select.tsx
+table.tsx
+textarea.tsx
+
+Created:
+- app/components/ui/table.tsx
+- app/components/ui/badge.tsx
+- app/components/ui/dialog.tsx
+- app/components/ui/alert-dialog.tsx
+
+Checks:
+- All new components import `cn` from `~/lib/utils`
+- Added dependencies: `@radix-ui/react-dialog`, `@radix-ui/react-alert-dialog`
+- Build: SUCCESS (`npx react-router build`)

@@ -1,0 +1,26 @@
+# Task 1 — shadcn/ui Init Verification
+Date: 2026-03-16
+
+## components.json
+- rsc: false ✅
+- tailwind.config: "" ✅
+- aliases use ~/  ✅
+- style: new-york ✅
+
+## app/lib/utils.ts
+- cn() function ✅
+- uses clsx + tailwind-merge ✅
+
+## app/components/ui/button.tsx
+- import cn from "~/lib/utils" ✅ (NOT @/lib/utils)
+- all variants: default, destructive, outline, secondary, ghost, link ✅
+- sizes: default, sm, lg, icon ✅
+
+## Build
+- npx react-router build: ✓ built in 3.12s ✅
+- Sentry sourcemap error: pre-existing (no SENTRY_AUTH_TOKEN) — NOT a build failure
+
+## Edge Runtime (wrangler)
+- Error: "No such module wrangler:modules-watch" — wrangler 4.69.0 vs 4.74.0 version mismatch
+- Pre-existing env issue, NOT related to shadcn changes
+- Will upgrade wrangler or skip edge test as pre-existing issue
