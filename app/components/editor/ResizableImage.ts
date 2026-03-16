@@ -1,9 +1,9 @@
 import { Image } from "@tiptap/extension-image";
 
 const SIZE_OPTIONS = [
-  { label: "S", width: "25%" },
-  { label: "M", width: "50%" },
-  { label: "L", width: "75%" },
+  { label: "소", width: "240px" },
+  { label: "중", width: "400px" },
+  { label: "대", width: "560px" },
   { label: "원본", width: "100%" },
 ];
 
@@ -65,36 +65,6 @@ export const ResizableImage = Image.extend({
             img.style.width = opt.width;
             toolbar?.querySelectorAll(".image-size-btn").forEach((b) => b.classList.remove("active"));
             btn.classList.add("active");
-          });
-
-          toolbar!.appendChild(btn);
-        });
-
-        const alignBtns = [
-          { label: "←", value: "left" },
-          { label: "↔", value: "center" },
-          { label: "→", value: "right" },
-        ];
-
-        const sep = document.createElement("span");
-        sep.className = "image-toolbar-sep";
-        toolbar.appendChild(sep);
-
-        alignBtns.forEach((opt) => {
-          const btn = document.createElement("button");
-          btn.type = "button";
-          btn.textContent = opt.label;
-          btn.className = "image-size-btn";
-          if ((node.attrs.dataAlign || "center") === opt.value) btn.classList.add("active");
-
-          btn.addEventListener("mousedown", (e) => { e.preventDefault(); e.stopPropagation(); });
-          btn.addEventListener("click", (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            const pos = typeof getPos === "function" ? getPos() : undefined;
-            if (pos === undefined) return;
-            editor.chain().focus().setNodeSelection(pos).updateAttributes("image", { dataAlign: opt.value }).run();
-            wrapper.setAttribute("data-align", opt.value);
           });
 
           toolbar!.appendChild(btn);
