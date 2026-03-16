@@ -1,8 +1,8 @@
 import { redirect } from "react-router";
-import type { Route } from "./+types/_admin.admin.roles";
-import { db } from "../db/client.server";
-import { createLogger } from "../lib/logger.server";
-import { userRoles, learnerProfiles } from "../db/schema.server";
+import type { Route } from "./+types/roles";
+import { db } from "~/db/client.server";
+import { createLogger } from "~/lib/logger.server";
+import { userRoles, learnerProfiles } from "~/db/schema.server";
 import { asc, eq } from "drizzle-orm";
 
 export function meta(_: Route.MetaArgs) { return [{ title: "역할 & 권한" }]; }

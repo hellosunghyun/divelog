@@ -1,8 +1,8 @@
-import type { Route } from "./+types/_admin.admin.tags";
+import type { Route } from "./+types/tags";
 import { data, redirect } from "react-router";
-import { db } from "../db/client.server";
-import { createLogger } from "../lib/logger.server";
-import { tags } from "../db/schema.server";
+import { db } from "~/db/client.server";
+import { createLogger } from "~/lib/logger.server";
+import { tags } from "~/db/schema.server";
 import { eq } from "drizzle-orm";
 import {
   getAllTags,
@@ -12,8 +12,8 @@ import {
   getTagByName,
   getTagBySlug,
   type TagWithUsage,
-} from "../db/queries/tags.server";
-import EmptyState from "../components/EmptyState";
+} from "~/db/queries/tags.server";
+import EmptyState from "~/components/EmptyState";
 
 export function meta(_: Route.MetaArgs) {
   return [{ title: "태그 관리" }];

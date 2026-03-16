@@ -1,7 +1,7 @@
-import type { Route } from "./+types/_admin.admin.analytics";
-import { db } from "../db/client.server";
-import { createLogger } from "../lib/logger.server";
-import { records, questions, responses, learnerProfiles, stages } from "../db/schema.server";
+import type { Route } from "./+types/analytics";
+import { db } from "~/db/client.server";
+import { createLogger } from "~/lib/logger.server";
+import { records, questions, responses, learnerProfiles, stages } from "~/db/schema.server";
 import { eq, sql, desc } from "drizzle-orm";
 
 export function meta(_: Route.MetaArgs) { return [{ title: "애널리틱스" }]; }

@@ -1,7 +1,7 @@
-import type { Route } from "./+types/_admin.admin.audit";
-import { db } from "../db/client.server";
-import { createLogger } from "../lib/logger.server";
-import { auditLogs } from "../db/schema.server";
+import type { Route } from "./+types/audit";
+import { db } from "~/db/client.server";
+import { createLogger } from "~/lib/logger.server";
+import { auditLogs } from "~/db/schema.server";
 import { eq, desc } from "drizzle-orm";
 
 export function meta(_: Route.MetaArgs) { return [{ title: "감사 로그" }]; }

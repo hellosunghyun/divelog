@@ -1,9 +1,9 @@
 import { data, redirect } from "react-router";
-import type { Route } from "./+types/_admin.admin.templates.$templateId";
+import type { Route } from "./+types/$templateId";
 import { Link } from "react-router";
-import { db } from "../db/client.server";
-import { createLogger } from "../lib/logger.server";
-import { templates } from "../db/schema.server";
+import { db } from "~/db/client.server";
+import { createLogger } from "~/lib/logger.server";
+import { templates } from "~/db/schema.server";
 import { eq } from "drizzle-orm";
 
 export async function loader({ params, request, context }: Route.LoaderArgs) {

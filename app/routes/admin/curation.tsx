@@ -1,8 +1,8 @@
 import { redirect } from "react-router";
-import type { Route } from "./+types/_admin.admin.curation";
-import { db } from "../db/client.server";
-import { createLogger } from "../lib/logger.server";
-import { curationSlots } from "../db/schema.server";
+import type { Route } from "./+types/curation";
+import { db } from "~/db/client.server";
+import { createLogger } from "~/lib/logger.server";
+import { curationSlots } from "~/db/schema.server";
 import { desc, eq } from "drizzle-orm";
 
 export function meta(_: Route.MetaArgs) { return [{ title: "큐레이션" }]; }

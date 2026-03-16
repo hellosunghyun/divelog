@@ -1,10 +1,10 @@
-import type { Route } from "./+types/_admin.admin.learners._index";
+import type { Route } from "./+types/index";
 import { Link } from "react-router";
-import { db } from "../db/client.server";
-import { createLogger } from "../lib/logger.server";
-import { learnerProfiles } from "../db/schema.server";
+import { db } from "~/db/client.server";
+import { createLogger } from "~/lib/logger.server";
+import { learnerProfiles } from "~/db/schema.server";
 import { asc } from "drizzle-orm";
-import EmptyState from "../components/EmptyState";
+import EmptyState from "~/components/EmptyState";
 
 export function meta(_: Route.MetaArgs) { return [{ title: "Learner 관리" }]; }
 export async function loader({ request, context }: Route.LoaderArgs) {

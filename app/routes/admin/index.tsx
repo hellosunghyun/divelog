@@ -1,7 +1,7 @@
-import type { Route } from "./+types/_admin.admin._index";
-import { db } from "../db/client.server";
-import { createLogger } from "../lib/logger.server";
-import { stages, records, learnerProfiles } from "../db/schema.server";
+import type { Route } from "./+types/index";
+import { db } from "~/db/client.server";
+import { createLogger } from "~/lib/logger.server";
+import { stages, records, learnerProfiles } from "~/db/schema.server";
 import { eq, desc } from "drizzle-orm";
 import { Link } from "react-router";
 

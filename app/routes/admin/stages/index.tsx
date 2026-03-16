@@ -1,10 +1,10 @@
-import type { Route } from "./+types/_admin.admin.stages._index";
+import type { Route } from "./+types/index";
 import { Link } from "react-router";
-import { db } from "../db/client.server";
-import { createLogger } from "../lib/logger.server";
-import { stages } from "../db/schema.server";
+import { db } from "~/db/client.server";
+import { createLogger } from "~/lib/logger.server";
+import { stages } from "~/db/schema.server";
 import { sql } from "drizzle-orm";
-import EmptyState from "../components/EmptyState";
+import EmptyState from "~/components/EmptyState";
 
 function formatDate(timestamp: number | null): string {
   if (!timestamp) return "-";

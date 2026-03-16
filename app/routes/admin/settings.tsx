@@ -1,8 +1,8 @@
 import { redirect } from "react-router";
-import type { Route } from "./+types/_admin.admin.settings";
-import { db } from "../db/client.server";
-import { createLogger } from "../lib/logger.server";
-import { settings } from "../db/schema.server";
+import type { Route } from "./+types/settings";
+import { db } from "~/db/client.server";
+import { createLogger } from "~/lib/logger.server";
+import { settings } from "~/db/schema.server";
 import { eq } from "drizzle-orm";
 
 export function meta(_: Route.MetaArgs) { return [{ title: "시스템 설정" }]; }
