@@ -3,8 +3,12 @@ import type { Route } from "./+types/api.search-records";
 import { db } from "../db/client.server";
 import { records, learnerProfiles } from "../db/schema.server";
 import { getOptionalUser } from "../lib/auth.middleware";
+import { createLogger } from "../lib/logger.server";
 
 export async function loader({ request, context }: Route.LoaderArgs) {
+  const logger = createLogger(request, context.cloudflare.env).child({ route: "api.search-records" });
+  logger.info("loader_start");
+
   const auth = await getOptionalUser(request, context);
   if (!auth?.isAuthenticated) {
     return Response.json({ results: [] });
@@ -16,6 +20,8 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   if (q.length === 0) {
     return Response.json({ results: [] });
   }
+
+  logger.info("search_query", { query: q });
 
   const database = db(context.cloudflare.env.DB);
   const pattern = `%${q}%`;
