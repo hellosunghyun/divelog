@@ -6,12 +6,13 @@ import type { Route } from "./+types/article";
 
 import { ArticleEditor } from "~/components/editor/ArticleEditor";
 import { db } from "~/db/client.server";
-import { learnerProfiles, notifications, records, stages, templates } from "~/db/schema.server";
+import { learnerProfiles, records, stages, templates } from "~/db/schema.server";
 import { useUnsavedWarning } from "~/hooks/useUnsavedWarning";
 import { requireVerified } from "~/lib/auth.middleware";
 import { getPlainText } from "~/lib/content.server";
 import { syncMentionsForRecord } from "~/db/queries/mentions.server";
 import { syncRecordLinksForRecord } from "~/db/queries/recordLinks.server";
+import { createNotification } from "~/db/queries/notifications.server";
 import { extractUserMentions, extractRecordRefs } from "~/lib/extract-references.server";
 import { nanoid } from "~/lib/utils.server";
 import { createArticleSchema } from "~/lib/validation";
@@ -113,15 +114,12 @@ export async function action({ request, context }: Route.ActionArgs) {
       const actorName = auth.user.nickname ?? auth.user.name ?? "누군가";
       for (const row of mentionedLearners) {
         if (row.userId !== auth.user.id) {
-          await database.insert(notifications).values({
-            id: nanoid(),
+          await createNotification(context.cloudflare.env.DB, {
             recipientId: row.userId,
             type: "mention",
             title: `${actorName}님이 기록에서 당신을 언급했습니다`,
             content: parsed.data.title,
             recordId: id,
-            isRead: false,
-            createdAt: now,
           });
         }
       }
