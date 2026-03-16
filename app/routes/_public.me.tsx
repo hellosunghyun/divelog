@@ -9,6 +9,7 @@ import QuestionCard from "../components/QuestionCard";
 import EmptyState from "../components/EmptyState";
 import HeroSection from "../components/HeroSection";
 import { Link } from "react-router";
+import { createLogger } from "../lib/logger.server";
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "내 공간 — divelog" }];
@@ -26,6 +27,8 @@ function getStageToneStyle(stageType: string) {
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {
+  const logger = createLogger(request, context.cloudflare.env).child({ route: "me" });
+  logger.info("loader_start");
   const auth = await requireAuth(request, context);
   const database = db(context.cloudflare.env.DB);
 
@@ -96,6 +99,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     recordsByStage[stageId].push(row);
   }
 
+  logger.info("loader_end");
   return {
     learner: learnerResult[0] ?? null,
     drafts,

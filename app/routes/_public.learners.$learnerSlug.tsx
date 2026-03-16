@@ -9,14 +9,20 @@ import QuestionCard from "../components/QuestionCard";
 import HighlightedSentenceCard from "../components/HighlightedSentenceCard";
 import EmptyState from "../components/EmptyState";
 import HeroSection from "../components/HeroSection";
+import { createLogger } from "../lib/logger.server";
 
-export async function loader({ params, context }: Route.LoaderArgs) {
+export async function loader({ params, request, context }: Route.LoaderArgs) {
   const { learnerSlug } = params;
+  const logger = createLogger(request, context.cloudflare.env).child({ route: "learner_detail" });
+  logger.info("loader_start");
   const database = db(context.cloudflare.env.DB);
 
   const learnerResult = await database.select().from(learnerProfiles).where(eq(learnerProfiles.slug, learnerSlug)).limit(1);
   const learner = learnerResult[0];
-  if (!learner) throw data("Learner를 찾을 수 없습니다", { status: 404 });
+  if (!learner) {
+    logger.info("not_found", { slug: learnerSlug });
+    throw data("Learner를 찾을 수 없습니다", { status: 404 });
+  }
 
   const [learnerRecords, learnerQuestions, learnerSentences] = await database.batch([
     database.select({
@@ -28,6 +34,7 @@ export async function loader({ params, context }: Route.LoaderArgs) {
     database.select({ sentence: sentences }).from(sentences).where(eq(sentences.savedById, learner.userId)).orderBy(desc(sentences.createdAt)).limit(6),
   ]);
 
+  logger.info("loader_end");
   return { learner, learnerRecords, learnerQuestions, learnerSentences };
 }
 

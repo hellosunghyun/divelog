@@ -6,6 +6,7 @@ import { sql } from "drizzle-orm";
 import StageStrip from "../components/StageStrip";
 import HeroSection from "../components/HeroSection";
 import EmptyState from "../components/EmptyState";
+import { createLogger } from "../lib/logger.server";
 
 export function meta(_args: Route.MetaArgs) {
   return [
@@ -14,10 +15,13 @@ export function meta(_args: Route.MetaArgs) {
   ];
 }
 
-export async function loader({ context }: Route.LoaderArgs) {
+export async function loader({ request, context }: Route.LoaderArgs) {
+  const logger = createLogger(request, context.cloudflare.env).child({ route: "journey" });
+  logger.info("loader_start");
   const database = db(context.cloudflare.env.DB);
   const allStages = await database.select().from(stages).orderBy(sql`"order" ASC`);
   const currentStage = allStages.find((s) => s.isCurrent) ?? null;
+  logger.info("loader_end");
   return { stages: allStages, currentStage };
 }
 

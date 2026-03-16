@@ -17,9 +17,12 @@ import HeroSection from "../components/HeroSection";
 import QuestionCard from "../components/QuestionCard";
 import HighlightedSentenceCard from "../components/HighlightedSentenceCard";
 import SceneCard from "../components/SceneCard";
+import { createLogger } from "../lib/logger.server";
 
-export async function loader({ params, context }: Route.LoaderArgs) {
+export async function loader({ params, request, context }: Route.LoaderArgs) {
   const { stageSlug } = params;
+  const logger = createLogger(request, context.cloudflare.env).child({ route: "memory_detail" });
+  logger.info("loader_start");
   const database = db(context.cloudflare.env.DB);
 
   const stageResult = await database
@@ -30,6 +33,7 @@ export async function loader({ params, context }: Route.LoaderArgs) {
   const stage = stageResult[0];
 
   if (!stage) {
+    logger.info("not_found", { slug: stageSlug });
     throw data("Stage를 찾을 수 없습니다", { status: 404 });
   }
 
@@ -46,6 +50,7 @@ export async function loader({ params, context }: Route.LoaderArgs) {
   const memory = memoryResult[0];
 
   if (!memory) {
+    logger.info("not_found", { slug: stageSlug });
     throw data("아직 발행된 Collective Memory가 없습니다", { status: 404 });
   }
 
@@ -67,6 +72,7 @@ export async function loader({ params, context }: Route.LoaderArgs) {
       .where(eq(memoryRecords.memoryId, memory.id)),
   ]);
 
+  logger.info("loader_end");
   return { stage, memory, memQuestions, memSentences, memRecords };
 }
 

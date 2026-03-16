@@ -10,9 +10,12 @@ import QuestionCard from "../components/QuestionCard";
 import CollaborationUnitCard from "../components/CollaborationUnitCard";
 import EmptyState from "../components/EmptyState";
 import StageStrip from "../components/StageStrip";
+import { createLogger } from "../lib/logger.server";
 
-export async function loader({ params, context }: Route.LoaderArgs) {
+export async function loader({ params, request, context }: Route.LoaderArgs) {
   const { stageSlug } = params;
+  const logger = createLogger(request, context.cloudflare.env).child({ route: "journey_stage_detail" });
+  logger.info("loader_start");
   const database = db(context.cloudflare.env.DB);
 
   const [stageResult, allStages] = await database.batch([
@@ -22,6 +25,7 @@ export async function loader({ params, context }: Route.LoaderArgs) {
 
   const stage = stageResult[0];
   if (!stage) {
+    logger.info("not_found", { slug: stageSlug });
     throw data("Stage를 찾을 수 없습니다", { status: 404 });
   }
 
@@ -54,6 +58,7 @@ export async function loader({ params, context }: Route.LoaderArgs) {
     database.select().from(collaborationUnits).where(eq(collaborationUnits.stageId, stage.id)),
   ]);
 
+  logger.info("loader_end");
   return { stage, allStages, stageRecords, stageQuestions, stageCollaborations };
 }
 

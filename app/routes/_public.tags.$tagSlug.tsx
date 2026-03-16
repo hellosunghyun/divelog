@@ -6,6 +6,7 @@ import { normalizeContentFormat } from "../lib/editor-extensions";
 import SceneCard from "../components/SceneCard";
 import EmptyState from "../components/EmptyState";
 import HeroSection from "../components/HeroSection";
+import { createLogger } from "../lib/logger.server";
 
 export function meta({ data: loaderData }: Route.MetaArgs) {
   if (!loaderData?.tag) {
@@ -18,12 +19,15 @@ export function meta({ data: loaderData }: Route.MetaArgs) {
   ];
 }
 
-export async function loader({ params, context }: Route.LoaderArgs) {
+export async function loader({ params, request, context }: Route.LoaderArgs) {
   const { tagSlug } = params;
+  const logger = createLogger(request, context.cloudflare.env).child({ route: "tag_detail" });
+  logger.info("loader_start");
 
   const tag = await getTagBySlug(context.cloudflare.env.DB, tagSlug);
 
   if (!tag) {
+    logger.info("not_found", { slug: tagSlug });
     throw data("태그를 찾을 수 없습니다.", { status: 404 });
   }
 
@@ -39,6 +43,7 @@ export async function loader({ params, context }: Route.LoaderArgs) {
     };
   });
 
+  logger.info("loader_end");
   return { tag, records: recordsWithSnippets };
 }
 

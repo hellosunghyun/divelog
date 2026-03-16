@@ -9,17 +9,22 @@ import HeroSection from "../components/HeroSection";
 import EmptyState from "../components/EmptyState";
 import { getPlainText } from "../lib/content.server";
 import { normalizeContentFormat } from "../lib/editor-extensions";
+import { createLogger } from "../lib/logger.server";
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "검색 — divelog" }];
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {
+  const logger = createLogger(request, context.cloudflare.env).child({ route: "search" });
+  logger.info("loader_start");
   const url = new URL(request.url);
   const q = url.searchParams.get("q") ?? "";
   const tab = url.searchParams.get("tab") ?? "all";
+  logger.info("search_query", { query: q, filters: { tab } });
 
   if (!q.trim()) {
+    logger.info("loader_end");
     return {
       q: "",
       tab,
@@ -70,6 +75,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     };
   });
 
+  logger.info("loader_end");
   return {
     q,
     tab,

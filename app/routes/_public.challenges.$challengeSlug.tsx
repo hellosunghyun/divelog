@@ -8,14 +8,20 @@ import SceneCard from "../components/SceneCard";
 import CollaborationUnitCard from "../components/CollaborationUnitCard";
 import HeroSection from "../components/HeroSection";
 import EmptyState from "../components/EmptyState";
+import { createLogger } from "../lib/logger.server";
 
-export async function loader({ params, context }: Route.LoaderArgs) {
+export async function loader({ params, request, context }: Route.LoaderArgs) {
   const { challengeSlug } = params;
+  const logger = createLogger(request, context.cloudflare.env).child({ route: "challenge_detail" });
+  logger.info("loader_start");
   const database = db(context.cloudflare.env.DB);
   
   const challengeResult = await database.select().from(challenges).where(eq(challenges.slug, challengeSlug)).limit(1);
   const challenge = challengeResult[0];
-  if (!challenge) throw data("챌린지를 찾을 수 없습니다", { status: 404 });
+  if (!challenge) {
+    logger.info("not_found", { slug: challengeSlug });
+    throw data("챌린지를 찾을 수 없습니다", { status: 404 });
+  }
   
   const [challengeRecords, challengeCollabs] = await database.batch([
     database.select({
@@ -27,6 +33,7 @@ export async function loader({ params, context }: Route.LoaderArgs) {
     database.select().from(collaborationUnits).where(eq(collaborationUnits.challengeId, challenge.id)),
   ]);
   
+  logger.info("loader_end");
   return { challenge, challengeRecords, challengeCollabs };
 }
 

@@ -6,6 +6,7 @@ import { eq, desc, and, sql, count } from "drizzle-orm";
 import HeroSection from "../components/HeroSection";
 import ActivityFeed from "../components/ActivityFeed";
 import { getRecentActivity } from "../db/queries/activity.server";
+import { createLogger } from "../lib/logger.server";
 
 export function meta(_args: Route.MetaArgs) {
   return [
@@ -16,7 +17,9 @@ export function meta(_args: Route.MetaArgs) {
   ];
 }
 
-export async function loader({ context }: Route.LoaderArgs) {
+export async function loader({ request, context }: Route.LoaderArgs) {
+  const logger = createLogger(request, context.cloudflare.env).child({ route: "home" });
+  logger.info("loader_start");
   const database = db(context.cloudflare.env.DB);
 
   const [allStages, currentStageResult, recentRecords, openQuestions, recentSentences, spotlightLearners, learnerCountResult] = await database.batch([
@@ -90,6 +93,7 @@ export async function loader({ context }: Route.LoaderArgs) {
     snippet: getPlainText(row.content ?? "", (row.format === "article" ? "article" : "note") as "note" | "article").substring(0, 120),
   }));
 
+  logger.info("loader_end");
   return { allStages, currentStage, recentRecords: recentRecordsWithSnippets, openQuestions, recentSentences, spotlightLearners, learnerCount, recentActivity };
 }
 
