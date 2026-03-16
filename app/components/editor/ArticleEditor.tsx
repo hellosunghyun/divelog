@@ -2,7 +2,7 @@
 
 import { CodeBlockLowlight } from "@tiptap/extension-code-block-lowlight";
 import { Highlight } from "@tiptap/extension-highlight";
-import { Image } from "@tiptap/extension-image";
+import { ResizableImage } from "./ResizableImage";
 import { Link } from "@tiptap/extension-link";
 import { Placeholder } from "@tiptap/extension-placeholder";
 import { Subscript } from "@tiptap/extension-subscript";
@@ -137,7 +137,7 @@ export function ArticleEditor({
         lowlight,
         defaultLanguage: "swift",
       }),
-      Image.configure({ allowBase64: false }),
+      ResizableImage.configure({ allowBase64: false }),
       Link.configure({ autolink: true, openOnClick: false, defaultProtocol: "https" }),
       Highlight.configure({ multicolor: false }),
       TaskList,
