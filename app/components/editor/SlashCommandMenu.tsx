@@ -74,7 +74,8 @@ function getSlashItems(options: Pick<SlashCommandMenuOptions, "uploadImage" | "o
       icon: "H1",
       keywords: ["제목", "헤더", "h1"],
       command: ({ editor, range }) => {
-        editor.chain().focus().deleteRange(range).setNode("heading", { level: 1 }).run();
+        editor.chain().focus().deleteRange(range).run();
+        editor.chain().focus().toggleHeading({ level: 1 }).run();
       },
     },
     {
@@ -83,7 +84,8 @@ function getSlashItems(options: Pick<SlashCommandMenuOptions, "uploadImage" | "o
       icon: "H2",
       keywords: ["제목", "헤더", "h2"],
       command: ({ editor, range }) => {
-        editor.chain().focus().deleteRange(range).setNode("heading", { level: 2 }).run();
+        editor.chain().focus().deleteRange(range).run();
+        editor.chain().focus().toggleHeading({ level: 2 }).run();
       },
     },
     {
@@ -92,7 +94,8 @@ function getSlashItems(options: Pick<SlashCommandMenuOptions, "uploadImage" | "o
       icon: "H3",
       keywords: ["제목", "헤더", "h3"],
       command: ({ editor, range }) => {
-        editor.chain().focus().deleteRange(range).setNode("heading", { level: 3 }).run();
+        editor.chain().focus().deleteRange(range).run();
+        editor.chain().focus().toggleHeading({ level: 3 }).run();
       },
     },
     {
@@ -101,7 +104,8 @@ function getSlashItems(options: Pick<SlashCommandMenuOptions, "uploadImage" | "o
       icon: "•",
       keywords: ["목록", "리스트", "bullet"],
       command: ({ editor, range }) => {
-        editor.chain().focus().deleteRange(range).toggleBulletList().run();
+        editor.chain().focus().deleteRange(range).run();
+        editor.chain().focus().toggleBulletList().run();
       },
     },
     {
@@ -110,7 +114,8 @@ function getSlashItems(options: Pick<SlashCommandMenuOptions, "uploadImage" | "o
       icon: "1.",
       keywords: ["목록", "리스트", "번호", "ordered"],
       command: ({ editor, range }) => {
-        editor.chain().focus().deleteRange(range).toggleOrderedList().run();
+        editor.chain().focus().deleteRange(range).run();
+        editor.chain().focus().toggleOrderedList().run();
       },
     },
     {
@@ -119,7 +124,8 @@ function getSlashItems(options: Pick<SlashCommandMenuOptions, "uploadImage" | "o
       icon: "❝",
       keywords: ["인용", "quote", "blockquote"],
       command: ({ editor, range }) => {
-        editor.chain().focus().deleteRange(range).toggleBlockquote().run();
+        editor.chain().focus().deleteRange(range).run();
+        editor.chain().focus().toggleBlockquote().run();
       },
     },
     {
@@ -128,7 +134,8 @@ function getSlashItems(options: Pick<SlashCommandMenuOptions, "uploadImage" | "o
       icon: "―",
       keywords: ["선", "divider", "hr"],
       command: ({ editor, range }) => {
-        editor.chain().focus().deleteRange(range).setHorizontalRule().run();
+        editor.chain().focus().deleteRange(range).run();
+        editor.chain().focus().setHorizontalRule().run();
       },
     },
     {
@@ -137,7 +144,8 @@ function getSlashItems(options: Pick<SlashCommandMenuOptions, "uploadImage" | "o
       icon: "</>",
       keywords: ["코드", "code", "snippet"],
       command: ({ editor, range }) => {
-        editor.chain().focus().deleteRange(range).toggleCodeBlock().run();
+        editor.chain().focus().deleteRange(range).run();
+        editor.chain().focus().toggleCodeBlock().run();
       },
     },
     {
@@ -356,7 +364,11 @@ export function createSlashCommandExtension(
                 updatePosition();
               },
               onKeyDown: ({ event }: { event: KeyboardEvent }) => {
-                if (!currentProps || currentProps.items.length === 0) {
+                if (!currentProps || !menu || currentProps.items.length === 0) {
+                  return false;
+                }
+
+                if (event.isComposing || event.keyCode === 229) {
                   return false;
                 }
 

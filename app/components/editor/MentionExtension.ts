@@ -185,7 +185,8 @@ export function createUserMentionExtension() {
             position();
           },
           onKeyDown: ({ event }: { event: KeyboardEvent }) => {
-            if (!currentProps || currentProps.items.length === 0) return false;
+            if (!currentProps || !popup || currentProps.items.length === 0) return false;
+            if (event.isComposing || event.keyCode === 229) return false;
             if (event.key === "ArrowUp") {
               event.preventDefault();
               selectedIndex = (selectedIndex + currentProps.items.length - 1) % currentProps.items.length;
