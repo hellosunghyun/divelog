@@ -141,6 +141,10 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
     selfAnswers: selfAnswersData,
     tags: recordTags,
     currentUserId,
+    canRespond:
+      Boolean(optionalAuth?.isAuthenticated)
+      && Boolean(optionalAuth?.user.isVerified)
+      && recordData.record.responsePreference !== "closed",
     contentHtml,
     plainTextContent,
   };
@@ -295,11 +299,20 @@ const RESPONSE_PREFERENCE_LABELS: Record<string, string> = {
   closed: "그냥 읽어줘도 괜찮아요",
 };
 
+const INITIAL_RESPONSE_COUNT = 2;
+
 function getResponseTypeOptions(preference: string) {
   if (preference === "question_only") {
     return ALL_RESPONSE_TYPE_OPTIONS.filter((opt) => opt.value === "question");
   }
   return ALL_RESPONSE_TYPE_OPTIONS;
+}
+
+function getResponsePreferenceText(pref: string): string {
+  if (pref === "open") return "이 기록은 모든 유형의 응답을 환영합니다.";
+  if (pref === "question_only") return "이 기록은 질문 응답만 받고 있습니다.";
+  if (pref === "closed") return "이 기록은 현재 응답을 받지 않습니다.";
+  return "";
 }
 
 const MIN_SELECTED_SENTENCE_LENGTH = 10;
@@ -326,7 +339,20 @@ function isSelectionInsideElement(selection: Selection, element: HTMLElement | n
 }
 
 export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
-  const { record, author, questions: recordQuestions, responses: recordResponses, sentences: recordSentences, linkedRecords, incomingLinks, selfAnswers, tags: recordTags, currentUserId, contentHtml } = loaderData;
+  const {
+    record,
+    author,
+    questions: recordQuestions,
+    responses: recordResponses,
+    sentences: recordSentences,
+    linkedRecords,
+    incomingLinks,
+    selfAnswers,
+    tags: recordTags,
+    currentUserId,
+    canRespond,
+    contentHtml,
+  } = loaderData;
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const submit = useSubmit();
@@ -336,6 +362,8 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
   const isSubmittingSelfAnswer = navigation.state === "submitting" && submittingIntent === "create_self_answer";
 
   const [expandedQuestionId, setExpandedQuestionId] = useState<string | null>(null);
+  const [showResponseForm, setShowResponseForm] = useState(false);
+  const [showAllResponses, setShowAllResponses] = useState(false);
   const [selectedText, setSelectedText] = useState("");
   const [showSentenceButton, setShowSentenceButton] = useState(false);
   const [buttonPosition, setButtonPosition] = useState({ x: 0, y: 0 });
@@ -346,6 +374,9 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
   const isArticleRecord = recordFormat === "article";
   const expansionLinks = incomingLinks.filter((link) => link.linkType === "expansion");
   const referenceLinks = incomingLinks.filter((link) => link.linkType !== "expansion");
+  const displayedResponses = showAllResponses
+    ? recordResponses
+    : recordResponses.slice(0, INITIAL_RESPONSE_COUNT);
 
   const selfAnswersByQuestion = new Map<string, typeof selfAnswers>();
   for (const sa of selfAnswers) {
@@ -688,50 +719,71 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
           ) : null}
 
           <div className="grid gap-6">
-            <form method="post" className="flex flex-col gap-5 bg-surface rounded-lg border border-border p-6">
-              <input type="hidden" name="intent" value="create_response" />
-              <input type="hidden" name="recordId" value={record.id} />
-
-              <div>
-                <label htmlFor="response-type" className="text-sm font-medium text-text-secondary mb-2 block">
-                  응답 유형
-                </label>
-                <select id="response-type" name="type" required className="w-full rounded-lg border border-border bg-surface px-4 py-3 text-base text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2">
-                  {getResponseTypeOptions(record.responsePreference).map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {recordQuestions.length > 0 ? (
-                <div>
-                  <label htmlFor="question-id" className="text-sm font-medium text-text-secondary mb-2 block">
-                    연결할 질문 (선택)
-                  </label>
-                  <select id="question-id" name="questionId" className="w-full rounded-lg border border-border bg-surface px-4 py-3 text-base text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2">
-                    <option value="">질문을 선택하지 않음</option>
-                    {recordQuestions.map((question) => (
-                      <option key={question.id} value={question.id}>
-                        {question.content}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+            <div className="flex flex-col gap-3">
+              {canRespond && !showResponseForm ? (
+                <button
+                  type="button"
+                  data-testid="response-form-toggle"
+                  onClick={() => setShowResponseForm(true)}
+                  className="inline-flex min-h-11 items-center gap-2 self-start rounded-full border border-[--color-ocean-blue]/30 px-4 py-2 text-sm text-[--color-ocean-blue] transition-colors hover:bg-[--color-mist-blue]/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
+                >
+                  응답 남기기
+                </button>
               ) : null}
 
-              <div>
-                <label htmlFor="response-content" className="text-sm font-medium text-text-secondary mb-2 block">
-                  내용
-                </label>
-                <textarea id="response-content" name="content" required rows={5} placeholder="이 기록에 응답해보세요." className="w-full rounded-lg border border-border bg-surface px-4 py-3 text-base text-text-primary placeholder:text-text-tertiary min-h-[120px] resize-y focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2" />
-              </div>
+              {showResponseForm && record.responsePreference ? (
+                <p className="mb-2 text-xs text-[--color-text-tertiary]">
+                  {getResponsePreferenceText(record.responsePreference)}
+                </p>
+              ) : null}
 
-              <button type="submit" disabled={isSubmittingResponse} className="rounded-full bg-deep-ocean text-white px-7 py-3 text-[15px] font-medium hover:bg-ocean-blue transition-all shadow-sm hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2 self-start disabled:opacity-60">
-                {isSubmittingResponse ? "등록 중..." : "응답 등록"}
-              </button>
-            </form>
+              {showResponseForm && canRespond ? (
+                <form method="post" data-testid="response-form" className="flex flex-col gap-5 rounded-lg border border-border bg-surface p-6">
+                  <input type="hidden" name="intent" value="create_response" />
+                  <input type="hidden" name="recordId" value={record.id} />
+
+                  <div>
+                    <label htmlFor="response-type" className="mb-2 block text-sm font-medium text-text-secondary">
+                      응답 유형
+                    </label>
+                    <select id="response-type" name="type" required className="w-full rounded-lg border border-border bg-surface px-4 py-3 text-base text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2">
+                      {getResponseTypeOptions(record.responsePreference).map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {recordQuestions.length > 0 ? (
+                    <div>
+                      <label htmlFor="question-id" className="mb-2 block text-sm font-medium text-text-secondary">
+                        연결할 질문 (선택)
+                      </label>
+                      <select id="question-id" name="questionId" className="w-full rounded-lg border border-border bg-surface px-4 py-3 text-base text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2">
+                        <option value="">질문을 선택하지 않음</option>
+                        {recordQuestions.map((question) => (
+                          <option key={question.id} value={question.id}>
+                            {question.content}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  ) : null}
+
+                  <div>
+                    <label htmlFor="response-content" className="mb-2 block text-sm font-medium text-text-secondary">
+                      내용
+                    </label>
+                    <textarea id="response-content" name="content" required rows={5} placeholder="이 기록에 응답해보세요." className="min-h-[120px] w-full resize-y rounded-lg border border-border bg-surface px-4 py-3 text-base text-text-primary placeholder:text-text-tertiary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2" />
+                  </div>
+
+                  <button type="submit" disabled={isSubmittingResponse} className="self-start rounded-full bg-deep-ocean px-7 py-3 text-[15px] font-medium text-white shadow-sm transition-all hover:bg-ocean-blue hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2 disabled:opacity-60">
+                    {isSubmittingResponse ? "등록 중..." : "응답 등록"}
+                  </button>
+                </form>
+              ) : null}
+            </div>
 
             <form method="post" className="flex flex-col gap-5 bg-surface rounded-lg border border-border p-6">
               <input type="hidden" name="intent" value="save_sentence" />
@@ -767,9 +819,20 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
         </h2>
         {recordResponses.length > 0 ? (
           <div className="flex flex-col gap-5">
-            {recordResponses.map(({ response, author: responseAuthor }) => (
+            {displayedResponses.map(({ response, author: responseAuthor }) => (
               <ResponseCard key={response.id} response={response} author={responseAuthor ?? undefined} isSelfAnswer={response.type === "self_answer"} />
             ))}
+
+            {recordResponses.length > INITIAL_RESPONSE_COUNT && !showAllResponses ? (
+              <button
+                type="button"
+                data-testid="response-expand-button"
+                onClick={() => setShowAllResponses(true)}
+                className="min-h-11 self-start text-sm text-[--color-text-secondary] transition-colors hover:text-[--color-ocean-blue] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
+              >
+                응답 {recordResponses.length - INITIAL_RESPONSE_COUNT}개 더 보기
+              </button>
+            ) : null}
           </div>
         ) : (
           <EmptyState variant="responses" />

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { Route } from "./+types/index";
 import { useSearchParams, useNavigate } from "react-router";
 import { db } from "~/db/client.server";
@@ -5,6 +6,7 @@ import { records, stages, learnerProfiles, questions, selfAnswers, recordLinks }
 import { eq, and, desc, sql, ne, count } from "drizzle-orm";
 import SceneCard from "~/components/SceneCard";
 import FilterBar from "~/components/FilterBar";
+import { FilterBottomSheet } from "~/components/FilterBottomSheet";
 import SortBar from "~/components/SortBar";
 import ViewToggle from "~/components/ViewToggle";
 import TimelineView from "~/components/TimelineView";
@@ -154,10 +156,20 @@ export default function LogsPage({ loaderData }: Route.ComponentProps) {
   const { records: filteredRecords, allStages } = loaderData;
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   const viewParam = searchParams.get("view");
   const currentView = viewParam === "timeline" ? "timeline" : "grid";
   const activeFormat = searchParams.get("format") ?? "";
+
+  const activeRhythm = searchParams.get("rhythm") ?? "";
+  const activeHasQuestion = searchParams.get("hasQuestion") ?? "";
+  const activeHasSelfAnswer = searchParams.get("hasSelfAnswer") ?? "";
+  const activeSecondaryFilterCount = [
+    activeRhythm,
+    activeHasQuestion,
+    activeHasSelfAnswer,
+  ].filter(Boolean).length;
 
   const tabs = [
     { label: "전체", value: "" },
@@ -211,12 +223,34 @@ export default function LogsPage({ loaderData }: Route.ComponentProps) {
         </div>
 
         <div className="mb-8 flex flex-wrap gap-4 items-center justify-between">
-          <FilterBar filters={allFilters} />
+          <div className="hidden md:block">
+            <FilterBar filters={allFilters} />
+          </div>
+          <div className="flex md:hidden flex-wrap gap-2 items-center">
+            <button
+              type="button"
+              onClick={() => setIsSheetOpen(true)}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-full border border-border bg-surface text-text-primary text-sm font-medium hover:bg-surface-secondary transition-colors"
+            >
+              <span>필터</span>
+              {activeSecondaryFilterCount > 0 && (
+                <span className="flex items-center justify-center w-5 h-5 rounded-full bg-ocean-blue text-white text-xs">
+                  {activeSecondaryFilterCount}
+                </span>
+              )}
+            </button>
+          </div>
           <div className="flex items-center gap-3">
             <SortBar />
             <ViewToggle currentView={currentView} />
           </div>
         </div>
+
+        <FilterBottomSheet
+          isOpen={isSheetOpen}
+          onClose={() => setIsSheetOpen(false)}
+          stages={allStages}
+        />
 
         {filteredRecords.length === 0 ? (
           <EmptyState variant="records" message="조건에 맞는 기록이 없습니다." />
