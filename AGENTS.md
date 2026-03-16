@@ -43,23 +43,76 @@ ADA Learner의 아홉 달을 **Journey-first reflective archive**로 구현하�
 app/
 ├── routes/
 │   ├── _public.tsx                    → Public 레이아웃 (verifyRequest 1회)
-│   ├── _public._index.tsx             → / (홈)
-│   ├── _public.journey.tsx            → /journey
-│   ├── _public.journey.$stageSlug.tsx → /journey/:stageSlug
-│   ├── _public.logs._index.tsx        → /logs
-│   ├── _public.logs.$recordSlug.tsx   → /logs/:recordSlug
-│   ├── _public.write.tsx              → /write (requireVerified)
-│   ├── _public.learners.*             → /learners
-│   ├── _public.challenges.*           → /challenges
-│   ├── _public.groups.$groupSlug.tsx  → /groups/:groupSlug
-│   ├── _public.memories.$stageSlug.tsx→ /memories/:stageSlug
-│   ├── _public.search.tsx             → /search
-│   ├── _public.inbox.tsx              → /inbox (requireAuth)
-│   ├── _public.me.tsx                 → /me (requireAuth)
-│   ├── _public.settings.tsx           → /settings (requireAuth)
-│   ├── _public.guide.tsx              → /guide
 │   ├── _admin.tsx                     → Admin 레이아웃 (requireRole)
-│   └── _admin.admin.*                 → /admin/* (22개 페이지)
+│   ├── public/
+│   │   ├── index.tsx                  → / (홈)
+│   │   ├── journey/
+│   │   │   ├── index.tsx              → /journey
+│   │   │   └── $stageSlug.tsx         → /journey/:stageSlug
+│   │   ├── logs/
+│   │   │   ├── index.tsx              → /logs
+│   │   │   ├── $recordSlug.tsx        → /logs/:recordSlug
+│   │   │   ├── $recordSlug.edit.tsx   → /logs/:recordSlug/edit
+│   │   │   └── $recordSlug.details.tsx→ /logs/:recordSlug/details
+│   │   ├── write/
+│   │   │   ├── index.tsx              → /write (requireVerified)
+│   │   │   ├── note.tsx               → /write/note
+│   │   │   └── article.tsx            → /write/article
+│   │   ├── learners/
+│   │   │   ├── index.tsx              → /learners
+│   │   │   └── $learnerSlug.tsx       → /learners/:learnerSlug
+│   │   ├── challenges/
+│   │   │   ├── index.tsx              → /challenges
+│   │   │   └── $challengeSlug.tsx     → /challenges/:challengeSlug
+│   │   ├── groups/
+│   │   │   └── $groupSlug.tsx         → /groups/:groupSlug
+│   │   ├── memories/
+│   │   │   └── $stageSlug.tsx         → /memories/:stageSlug
+│   │   ├── tags/
+│   │   │   ├── index.tsx              → /tags
+│   │   │   └── $tagSlug.tsx           → /tags/:tagSlug
+│   │   ├── search.tsx                 → /search
+│   │   ├── inbox.tsx                  → /inbox (requireAuth)
+│   │   ├── me.tsx                     → /me (requireAuth)
+│   │   ├── settings.tsx               → /settings (requireAuth)
+│   │   └── guide.tsx                  → /guide
+│   ├── admin/
+│   │   ├── index.tsx                  → /admin (Dashboard)
+│   │   ├── stages/
+│   │   │   ├── index.tsx              → /admin/stages
+│   │   │   └── $stageId.tsx           → /admin/stages/:stageId
+│   │   ├── challenges/
+│   │   │   ├── index.tsx              → /admin/challenges
+│   │   │   └── $challengeId.tsx       → /admin/challenges/:challengeId
+│   │   ├── learners/
+│   │   │   ├── index.tsx              → /admin/learners
+│   │   │   └── $learnerId.tsx         → /admin/learners/:learnerId
+│   │   ├── records/
+│   │   │   ├── index.tsx              → /admin/records
+│   │   │   └── $recordId.tsx          → /admin/records/:recordId
+│   │   ├── dialogue/
+│   │   │   ├── index.tsx              → /admin/dialogue
+│   │   │   └── $responseId.tsx        → /admin/dialogue/:responseId
+│   │   ├── collaboration/
+│   │   │   ├── index.tsx              → /admin/collaboration
+│   │   │   └── $groupId.tsx           → /admin/collaboration/:groupId
+│   │   ├── memories/
+│   │   │   ├── index.tsx              → /admin/memories
+│   │   │   └── $stageId.tsx           → /admin/memories/:stageId
+│   │   ├── templates/
+│   │   │   ├── index.tsx              → /admin/templates
+│   │   │   └── $templateId.tsx        → /admin/templates/:templateId
+│   │   ├── curation.tsx               → /admin/curation
+│   │   ├── tags.tsx                   → /admin/tags
+│   │   ├── analytics.tsx              → /admin/analytics
+│   │   ├── settings.tsx               → /admin/settings
+│   │   ├── roles.tsx                  → /admin/roles
+│   │   └── audit.tsx                  → /admin/audit
+│   └── api/
+│       ├── upload.tsx                 → POST /api/upload
+│       ├── images.$.tsx               → /api/images/*
+│       ├── search-learners.tsx        → /api/search-learners (orphaned)
+│       └── search-records.tsx         → /api/search-records (orphaned)
 ├── components/
 │   ├── GlobalNav.tsx
 │   ├── Footer.tsx

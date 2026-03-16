@@ -1,11 +1,11 @@
 import { Outlet, data } from "react-router";
 import type { Route } from "./+types/_public";
-import { getAuth, getAuthDebug } from "../lib/auth.server";
-import { getOrCreateLearnerProfile } from "../db/queries/learners.server";
-import { ensureAdminByEmail } from "../lib/auth.middleware";
-import { createLogger } from "../lib/logger.server";
-import GlobalNav from "../components/GlobalNav";
-import Footer from "../components/Footer";
+import { getAuth, getAuthDebug } from "~/lib/auth.server";
+import { getOrCreateLearnerProfile } from "~/db/queries/learners.server";
+import { ensureAdminByEmail } from "~/lib/auth.middleware";
+import { createLogger } from "~/lib/logger.server";
+import GlobalNav from "~/components/GlobalNav";
+import Footer from "~/components/Footer";
 
 export async function loader({ request, context }: Route.LoaderArgs) {
   const logger = createLogger(request, context.cloudflare.env).child({ route: "_public" });

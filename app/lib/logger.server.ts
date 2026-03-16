@@ -81,8 +81,9 @@ function normalizeLogLevel(input?: string): LogLevel {
     return upper;
   }
 
-  const meta = import.meta as ImportMeta & { env?: { DEV?: boolean } };
-  return meta.env?.DEV ? "DEBUG" : "INFO";
+  const nodeEnv = (globalThis as { process?: { env?: { NODE_ENV?: string } } }).process?.env
+    ?.NODE_ENV;
+  return nodeEnv === "development" ? "DEBUG" : "INFO";
 }
 
 function shouldLog(currentLevel: LogLevel, incomingLevel: LogLevel): boolean {
