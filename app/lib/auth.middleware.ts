@@ -6,6 +6,9 @@ import { db } from "../db/client.server";
 import { userRoles } from "../db/schema.server";
 import { nanoid } from "./utils.server";
 import { getAuth } from "./auth.server";
+import { createLogger, createModuleLogger } from "./logger.server";
+
+const adminLogger = createModuleLogger("auth.middleware");
 
 function getLoginRedirectUrl(request: Request): string {
   const url = new URL(request.url);
@@ -17,15 +20,21 @@ function getLoginRedirectUrl(request: Request): string {
 }
 
 export async function getOptionalUser(request: Request, context: AppLoadContext) {
+  const logger = createLogger(request, context.cloudflare.env).child({ moduleName: "auth.middleware" });
+
   try {
     const auth = await getAuth(request, context.cloudflare.env.ADAKRPOS_API_KEY);
     return auth.isAuthenticated ? auth : null;
-  } catch {
+  } catch (error) {
+    logger.warn("auth_optional_error", {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return null;
   }
 }
 
 export async function requireAuth(request: Request, context: AppLoadContext) {
+  const logger = createLogger(request, context.cloudflare.env).child({ moduleName: "auth.middleware" });
   const { getAuthDebug } = await import("./auth.server");
   const auth = await getAuth(request, context.cloudflare.env.ADAKRPOS_API_KEY);
 
@@ -36,6 +45,11 @@ export async function requireAuth(request: Request, context: AppLoadContext) {
     const hasApiKey = !!context.cloudflare.env.ADAKRPOS_API_KEY;
 
     if (hasSessionCookie) {
+      logger.info("auth_retry_page", {
+        debugInfo,
+        hasApiKey,
+        returnPath: url.pathname,
+      });
       throw new Response(authRetryPage(url.pathname, debugInfo, hasApiKey), {
         status: 200,
         headers: {
@@ -45,6 +59,9 @@ export async function requireAuth(request: Request, context: AppLoadContext) {
       });
     }
 
+    logger.info("auth_redirect", {
+      returnUrl: `${url.pathname}${url.search}`,
+    });
     throw redirect(getLoginRedirectUrl(request));
   }
 
@@ -122,9 +139,11 @@ function authRetryPage(returnPath: string, debugInfo: string, hasApiKey: boolean
 }
 
 export async function requireVerified(request: Request, context: AppLoadContext) {
+  const logger = createLogger(request, context.cloudflare.env).child({ moduleName: "auth.middleware" });
   const auth = await requireAuth(request, context);
 
   if (!auth.user.isVerified) {
+    logger.info("auth_unverified_redirect", { userId: auth.user.id });
     throw redirect("/guide");
   }
 
@@ -132,6 +151,7 @@ export async function requireVerified(request: Request, context: AppLoadContext)
 }
 
 export async function requireRole(request: Request, context: AppLoadContext, role: string) {
+  const logger = createLogger(request, context.cloudflare.env).child({ moduleName: "auth.middleware" });
   const auth = await requireAuth(request, context);
 
   const database = db(context.cloudflare.env.DB);
@@ -142,6 +162,10 @@ export async function requireRole(request: Request, context: AppLoadContext, rol
     .limit(1);
 
   if (roleRecord.length === 0) {
+    logger.info("auth_role_denied", {
+      requiredRole: role,
+      userId: auth.user.id,
+    });
     throw redirect(getLoginRedirectUrl(request));
   }
 
@@ -171,6 +195,8 @@ export async function bootstrapAdmin(context: AppLoadContext) {
     role: "admin",
     grantedAt: Math.floor(Date.now() / 1000),
   });
+
+  adminLogger.info("admin_bootstrap", { userId: adminUserId });
 }
 
 export async function ensureAdminByEmail(
@@ -200,5 +226,10 @@ export async function ensureAdminByEmail(
     userId,
     role: "admin",
     grantedAt: Math.floor(Date.now() / 1000),
+  });
+
+  adminLogger.info("admin_email_grant", {
+    grantSource: "admin_emails",
+    userId,
   });
 }
