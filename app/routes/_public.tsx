@@ -10,8 +10,13 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const auth = await getAuth(request, context.cloudflare.env.ADAKRPOS_API_KEY);
 
   if (auth.isAuthenticated && auth.user) {
-    await getOrCreateLearnerProfile(context.cloudflare.env.DB, auth.user);
-    await ensureAdminByEmail(context, auth.user.id, auth.user.verifiedEmail);
+    // 백그라운드에서 실행 — 페이지 렌더링을 차단하지 않음
+    context.cloudflare.ctx.waitUntil(
+      Promise.all([
+        getOrCreateLearnerProfile(context.cloudflare.env.DB, auth.user),
+        ensureAdminByEmail(context, auth.user.id, auth.user.verifiedEmail),
+      ]).catch(() => {}),
+    );
   }
 
   return data(

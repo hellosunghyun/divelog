@@ -41,9 +41,12 @@ export async function getAuth(request: Request, apiKey: string): Promise<AuthCon
     return unauthenticatedContext;
   }
 
-  const maxRetries = 2;
+  const maxRetries = 1;
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 3000);
+
       const res = await fetch("https://ada-kr-pos.com/api/sdk/verify-session", {
         method: "POST",
         headers: {
@@ -51,11 +54,14 @@ export async function getAuth(request: Request, apiKey: string): Promise<AuthCon
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ sessionId }),
+        signal: controller.signal,
       });
+
+      clearTimeout(timeout);
 
       if (!res.ok) {
         if (attempt < maxRetries && res.status >= 500) {
-          await new Promise((r) => setTimeout(r, 300 * (attempt + 1)));
+          await new Promise((r) => setTimeout(r, 200));
           continue;
         }
         debugCache.set(request, `api-${res.status}`);
