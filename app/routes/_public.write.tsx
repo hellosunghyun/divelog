@@ -26,10 +26,11 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 
   const database = db(context.cloudflare.env.DB);
 
-  const [activeTemplates, currentStageResult, activeCollaborations] = await database.batch([
+  const [activeTemplates, currentStageResult, activeCollaborations, allStages] = await database.batch([
     database.select().from(templates).where(eq(templates.active, true)),
     database.select().from(stages).where(eq(stages.isCurrent, true)).limit(1),
     database.select().from(collaborationUnits).where(eq(collaborationUnits.status, "active")),
+    database.select({ id: stages.id, name: stages.name, isCurrent: stages.isCurrent }).from(stages).orderBy(stages.order),
   ]);
 
   const allTags = await getAllTags(context.cloudflare.env.DB);
@@ -38,6 +39,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     templates: activeTemplates,
     currentStage: currentStageResult[0] ?? null,
     collaborations: activeCollaborations,
+    stages: allStages,
     tags: allTags,
   };
 }
@@ -173,7 +175,7 @@ export async function action({ request, context }: Route.ActionArgs) {
 }
 
 export default function WritePage({ loaderData }: Route.ComponentProps) {
-  const { templates: availableTemplates, currentStage, collaborations, tags } = loaderData;
+  const { templates: availableTemplates, currentStage, collaborations, stages: availableStages, tags } = loaderData;
   const actionData = useActionData<typeof action>();
   const errors = actionData?.errors;
   const titleError = errors && "title" in errors ? errors.title?.[0] : undefined;
@@ -320,7 +322,24 @@ export default function WritePage({ loaderData }: Route.ComponentProps) {
           </div>
         )}
 
-        {currentStage && <input type="hidden" name="stageId" value={currentStage.id} />}
+        <div>
+          <label htmlFor="stageId" className="block text-meta font-medium text-text-secondary mb-2">
+            구간
+          </label>
+          <select
+            id="stageId"
+            name="stageId"
+            defaultValue={currentStage?.id ?? ""}
+            className="w-full rounded-md border border-border bg-surface px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-ocean-blue"
+          >
+            <option value="">구간 미지정</option>
+            {availableStages.map((stage) => (
+              <option key={stage.id} value={stage.id}>
+                {stage.name}{stage.isCurrent ? " (현재)" : ""}
+              </option>
+            ))}
+          </select>
+        </div>
 
         {collaborations.length > 0 && (
           <div>

@@ -124,6 +124,43 @@ export default function MySpacePage({ loaderData }: Route.ComponentProps) {
             나의 여정
           </h2>
           <div className="flex flex-col gap-6">
+            {(recordsByStage["no-stage"]?.length ?? 0) > 0 && (
+              <div
+                className="rounded-2xl border p-6"
+                style={{
+                  backgroundColor: "var(--color-surface-secondary)",
+                  borderColor: "var(--color-border)",
+                  borderLeftWidth: "4px",
+                }}
+              >
+                <div className="flex items-center gap-3 mb-4">
+                  <h3 className="text-lg font-semibold text-text-primary tracking-tight">
+                    구간 미지정
+                  </h3>
+                </div>
+                <div className="flex flex-col gap-3">
+                  {recordsByStage["no-stage"].slice(0, 5).map(({ record }) => (
+                    <Link
+                      key={record.id}
+                      to={`/logs/${record.slug}`}
+                      className="block p-4 rounded-xl bg-surface border border-border-subtle hover:border-border transition-colors no-underline"
+                    >
+                      <h4 className="text-base font-medium text-text-primary mb-1">
+                        {record.title}
+                      </h4>
+                      <p className="text-sm text-text-secondary line-clamp-2">
+                        {record.contentText?.substring(0, 100) ?? record.content.substring(0, 100)}
+                      </p>
+                    </Link>
+                  ))}
+                  {recordsByStage["no-stage"].length > 5 && (
+                    <p className="text-sm text-text-tertiary mt-2">
+                      외 {recordsByStage["no-stage"].length - 5}개의 기록
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
             {stages.map((stage) => {
               const stageRecords = recordsByStage[stage.id] ?? [];
               const toneStyle = getStageToneStyle(stage.type);
@@ -143,13 +180,13 @@ export default function MySpacePage({ loaderData }: Route.ComponentProps) {
                       {stage.name}
                     </h3>
                     <span className="text-caption text-text-tertiary">
-                      {toneStyle.label}
+                      {toneStyle.label} · {stageRecords.length}개의 기록
                     </span>
                   </div>
                   
                   {stageRecords.length === 0 ? (
                     <p className="text-sm text-text-tertiary">
-                      아직 이 단계에서 기록이 없습니다.
+                      아직 이 구간에 기록이 없습니다. 무엇이든 남겨보세요.
                     </p>
                   ) : (
                     <div className="flex flex-col gap-3">
@@ -161,10 +198,12 @@ export default function MySpacePage({ loaderData }: Route.ComponentProps) {
                         >
                           <h4 className="text-base font-medium text-text-primary mb-1">
                             {record.title}
+                            {record.visibility === "draft" && (
+                              <span className="ml-2 text-caption text-warning font-medium">임시저장</span>
+                            )}
                           </h4>
                           <p className="text-sm text-text-secondary line-clamp-2">
-                            {record.content.substring(0, 100)}
-                            {record.content.length > 100 ? "…" : ""}
+                            {record.contentText?.substring(0, 100) ?? record.content.substring(0, 100)}
                           </p>
                         </Link>
                       ))}
