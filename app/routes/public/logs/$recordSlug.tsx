@@ -18,6 +18,8 @@ import { createSelfAnswer, getSelfAnswersByRecord } from "~/db/queries/selfAnswe
 import { getLinkedRecords } from "~/db/queries/records.server";
 import { getIncomingLinks } from "~/db/queries/recordLinks.server";
 import { createReminder } from "~/db/queries/reminders.server";
+import { createCarryOver, getCarryOversByQuestion } from "~/db/queries/carryOvers.server";
+import { getNextStage } from "~/db/queries/stages.server";
 import { getTagsByRecord } from "~/db/queries/tags.server";
 import { requireVerified } from "~/lib/auth.middleware";
 import { getPlainText, renderContentToHtml } from "~/lib/content.server";
@@ -128,6 +130,9 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
   const selfAnswersData = await getSelfAnswersByRecord(context.cloudflare.env.DB, recordData.record.id);
   const recordTags = await getTagsByRecord(context.cloudflare.env.DB, recordData.record.id);
   const incomingLinks = await getIncomingLinks(context.cloudflare.env.DB, recordData.record.id);
+  const nextStage = recordData.record.stageId
+    ? await getNextStage(context.cloudflare.env.DB, recordData.record.stageId)
+    : null;
   const recordFormat = normalizeContentFormat(recordData.record.format);
   const contentHtml = renderContentToHtml(recordData.record.content, recordFormat);
   const plainTextContent = getPlainText(recordData.record.content, recordFormat);
@@ -142,6 +147,7 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
     incomingLinks,
     selfAnswers: selfAnswersData,
     tags: recordTags,
+    nextStage,
     currentUserId,
     canRespond:
       Boolean(optionalAuth?.isAuthenticated)
@@ -158,6 +164,66 @@ export async function action({ request, context }: Route.ActionArgs) {
   const formData = await request.formData();
   const intent = formData.get("intent");
   const database = db(context.cloudflare.env.DB);
+
+  if (intent === "carry_over_question") {
+    const questionId = formData.get("questionId")?.toString();
+    const toStageId = formData.get("toStageId")?.toString();
+
+    if (!questionId || !toStageId) {
+      return { error: "질문 정보를 확인해주세요.", intent: "carry_over_question", questionId: questionId ?? null };
+    }
+
+    const questionData = await database
+      .select({
+        questionId: questions.id,
+        isOpen: questions.isOpen,
+        authorId: records.authorId,
+        stageId: records.stageId,
+      })
+      .from(questions)
+      .innerJoin(records, eq(questions.recordId, records.id))
+      .where(eq(questions.id, questionId))
+      .limit(1);
+
+    if (questionData.length === 0) {
+      return { error: "질문을 찾을 수 없습니다.", intent: "carry_over_question", questionId };
+    }
+
+    const targetQuestion = questionData[0];
+
+    if (targetQuestion.authorId !== auth.user.id) {
+      return { error: "자신의 질문만 가져갈 수 있습니다.", intent: "carry_over_question", questionId };
+    }
+
+    if (!targetQuestion.isOpen) {
+      return { error: "열린 질문만 가져갈 수 있습니다.", intent: "carry_over_question", questionId };
+    }
+
+    if (!targetQuestion.stageId) {
+      return { error: "구간 정보가 없는 질문입니다.", intent: "carry_over_question", questionId };
+    }
+
+    const nextStage = await getNextStage(context.cloudflare.env.DB, targetQuestion.stageId);
+    if (!nextStage || nextStage.id !== toStageId) {
+      return { error: "다음 구간 정보를 다시 확인해주세요.", intent: "carry_over_question", questionId };
+    }
+
+    const existingCarryOvers = await getCarryOversByQuestion(context.cloudflare.env.DB, questionId);
+    if (existingCarryOvers.length > 0) {
+      return { error: "이미 다음 구간으로 가져간 질문입니다.", intent: "carry_over_question", questionId };
+    }
+
+    await createCarryOver(context.cloudflare.env.DB, {
+      originalQuestionId: questionId,
+      fromStageId: targetQuestion.stageId,
+      toStageId,
+      newQuestionId: null,
+    });
+
+    logger.info("question_carry_over_create", { questionId, fromStageId: targetQuestion.stageId, toStageId });
+
+    return { success: "다음 구간으로 가져갔습니다.", intent: "carry_over_question", questionId };
+  }
 
   if (intent === "create_response") {
     const parsed = createResponseSchema.safeParse({
@@ -442,6 +508,7 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
     incomingLinks,
     selfAnswers,
     tags: recordTags,
+    nextStage,
     currentUserId,
     canRespond,
     contentHtml,
@@ -454,8 +521,12 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
   const isSubmittingSentence = navigation.state === "submitting" && submittingIntent === "save_sentence";
   const isSubmittingSelfAnswer = navigation.state === "submitting" && submittingIntent === "create_self_answer";
   const isSubmittingReminder = navigation.state === "submitting" && submittingIntent === "create_reminder";
+  const isSubmittingCarryOver = navigation.state === "submitting" && submittingIntent === "carry_over_question";
   const reminderQuestionId = navigation.formData?.get("questionId");
   const reminderFeedback = actionData && "intent" in actionData && actionData.intent === "create_reminder"
+    ? actionData
+    : null;
+  const carryOverFeedback = actionData && "intent" in actionData && actionData.intent === "carry_over_question"
     ? actionData
     : null;
 
@@ -911,6 +982,23 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
                         </button>
                       )}
 
+                      {question.isOpen && nextStage ? (
+                        <form method="post">
+                          <input type="hidden" name="intent" value="carry_over_question" />
+                          <input type="hidden" name="questionId" value={question.id} />
+                          <input type="hidden" name="toStageId" value={nextStage.id} />
+                          <button
+                            type="submit"
+                            disabled={isSubmittingCarryOver && reminderQuestionId === question.id}
+                            className="min-h-11 text-left text-xs text-[--color-text-tertiary] transition-colors hover:text-[--color-ocean-blue] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2 disabled:opacity-60"
+                          >
+                            {isSubmittingCarryOver && reminderQuestionId === question.id
+                              ? "가져가는 중..."
+                              : "다음 구간으로 가져가기"}
+                          </button>
+                        </form>
+                      ) : null}
+
                       {question.isOpen ? (
                         <form method="post">
                           <input type="hidden" name="intent" value="create_reminder" />
@@ -928,6 +1016,12 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
                       {reminderFeedback && reminderFeedback.questionId === question.id ? (
                         <p className={"text-sm " + ("error" in reminderFeedback ? "text-error" : "text-success")}>
                           {"error" in reminderFeedback ? reminderFeedback.error : reminderFeedback.success}
+                        </p>
+                      ) : null}
+
+                      {carryOverFeedback && carryOverFeedback.questionId === question.id ? (
+                        <p className={"text-sm " + ("error" in carryOverFeedback ? "text-error" : "text-success")}>
+                          {"error" in carryOverFeedback ? carryOverFeedback.error : carryOverFeedback.success}
                         </p>
                       ) : null}
                     </div>
@@ -950,11 +1044,11 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
             {RESPONSE_PREFERENCE_LABELS[record.responsePreference] ?? "이 기록에 응답해보세요."}
           </p>
 
-          {actionData && !reminderFeedback && "error" in actionData ? (
+          {actionData && !reminderFeedback && !carryOverFeedback && "error" in actionData ? (
             <p className="text-error mb-4 text-sm">{actionData.error}</p>
           ) : null}
 
-          {actionData && !reminderFeedback && "success" in actionData ? (
+          {actionData && !reminderFeedback && !carryOverFeedback && "success" in actionData ? (
             <p className="text-success mb-4 text-sm">{actionData.success}</p>
           ) : null}
 

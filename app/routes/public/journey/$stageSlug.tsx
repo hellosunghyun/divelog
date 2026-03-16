@@ -3,7 +3,7 @@ import { useState } from "react";
 import type { Route } from "./+types/$stageSlug";
 import { Link } from "~/components/SmartLink";
 import { db } from "~/db/client.server";
-import { stages, records, questions, collaborationUnits, learnerProfiles } from "~/db/schema.server";
+import { stages, records, collaborationUnits, learnerProfiles } from "~/db/schema.server";
 import { eq, and, desc, sql } from "drizzle-orm";
 import HeroSection from "~/components/HeroSection";
 import SceneCard from "~/components/SceneCard";
@@ -12,6 +12,7 @@ import CollaborationUnitCard from "~/components/CollaborationUnitCard";
 import EmptyState from "~/components/EmptyState";
 import StageStrip from "~/components/StageStrip";
 import { getPersonalReflection, upsertPersonalReflection } from "~/db/queries/reflections.server";
+import { getOpenQuestionsForStage } from "~/db/queries/questions.server";
 import { getOptionalUser, requireAuth } from "~/lib/auth.middleware";
 import { createLogger } from "~/lib/logger.server";
 import { personalReflectionSchema } from "~/lib/validation";
@@ -36,7 +37,7 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
     throw data("Stage를 찾을 수 없습니다", { status: 404 });
   }
 
-  const [stageRecords, stageQuestions, stageCollaborations] = await database.batch([
+  const [stageRecords, stageCollaborations] = await database.batch([
     database
       .select({
         record: records,
@@ -51,19 +52,9 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
       .where(and(eq(records.stageId, stage.id), sql`${records.visibility} != 'draft'`))
       .orderBy(desc(records.createdAt))
       .limit(12),
-    database
-      .select({
-        question: questions,
-        recordSlug: records.slug,
-        recordTitle: records.title,
-      })
-      .from(questions)
-      .leftJoin(records, eq(questions.recordId, records.id))
-      .where(and(eq(records.stageId, stage.id), eq(questions.isOpen, true)))
-      .orderBy(desc(questions.createdAt))
-      .limit(5),
     database.select().from(collaborationUnits).where(eq(collaborationUnits.stageId, stage.id)),
   ]);
+  const stageQuestions = await getOpenQuestionsForStage(context.cloudflare.env.DB, stage.id, 5);
 
   const existingReflection = stage.status === "closed" && auth?.user
     ? await getPersonalReflection(context.cloudflare.env.DB, stage.id, auth.user.id)
@@ -206,13 +197,13 @@ export default function StageDetailPage({ loaderData }: Route.ComponentProps) {
               이 Stage의 열린 질문들
             </h2>
             <div className="flex flex-col gap-5">
-              {stageQuestions.map(({ question, recordSlug, recordTitle }) => (
+              {stageQuestions.map((question) => (
                 <QuestionCard
                   key={question.id}
                   question={question}
                   record={
-                    recordSlug && recordTitle
-                      ? { slug: recordSlug, title: recordTitle }
+                    question.recordSlug && question.recordTitle
+                      ? { slug: question.recordSlug, title: question.recordTitle }
                       : undefined
                   }
                 />

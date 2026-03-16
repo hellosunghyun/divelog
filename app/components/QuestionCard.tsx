@@ -46,7 +46,7 @@ export function QuestionMetadataBadges({ question }: { question: QuestionCardQue
       )}
       {question.isCarryOver && (
         <span className="rounded-full border border-[--color-border] px-2 py-0.5 text-xs text-[--color-text-tertiary]">
-          이전 구간에서
+          이전 구간에서 가져온 질문
         </span>
       )}
       {question.selfAnswerCount && question.selfAnswerCount > 0 && (

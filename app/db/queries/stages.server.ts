@@ -1,4 +1,4 @@
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, eq, isNull } from "drizzle-orm";
 
 import { db } from "../client.server";
 import { stages } from "../schema.server";
@@ -32,6 +32,33 @@ export async function getStageBySlug(d1: D1Database, slug: string) {
   const result = await database.select().from(stages).where(eq(stages.slug, slug)).limit(1);
 
   return result[0] ?? null;
+}
+
+export async function getNextStage(d1: D1Database, currentStageId: string) {
+  const database = db(d1);
+  const currentStageResult = await database
+    .select({ order: stages.order, cohort: stages.cohort })
+    .from(stages)
+    .where(eq(stages.id, currentStageId))
+    .limit(1);
+
+  const currentStage = currentStageResult[0];
+  if (!currentStage) {
+    return null;
+  }
+
+  const nextStageResult = await database
+    .select()
+    .from(stages)
+    .where(
+      and(
+        eq(stages.order, currentStage.order + 1),
+        currentStage.cohort ? eq(stages.cohort, currentStage.cohort) : isNull(stages.cohort),
+      ),
+    )
+    .limit(1);
+
+  return nextStageResult[0] ?? null;
 }
 
 export async function updateStageStatus(d1: D1Database, id: string, status: string) {

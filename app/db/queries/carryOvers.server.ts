@@ -55,6 +55,20 @@ export async function getCarryOversByStage(d1: D1Database, stageId: string): Pro
     );
 }
 
+export async function getCarryOversByQuestion(d1: D1Database, questionId: string): Promise<QuestionCarryOver[]> {
+  const database = db(d1);
+
+  return database
+    .select()
+    .from(questionCarryOvers)
+    .where(
+      or(
+        eq(questionCarryOvers.originalQuestionId, questionId),
+        eq(questionCarryOvers.newQuestionId, questionId),
+      ),
+    );
+}
+
 export async function getPendingCarryOvers(
   d1: D1Database,
   toStageId: string,
