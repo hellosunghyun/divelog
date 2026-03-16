@@ -6,6 +6,7 @@ import type { Route } from "./+types/article";
 
 import { ArticleEditor } from "~/components/editor/ArticleEditor";
 import { db } from "~/db/client.server";
+import { createQuestion } from "~/db/queries/questions.server";
 import { learnerProfiles, records, stages, templates } from "~/db/schema.server";
 import { useUnsavedWarning } from "~/hooks/useUnsavedWarning";
 import { requireVerified } from "~/lib/auth.middleware";
@@ -110,6 +111,8 @@ export async function action({ request, context }: Route.ActionArgs) {
     visibility: formData.get("visibility") || "cohort",
     stageId: formData.get("stageId") || undefined,
     templateId: formData.get("templateId") || undefined,
+    captureQuestion: formData.get("captureQuestion") || undefined,
+    captureDirection: formData.get("captureDirection") || "inward",
   });
 
   if (!parsed.success) {
@@ -146,6 +149,15 @@ export async function action({ request, context }: Route.ActionArgs) {
     createdAt: now,
     updatedAt: now,
   });
+
+  const captureQuestion = parsed.data.captureQuestion?.trim();
+  if (captureQuestion && captureQuestion.length > 0) {
+    await createQuestion(context.cloudflare.env.DB, {
+      recordId: id,
+      content: captureQuestion,
+      direction: parsed.data.captureDirection,
+    });
+  }
 
   const mentionedUsers = extractUserMentions(content);
   const recordRefs = extractRecordRefs(content);
@@ -366,6 +378,56 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
                 </div>
               ) : null}
             </div>
+          </div>
+        </div>
+
+        <div
+          data-testid="question-capture-slot"
+          className="mt-6 border-t border-[--color-border] pt-6"
+        >
+          <label
+            htmlFor="captureQuestion"
+            className="mb-2 block text-sm font-medium text-[--color-text-secondary]"
+          >
+            이 기록에서 남은 질문이 있나요?{" "}
+            <span className="font-normal text-[--color-text-tertiary]">(선택사항)</span>
+          </label>
+          <textarea
+            id="captureQuestion"
+            name="captureQuestion"
+            placeholder="작성하며 생긴 질문이 있다면 남겨두세요."
+            rows={2}
+            className="w-full resize-none rounded-xl border border-[--color-border] bg-[--color-surface] px-4 py-3 text-sm text-[--color-text-primary] placeholder:text-[--color-text-tertiary]"
+          />
+          <div className="mt-2 flex gap-3">
+            <label className="flex cursor-pointer items-center gap-1.5 text-xs text-[--color-text-tertiary]">
+              <input
+                type="radio"
+                name="captureDirection"
+                value="inward"
+                defaultChecked
+                className="accent-[--color-ocean-blue]"
+              />
+              스스로에게
+            </label>
+            <label className="flex cursor-pointer items-center gap-1.5 text-xs text-[--color-text-tertiary]">
+              <input
+                type="radio"
+                name="captureDirection"
+                value="outward"
+                className="accent-[--color-ocean-blue]"
+              />
+              함께 생각해볼
+            </label>
+            <label className="flex cursor-pointer items-center gap-1.5 text-xs text-[--color-text-tertiary]">
+              <input
+                type="radio"
+                name="captureDirection"
+                value="next_stage"
+                className="accent-[--color-ocean-blue]"
+              />
+              다음 구간으로
+            </label>
           </div>
         </div>
 

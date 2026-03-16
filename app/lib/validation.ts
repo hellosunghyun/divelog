@@ -63,6 +63,8 @@ export const createNoteSchema = z.object({
   content: z.string().min(1, "내용을 입력해주세요").max(50000),
   visibility: z.enum(["draft", "cohort", "public"]).default("cohort"),
   stageId: z.string().optional(),
+  captureQuestion: z.string().optional(),
+  captureDirection: z.enum(["inward", "outward", "next_stage"]).default("inward"),
 });
 
 export type CreateNoteInput = z.infer<typeof createNoteSchema>;
@@ -84,6 +86,8 @@ export const createArticleSchema = z
     visibility: z.enum(["draft", "cohort", "public"]).default("cohort"),
     stageId: z.string().optional(),
     templateId: z.string().optional(),
+    captureQuestion: z.string().optional(),
+    captureDirection: z.enum(["inward", "outward", "next_stage"]).default("inward"),
   })
   .superRefine((data, ctx) => {
     try {
