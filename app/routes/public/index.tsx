@@ -1,8 +1,10 @@
 import type { Route } from "./+types/index";
+import { QuestionMetadataBadges } from "~/components/QuestionCard";
 import { Link } from "~/components/SmartLink";
 import { db } from "~/db/client.server";
-import { stages, records, questions, sentences, learnerProfiles } from "~/db/schema.server";
-import { eq, desc, and, sql, count } from "drizzle-orm";
+import { getOpenQuestions } from "~/db/queries/questions.server";
+import { stages, records, sentences, learnerProfiles } from "~/db/schema.server";
+import { eq, desc, sql, count } from "drizzle-orm";
 import HeroSection from "~/components/HeroSection";
 import { NarrativeDigest } from "~/components/NarrativeDigest";
 import { getNarrativeDigest } from "~/db/queries/activity.server";
@@ -22,69 +24,54 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   logger.info("loader_start");
   const database = db(context.cloudflare.env.DB);
 
-  const [allStages, currentStageResult, recentRecords, openQuestions, recentSentences, spotlightLearners, learnerCountResult] = await database.batch([
-    database.select().from(stages).orderBy(stages.order),
-    database.select().from(stages).where(eq(stages.isCurrent, true)).limit(1),
-    database
-      .select({
-        id: records.id,
-        slug: records.slug,
-        title: records.title,
-        content: records.content,
-        format: records.format,
-        type: records.type,
-        rhythm: records.rhythm,
-        stageId: records.stageId,
-        createdAt: records.createdAt,
-        authorDisplayName: learnerProfiles.displayName,
-        authorSlug: learnerProfiles.slug,
-        authorProfilePhotoUrl: learnerProfiles.profilePhotoUrl,
-      })
-      .from(records)
-      .leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
-      .where(sql`${records.visibility} != 'draft'`)
-      .orderBy(desc(records.createdAt))
-      .limit(9),
-    database
-      .select({
-        questionId: questions.id,
-        questionContent: questions.content,
-        questionDirection: questions.direction,
-        questionIsOpen: questions.isOpen,
-        recordSlug: records.slug,
-        recordTitle: records.title,
-        authorDisplayName: learnerProfiles.displayName,
-        questionCreatedAt: questions.createdAt,
-      })
-      .from(questions)
-      .leftJoin(records, eq(questions.recordId, records.id))
-      .leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
-      .where(and(eq(questions.isOpen, true), sql`${records.visibility} != 'draft'`))
-      .orderBy(desc(questions.createdAt))
-      .limit(8),
-    database
-      .select({
-        sentenceId: sentences.id,
-        sentenceContent: sentences.content,
-        sentenceReason: sentences.reason,
-        savedByDisplayName: learnerProfiles.displayName,
-        savedBySlug: learnerProfiles.slug,
-        recordSlug: records.slug,
-        recordTitle: records.title,
-      })
-      .from(sentences)
-      .leftJoin(learnerProfiles, eq(sentences.savedById, learnerProfiles.userId))
-      .leftJoin(records, eq(sentences.recordId, records.id))
-      .orderBy(desc(sentences.createdAt))
-      .limit(4),
-    database.select().from(learnerProfiles).limit(4),
-    database.select({ total: count() }).from(learnerProfiles),
+  const [[allStages, currentStageResult, recentRecords, recentSentences, spotlightLearners, learnerCountResult], openQuestions, digestItems] = await Promise.all([
+    database.batch([
+      database.select().from(stages).orderBy(stages.order),
+      database.select().from(stages).where(eq(stages.isCurrent, true)).limit(1),
+      database
+        .select({
+          id: records.id,
+          slug: records.slug,
+          title: records.title,
+          content: records.content,
+          format: records.format,
+          type: records.type,
+          rhythm: records.rhythm,
+          stageId: records.stageId,
+          createdAt: records.createdAt,
+          authorDisplayName: learnerProfiles.displayName,
+          authorSlug: learnerProfiles.slug,
+          authorProfilePhotoUrl: learnerProfiles.profilePhotoUrl,
+        })
+        .from(records)
+        .leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
+        .where(sql`${records.visibility} != 'draft'`)
+        .orderBy(desc(records.createdAt))
+        .limit(9),
+      database
+        .select({
+          sentenceId: sentences.id,
+          sentenceContent: sentences.content,
+          sentenceReason: sentences.reason,
+          savedByDisplayName: learnerProfiles.displayName,
+          savedBySlug: learnerProfiles.slug,
+          recordSlug: records.slug,
+          recordTitle: records.title,
+        })
+        .from(sentences)
+        .leftJoin(learnerProfiles, eq(sentences.savedById, learnerProfiles.userId))
+        .leftJoin(records, eq(sentences.recordId, records.id))
+        .orderBy(desc(sentences.createdAt))
+        .limit(4),
+      database.select().from(learnerProfiles).limit(4),
+      database.select({ total: count() }).from(learnerProfiles),
+    ]),
+    getOpenQuestions(context.cloudflare.env.DB).then((items) => items.slice(0, 8)),
+    getNarrativeDigest(context.cloudflare.env.DB, { limit: 8 }),
   ]);
 
   const currentStage = currentStageResult[0] ?? null;
   const learnerCount = learnerCountResult[0]?.total ?? 0;
-
-  const digestItems = await getNarrativeDigest(context.cloudflare.env.DB, { limit: 8 });
 
   // Pre-compute plain text snippets on server to avoid client importing server-only modules
   const { getPlainText } = await import("~/lib/content.server");
@@ -275,16 +262,17 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {openQuestions.map((row, idx) => (
                     <article
-                      key={row.questionId}
+                      key={row.id}
                       className="quiet-depth-card p-5 rounded-2xl group cursor-pointer hover:border-ocean-blue/30"
                     >
                       <span className="text-xs font-bold text-ocean-blue tracking-widest mb-2 block">질문 {String(idx + 1).padStart(2, "0")}</span>
+                      <QuestionMetadataBadges question={row} />
                     <p className="text-[15px] font-bold leading-tight group-hover:text-ocean-blue transition-colors text-text-primary">
-                      {row.questionContent}
+                      {row.content}
                     </p>
                     <div className="flex items-center justify-between mt-4">
                       <span className="text-xs text-text-tertiary font-medium">
-                        {row.authorDisplayName} • {formatRelativeTime(row.questionCreatedAt)}
+                        {row.authorName} • {formatRelativeTime(row.createdAt)}
                       </span>
                       <Link
                         to={row.recordSlug ? `/logs/${row.recordSlug}` : "/logs"}

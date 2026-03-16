@@ -1,12 +1,21 @@
 import { Link } from "~/components/SmartLink";
 
+export interface QuestionCardQuestion {
+  id: string;
+  content: string;
+  direction?: string;
+  isOpen?: boolean;
+  recordSlug?: string;
+  authorName?: string;
+  createdAt?: number;
+  type?: "personal" | "challenge";
+  selfAnswerCount?: number;
+  responseCount?: number;
+  isCarryOver?: boolean;
+}
+
 interface QuestionCardProps {
-  question: {
-    id: string;
-    content: string;
-    direction?: string;
-    isOpen?: boolean;
-  };
+  question: QuestionCardQuestion;
   record?: {
     slug: string;
     title: string;
@@ -14,7 +23,44 @@ interface QuestionCardProps {
   onRespond?: () => void;
 }
 
+export function QuestionMetadataBadges({ question }: { question: QuestionCardQuestion }) {
+  const hasNoAnswers =
+    (!question.selfAnswerCount || question.selfAnswerCount === 0) &&
+    (!question.responseCount || question.responseCount === 0);
+
+  if (!question.isCarryOver && question.type !== "challenge" && !hasNoAnswers && !question.selfAnswerCount) {
+    return null;
+  }
+
+  return (
+    <div className="mb-2 flex flex-wrap gap-1.5">
+      {question.type === "challenge" && (
+        <span className="rounded-full border border-[--color-border] px-2 py-0.5 text-xs text-[--color-text-tertiary]">
+          챌린지 질문
+        </span>
+      )}
+      {hasNoAnswers && (
+        <span className="rounded-full bg-[--color-mist-blue]/50 px-2 py-0.5 text-xs text-[--color-ocean-blue]">
+          아직 답 없음
+        </span>
+      )}
+      {question.isCarryOver && (
+        <span className="rounded-full border border-[--color-border] px-2 py-0.5 text-xs text-[--color-text-tertiary]">
+          이전 구간에서
+        </span>
+      )}
+      {question.selfAnswerCount && question.selfAnswerCount > 0 && (
+        <span className="rounded-full bg-[--color-surface-secondary] px-2 py-0.5 text-xs text-[--color-text-secondary]">
+          ↺ 자기답변
+        </span>
+      )}
+    </div>
+  );
+}
+
 export default function QuestionCard({ question, record, onRespond }: QuestionCardProps) {
+  const linkedRecord = record ?? (question.recordSlug ? { slug: question.recordSlug, title: "기록 보기" } : undefined);
+
   return (
     <article
       data-testid="question-card"
@@ -28,18 +74,20 @@ export default function QuestionCard({ question, record, onRespond }: QuestionCa
           : "함께 생각해볼 질문"}
       </div>
 
+      <QuestionMetadataBadges question={question} />
+
       <p className="text-xl md:text-2xl leading-relaxed text-text-primary font-semibold mb-6 tracking-tight">
         {question.content}
       </p>
 
-      {record && (
+      {linkedRecord && (
         <div className="mb-4">
           <Link
-            to={`/logs/${record.slug}`}
+            to={`/logs/${linkedRecord.slug}`}
             prefetch="viewport"
             className="text-sm text-text-tertiary no-underline"
           >
-            ← {record.title}
+            ← {linkedRecord.title}
           </Link>
         </div>
       )}
