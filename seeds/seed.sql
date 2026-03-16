@@ -1,6 +1,11 @@
 DELETE FROM memory_questions;
 DELETE FROM memory_sentences;
 DELETE FROM memory_records;
+DELETE FROM question_reminders;
+DELETE FROM question_carry_overs;
+DELETE FROM saved_records;
+DELETE FROM personal_stage_reflections;
+DELETE FROM drafts;
 DELETE FROM notifications;
 DELETE FROM responses;
 DELETE FROM self_answers;
@@ -349,3 +354,157 @@ INSERT INTO settings (id, key, value, updated_at) VALUES
   ('setting-005', 'default_visibility', 'cohort', unixepoch()),
   ('setting-006', 'search_enabled', 'true', unixepoch()),
    ('setting-007', 'templates_policy', 'optional', unixepoch());
+
+-- QA FIXTURES
+INSERT INTO stages (
+  id, name, slug, type, status, description, accent_tone, "order",
+  start_date, end_date, is_current, hero_content, cohort, created_at, updated_at
+) VALUES (
+  'stage-test-closed',
+  '테스트 종료 구간',
+  'test-closed-stage',
+  'bridge',
+  'closed',
+  'QA용 종료 구간입니다.',
+  'bridge',
+  99,
+  unixepoch() - 86400 * 3,
+  unixepoch() - 86400,
+  0,
+  'QA 종료 상태 검증용 구간',
+  'cohort-2026',
+  unixepoch() - 86400 * 3,
+  unixepoch() - 86400 * 2
+);
+
+INSERT INTO records (
+  id,
+  slug,
+  author_id,
+  stage_id,
+  challenge_id,
+  collaboration_unit_id,
+  linked_record_id,
+  title,
+  content,
+  content_text,
+  format,
+  type,
+  rhythm,
+  visibility,
+  response_preference,
+  is_featured,
+  moderation_status,
+  cohort,
+  created_at,
+  updated_at
+) VALUES (
+  'record-test-timeline',
+  'test-record-with-timeline',
+  'hana',
+  'stage-test-closed',
+  NULL,
+  NULL,
+  NULL,
+  '타임라인 검증용 기록',
+  'QA에서 질문/자가응답 타임라인을 검증하기 위한 기록입니다.',
+  'QA에서 질문/자가응답 타임라인을 검증하기 위한 기록입니다.',
+  'note',
+  'personal',
+  'weekly',
+  'cohort',
+  'open',
+  0,
+  'clean',
+  'cohort-2026',
+  unixepoch() - 7200,
+  unixepoch() - 1800
+);
+
+INSERT INTO questions (id, record_id, content, direction, is_open, created_at, updated_at, closed_at) VALUES
+  (
+    'q-test-timeline-001',
+    'record-test-timeline',
+    '이 구간에서 다음으로 가져갈 질문은 무엇인가요?',
+    'outward',
+    0,
+    unixepoch() - 7100,
+    unixepoch() - 3500,
+    unixepoch() - 3400
+  );
+
+INSERT INTO self_answers (id, question_id, author_id, content, created_at, updated_at) VALUES
+  (
+    'sa-test-timeline-001',
+    'q-test-timeline-001',
+    'hana',
+    '첫 번째 자기답변입니다. 아직 문장이 짧아도 괜찮다고 적어 둡니다.',
+    unixepoch() - 6800,
+    unixepoch() - 6800
+  ),
+  (
+    'sa-test-timeline-002',
+    'q-test-timeline-001',
+    'hana',
+    '두 번째 자기답변입니다. 질문의 결을 더 또렷하게 남깁니다.',
+    unixepoch() - 3200,
+    unixepoch() - 3200
+  );
+
+INSERT INTO responses (
+  id,
+  record_id,
+  question_id,
+  author_id,
+  type,
+  content,
+  visibility,
+  moderation_status,
+  created_at,
+  updated_at
+) VALUES (
+  'resp-test-timeline-001',
+  'record-test-timeline',
+  'q-test-timeline-001',
+  'jiwon',
+  'question',
+  '이 질문을 다음 구간에서 어떻게 다시 확인해 보고 싶으신가요?',
+  'cohort',
+  'clean',
+  unixepoch() - 3000,
+  unixepoch() - 3000
+);
+
+INSERT INTO record_links (id, source_record_id, target_record_id, link_type, quoted_text, created_at) VALUES
+  (
+    'rl-test-timeline-001',
+    'record-test-timeline',
+    'record-001',
+    'expansion',
+    '질문은 자랄 수 있다',
+    unixepoch() - 2500
+  ),
+  (
+    'rl-test-timeline-002',
+    'record-test-timeline',
+    'record-002',
+    'reference',
+    '혼자서 탐구를 이어가기',
+    unixepoch() - 2400
+  );
+
+INSERT INTO question_carry_overs (
+  id,
+  original_question_id,
+  new_question_id,
+  from_stage_id,
+  to_stage_id,
+  carried_at
+) VALUES (
+  'co-test-timeline-001',
+  'q-test-timeline-001',
+  NULL,
+  'stage-challenge-1',
+  'stage-test-closed',
+  unixepoch() - 2000
+);
