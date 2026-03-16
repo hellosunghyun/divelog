@@ -126,7 +126,7 @@ export default function GlobalNav() {
           </nav>
         </div>
 
-        <div className="hidden md:flex items-center gap-1.5">
+        <div className="hidden lg:flex items-center gap-1.5">
           <Link
             to="/search"
             className={`p-2 rounded-lg text-text-tertiary hover:text-ocean-blue hover:bg-mist-blue/50 transition-colors no-underline ${focusRing}`}

@@ -50,7 +50,7 @@ export default function WritePage() {
             </div>
             <div>
               <h2 className="text-lg font-semibold text-text-primary mb-1">
-                글 쓰기
+                글쓰기
               </h2>
               <p className="text-base text-text-secondary leading-relaxed">
                 여유롭게 탐구의 기록을 남기세요.
