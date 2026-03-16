@@ -155,13 +155,12 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
 
-  const originalFormat = record.format === "article" ? "article" : "note";
-  const [selectedFormat, setSelectedFormat] = useState<"note" | "article">(originalFormat);
+  const isArticleRecord = record.format === "article";
   const [selectedTags, setSelectedTags] = useState<Set<string>>(
     new Set(currentTags.map((t) => t.id))
   );
   const [title, setTitle] = useState(record.title);
-  const [articleContent, setArticleContent] = useState(record.format === "article" ? record.content : "");
+  const [articleContent, setArticleContent] = useState(isArticleRecord ? record.content : "");
 
   const errors = actionData && "errors" in actionData ? actionData.errors : undefined;
   const formError = actionData && "error" in actionData ? actionData.error : undefined;
@@ -170,8 +169,7 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
 
   const hasChanges =
     title !== record.title ||
-    selectedFormat !== originalFormat ||
-    (selectedFormat === "article" && articleContent !== record.content) ||
+    (isArticleRecord && articleContent !== record.content) ||
     selectedTags.size !== currentTags.length ||
     Array.from(selectedTags).some((id) => !currentTags.some((t) => t.id === id));
 
@@ -185,6 +183,8 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
       {formError ? <p className="mb-6 text-meta text-error">{formError}</p> : null}
 
       <form method="post" className="flex flex-col gap-6">
+        <input type="hidden" name="format" value={record.format} />
+
         <fieldset className="border-0 m-0 p-0">
           <legend className="block text-meta font-medium text-text-secondary mb-2">유형</legend>
           <div className="flex gap-2 flex-wrap">
@@ -204,30 +204,6 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
               </label>
             ))}
           </div>
-        </fieldset>
-
-        <fieldset className="border-0 m-0 p-0">
-          <legend className="block text-meta font-medium text-text-secondary mb-2">형식</legend>
-          <div className="flex gap-2 flex-wrap">
-            {[
-              { value: "note", label: "노트 (짧게)" },
-              { value: "article", label: "글 (길게)" },
-            ].map((opt) => (
-              <label key={opt.value} className="flex items-center gap-1 cursor-pointer">
-                <input
-                  type="radio"
-                  name="format"
-                  value={opt.value}
-                  defaultChecked={selectedFormat === opt.value}
-                  onChange={() => setSelectedFormat(opt.value as "note" | "article")}
-                />
-                <span className="text-base">{opt.label}</span>
-              </label>
-            ))}
-          </div>
-          {selectedFormat !== originalFormat ? (
-            <p className="mt-2 text-meta text-text-secondary">글 형식을 변경하면 서식이 사라질 수 있습니다.</p>
-          ) : null}
         </fieldset>
 
         <div>
@@ -321,10 +297,10 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
           <p className="block text-meta font-medium text-text-secondary mb-2">
             내용 <span className="text-error">*</span>
           </p>
-          {selectedFormat === "note" ? (
+          {record.format === "note" ? (
             <NoteEditor
               name="content"
-              defaultValue={record.format === "note" ? record.content : ""}
+              defaultValue={record.content}
               placeholder="짧은 생각, 메모, 기록을 남겨보세요..."
               error={contentError}
               htmlProps={{ required: true }}
