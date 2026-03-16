@@ -26,7 +26,8 @@ export default function Footer() {
       style={{ paddingBottom: "calc(3rem + env(safe-area-inset-bottom, 0px))" }}
     >
       <div className="max-w-canvas mx-auto px-6">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 mb-20">
+        {/* 모바일: 숨김, 데스크톱: 표시 */}
+        <div className="hidden md:grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 mb-20">
           <div className="lg:col-span-4">
             <Link to="/" className={`flex items-center gap-2.5 mb-6 no-underline ${focusRing}`}>
               <img src="/icon.svg" alt="" aria-hidden="true" className="w-10 h-10 rounded-xl shadow-xl shadow-ocean-blue/20" />
@@ -83,11 +84,39 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="pt-8 border-t border-white/10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <p className="text-[13px] text-mist-blue/40">
+        {/* 모바일: 표시, 데스크톱: 숨김 */}
+        <div className="md:hidden mb-12">
+          <Link to="/" className={`flex items-center gap-2.5 mb-6 no-underline ${focusRing}`}>
+            <img src="/icon.svg" alt="" aria-hidden="true" className="w-8 h-8 rounded-lg shadow-lg shadow-ocean-blue/20" />
+            <span className="text-xl font-bold tracking-tight text-white">DiveLog</span>
+          </Link>
+          <nav className="flex flex-wrap gap-4 gap-y-2">
+            {exploreLinks.map((link) => (
+              <Link
+                key={link.to}
+                to={link.to}
+                className={`text-[14px] text-mist-blue/70 hover:text-white transition-colors no-underline ${focusRing}`}
+              >
+                {link.label}
+              </Link>
+            ))}
+            {communityLinks.map((link) => (
+              <Link
+                key={link.to}
+                to={link.to}
+                className={`text-[14px] text-mist-blue/70 hover:text-white transition-colors no-underline ${focusRing}`}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+        </div>
+
+        <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <p className="hidden md:block text-[13px] text-mist-blue/40">
             아홉 달의 여정을 기록하고, 질문을 남기고, 서로의 사유에 공명하는 공간
           </p>
-          <p className="text-[13px] text-mist-blue/30">
+          <p className="text-[13px] text-mist-blue/40 md:text-mist-blue/30">
             divelog.ada-kr-pos.com
           </p>
         </div>

@@ -3,6 +3,25 @@ import { db } from "../client.server";
 import { recordLinks, records, learnerProfiles } from "../schema.server";
 import { nanoid } from "../../lib/utils.server";
 
+interface CreateLinkInput {
+  sourceRecordId: string;
+  targetRecordId: string;
+  linkType: string;
+  quotedText?: string | null;
+}
+
+export async function createLink(d1: D1Database, input: CreateLinkInput) {
+  const database = db(d1);
+  await database.insert(recordLinks).values({
+    id: nanoid(),
+    sourceRecordId: input.sourceRecordId,
+    targetRecordId: input.targetRecordId,
+    linkType: input.linkType,
+    quotedText: input.quotedText ?? null,
+    createdAt: Math.floor(Date.now() / 1000),
+  });
+}
+
 export async function syncRecordLinksForRecord(
   d1: D1Database,
   sourceRecordId: string,
@@ -57,6 +76,7 @@ export async function getIncomingLinks(d1: D1Database, targetRecordId: string) {
     .select({
       linkId: recordLinks.id,
       sourceRecordId: recordLinks.sourceRecordId,
+      linkType: recordLinks.linkType,
       sourceTitle: records.title,
       sourceSlug: records.slug,
       sourceAuthorName: learnerProfiles.displayName,

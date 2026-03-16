@@ -1,10 +1,12 @@
+import { useState } from "react";
 import type { Route } from "./+types/index";
 import { useSearchParams, useNavigate } from "react-router";
 import { db } from "~/db/client.server";
-import { records, stages, learnerProfiles } from "~/db/schema.server";
-import { eq, and, desc, sql, ne } from "drizzle-orm";
+import { records, stages, learnerProfiles, questions, selfAnswers, recordLinks } from "~/db/schema.server";
+import { eq, and, desc, sql, ne, count } from "drizzle-orm";
 import SceneCard from "~/components/SceneCard";
 import FilterBar from "~/components/FilterBar";
+import { FilterBottomSheet } from "~/components/FilterBottomSheet";
 import SortBar from "~/components/SortBar";
 import ViewToggle from "~/components/ViewToggle";
 import TimelineView from "~/components/TimelineView";
@@ -74,6 +76,17 @@ export async function loader({ request, context }: Route.LoaderArgs) {
           name: stages.name,
           type: stages.type,
         },
+        questionCount: sql<number>`(
+          SELECT COUNT(*) FROM ${questions} WHERE ${questions.recordId} = ${records.id}
+        )`.mapWith(Number),
+        selfAnswerCount: sql<number>`(
+          SELECT COUNT(*) FROM ${selfAnswers} sa
+          INNER JOIN ${questions} q ON sa.${selfAnswers.questionId} = q.${questions.id}
+          WHERE q.${questions.recordId} = ${records.id}
+        )`.mapWith(Number),
+        linkedCount: sql<number>`(
+          SELECT COUNT(*) FROM ${recordLinks} WHERE ${recordLinks.targetRecordId} = ${records.id}
+        )`.mapWith(Number),
       })
       .from(records)
       .leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
@@ -144,10 +157,20 @@ export default function LogsPage({ loaderData }: Route.ComponentProps) {
   const { records: filteredRecords, allStages } = loaderData;
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   const viewParam = searchParams.get("view");
   const currentView = viewParam === "timeline" ? "timeline" : "grid";
   const activeFormat = searchParams.get("format") ?? "";
+
+  const activeRhythm = searchParams.get("rhythm") ?? "";
+  const activeHasQuestion = searchParams.get("hasQuestion") ?? "";
+  const activeHasSelfAnswer = searchParams.get("hasSelfAnswer") ?? "";
+  const activeSecondaryFilterCount = [
+    activeRhythm,
+    activeHasQuestion,
+    activeHasSelfAnswer,
+  ].filter(Boolean).length;
 
   const tabs = [
     { label: "전체", value: "" },
@@ -202,12 +225,34 @@ export default function LogsPage({ loaderData }: Route.ComponentProps) {
         </div>
 
         <div className="mb-8 flex flex-wrap gap-4 items-center justify-between">
-          <FilterBar filters={allFilters} />
+          <div className="hidden md:block">
+            <FilterBar filters={allFilters} />
+          </div>
+          <div className="flex md:hidden flex-wrap gap-2 items-center">
+            <button
+              type="button"
+              onClick={() => setIsSheetOpen(true)}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-full border border-border bg-surface text-text-primary text-sm font-medium hover:bg-surface-secondary transition-colors"
+            >
+              <span>필터</span>
+              {activeSecondaryFilterCount > 0 && (
+                <span className="flex items-center justify-center w-5 h-5 rounded-full bg-ocean-blue text-white text-xs">
+                  {activeSecondaryFilterCount}
+                </span>
+              )}
+            </button>
+          </div>
           <div className="flex items-center gap-3">
             <SortBar />
             <ViewToggle currentView={currentView} />
           </div>
         </div>
+
+        <FilterBottomSheet
+          isOpen={isSheetOpen}
+          onClose={() => setIsSheetOpen(false)}
+          stages={allStages}
+        />
 
         {filteredRecords.length === 0 ? (
           <EmptyState variant="records" message="조건에 맞는 기록이 없습니다." />
@@ -218,16 +263,19 @@ export default function LogsPage({ loaderData }: Route.ComponentProps) {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {filteredRecords.map((record) => (
                 <SceneCard
-                  key={record.id}
-                  record={{
-                    slug: record.slug,
-                    title: record.title,
-                    content: record.content,
-                    format: record.format as "note" | "article",
-                    type: record.type as "personal" | "challenge" | "collaboration",
-                    rhythm: record.rhythm ?? undefined,
-                    createdAt: record.createdAt,
-                  }}
+                   key={record.id}
+                   record={{
+                     slug: record.slug,
+                     title: record.title,
+                     content: record.content,
+                     format: record.format as "note" | "article",
+                     type: record.type as "personal" | "challenge" | "collaboration",
+                     rhythm: record.rhythm ?? undefined,
+                     createdAt: record.createdAt,
+                     questionCount: record.questionCount,
+                     selfAnswerCount: record.selfAnswerCount,
+                     linkedCount: record.linkedCount,
+                   }}
                   contentSnippet={record.contentSnippet}
                   author={
                     record.author?.displayName

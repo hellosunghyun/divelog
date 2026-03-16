@@ -9,6 +9,9 @@ interface SceneCardProps {
     type: string;
     rhythm?: string;
     createdAt: number;
+    questionCount?: number;
+    selfAnswerCount?: number;
+    linkedCount?: number;
   };
   contentSnippet?: string;
   author?: {
@@ -19,8 +22,11 @@ interface SceneCardProps {
     name: string;
     type: string;
   };
+  /** @deprecated Use record.questionCount instead */
   hasQuestions?: boolean;
+  /** @deprecated Use record.selfAnswerCount instead */
   hasSelfAnswers?: boolean;
+  /** @deprecated Use record.linkedCount instead */
   hasLinkedRecord?: boolean;
 }
 
@@ -52,10 +58,16 @@ export default function SceneCard({
     contentSnippet ??
     (record.content.substring(0, 120) + (record.content.length > 120 ? "…" : ""));
 
+  const questionCount = record.questionCount ?? (hasQuestions ? 1 : 0);
+  const selfAnswerCount = record.selfAnswerCount ?? (hasSelfAnswers ? 1 : 0);
+  const linkedCount = record.linkedCount ?? (hasLinkedRecord ? 1 : 0);
+
+  const hasSelfAnswer = selfAnswerCount > 0;
+
   return (
     <article
       data-testid="scene-card"
-      className="rounded-2xl border border-border bg-surface p-6 shadow-card transition-all duration-normal hover:shadow-card-hover hover:-translate-y-0.5 flex flex-col gap-4"
+      className={`rounded-2xl border border-border bg-surface p-6 shadow-card transition-all duration-normal hover:shadow-card-hover hover:-translate-y-0.5 flex flex-col gap-4 ${hasSelfAnswer ? 'border-l-2 border-l-reef-cyan' : ''}`}
     >
       {/* Stage + Format badges */}
       <div className="flex gap-2 flex-wrap">
@@ -104,36 +116,33 @@ export default function SceneCard({
           )
         )}
 
-        {/* Indicator icons */}
-        <div className={`flex gap-2 ${author ? "ml-auto" : ""}`}>
-          {hasQuestions && (
+        {/* Indicator badges */}
+        <div className={`flex gap-1.5 ${author ? "ml-auto" : ""}`}>
+          {questionCount > 0 && (
             <span
-              title="열린 질문 있음"
-              className="text-caption text-ocean-blue"
-              role="img"
-              aria-label="열린 질문 있음"
+              data-testid="card-badge-question"
+              title="질문이 남겨진 기록"
+              className="text-xs px-1.5 py-0.5 rounded-md bg-mist-blue text-ocean-blue font-medium"
             >
-              ?
+              Q
             </span>
           )}
-          {hasSelfAnswers && (
+          {selfAnswerCount > 0 && (
             <span
-              title="자기답변 있음"
-              className="text-caption text-bridge"
-              role="img"
-              aria-label="자기답변 있음"
+              data-testid="card-badge-self-answer"
+              title="자기답변이 있는 기록"
+              className="text-xs px-1.5 py-0.5 rounded-md bg-mist-blue text-ocean-blue font-medium"
             >
-              ↩
+              ↺
             </span>
           )}
-          {hasLinkedRecord && (
+          {linkedCount > 0 && (
             <span
-              title="이어진 기록 있음"
-              className="text-caption text-text-tertiary"
-              role="img"
-              aria-label="이어진 기록 있음"
+              data-testid="card-badge-linked"
+              title="이어진 기록이 있음"
+              className="text-xs px-1.5 py-0.5 rounded-md bg-surface-secondary text-text-secondary font-medium"
             >
-              →
+              ∞
             </span>
           )}
         </div>

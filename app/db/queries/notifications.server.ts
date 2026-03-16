@@ -1,7 +1,25 @@
 import { and, desc, eq } from "drizzle-orm";
 
+import { nanoid } from "../../lib/utils.server";
 import { db } from "../client.server";
 import { notifications } from "../schema.server";
+
+export type NotificationType =
+  | "response"
+  | "mention"
+  | "reminder"
+  | "reread_reminder"
+  | "carry_over"
+  | "stage_closing";
+
+export interface CreateNotificationInput {
+  recipientId: string;
+  type: NotificationType;
+  title: string;
+  content?: string;
+  recordId?: string;
+  questionId?: string;
+}
 
 export async function getNotifications(d1: D1Database, recipientId: string, unreadOnly = false) {
   const database = db(d1);
@@ -45,4 +63,29 @@ export async function getUnreadCount(d1: D1Database, recipientId: string) {
     .where(and(eq(notifications.recipientId, recipientId), eq(notifications.isRead, false)));
 
   return result.length;
+}
+
+export async function createNotification(
+  d1: D1Database,
+  input: CreateNotificationInput
+) {
+  const database = db(d1);
+  const now = Math.floor(Date.now() / 1000);
+
+  const result = await database
+    .insert(notifications)
+    .values({
+      id: nanoid(),
+      recipientId: input.recipientId,
+      type: input.type,
+      title: input.title,
+      content: input.content,
+      recordId: input.recordId,
+      questionId: input.questionId,
+      isRead: false,
+      createdAt: now,
+    })
+    .returning();
+
+  return result[0];
 }

@@ -9,7 +9,7 @@ import { userRoles } from "~/db/schema.server";
 import { and, eq } from "drizzle-orm";
 import GlobalNav from "~/components/GlobalNav";
 import Footer from "~/components/Footer";
-import ErrorState from "~/components/ErrorState";
+import { FloatingWriteCTA } from "~/components/FloatingWriteCTA";
 
 export async function loader({ request, context }: Route.LoaderArgs) {
   const logger = createLogger(request, context.cloudflare.env).child({ route: "_public" });
@@ -83,18 +83,6 @@ export function headers({ loaderHeaders }: { loaderHeaders: Headers }) {
   return headers;
 }
 
-export function ErrorBoundary() {
-  return (
-    <div className="min-h-screen flex flex-col bg-bg">
-      <GlobalNav />
-      <main className="flex-1 flex items-center justify-center">
-        <ErrorState type="system" message="페이지를 불러오는 중 오류가 발생했습니다." />
-      </main>
-      <Footer />
-    </div>
-  );
-}
-
 export default function PublicLayout() {
   return (
     <div className="min-h-screen flex flex-col bg-bg">
@@ -103,6 +91,7 @@ export default function PublicLayout() {
         <Outlet />
       </main>
       <Footer />
+      <FloatingWriteCTA />
     </div>
   );
 }

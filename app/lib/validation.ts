@@ -46,21 +46,50 @@ export const createRecordSchema = z
 
 export type CreateRecordInput = z.infer<typeof createRecordSchema>;
 
+export const autosaveDraftSchema = z.object({
+  format: z.enum(["note", "article"]),
+  title: z.string().optional(),
+  content: z.string().default(""),
+  contentJson: z.string().optional(),
+  stageId: z.string().optional().nullable(),
+  rhythm: z.string().default("free"),
+  visibility: z.enum(["draft", "cohort", "public"]).default("draft"),
+  responsePreference: z.enum(["open", "question_only", "closed"]).default("open"),
+});
+
+export type AutosaveDraftInput = z.infer<typeof autosaveDraftSchema>;
+
 export const createNoteSchema = z.object({
   content: z.string().min(1, "내용을 입력해주세요").max(50000),
+  rhythm: z.enum(["moment", "sprint", "weekly", "monthly", "stage", "reflection", "free"]).default("free"),
   visibility: z.enum(["draft", "cohort", "public"]).default("cohort"),
+  responsePreference: z.enum(["open", "question_only", "closed"]).default("open"),
   stageId: z.string().optional(),
+  captureQuestion: z.string().optional(),
+  captureDirection: z.enum(["inward", "outward", "next_stage"]).default("inward"),
 });
 
 export type CreateNoteInput = z.infer<typeof createNoteSchema>;
 
 export const createArticleSchema = z
   .object({
-    title: z.string().min(1, "제목을 입력해주세요").max(200, "제목이 너무 깁니다"),
+    title: z.preprocess(
+      (value) => {
+        if (typeof value !== "string") {
+          return value;
+        }
+
+        const trimmedValue = value.trim();
+        return trimmedValue.length > 0 ? trimmedValue : undefined;
+      },
+      z.string().max(200, "제목이 너무 깁니다").optional().default("(무제)"),
+    ),
     content: z.string().min(1, "내용을 입력해주세요").max(50000),
     visibility: z.enum(["draft", "cohort", "public"]).default("cohort"),
     stageId: z.string().optional(),
     templateId: z.string().optional(),
+    captureQuestion: z.string().optional(),
+    captureDirection: z.enum(["inward", "outward", "next_stage"]).default("inward"),
   })
   .superRefine((data, ctx) => {
     try {
@@ -122,6 +151,15 @@ export const saveSentenceSchema = z.object({
 });
 
 export type SaveSentenceInput = z.infer<typeof saveSentenceSchema>;
+
+export const personalReflectionSchema = z.object({
+  stageId: z.string().min(1),
+  letGo: z.string().optional().nullable(),
+  carryQuestion: z.string().optional().nullable(),
+  lastingSentence: z.string().optional().nullable(),
+});
+
+export type PersonalReflectionInput = z.infer<typeof personalReflectionSchema>;
 
 export const updateSettingsSchema = z.object({
   defaultVisibility: z.enum(["draft", "cohort", "public"]).optional(),

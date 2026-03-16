@@ -1,11 +1,13 @@
 import type { Route } from "./+types/index";
+import { QuestionMetadataBadges } from "~/components/QuestionCard";
 import { Link } from "~/components/SmartLink";
 import { db } from "~/db/client.server";
-import { stages, records, questions, sentences, learnerProfiles } from "~/db/schema.server";
-import { eq, desc, and, sql, count } from "drizzle-orm";
+import { getOpenQuestions } from "~/db/queries/questions.server";
+import { stages, records, sentences, learnerProfiles } from "~/db/schema.server";
+import { eq, desc, sql, count } from "drizzle-orm";
 import HeroSection from "~/components/HeroSection";
-import ActivityFeed from "~/components/ActivityFeed";
-import { getRecentActivity } from "~/db/queries/activity.server";
+import { NarrativeDigest } from "~/components/NarrativeDigest";
+import { getNarrativeDigest } from "~/db/queries/activity.server";
 import { createLogger } from "~/lib/logger.server";
 
 export function meta(_args: Route.MetaArgs) {
@@ -22,81 +24,54 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   logger.info("loader_start");
   const database = db(context.cloudflare.env.DB);
 
-  // D1 batch()에서 slug 같은 동명 컬럼이 있는 JOIN 쿼리는 컬럼 매핑이 꼬이므로
-  // JOIN이 있는 쿼리는 별도 실행, 단순 쿼리만 batch로 묶는다
-  const [allStages, currentStageResult, openQuestions, spotlightLearners, learnerCountResult] = await database.batch([
-    database.select().from(stages).orderBy(stages.order),
-    database.select().from(stages).where(eq(stages.isCurrent, true)).limit(1),
-    database
-      .select({
-        questionId: questions.id,
-        questionContent: questions.content,
-        questionDirection: questions.direction,
-        questionIsOpen: questions.isOpen,
-        recordSlug: records.slug,
-        recordTitle: records.title,
-        authorDisplayName: learnerProfiles.displayName,
-        questionCreatedAt: questions.createdAt,
-      })
-      .from(questions)
-      .leftJoin(records, eq(questions.recordId, records.id))
-      .leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
-      .where(and(eq(questions.isOpen, true), sql`${records.visibility} != 'draft'`))
-      .orderBy(desc(questions.createdAt))
-      .limit(8),
-    database.select().from(learnerProfiles).limit(4),
-    database.select({ total: count() }).from(learnerProfiles),
-  ]);
-
-  const [recentRecords, recentSentences] = await Promise.all([
-    database
-      .select({
-        id: records.id,
-        slug: records.slug,
-        title: records.title,
-        content: records.content,
-        format: records.format,
-        type: records.type,
-        rhythm: records.rhythm,
-        stageId: records.stageId,
-        createdAt: records.createdAt,
-        author: {
-          displayName: learnerProfiles.displayName,
-          slug: learnerProfiles.slug,
-          profilePhotoUrl: learnerProfiles.profilePhotoUrl,
-        },
-      })
-      .from(records)
-      .leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
-      .where(sql`${records.visibility} != 'draft'`)
-      .orderBy(desc(records.createdAt))
-      .limit(9),
-    database
-      .select({
-        sentenceId: sentences.id,
-        sentenceContent: sentences.content,
-        sentenceReason: sentences.reason,
-        savedBy: {
-          displayName: learnerProfiles.displayName,
-          slug: learnerProfiles.slug,
-        },
-        record: {
+  const [[allStages, currentStageResult, recentRecords, recentSentences, spotlightLearners, learnerCountResult], openQuestions, digestItems] = await Promise.all([
+    database.batch([
+      database.select().from(stages).orderBy(stages.order),
+      database.select().from(stages).where(eq(stages.isCurrent, true)).limit(1),
+      database
+        .select({
+          id: records.id,
           slug: records.slug,
           title: records.title,
-        },
-      })
-      .from(sentences)
-      .leftJoin(learnerProfiles, eq(sentences.savedById, learnerProfiles.userId))
-      .leftJoin(records, eq(sentences.recordId, records.id))
-      .where(sql`${records.visibility} != 'draft'`)
-      .orderBy(desc(sentences.createdAt))
-      .limit(4),
+          content: records.content,
+          format: records.format,
+          type: records.type,
+          rhythm: records.rhythm,
+          stageId: records.stageId,
+          createdAt: records.createdAt,
+          authorDisplayName: learnerProfiles.displayName,
+          authorSlug: learnerProfiles.slug,
+          authorProfilePhotoUrl: learnerProfiles.profilePhotoUrl,
+        })
+        .from(records)
+        .leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
+        .where(sql`${records.visibility} != 'draft'`)
+        .orderBy(desc(records.createdAt))
+        .limit(9),
+      database
+        .select({
+          sentenceId: sentences.id,
+          sentenceContent: sentences.content,
+          sentenceReason: sentences.reason,
+          savedByDisplayName: learnerProfiles.displayName,
+          savedBySlug: learnerProfiles.slug,
+          recordSlug: records.slug,
+          recordTitle: records.title,
+        })
+        .from(sentences)
+        .leftJoin(learnerProfiles, eq(sentences.savedById, learnerProfiles.userId))
+        .leftJoin(records, eq(sentences.recordId, records.id))
+        .orderBy(desc(sentences.createdAt))
+        .limit(4),
+      database.select().from(learnerProfiles).limit(4),
+      database.select({ total: count() }).from(learnerProfiles),
+    ]),
+    getOpenQuestions(context.cloudflare.env.DB).then((items) => items.slice(0, 8)),
+    getNarrativeDigest(context.cloudflare.env.DB, { limit: 8 }),
   ]);
 
   const currentStage = currentStageResult[0] ?? null;
   const learnerCount = learnerCountResult[0]?.total ?? 0;
-
-  const recentActivity = await getRecentActivity(context.cloudflare.env.DB, { limit: 8 });
 
   // Pre-compute plain text snippets on server to avoid client importing server-only modules
   const { getPlainText } = await import("~/lib/content.server");
@@ -106,7 +81,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   }));
 
   logger.info("loader_end");
-  return { allStages, currentStage, recentRecords: recentRecordsWithSnippets, openQuestions, recentSentences, spotlightLearners, learnerCount, recentActivity };
+  return { allStages, currentStage, recentRecords: recentRecordsWithSnippets, openQuestions, recentSentences, spotlightLearners, learnerCount, digestItems };
 }
 
 function formatRelativeTime(timestamp: number | null): string {
@@ -137,7 +112,7 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 export default function HomePage({ loaderData }: Route.ComponentProps) {
-  const { allStages, currentStage, recentRecords, openQuestions, recentSentences, spotlightLearners, learnerCount, recentActivity } = loaderData;
+  const { allStages, currentStage, recentRecords, openQuestions, recentSentences, spotlightLearners, learnerCount, digestItems } = loaderData;
 
   return (
     <div>
@@ -231,11 +206,11 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
           <div>
             <span className="text-xs font-bold tracking-[0.3em] text-ocean-blue/50 mb-2 block uppercase">여정 활동</span>
             <h2 className="text-3xl font-bold text-deep-ocean">여정에서 일어나는 일</h2>
-            <p className="text-text-secondary mt-2 text-md font-light">지난 2주간의 활동 요약</p>
-          </div>
-        </div>
-        <ActivityFeed activities={recentActivity} />
-      </section>
+             <p className="text-text-secondary mt-2 text-md font-light">최근 여정의 흐름을 문장으로 전합니다</p>
+           </div>
+         </div>
+         <NarrativeDigest items={digestItems} />
+       </section>
 
       {currentStage && (
         <section className="max-w-canvas mx-auto px-6 py-16" data-testid="questions-section">
@@ -287,16 +262,17 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {openQuestions.map((row, idx) => (
                     <article
-                      key={row.questionId}
+                      key={row.id}
                       className="quiet-depth-card p-5 rounded-2xl group cursor-pointer hover:border-ocean-blue/30"
                     >
                       <span className="text-xs font-bold text-ocean-blue tracking-widest mb-2 block">질문 {String(idx + 1).padStart(2, "0")}</span>
+                      <QuestionMetadataBadges question={row} />
                     <p className="text-[15px] font-bold leading-tight group-hover:text-ocean-blue transition-colors text-text-primary">
-                      {row.questionContent}
+                      {row.content}
                     </p>
                     <div className="flex items-center justify-between mt-4">
                       <span className="text-xs text-text-tertiary font-medium">
-                        {row.authorDisplayName} • {formatRelativeTime(row.questionCreatedAt)}
+                        {row.authorName} • {formatRelativeTime(row.createdAt)}
                       </span>
                       <Link
                         to={row.recordSlug ? `/logs/${row.recordSlug}` : "/logs"}
@@ -338,7 +314,7 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {recentRecords.map((row) => {
                   const snippet = (row.snippet ?? row.content.substring(0, 120)) + ((row.snippet ?? row.content).length > 120 ? "…" : "");
-                  const initial = row.author?.displayName ? row.author.displayName[0] : "?";
+                  const initial = row.authorDisplayName ? row.authorDisplayName[0] : "?";
                   const stage = row.stageId ? allStages.find(s => s.id === row.stageId) : null;
                   return (
                     <article
@@ -372,10 +348,10 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
                       <p className="text-text-secondary text-base font-light leading-relaxed mb-6 flex-grow line-clamp-4">{snippet}</p>
                       <div className="pt-5 border-t border-border-subtle flex items-center justify-between">
                         <div className="flex items-center gap-2.5">
-                          {row.author?.profilePhotoUrl ? (
+                          {row.authorProfilePhotoUrl ? (
                             <img
-                              src={row.author.profilePhotoUrl}
-                              alt={row.author.displayName ?? ""}
+                              src={row.authorProfilePhotoUrl}
+                              alt={row.authorDisplayName ?? ""}
                               className="w-7 h-7 rounded-full object-cover"
                             />
                           ) : (
@@ -384,10 +360,10 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
                             </div>
                           )}
                           <Link
-                            to={row.author?.slug ? `/learners/${row.author.slug}` : "#"}
+                            to={row.authorSlug ? `/learners/${row.authorSlug}` : "#"}
                             className="text-xs font-bold text-text-secondary no-underline hover:text-ocean-blue transition-colors"
                           >
-                            {row.author?.displayName ?? "익명"}
+                            {row.authorDisplayName ?? "익명"}
                           </Link>
                         </div>
                       </div>
@@ -433,9 +409,9 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
                   {sentence.sentenceReason ? sentence.sentenceReason : "남긴 이유를 적지 않았습니다."}
                 </p>
                 <div className="mt-auto pt-4 border-t border-border-subtle flex items-center justify-between gap-2">
-                  <span className="text-xs font-semibold text-text-tertiary">{sentence.savedBy?.displayName ?? "익명"}</span>
+                  <span className="text-xs font-semibold text-text-tertiary">{sentence.savedByDisplayName ?? "익명"}</span>
                   <Link
-                    to={sentence.record?.slug ? `/logs/${sentence.record.slug}` : "/logs"}
+                    to={sentence.recordSlug ? `/logs/${sentence.recordSlug}` : "/logs"}
                     className="text-xs font-semibold text-ocean-blue no-underline hover:underline"
                   >
                     원문 보기

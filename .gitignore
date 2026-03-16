@@ -9,6 +9,10 @@ node_modules/
 /.react-router/
 /build/
 
+# Playwright
+/test-results/
+/playwright-report/
+
 # Cloudflare
 .mf
 .wrangler/
