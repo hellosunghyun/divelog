@@ -1,5 +1,6 @@
 import { Link, useRouteLoaderData, useLocation, useNavigate } from "react-router";
 import { useState, useEffect, useRef } from "react";
+import { User, Inbox, Settings, ExternalLink, LogOut } from "lucide-react";
 
 interface PublicLoaderData {
   isAuthenticated: boolean;
@@ -20,18 +21,16 @@ const navLinks = [
   { to: "/guide", label: "가이드" },
 ];
 
-const authLinks = [
-  { to: "/inbox", label: "인박스" },
-  { to: "/me", label: "내 공간" },
-];
-
 export default function GlobalNav() {
   const data = useRouteLoaderData("routes/_public") as PublicLoaderData | undefined;
   const location = useLocation();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [currentUrl, setCurrentUrl] = useState("/");
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
+  const profileButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     setCurrentUrl(window.location.href);
@@ -39,10 +38,42 @@ export default function GlobalNav() {
 
   useEffect(() => {
     setIsMenuOpen(false);
+    setIsProfileMenuOpen(false);
   }, [location.pathname]);
+
+  // 프로필 드롭다운: 외부 클릭 또는 Escape로 닫기
+  useEffect(() => {
+    if (!isProfileMenuOpen) return;
+
+    function handleClickOutside(e: MouseEvent) {
+      if (
+        profileMenuRef.current &&
+        !profileMenuRef.current.contains(e.target as Node) &&
+        profileButtonRef.current &&
+        !profileButtonRef.current.contains(e.target as Node)
+      ) {
+        setIsProfileMenuOpen(false);
+      }
+    }
+
+    function handleEscape(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        setIsProfileMenuOpen(false);
+        profileButtonRef.current?.focus();
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [isProfileMenuOpen]);
 
   const loginUrl = `https://ada-kr-pos.com/login?callbackUrl=${encodeURIComponent(currentUrl)}`;
   const logoutUrl = `https://ada-kr-pos.com/api/auth/logout?callbackUrl=${encodeURIComponent(currentUrl)}`;
+  const profileEditUrl = "https://ada-kr-pos.com/mypage";
 
   const isActive = (path: string) =>
     location.pathname === path || location.pathname.startsWith(path + "/");
@@ -132,25 +163,134 @@ export default function GlobalNav() {
                 기록 남기기
               </Link>
 
-              <Link
-                to="/me"
-                className={`ml-1 rounded-full transition-all no-underline ${focusRing} ${
-                  isActive("/me") ? "ring-2 ring-ocean-blue" : "hover:ring-2 hover:ring-ocean-blue/40"
-                }`}
-                aria-label="내 공간"
-              >
-                {data.user?.profilePhotoUrl ? (
-                  <img
-                    src={data.user.profilePhotoUrl}
-                    alt={data.user.name}
-                    className="w-8 h-8 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="w-8 h-8 rounded-full bg-mist-blue flex items-center justify-center text-xs font-semibold text-ocean-blue">
-                    {data.user?.name?.[0] ?? "?"}
+              <div className="relative">
+                <button
+                  ref={profileButtonRef}
+                  type="button"
+                  onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                  className={`ml-1 rounded-full transition-all ${focusRing} ${
+                    isProfileMenuOpen || isActive("/me") || isActive("/settings")
+                      ? "ring-2 ring-ocean-blue"
+                      : "hover:ring-2 hover:ring-ocean-blue/40"
+                  }`}
+                  aria-label="프로필 메뉴"
+                  aria-expanded={isProfileMenuOpen}
+                  aria-haspopup="true"
+                >
+                  {data.user?.profilePhotoUrl ? (
+                    <img
+                      src={data.user.profilePhotoUrl}
+                      alt={data.user.name}
+                      className="w-8 h-8 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-mist-blue flex items-center justify-center text-xs font-semibold text-ocean-blue">
+                      {data.user?.name?.[0] ?? "?"}
+                    </div>
+                  )}
+                </button>
+
+                {isProfileMenuOpen && (
+                  <div
+                    ref={profileMenuRef}
+                    className="absolute right-0 top-full mt-2 w-60 rounded-xl border border-border bg-surface shadow-lg z-50 overflow-hidden animate-fade-in"
+                    role="menu"
+                    aria-label="프로필 메뉴"
+                  >
+                    <div className="px-4 py-3.5 border-b border-border bg-surface-secondary/50">
+                      <div className="flex items-center gap-3">
+                        {data.user?.profilePhotoUrl ? (
+                          <img
+                            src={data.user.profilePhotoUrl}
+                            alt={data.user.name}
+                            className="w-10 h-10 rounded-full object-cover ring-1 ring-border"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 rounded-full bg-mist-blue flex items-center justify-center text-sm font-semibold text-ocean-blue">
+                            {data.user?.name?.[0] ?? "?"}
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-text-primary truncate">
+                            {data.user?.name}
+                          </p>
+                          <p className="text-caption text-text-tertiary">
+                            divelog
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="py-1.5">
+                      <Link
+                        to="/me"
+                        className={`flex items-center gap-3 px-4 py-2.5 text-sm transition-colors no-underline ${focusRing} ${
+                          isActive("/me")
+                            ? "text-ocean-blue bg-mist-blue/40"
+                            : "text-text-primary hover:bg-surface-secondary"
+                        }`}
+                        role="menuitem"
+                      >
+                        <User className="w-4 h-4 shrink-0" aria-hidden="true" />
+                        내 공간
+                      </Link>
+                      <Link
+                        to="/inbox"
+                        className={`flex items-center gap-3 px-4 py-2.5 text-sm transition-colors no-underline ${focusRing} ${
+                          isActive("/inbox")
+                            ? "text-ocean-blue bg-mist-blue/40"
+                            : "text-text-primary hover:bg-surface-secondary"
+                        }`}
+                        role="menuitem"
+                      >
+                        <Inbox className="w-4 h-4 shrink-0" aria-hidden="true" />
+                        인박스
+                      </Link>
+                      <Link
+                        to="/settings"
+                        className={`flex items-center gap-3 px-4 py-2.5 text-sm transition-colors no-underline ${focusRing} ${
+                          isActive("/settings")
+                            ? "text-ocean-blue bg-mist-blue/40"
+                            : "text-text-primary hover:bg-surface-secondary"
+                        }`}
+                        role="menuitem"
+                      >
+                        <Settings className="w-4 h-4 shrink-0" aria-hidden="true" />
+                        설정
+                      </Link>
+                    </div>
+
+                    <div className="h-px bg-border mx-3" />
+
+                    <div className="py-1.5">
+                      <a
+                        href={profileEditUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`flex items-center gap-3 px-4 py-2.5 text-sm text-text-primary hover:bg-surface-secondary transition-colors no-underline ${focusRing}`}
+                        role="menuitem"
+                      >
+                        <ExternalLink className="w-4 h-4 shrink-0" aria-hidden="true" />
+                        프로필 수정
+                        <span className="ml-auto text-caption text-text-tertiary">ada-kr-pos.com</span>
+                      </a>
+                    </div>
+
+                    <div className="h-px bg-border mx-3" />
+
+                    <div className="py-1.5">
+                      <a
+                        href={logoutUrl}
+                        className={`flex items-center gap-3 px-4 py-2.5 text-sm text-text-secondary hover:text-error hover:bg-error/5 transition-colors no-underline ${focusRing}`}
+                        role="menuitem"
+                      >
+                        <LogOut className="w-4 h-4 shrink-0" aria-hidden="true" />
+                        로그아웃
+                      </a>
+                    </div>
                   </div>
                 )}
-              </Link>
+              </div>
             </>
           ) : (
             <Link
@@ -223,19 +363,36 @@ export default function GlobalNav() {
             {data?.isAuthenticated ? (
               <>
                 <div className="h-px bg-border-subtle my-4" />
-                {authLinks.map((link) => (
-                  <Link
-                    key={link.to}
-                    to={link.to}
-                    className={`text-base py-3 px-1 -mx-1 rounded-lg transition-colors no-underline ${focusRing} ${
-                      isActive(link.to)
-                        ? "font-medium text-ocean-blue"
-                        : "text-text-secondary hover:text-text-primary"
-                    }`}
-                  >
-                    {link.label}
-                  </Link>
-                ))}
+                <Link
+                  to="/me"
+                  className={`text-base py-3 px-1 -mx-1 rounded-lg transition-colors no-underline ${focusRing} ${
+                    isActive("/me")
+                      ? "font-medium text-ocean-blue"
+                      : "text-text-secondary hover:text-text-primary"
+                  }`}
+                >
+                  내 공간
+                </Link>
+                <Link
+                  to="/inbox"
+                  className={`text-base py-3 px-1 -mx-1 rounded-lg transition-colors no-underline ${focusRing} ${
+                    isActive("/inbox")
+                      ? "font-medium text-ocean-blue"
+                      : "text-text-secondary hover:text-text-primary"
+                  }`}
+                >
+                  인박스
+                </Link>
+                <Link
+                  to="/settings"
+                  className={`text-base py-3 px-1 -mx-1 rounded-lg transition-colors no-underline ${focusRing} ${
+                    isActive("/settings")
+                      ? "font-medium text-ocean-blue"
+                      : "text-text-secondary hover:text-text-primary"
+                  }`}
+                >
+                  설정
+                </Link>
                 <div className="mt-4">
                   <Link
                     to="/write"
@@ -258,7 +415,17 @@ export default function GlobalNav() {
                   )}
                   <span className="text-base text-text-secondary">{data.user?.name}</span>
                 </div>
-                <a href={logoutUrl} className={`text-sm text-text-tertiary hover:text-text-secondary transition-colors ${focusRing}`}>
+                <a
+                  href={profileEditUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`flex items-center gap-2 text-sm text-text-secondary hover:text-ocean-blue transition-colors no-underline ${focusRing}`}
+                >
+                  <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
+                  프로필 수정
+                  <span className="text-caption text-text-tertiary ml-1">ada-kr-pos.com</span>
+                </a>
+                <a href={logoutUrl} className={`text-sm text-text-tertiary hover:text-text-secondary transition-colors mt-2 ${focusRing}`}>
                   로그아웃
                 </a>
               </>
