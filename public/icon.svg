@@ -1,0 +1,111 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <clipPath id="iconClip">
+      <rect width="512" height="512" rx="115" ry="115" />
+    </clipPath>
+
+    <!-- Per-block vertical gradients -->
+    <linearGradient id="b1" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#EAF1F8" />
+      <stop offset="100%" stop-color="#E0EAF2" />
+    </linearGradient>
+    <linearGradient id="b2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#C2D6E8" />
+      <stop offset="100%" stop-color="#B4CCDF" />
+    </linearGradient>
+    <linearGradient id="b3" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#6E9BBB" />
+      <stop offset="100%" stop-color="#5F8DAE" />
+    </linearGradient>
+    <linearGradient id="b4" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#243E5C" />
+      <stop offset="100%" stop-color="#1A3250" />
+    </linearGradient>
+
+    <!-- Soft blend strips between blocks -->
+    <linearGradient id="blend12" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#E0EAF2" />
+      <stop offset="100%" stop-color="#C2D6E8" />
+    </linearGradient>
+    <linearGradient id="blend23" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#B4CCDF" />
+      <stop offset="100%" stop-color="#6E9BBB" />
+    </linearGradient>
+    <linearGradient id="blend34" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#5F8DAE" />
+      <stop offset="100%" stop-color="#243E5C" />
+    </linearGradient>
+
+    <!-- Edge vignette -->
+    <radialGradient id="vignette" cx="50%" cy="45%" r="68%">
+      <stop offset="0%"   stop-color="#000000" stop-opacity="0" />
+      <stop offset="55%"  stop-color="#000000" stop-opacity="0" />
+      <stop offset="82%"  stop-color="#000000" stop-opacity="0.07" />
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.2" />
+    </radialGradient>
+
+    <!-- Top-left specular highlight — diagonal light catch -->
+    <radialGradient id="specular" cx="35%" cy="18%" r="50%">
+      <stop offset="0%"   stop-color="#FFFFFF" stop-opacity="0.18" />
+      <stop offset="40%"  stop-color="#FFFFFF" stop-opacity="0.06" />
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- Bottom-right subtle warm reflection -->
+    <radialGradient id="warmBounce" cx="70%" cy="85%" r="40%">
+      <stop offset="0%"   stop-color="#A8C8E8" stop-opacity="0.08" />
+      <stop offset="100%" stop-color="#A8C8E8" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- Triangle glow -->
+    <filter id="triGlow">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <!-- Triangle fade opacity -->
+    <linearGradient id="triFade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#FFFFFF" />
+      <stop offset="75%"  stop-color="#FFFFFF" stop-opacity="0.85" />
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.15" />
+    </linearGradient>
+
+    <!-- Drop shadow — layered for depth -->
+    <filter id="shadow" x="-8%" y="-4%" width="116%" height="116%">
+      <feDropShadow dx="0" dy="4" stdDeviation="10" flood-color="#0B2447" flood-opacity="0.12" />
+      <feDropShadow dx="0" dy="12" stdDeviation="24" flood-color="#0B2447" flood-opacity="0.1" />
+    </filter>
+  </defs>
+
+  <!-- Shadow layer -->
+  <rect width="512" height="512" rx="115" ry="115" fill="transparent" filter="url(#shadow)" />
+
+  <!-- Icon body -->
+  <g clip-path="url(#iconClip)">
+    <!-- 4 blocks -->
+    <rect y="0"   width="512" height="128" fill="url(#b1)" />
+    <rect y="128" width="512" height="128" fill="url(#b2)" />
+    <rect y="256" width="512" height="128" fill="url(#b3)" />
+    <rect y="384" width="512" height="128" fill="url(#b4)" />
+
+    <!-- Hairline blend at block boundaries -->
+    <rect y="126" width="512" height="4" fill="url(#blend12)" />
+    <rect y="254" width="512" height="4" fill="url(#blend23)" />
+    <rect y="382" width="512" height="4" fill="url(#blend34)" />
+
+    <!-- Vignette -->
+    <rect width="512" height="512" fill="url(#vignette)" />
+
+    <!-- Specular highlight — top-left light catch -->
+    <rect width="512" height="512" fill="url(#specular)" />
+
+    <!-- Warm bounce light — bottom-right -->
+    <rect width="512" height="512" fill="url(#warmBounce)" />
+
+    <!-- Thin triangle with glow + fade -->
+    <polygon points="253,0 259,0 256,462" fill="url(#triFade)" filter="url(#triGlow)" />
+  </g>
+</svg>
