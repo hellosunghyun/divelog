@@ -170,12 +170,12 @@ export default function GlobalNav() {
                 글쓰기
               </Link>
 
-              <div className="relative">
+              <div className="relative self-center">
                 <button
                   ref={profileButtonRef}
                   type="button"
                   onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-                  className={`ml-1 rounded-full transition-all ${focusRing} ${
+                  className={`ml-1 flex items-center justify-center rounded-full transition-all ${focusRing} ${
                     isProfileMenuOpen || isActive("/me") || isActive("/settings")
                       ? "ring-2 ring-ocean-blue"
                       : "hover:ring-2 hover:ring-ocean-blue/40"
