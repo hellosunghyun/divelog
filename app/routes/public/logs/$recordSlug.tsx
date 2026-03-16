@@ -475,6 +475,13 @@ const FLOATING_BUTTON_OFFSET = 48;
 const FLOATING_BUTTON_EDGE_PADDING = 96;
 const FLOATING_BUTTON_TOP_PADDING = 16;
 
+function getLinkTypeLabel(type: string): string {
+  if (type === "expansion") return "확장";
+  if (type === "reference") return "참고";
+  if (type === "related") return "관련";
+  return type;
+}
+
 function normalizeSelectedSentence(value: string) {
   return value.replace(/\s+/g, " ").trim();
 }
@@ -1202,7 +1209,7 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
             onClick={() => setShowLinkedRecords(v => !v)}
             aria-expanded={showLinkedRecords}
           >
-            <span>연결된 기록 {linkedRecords.length > 0 ? `(${linkedRecords.length})` : ''}</span>
+            <span>연결된 기록 {linkedRecords.length + incomingLinks.length > 0 ? `(${linkedRecords.length + incomingLinks.length})` : ''}</span>
             <svg aria-hidden className={`w-4 h-4 transition-transform ${showLinkedRecords ? 'rotate-180' : ''}`} viewBox="0 0 16 16" fill="none">
               <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
@@ -1219,30 +1226,86 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
           data-testid="section-accordion-linked"
           className={`${showLinkedRecords ? 'block' : 'hidden'} md:block`}
         >
-          {linkedRecords.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {linkedRecords.map((linkedRecord) => (
-                <div key={linkedRecord.record.id} className="relative">
-                  <SceneCard
-                    record={linkedRecord.record}
-                    contentSnippet={linkedRecord.contentSnippet}
-                    author={linkedRecord.author?.displayName ? {
-                      displayName: linkedRecord.author.displayName,
-                      slug: linkedRecord.author.slug ?? "",
-                    } : undefined}
-                  />
-                  <span className="absolute top-4 right-4 text-caption px-2 py-0.5 rounded-full bg-mist-blue text-ocean-blue">
-                    {linkedRecord.direction === "outgoing" ? "참조" : "역참조"}
-                  </span>
+          {linkedRecords.length > 0 || incomingLinks.length > 0 ? (
+            <div className="flex flex-col gap-8">
+              {/* Outgoing links (이 기록에서 이어진 기록) */}
+              {linkedRecords.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-medium text-[--color-text-secondary] mb-4 flex items-center gap-2">
+                    <span>→</span>
+                    <span>이 기록에서 이어진 기록</span>
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {linkedRecords.map((linkedRecord) => (
+                      <div key={linkedRecord.record.id} className="relative">
+                        <SceneCard
+                          record={linkedRecord.record}
+                          contentSnippet={linkedRecord.contentSnippet}
+                          author={linkedRecord.author?.displayName ? {
+                            displayName: linkedRecord.author.displayName,
+                            slug: linkedRecord.author.slug ?? "",
+                          } : undefined}
+                        />
+                        <span className="absolute top-4 right-4 text-caption px-2 py-0.5 rounded-full bg-mist-blue text-ocean-blue">
+                          {getLinkTypeLabel(linkedRecord.linkType)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              ))}
+              )}
+
+              {/* Incoming links (이 기록으로 이어온 기록) */}
+              {incomingLinks.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-medium text-[--color-text-secondary] mb-4 flex items-center gap-2">
+                    <span>←</span>
+                    <span>이 기록으로 이어온 기록</span>
+                  </h3>
+                  <div className="flex flex-col gap-3">
+                    {incomingLinks.map((link) => (
+                      <Link
+                        key={link.linkId}
+                        to={`/logs/${link.sourceSlug}`}
+                        className="block p-4 rounded-xl bg-surface-secondary border border-border hover:border-ocean-blue/30 transition-colors no-underline"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-base font-medium text-text-primary truncate">{link.sourceTitle ?? "기록"}</p>
+                            <p className="text-sm text-text-tertiary mt-1">{link.sourceAuthorName}</p>
+                          </div>
+                          <span className="text-caption px-2 py-0.5 rounded-full bg-mist-blue text-ocean-blue whitespace-nowrap">
+                            {getLinkTypeLabel(link.linkType)}
+                          </span>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Write continuation CTA for author */}
+              {isRecordAuthor && (
+                <div className="pt-4 border-t border-border">
+                  <Link
+                    to={`/write/note?linkedTo=${encodeURIComponent(record.slug)}`}
+                    className="inline-flex items-center gap-2 text-sm text-[--color-text-tertiary] no-underline transition-colors hover:text-[--color-ocean-blue] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
+                  >
+                    <span>이 기록을 이어서 쓰기</span>
+                    <svg aria-hidden="true" className="h-3.5 w-3.5" viewBox="0 0 16 16" fill="none">
+                      <path d="M3.5 8H12.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                      <path d="M8.5 4L12.5 8L8.5 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </Link>
+                </div>
+              )}
             </div>
           ) : (
             <div className="flex flex-col items-center text-center py-12 px-4 gap-4">
               <p className="text-base text-text-secondary leading-body">아직 연결된 기록이 없습니다.</p>
               {isRecordAuthor && (
                 <Link
-                  to={`/write`}
+                  to={`/write/note?linkedTo=${encodeURIComponent(record.slug)}`}
                   className="mt-2 px-5 py-2.5 rounded-full bg-ocean-blue text-white text-sm font-medium hover:bg-deep-ocean transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2 no-underline"
                 >
                   이어서 기록하기
