@@ -46,6 +46,19 @@ export const createRecordSchema = z
 
 export type CreateRecordInput = z.infer<typeof createRecordSchema>;
 
+export const autosaveDraftSchema = z.object({
+  format: z.enum(["note", "article"]),
+  title: z.string().optional(),
+  content: z.string().default(""),
+  contentJson: z.string().optional(),
+  stageId: z.string().optional().nullable(),
+  rhythm: z.string().default("free"),
+  visibility: z.enum(["draft", "cohort", "public"]).default("draft"),
+  responsePreference: z.enum(["open", "question_only", "closed"]).default("open"),
+});
+
+export type AutosaveDraftInput = z.infer<typeof autosaveDraftSchema>;
+
 export const createNoteSchema = z.object({
   content: z.string().min(1, "내용을 입력해주세요").max(50000),
   visibility: z.enum(["draft", "cohort", "public"]).default("cohort"),
