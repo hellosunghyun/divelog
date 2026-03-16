@@ -287,11 +287,19 @@ export function meta({ data: loaderData }: Route.MetaArgs) {
   ];
 }
 
-const ALL_RESPONSE_TYPE_OPTIONS = [
-  { value: "resonance", label: "공명 — 이 기록에서 무엇이 남았는지 말합니다" },
-  { value: "question", label: "질문 — 더 듣고 싶은 지점을 엽니다" },
-  { value: "connection", label: "연결 — 내 경험이나 다른 기록과 이어봅니다" },
-  { value: "suggestion", label: "제안 — 다음 시도를 조심스럽게 제안합니다" },
+type ResponseFormType = "resonance" | "question" | "connection" | "suggestion";
+
+type ResponseTypeOption = {
+  value: ResponseFormType;
+  label: string;
+  description: string;
+};
+
+const ALL_RESPONSE_TYPE_OPTIONS: ResponseTypeOption[] = [
+  { value: "resonance", label: "공명", description: "이 기록에서 무엇이 남았는지 말합니다" },
+  { value: "question", label: "질문", description: "기록에서 생긴 질문을 남깁니다" },
+  { value: "connection", label: "연결", description: "관련된 다른 기록과 연결합니다" },
+  { value: "suggestion", label: "제안", description: "개선이나 다른 시각을 제안합니다" },
 ];
 
 const RESPONSE_PREFERENCE_LABELS: Record<string, string> = {
@@ -302,11 +310,15 @@ const RESPONSE_PREFERENCE_LABELS: Record<string, string> = {
 
 const INITIAL_RESPONSE_COUNT = 2;
 
-function getResponseTypeOptions(preference: string) {
+function getResponseTypeOptions(preference: string): ResponseTypeOption[] {
   if (preference === "question_only") {
     return ALL_RESPONSE_TYPE_OPTIONS.filter((opt) => opt.value === "question");
   }
   return ALL_RESPONSE_TYPE_OPTIONS;
+}
+
+function getDefaultResponseType(preference: string): ResponseFormType {
+  return getResponseTypeOptions(preference)[0]?.value ?? "resonance";
 }
 
 function getResponsePreferenceText(pref: string): string {
@@ -339,6 +351,44 @@ function isSelectionInsideElement(selection: Selection, element: HTMLElement | n
   return anchorNode instanceof Node && element.contains(anchorNode);
 }
 
+function ResponseTypeChipGroup(
+  {
+    availableTypes,
+    selectedType,
+    onSelect,
+  }: {
+    availableTypes: ResponseTypeOption[];
+    selectedType: ResponseFormType;
+    onSelect: (type: ResponseFormType) => void;
+  },
+) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      {availableTypes.map((type) => {
+        const isSelected = selectedType === type.value;
+
+        return (
+          <button
+            key={type.value}
+            type="button"
+            data-testid="response-type-chip"
+            title={type.description}
+            aria-pressed={isSelected}
+            onClick={() => onSelect(type.value)}
+            className={`min-h-11 rounded-full border px-3 py-1.5 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2 ${
+              isSelected
+                ? "border-[--color-ocean-blue] bg-[--color-ocean-blue] text-white"
+                : "border-[--color-border] text-[--color-text-secondary] hover:border-[--color-ocean-blue]/50 hover:text-[--color-ocean-blue]"
+            }`}
+          >
+            {type.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
   const {
     record,
@@ -364,7 +414,14 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
 
   const [expandedQuestionId, setExpandedQuestionId] = useState<string | null>(null);
   const [showResponseForm, setShowResponseForm] = useState(false);
+  const [showFormForQuestion, setShowFormForQuestion] = useState<string | null>(null);
   const [showAllResponses, setShowAllResponses] = useState(false);
+  const [selectedRecordResponseType, setSelectedRecordResponseType] = useState<ResponseFormType>(
+    getDefaultResponseType(loaderData.record.responsePreference),
+  );
+  const [selectedQuestionResponseType, setSelectedQuestionResponseType] = useState<ResponseFormType>(
+    getDefaultResponseType(loaderData.record.responsePreference),
+  );
   const [selectedText, setSelectedText] = useState("");
   const [showSentenceButton, setShowSentenceButton] = useState(false);
   const [buttonPosition, setButtonPosition] = useState({ x: 0, y: 0 });
@@ -378,6 +435,7 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
   const displayedResponses = showAllResponses
     ? recordResponses
     : recordResponses.slice(0, INITIAL_RESPONSE_COUNT);
+  const availableResponseTypes = getResponseTypeOptions(record.responsePreference);
 
   const selfAnswersByQuestion = new Map<string, typeof selfAnswers>();
   for (const sa of selfAnswers) {
@@ -462,6 +520,13 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
 
     dismissSentenceSelection();
   }, [dismissSentenceSelection, record.id, selectedText, submit]);
+
+  useEffect(() => {
+    const defaultType = getDefaultResponseType(record.responsePreference);
+
+    setSelectedRecordResponseType(defaultType);
+    setSelectedQuestionResponseType(defaultType);
+  }, [record.responsePreference]);
 
   useEffect(() => {
     if (!isArticleRecord) {
@@ -674,6 +739,80 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
                     </div>
                   )}
 
+                  {canRespond && !isRecordAuthor ? (
+                    <div className="ml-4">
+                      {showFormForQuestion === question.id ? (
+                        <form method="post" className="flex flex-col gap-5 rounded-2xl border border-border bg-surface p-6">
+                          <input type="hidden" name="intent" value="create_response" />
+                          <input type="hidden" name="recordId" value={record.id} />
+                          <input type="hidden" name="questionId" value={question.id} />
+                          <input type="hidden" name="type" value={selectedQuestionResponseType} />
+
+                          <div className="flex flex-col gap-2">
+                            <p className="text-xs text-[--color-text-tertiary]">
+                              {getResponsePreferenceText(record.responsePreference)}
+                            </p>
+                            <p className="text-sm text-text-secondary">
+                              이 질문과 이어서 응답이 남겨집니다.
+                            </p>
+                          </div>
+
+                          <div>
+                            <p className="mb-2 block text-sm font-medium text-text-secondary">응답 유형</p>
+                            <ResponseTypeChipGroup
+                              availableTypes={availableResponseTypes}
+                              selectedType={selectedQuestionResponseType}
+                              onSelect={setSelectedQuestionResponseType}
+                            />
+                          </div>
+
+                          <div>
+                            <label htmlFor={`question-response-content-${question.id}`} className="mb-2 block text-sm font-medium text-text-secondary">
+                              내용
+                            </label>
+                            <textarea
+                              id={`question-response-content-${question.id}`}
+                              name="content"
+                              required
+                              rows={5}
+                              placeholder="이 질문과 맞닿은 생각을 남겨보세요."
+                              className="min-h-[120px] w-full resize-y rounded-lg border border-border bg-surface px-4 py-3 text-base text-text-primary placeholder:text-text-tertiary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
+                            />
+                          </div>
+
+                          <div className="flex flex-wrap gap-3">
+                            <button
+                              type="submit"
+                              disabled={isSubmittingResponse}
+                              className="self-start rounded-full bg-deep-ocean px-7 py-3 text-[15px] font-medium text-white shadow-sm transition-all hover:bg-ocean-blue hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2 disabled:opacity-60"
+                            >
+                              {isSubmittingResponse ? "등록 중..." : "응답 등록"}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setShowFormForQuestion(null)}
+                              className="min-h-11 rounded-full border border-border px-4 py-2 text-sm text-text-secondary transition-colors hover:bg-surface-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
+                            >
+                              취소
+                            </button>
+                          </div>
+                        </form>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedQuestionResponseType(getDefaultResponseType(record.responsePreference));
+                            setShowResponseForm(false);
+                            setShowFormForQuestion(question.id);
+                          }}
+                          className="min-h-11 rounded-full px-4 py-2 text-sm border border-reef-cyan/40 bg-mist-blue/20 text-ocean-blue cursor-pointer transition-all duration-normal hover:bg-mist-blue/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
+                        >
+                          이 질문에 응답하기
+                        </button>
+                      )}
+                    </div>
+                  ) : null}
+
                   {isRecordAuthor && (
                     <div className="ml-4">
                       {isExpanded ? (
@@ -756,7 +895,11 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
                 <button
                   type="button"
                   data-testid="response-form-toggle"
-                  onClick={() => setShowResponseForm(true)}
+                  onClick={() => {
+                    setSelectedRecordResponseType(getDefaultResponseType(record.responsePreference));
+                    setShowFormForQuestion(null);
+                    setShowResponseForm(true);
+                  }}
                   className="inline-flex min-h-11 items-center gap-2 self-start rounded-full border border-[--color-ocean-blue]/30 px-4 py-2 text-sm text-[--color-ocean-blue] transition-colors hover:bg-[--color-mist-blue]/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
                 >
                   응답 남기기
@@ -773,35 +916,18 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
                 <form method="post" data-testid="response-form" className="flex flex-col gap-5 rounded-lg border border-border bg-surface p-6">
                   <input type="hidden" name="intent" value="create_response" />
                   <input type="hidden" name="recordId" value={record.id} />
+                  <input type="hidden" name="type" value={selectedRecordResponseType} />
 
                   <div>
-                    <label htmlFor="response-type" className="mb-2 block text-sm font-medium text-text-secondary">
+                    <p className="mb-2 block text-sm font-medium text-text-secondary">
                       응답 유형
-                    </label>
-                    <select id="response-type" name="type" required className="w-full rounded-lg border border-border bg-surface px-4 py-3 text-base text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2">
-                      {getResponseTypeOptions(record.responsePreference).map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
+                    </p>
+                    <ResponseTypeChipGroup
+                      availableTypes={availableResponseTypes}
+                      selectedType={selectedRecordResponseType}
+                      onSelect={setSelectedRecordResponseType}
+                    />
                   </div>
-
-                  {recordQuestions.length > 0 ? (
-                    <div>
-                      <label htmlFor="question-id" className="mb-2 block text-sm font-medium text-text-secondary">
-                        연결할 질문 (선택)
-                      </label>
-                      <select id="question-id" name="questionId" className="w-full rounded-lg border border-border bg-surface px-4 py-3 text-base text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2">
-                        <option value="">질문을 선택하지 않음</option>
-                        {recordQuestions.map((question) => (
-                          <option key={question.id} value={question.id}>
-                            {question.content}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  ) : null}
 
                   <div>
                     <label htmlFor="response-content" className="mb-2 block text-sm font-medium text-text-secondary">

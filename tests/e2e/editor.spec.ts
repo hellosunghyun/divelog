@@ -9,18 +9,13 @@ test.describe("기록 작성 페이지", () => {
 });
 
 test.describe("기록 상세 - 응답 시스템", () => {
-  test("기록 상세 페이지에서 응답 유형 선택이 가능하다", async ({ page }) => {
+  test("기록 상세 페이지에서 응답 폼은 기본적으로 접혀 있다", async ({ page }) => {
     await page.goto("/logs/first-note");
-    const select = page.locator("select#response-type");
-    await expect(select).toBeVisible();
-    const options = await select.locator("option").allTextContents();
-    expect(options.some((o) => o.includes("공명"))).toBeTruthy();
-    expect(options.some((o) => o.includes("질문"))).toBeTruthy();
-    expect(options.some((o) => o.includes("연결"))).toBeTruthy();
-    expect(options.some((o) => o.includes("제안"))).toBeTruthy();
+    await expect(page.getByTestId("response-form")).toHaveCount(0);
+    await expect(page.getByTestId("response-type-chip")).toHaveCount(0);
   });
 
-  test("응답 선호도 안내 메시지가 표시된다", async ({ page }) => {
+  test("응답 섹션 안내 문구가 표시된다", async ({ page }) => {
     await page.goto("/logs/first-note");
     await expect(page.locator("text=모든 응답을 환영합니다")).toBeVisible();
   });
