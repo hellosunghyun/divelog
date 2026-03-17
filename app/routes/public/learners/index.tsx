@@ -11,7 +11,7 @@ export function meta(_args: Route.MetaArgs) {
 }
 
 export async function loader({ context, request }: Route.LoaderArgs) {
-  const { getLearnersWithActivity, getDistinctCohorts } = await import("~/db/queries/learners.server");
+  const { getLearnersWithActivity, getDistinctCohorts } = await import("~/db/queries/learners/learners.server");
   const { createLogger } = await import("~/lib/logger.server");
 
   const logger = createLogger(request, context.cloudflare.env).child({ route: "learners" });

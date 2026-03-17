@@ -30,7 +30,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const { db } = await import("~/db/client.server");
   const { createLogger } = await import("~/lib/logger.server");
   const { tags } = await import("~/db/schema.server");
-  const { getAllTags, createTag, updateTag, deleteTag, getTagByName, getTagBySlug, TagWithUsage } = await import("~/db/queries/tags.server");
+  const { getAllTags, createTag, updateTag, deleteTag, getTagByName, getTagBySlug, TagWithUsage } = await import("~/db/queries/records/tags.server");
 
   const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.tags" });
   logger.info("loader_start");
@@ -42,7 +42,7 @@ export async function action({ request, context }: Route.ActionArgs) {
   const { db } = await import("~/db/client.server");
   const { createLogger } = await import("~/lib/logger.server");
   const { tags } = await import("~/db/schema.server");
-  const { getAllTags, createTag, updateTag, deleteTag, getTagByName, getTagBySlug, TagWithUsage } = await import("~/db/queries/tags.server");
+  const { getAllTags, createTag, updateTag, deleteTag, getTagByName, getTagBySlug, TagWithUsage } = await import("~/db/queries/records/tags.server");
 
   const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.tags" });
   const formData = await request.formData();

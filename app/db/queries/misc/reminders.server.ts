@@ -1,8 +1,8 @@
 import { and, asc, eq, isNull, lte } from "drizzle-orm";
 
-import { nanoid } from "../../lib/utils.server";
-import { db } from "../client.server";
-import { questionReminders } from "../schema.server";
+import { nanoid } from "../../../lib/utils.server";
+import { db } from "../../client.server";
+import { questionReminders } from "../../schema.server";
 
 export type QuestionReminder = typeof questionReminders.$inferSelect;
 

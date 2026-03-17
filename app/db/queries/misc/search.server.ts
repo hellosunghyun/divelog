@@ -1,7 +1,7 @@
 import { and, desc, eq, like, or, sql } from "drizzle-orm";
 
-import { db } from "../client.server";
-import { learnerProfiles, questions, records, sentences } from "../schema.server";
+import { db } from "../../client.server";
+import { learnerProfiles, questions, records, sentences } from "../../schema.server";
 
 export type Question = typeof questions.$inferSelect;
 

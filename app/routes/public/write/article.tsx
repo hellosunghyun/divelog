@@ -29,8 +29,8 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const { db } = await import("~/db/client.server");
   const { learnerProfiles, notifications, records, stages } = await import("~/db/schema.server");
   const { getPlainText } = await import("~/lib/content.server");
-  const { syncMentionsForRecord } = await import("~/db/queries/mentions.server");
-  const { syncRecordLinksForRecord } = await import("~/db/queries/recordLinks.server");
+  const { syncMentionsForRecord } = await import("~/db/queries/dialogue/mentions.server");
+  const { syncRecordLinksForRecord } = await import("~/db/queries/records/recordLinks.server");
   const { extractUserMentions, extractRecordRefs } = await import("~/lib/extract-references.server");
   const { nanoid } = await import("~/lib/utils.server");
 
@@ -58,8 +58,8 @@ export async function action({ request, context }: Route.ActionArgs) {
   const { db } = await import("~/db/client.server");
   const { learnerProfiles, notifications, records, stages } = await import("~/db/schema.server");
   const { getPlainText } = await import("~/lib/content.server");
-  const { syncMentionsForRecord } = await import("~/db/queries/mentions.server");
-  const { syncRecordLinksForRecord } = await import("~/db/queries/recordLinks.server");
+  const { syncMentionsForRecord } = await import("~/db/queries/dialogue/mentions.server");
+  const { syncRecordLinksForRecord } = await import("~/db/queries/records/recordLinks.server");
   const { extractUserMentions, extractRecordRefs } = await import("~/lib/extract-references.server");
   const { nanoid } = await import("~/lib/utils.server");
 

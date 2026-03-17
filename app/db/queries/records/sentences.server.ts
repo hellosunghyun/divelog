@@ -1,9 +1,9 @@
 import { desc, eq } from "drizzle-orm";
 
-import type { SaveSentenceInput } from "../../lib/validation";
-import { nanoid } from "../../lib/utils.server";
-import { db } from "../client.server";
-import { learnerProfiles, sentences } from "../schema.server";
+import type { SaveSentenceInput } from "../../../lib/validation";
+import { nanoid } from "../../../lib/utils.server";
+import { db } from "../../client.server";
+import { learnerProfiles, sentences } from "../../schema.server";
 
 export type Sentence = typeof sentences.$inferSelect;
 

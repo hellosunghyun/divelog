@@ -26,8 +26,8 @@ export function meta(_args: Route.MetaArgs) {
 export async function loader({ params, request, context }: Route.LoaderArgs) {
   const { db } = await import("~/db/client.server");
   const { questions, records, recordTags } = await import("~/db/schema.server");
-  const { getRecordBySlug } = await import("~/db/queries/records.server");
-  const { getAllTags, getTagsByRecord } = await import("~/db/queries/tags.server");
+  const { getRecordBySlug } = await import("~/db/queries/records/records.server");
+  const { getAllTags, getTagsByRecord } = await import("~/db/queries/records/tags.server");
   const { nanoid } = await import("~/lib/utils.server");
 
   const auth = await requireVerified(request, context);
@@ -66,8 +66,8 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
 export async function action({ params, request, context }: Route.ActionArgs) {
   const { db } = await import("~/db/client.server");
   const { questions, records, recordTags } = await import("~/db/schema.server");
-  const { getRecordBySlug } = await import("~/db/queries/records.server");
-  const { getAllTags, getTagsByRecord } = await import("~/db/queries/tags.server");
+  const { getRecordBySlug } = await import("~/db/queries/records/records.server");
+  const { getAllTags, getTagsByRecord } = await import("~/db/queries/records/tags.server");
   const { nanoid } = await import("~/lib/utils.server");
 
   const auth = await requireVerified(request, context);

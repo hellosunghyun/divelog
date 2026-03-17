@@ -1,7 +1,7 @@
 import { count, eq, asc } from "drizzle-orm";
 
-import { db } from "../client.server";
-import { tags, recordTags } from "../schema.server";
+import { db } from "../../client.server";
+import { tags, recordTags } from "../../schema.server";
 
 export type TagWithUsage = {
   id: string;
@@ -143,7 +143,7 @@ export type TaggedRecord = {
 export async function getRecordsByTag(d1: D1Database, tagId: string): Promise<TaggedRecord[]> {
   const database = db(d1);
 
-  const { records, stages, learnerProfiles } = await import("../schema.server");
+  const { records, stages, learnerProfiles } = await import("../../schema.server");
   const { desc, and, eq, ne } = await import("drizzle-orm");
 
   const result = await database

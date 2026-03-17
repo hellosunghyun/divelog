@@ -1,7 +1,7 @@
 import { and, eq } from "drizzle-orm";
 
-import { db } from "../client.server";
-import { savedRecords } from "../schema.server";
+import { db } from "../../client.server";
+import { savedRecords } from "../../schema.server";
 
 export type SavedRecord = typeof savedRecords.$inferSelect;
 

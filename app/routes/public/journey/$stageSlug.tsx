@@ -21,8 +21,8 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
   logger.info("loader_start");
   const database = db(context.cloudflare.env.DB);
 
-  const { getStageBySlug, getStages } = await import("~/db/queries/stages.server");
-  const { getRecords } = await import("~/db/queries/records.server");
+  const { getStageBySlug, getStages } = await import("~/db/queries/journey/stages.server");
+  const { getRecords } = await import("~/db/queries/records/records.server");
   
   const stage = await getStageBySlug(context.cloudflare.env.DB, stageSlug || "");
   if (!stage) {

@@ -1,0 +1,15 @@
+[Task 2 Verification - 2026-03-17]
+flat_query_files=0
+records_count=6
+dialogue_count=4
+journey_count=3
+social_count=3
+learners_count=2
+misc_count=3
+remaining_flat_tilde_query_imports=0
+old_records_imports=0
+old_stages_dynamic_imports=0
+stale_internal_relative_imports=0
+ts_error_count=36
+test_files_passed=16
+tests_passed=126

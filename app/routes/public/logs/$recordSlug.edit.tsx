@@ -31,10 +31,10 @@ export function meta(_args: Route.MetaArgs) {
 export async function loader({ params, request, context }: Route.LoaderArgs) {
   const { db } = await import("~/db/client.server");
   const { collaborationUnits, recordTags, stages, templates } = await import("~/db/schema.server");
-  const { syncMentionsForRecord } = await import("~/db/queries/mentions.server");
-  const { getRecordBySlug, updateRecord } = await import("~/db/queries/records.server");
-  const { syncRecordLinksForRecord } = await import("~/db/queries/recordLinks.server");
-  const { getAllTags, getTagsByRecord } = await import("~/db/queries/tags.server");
+  const { syncMentionsForRecord } = await import("~/db/queries/dialogue/mentions.server");
+  const { getRecordBySlug, updateRecord } = await import("~/db/queries/records/records.server");
+  const { syncRecordLinksForRecord } = await import("~/db/queries/records/recordLinks.server");
+  const { getAllTags, getTagsByRecord } = await import("~/db/queries/records/tags.server");
   const { getPlainText } = await import("~/lib/content.server");
   const { extractRecordRefs, extractUserMentions } = await import("~/lib/extract-references.server");
   const { createLogger } = await import("~/lib/logger.server");
@@ -82,10 +82,10 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
 export async function action({ params, request, context }: Route.ActionArgs) {
   const { db } = await import("~/db/client.server");
   const { collaborationUnits, recordTags, stages, templates } = await import("~/db/schema.server");
-  const { syncMentionsForRecord } = await import("~/db/queries/mentions.server");
-  const { getRecordBySlug, updateRecord } = await import("~/db/queries/records.server");
-  const { syncRecordLinksForRecord } = await import("~/db/queries/recordLinks.server");
-  const { getAllTags, getTagsByRecord } = await import("~/db/queries/tags.server");
+  const { syncMentionsForRecord } = await import("~/db/queries/dialogue/mentions.server");
+  const { getRecordBySlug, updateRecord } = await import("~/db/queries/records/records.server");
+  const { syncRecordLinksForRecord } = await import("~/db/queries/records/recordLinks.server");
+  const { getAllTags, getTagsByRecord } = await import("~/db/queries/records/tags.server");
   const { getPlainText } = await import("~/lib/content.server");
   const { extractRecordRefs, extractUserMentions } = await import("~/lib/extract-references.server");
   const { createLogger } = await import("~/lib/logger.server");

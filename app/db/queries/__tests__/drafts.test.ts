@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { deleteDraft, getDraftByAuthorAndFormat, upsertDraft } from "../drafts.server";
+import { deleteDraft, getDraftByAuthorAndFormat, upsertDraft } from "../records/drafts.server";
 import { db } from "../../client.server";
 
 vi.mock("../../client.server", () => ({

@@ -46,12 +46,12 @@ export async function clientAction({ params, serverAction }: Route.ClientActionA
 
 export async function loader({ params, context, request }: Route.LoaderArgs) {
   const { db } = await import("~/db/client.server");
-  const { saveSentence } = await import("~/db/queries/sentences.server");
+  const { saveSentence } = await import("~/db/queries/records/sentences.server");
   const { learnerProfiles, questions, records, responses, sentences, stages } = await import("~/db/schema.server");
-  const { createSelfAnswer, getSelfAnswersByRecord } = await import("~/db/queries/selfAnswers.server");
-  const { getLinkedRecords } = await import("~/db/queries/records.server");
-  const { getIncomingLinks } = await import("~/db/queries/recordLinks.server");
-  const { getTagsByRecord } = await import("~/db/queries/tags.server");
+  const { createSelfAnswer, getSelfAnswersByRecord } = await import("~/db/queries/dialogue/selfAnswers.server");
+  const { getLinkedRecords } = await import("~/db/queries/records/records.server");
+  const { getIncomingLinks } = await import("~/db/queries/records/recordLinks.server");
+  const { getTagsByRecord } = await import("~/db/queries/records/tags.server");
   const { getPlainText, renderContentToHtml } = await import("~/lib/content.server");
   const { createLogger } = await import("~/lib/logger.server");
   const { nanoid } = await import("~/lib/utils.server");
@@ -176,12 +176,12 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
 
 export async function action({ request, context }: Route.ActionArgs) {
   const { db } = await import("~/db/client.server");
-  const { saveSentence } = await import("~/db/queries/sentences.server");
+  const { saveSentence } = await import("~/db/queries/records/sentences.server");
   const { learnerProfiles, questions, records, responses, sentences, stages } = await import("~/db/schema.server");
-  const { createSelfAnswer, getSelfAnswersByRecord } = await import("~/db/queries/selfAnswers.server");
-  const { getLinkedRecords } = await import("~/db/queries/records.server");
-  const { getIncomingLinks } = await import("~/db/queries/recordLinks.server");
-  const { getTagsByRecord } = await import("~/db/queries/tags.server");
+  const { createSelfAnswer, getSelfAnswersByRecord } = await import("~/db/queries/dialogue/selfAnswers.server");
+  const { getLinkedRecords } = await import("~/db/queries/records/records.server");
+  const { getIncomingLinks } = await import("~/db/queries/records/recordLinks.server");
+  const { getTagsByRecord } = await import("~/db/queries/records/tags.server");
   const { getPlainText, renderContentToHtml } = await import("~/lib/content.server");
   const { createLogger } = await import("~/lib/logger.server");
   const { nanoid } = await import("~/lib/utils.server");

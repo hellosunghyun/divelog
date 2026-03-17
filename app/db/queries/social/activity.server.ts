@@ -1,6 +1,6 @@
 import { and, desc, eq, gte, sql } from "drizzle-orm";
 
-import { db } from "../client.server";
+import { db } from "../../client.server";
 import {
   learnerProfiles,
   questions,
@@ -9,7 +9,7 @@ import {
   selfAnswers,
   sentences,
   stages,
-} from "../schema.server";
+} from "../../schema.server";
 
 export interface DigestItem {
   type: "new_record" | "new_question" | "new_response" | "new_self_answer" | "new_sentence";

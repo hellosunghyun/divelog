@@ -2,14 +2,14 @@ import type { AppLoadContext } from "react-router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { action } from "../autosave";
-import { upsertDraft } from "~/db/queries/drafts.server";
+import { upsertDraft } from "~/db/queries/records/drafts.server";
 import { getAuth } from "~/lib/auth.server";
 
 vi.mock("~/lib/auth.server", () => ({
   getAuth: vi.fn(),
 }));
 
-vi.mock("~/db/queries/drafts.server", () => ({
+vi.mock("~/db/queries/records/drafts.server", () => ({
   upsertDraft: vi.fn(),
 }));
 

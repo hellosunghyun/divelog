@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 
-import { db } from "../client.server";
-import { collaborationMembers, collaborationUnits, learnerProfiles } from "../schema.server";
+import { db } from "../../client.server";
+import { collaborationMembers, collaborationUnits, learnerProfiles } from "../../schema.server";
 
 export async function getCollaborationUnitBySlug(d1: D1Database, slug: string) {
   const database = db(d1);

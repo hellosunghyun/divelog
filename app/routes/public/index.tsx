@@ -18,7 +18,7 @@ export function meta(_args: Route.MetaArgs) {
 export async function loader({ request, context }: Route.LoaderArgs) {
   const { db } = await import("~/db/client.server");
   const { stages, records, questions, sentences, learnerProfiles } = await import("~/db/schema.server");
-  const { getRecentActivity } = await import("~/db/queries/activity.server");
+  const { getRecentActivity } = await import("~/db/queries/social/activity.server");
   const { createLogger } = await import("~/lib/logger.server");
 
   const logger = createLogger(request, context.cloudflare.env).child({ route: "home" });

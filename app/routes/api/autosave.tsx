@@ -1,6 +1,6 @@
 import type { AppLoadContext } from "react-router";
 
-import { upsertDraft } from "~/db/queries/drafts.server";
+import { upsertDraft } from "~/db/queries/records/drafts.server";
 import { getAuth } from "~/lib/auth.server";
 import { autosaveDraftSchema } from "~/lib/validation";
 

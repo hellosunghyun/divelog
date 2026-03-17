@@ -1,9 +1,9 @@
 import { and, desc, eq, gte, sql } from "drizzle-orm";
 
-import type { CreateResponseInput } from "../../lib/validation";
-import { nanoid } from "../../lib/utils.server";
-import { db } from "../client.server";
-import { learnerProfiles, records, responses } from "../schema.server";
+import type { CreateResponseInput } from "../../../lib/validation";
+import { nanoid } from "../../../lib/utils.server";
+import { db } from "../../client.server";
+import { learnerProfiles, records, responses } from "../../schema.server";
 
 export async function getResponsesByRecord(d1: D1Database, recordId: string) {
   const database = db(d1);

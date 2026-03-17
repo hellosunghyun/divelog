@@ -1,7 +1,7 @@
 import { and, asc, eq, isNull } from "drizzle-orm";
 
-import { db } from "../client.server";
-import { stages } from "../schema.server";
+import { db } from "../../client.server";
+import { stages } from "../../schema.server";
 
 export async function getStages(d1: D1Database, cohort?: string) {
   const database = db(d1);

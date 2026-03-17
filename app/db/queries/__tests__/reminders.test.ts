@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createReminder, getDueReminders, markReminderSent } from "../reminders.server";
+import { createReminder, getDueReminders, markReminderSent } from "../misc/reminders.server";
 import { db } from "../../client.server";
 
 vi.mock("../../client.server", () => ({

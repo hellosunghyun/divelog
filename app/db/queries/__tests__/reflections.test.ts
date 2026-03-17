@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { getPersonalReflection, upsertPersonalReflection } from "../reflections.server";
+import { getPersonalReflection, upsertPersonalReflection } from "../learners/reflections.server";
 import { db } from "../../client.server";
 
 vi.mock("../../client.server", () => ({

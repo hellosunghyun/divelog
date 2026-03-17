@@ -11,7 +11,7 @@ export function meta() {
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {
-  const { getAllTags } = await import("~/db/queries/tags.server");
+  const { getAllTags } = await import("~/db/queries/records/tags.server");
   const { createLogger } = await import("~/lib/logger.server");
 
   const logger = createLogger(request, context.cloudflare.env).child({ route: "tags" });

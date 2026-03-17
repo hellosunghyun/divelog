@@ -1,8 +1,8 @@
 import { asc, desc, eq, isNotNull, sql } from "drizzle-orm";
 
-import { nanoid } from "../../lib/utils.server";
-import { db } from "../client.server";
-import { learnerProfiles, records, stages } from "../schema.server";
+import { nanoid } from "../../../lib/utils.server";
+import { db } from "../../client.server";
+import { learnerProfiles, records, stages } from "../../schema.server";
 
 interface AdakrposUser {
   id: string;

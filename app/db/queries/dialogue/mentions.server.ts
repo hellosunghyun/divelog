@@ -1,7 +1,7 @@
 import { eq, and, sql } from "drizzle-orm";
-import { db } from "../client.server";
-import { mentions, learnerProfiles } from "../schema.server";
-import { nanoid } from "../../lib/utils.server";
+import { db } from "../../client.server";
+import { mentions, learnerProfiles } from "../../schema.server";
+import { nanoid } from "../../../lib/utils.server";
 
 export async function syncMentionsForRecord(
   d1: D1Database,
@@ -49,7 +49,7 @@ export async function getMentionsByRecord(d1: D1Database, recordId: string) {
 
 export async function getMentionsOfUser(d1: D1Database, userId: string, limit = 10) {
   const database = db(d1);
-  const { records } = await import("../schema.server");
+  const { records } = await import("../../schema.server");
   return database
     .select({
       mentionId: mentions.id,

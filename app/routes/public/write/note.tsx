@@ -26,7 +26,7 @@ export function meta(_args: Route.MetaArgs) {
 
 export async function loader({ request, context }: Route.LoaderArgs) {
   const { db } = await import("~/db/client.server");
-  const { syncMentionsForRecord } = await import("~/db/queries/mentions.server");
+  const { syncMentionsForRecord } = await import("~/db/queries/dialogue/mentions.server");
   const { learnerProfiles, notifications, records, stages } = await import("~/db/schema.server");
   const { getPlainText } = await import("~/lib/content.server");
   const { extractUserMentions } = await import("~/lib/extract-references.server");
@@ -59,7 +59,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 
 export async function action({ request, context }: Route.ActionArgs) {
   const { db } = await import("~/db/client.server");
-  const { syncMentionsForRecord } = await import("~/db/queries/mentions.server");
+  const { syncMentionsForRecord } = await import("~/db/queries/dialogue/mentions.server");
   const { learnerProfiles, notifications, records, stages } = await import("~/db/schema.server");
   const { getPlainText } = await import("~/lib/content.server");
   const { extractUserMentions } = await import("~/lib/extract-references.server");

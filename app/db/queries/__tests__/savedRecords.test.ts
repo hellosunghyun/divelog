@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { isRecordSaved, saveRecord, unsaveRecord } from "../savedRecords.server";
+import { isRecordSaved, saveRecord, unsaveRecord } from "../records/savedRecords.server";
 import { db } from "../../client.server";
 
 vi.mock("../../client.server", () => ({

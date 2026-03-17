@@ -1,8 +1,8 @@
 import { and, desc, eq } from "drizzle-orm";
 
-import { nanoid } from "../../lib/utils.server";
-import { db } from "../client.server";
-import { notifications } from "../schema.server";
+import { nanoid } from "../../../lib/utils.server";
+import { db } from "../../client.server";
+import { notifications } from "../../schema.server";
 
 export type NotificationType =
   | "response"

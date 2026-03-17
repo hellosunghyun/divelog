@@ -8,7 +8,7 @@ import { FloatingWriteCTA } from "~/components/layout/FloatingWriteCTA";
 
 export async function loader({ request, context }: Route.LoaderArgs) {
   const { getAuth, getAuthDebug } = await import("~/lib/auth.server");
-  const { getOrCreateLearnerProfile } = await import("~/db/queries/learners.server");
+  const { getOrCreateLearnerProfile } = await import("~/db/queries/learners/learners.server");
   const { createLogger } = await import("~/lib/logger.server");
   const { db } = await import("~/db/client.server");
   const { userRoles } = await import("~/db/schema.server");

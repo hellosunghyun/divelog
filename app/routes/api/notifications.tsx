@@ -9,7 +9,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   }
 
   const { getNotifications, getUnreadCount } = await import(
-    "~/db/queries/notifications.server"
+    "~/db/queries/social/notifications.server"
   );
 
   const [notifs, unreadCount] = await Promise.all([
@@ -33,7 +33,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const formData = await request.formData();
   const intent = formData.get("intent");
   const { markAsRead, markAllAsRead } = await import(
-    "~/db/queries/notifications.server"
+    "~/db/queries/social/notifications.server"
   );
 
   if (intent === "mark_read") {

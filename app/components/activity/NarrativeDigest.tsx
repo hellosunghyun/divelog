@@ -1,6 +1,6 @@
 import { Link } from "~/components/content/SmartLink";
 
-import type { DigestItem } from "~/db/queries/activity.server";
+import type { DigestItem } from "~/db/queries/social/activity.server";
 
 interface NarrativeDigestProps {
   items: DigestItem[];

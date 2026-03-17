@@ -1,8 +1,8 @@
 import { and, desc, eq, inArray } from "drizzle-orm";
 
-import { nanoid } from "../../lib/utils.server";
-import { db } from "../client.server";
-import { learnerProfiles, questions, selfAnswers } from "../schema.server";
+import { nanoid } from "../../../lib/utils.server";
+import { db } from "../../client.server";
+import { learnerProfiles, questions, selfAnswers } from "../../schema.server";
 
 interface CreateSelfAnswerInput {
   questionId: string;

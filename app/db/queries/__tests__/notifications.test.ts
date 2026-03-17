@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createNotification, type NotificationType } from "../notifications.server";
+import { createNotification, type NotificationType } from "../social/notifications.server";
 import { db } from "../../client.server";
 
 vi.mock("../../client.server", () => ({

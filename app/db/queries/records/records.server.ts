@@ -1,9 +1,9 @@
 import { and, desc, eq, like, or, sql } from "drizzle-orm";
 
-import type { CreateRecordInput, RecordFilterInput } from "../../lib/validation";
-import { nanoid } from "../../lib/utils.server";
-import { db } from "../client.server";
-import { learnerProfiles, records } from "../schema.server";
+import type { CreateRecordInput, RecordFilterInput } from "../../../lib/validation";
+import { nanoid } from "../../../lib/utils.server";
+import { db } from "../../client.server";
+import { learnerProfiles, records } from "../../schema.server";
 
 function slugify(title: string): string {
   return title

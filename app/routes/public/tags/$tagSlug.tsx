@@ -18,7 +18,7 @@ export function meta({ data: loaderData }: Route.MetaArgs) {
 }
 
 export async function loader({ params, request, context }: Route.LoaderArgs) {
-  const { getTagBySlug, getRecordsByTag } = await import("~/db/queries/tags.server");
+  const { getTagBySlug, getRecordsByTag } = await import("~/db/queries/records/tags.server");
   const { getPlainText } = await import("~/lib/content.server");
   const { createLogger } = await import("~/lib/logger.server");
 

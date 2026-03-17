@@ -1,8 +1,8 @@
 import { and, eq } from "drizzle-orm";
 
-import { nanoid } from "../../lib/utils.server";
-import { db } from "../client.server";
-import { personalStageReflections } from "../schema.server";
+import { nanoid } from "../../../lib/utils.server";
+import { db } from "../../client.server";
+import { personalStageReflections } from "../../schema.server";
 
 export type PersonalStageReflection = typeof personalStageReflections.$inferSelect;
 

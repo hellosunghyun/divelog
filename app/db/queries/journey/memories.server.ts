@@ -1,7 +1,7 @@
 import { and, eq, sql } from "drizzle-orm";
 
-import { db } from "../client.server";
-import { collectiveMemories, stages } from "../schema.server";
+import { db } from "../../client.server";
+import { collectiveMemories, stages } from "../../schema.server";
 
 export async function getCollectiveMemoryByStageSlug(
   d1: D1Database,
