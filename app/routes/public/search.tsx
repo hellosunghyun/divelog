@@ -40,18 +40,10 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const pattern = `%${q}%`;
   const database = db(context.cloudflare.env.DB);
 
-   const [foundRecords, foundQuestions, foundLearners, foundSentences] = await database.batch([
+   const [foundRecordsRaw, foundQuestions, foundLearners, foundSentences] = await database.batch([
      database
-       .select({
-         record: records,
-         author: {
-           displayName: learnerProfiles.displayName,
-           slug: learnerProfiles.slug,
-           profilePhotoUrl: learnerProfiles.profilePhotoUrl,
-         },
-       })
+       .select()
        .from(records)
-       .leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
         .where(
           and(
             or(like(records.title, pattern), like(records.contentText, pattern)),
@@ -93,8 +85,26 @@ export async function loader({ request, context }: Route.LoaderArgs) {
        .limit(10),
    ]);
 
-  const recordsWithSnippets = foundRecords.map(({ record, author }) => {
+  const authorIds = [...new Set(foundRecordsRaw.map((r) => r.authorId).filter(Boolean))];
+  const authorMap = new Map<string, { displayName: string; slug: string; profilePhotoUrl: string | null }>();
+  if (authorIds.length > 0) {
+    const authors = await database
+      .select({
+        userId: learnerProfiles.userId,
+        displayName: learnerProfiles.displayName,
+        slug: learnerProfiles.slug,
+        profilePhotoUrl: learnerProfiles.profilePhotoUrl,
+      })
+      .from(learnerProfiles)
+      .where(sql`${learnerProfiles.userId} IN ${authorIds}`);
+    for (const a of authors) {
+      authorMap.set(a.userId, { displayName: a.displayName, slug: a.slug, profilePhotoUrl: a.profilePhotoUrl });
+    }
+  }
+
+  const recordsWithSnippets = foundRecordsRaw.map((record) => {
     const plainTextContent = getPlainText(record.content, normalizeContentFormat(record.format));
+    const author = authorMap.get(record.authorId) ?? null;
 
     return {
       record,

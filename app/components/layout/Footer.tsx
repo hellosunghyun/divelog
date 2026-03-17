@@ -10,10 +10,7 @@ const navLinks = [
   { to: "/learners", label: "러너" },
 ];
 
-const legalLinks = [
-  { to: "/privacy", label: "개인정보처리방침" },
-  { to: "/terms", label: "이용약관" },
-];
+
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -67,26 +64,7 @@ export default function Footer() {
               </ul>
             </nav>
 
-            <nav aria-label="법적 고지">
-              <h3 className="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-4">
-                법적 고지
-              </h3>
-              <ul className="flex flex-col gap-3">
-                {legalLinks.map((link) => (
-                  <li key={link.to}>
-                    <Link
-                      to={link.to}
-                      className={cn(
-                        "text-[15px] text-text-secondary hover:text-ocean-blue transition-colors no-underline",
-                        focusRing
-                      )}
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </nav>
+            {/* TODO: 법적 고지 섹션 — /privacy, /terms 페이지 구현 후 복원 */}
           </div>
         </div>
 
