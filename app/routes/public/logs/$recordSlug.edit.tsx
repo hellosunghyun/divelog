@@ -32,7 +32,7 @@ export function meta(_args: Route.MetaArgs) {
 
 export async function loader({ params, request, context }: Route.LoaderArgs) {
   const { db } = await import("~/db/client.server");
-  const { collaborationUnits, recordTags, stages, templates } = await import("~/db/schema.server");
+  const { recordTags, stages, templates } = await import("~/db/schema.server");
   const { syncMentionsForRecord } = await import("~/db/queries/dialogue/mentions.server");
   const { getRecordBySlug, updateRecord } = await import("~/db/queries/records/records.server");
   const { syncRecordLinksForRecord } = await import("~/db/queries/records/recordLinks.server");
@@ -62,10 +62,10 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
     throw new Response("Forbidden", { status: 403 });
   }
 
-  const [activeTemplates, currentStageResult, activeCollaborations] = await database.batch([
+  const [activeTemplates, currentStageResult] = await database.batch([
     database.select().from(templates).where(eq(templates.active, true)),
     database.select().from(stages).where(eq(stages.isCurrent, true)).limit(1),
-    database.select().from(collaborationUnits).where(eq(collaborationUnits.status, "active")),
+    // [COLLAB_DISABLED] collaboration query removed
   ]);
 
   const allTags = await getAllTags(context.cloudflare.env.DB);
@@ -75,7 +75,7 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
     record: recordData.record,
     templates: activeTemplates,
     currentStage: currentStageResult[0] ?? null,
-    collaborations: activeCollaborations,
+    collaborations: [] as never[], // [COLLAB_DISABLED]
     tags: allTags,
     currentTags,
   };
@@ -83,7 +83,7 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
 
 export async function action({ params, request, context }: Route.ActionArgs) {
   const { db } = await import("~/db/client.server");
-  const { collaborationUnits, recordTags, stages, templates } = await import("~/db/schema.server");
+  const { recordTags, stages, templates } = await import("~/db/schema.server");
   const { syncMentionsForRecord } = await import("~/db/queries/dialogue/mentions.server");
   const { getRecordBySlug, updateRecord } = await import("~/db/queries/records/records.server");
   const { syncRecordLinksForRecord } = await import("~/db/queries/records/recordLinks.server");
@@ -226,9 +226,7 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
   const [title, setTitle] = useState(record.title);
   const [articleContent, setArticleContent] = useState(isArticleRecord ? record.content : "");
   const [templateValue, setTemplateValue] = useState(NO_SELECTION_VALUE);
-  const [collaborationValue, setCollaborationValue] = useState(
-    record.collaborationUnitId ?? NO_SELECTION_VALUE
-  );
+  // [COLLAB_DISABLED] const [collaborationValue, setCollaborationValue] = useState(record.collaborationUnitId ?? NO_SELECTION_VALUE);
 
   const errors = actionData && "errors" in actionData ? actionData.errors : undefined;
   const formError = actionData && "error" in actionData ? actionData.error : undefined;
@@ -274,7 +272,7 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
             {[
               { value: "personal", label: "개인 탐구" },
               { value: "challenge", label: "챌린지" },
-              { value: "collaboration", label: "협업" },
+              // [COLLAB_DISABLED] { value: "collaboration", label: "협업" },
             ].map((opt) => (
               <div key={opt.value} className="flex items-center gap-2">
                 <RadioGroupItem value={opt.value} id={`type-${opt.value}`} />
@@ -330,30 +328,7 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
 
         <input type="hidden" name="stageId" value={record.stageId ?? currentStage?.id ?? ""} />
 
-        {collaborations.length > 0 ? (
-          <div>
-            <Label
-              htmlFor="collaborationUnitId"
-              className="mb-2 block text-meta font-medium text-text-secondary"
-            >
-              협업 유닛 (선택)
-            </Label>
-            <input type="hidden" name="collaborationUnitId" value={collaborationValue === NO_SELECTION_VALUE ? "" : collaborationValue} />
-            <Select value={collaborationValue} onValueChange={setCollaborationValue}>
-              <SelectTrigger id="collaborationUnitId" className="w-full bg-surface">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={NO_SELECTION_VALUE}>선택 안 함</SelectItem>
-              {collaborations.map((unit) => (
-                <SelectItem key={unit.id} value={unit.id}>
-                  {unit.name}
-                </SelectItem>
-              ))}
-              </SelectContent>
-            </Select>
-          </div>
-        ) : null}
+        {/* [COLLAB_DISABLED] collaboration selector removed */}
 
         <div>
           <Label htmlFor="title" className="mb-2 block text-meta font-medium text-text-secondary">

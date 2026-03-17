@@ -13,7 +13,7 @@ export function meta(_: Route.MetaArgs) {
 export async function loader({ request, context }: Route.LoaderArgs) {
   const { db } = await import("~/db/client.server");
   const { createLogger } = await import("~/lib/infra/logger.server");
-  const { records, questions, responses, learnerProfiles, stages, challenges, collaborationUnits } = await import("~/db/schema.server");
+  const { records, questions, responses, learnerProfiles, stages, challenges } = await import("~/db/schema.server");
 
   const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.analytics" });
   logger.info("loader_start");
@@ -27,7 +27,6 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     totalResponses,
     totalLearners,
     totalChallenges,
-    totalCollaborationUnits,
     recentRecords,
     recentResponses,
     currentStage,
@@ -37,7 +36,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     database.select({ count: sql<number>`count(*)` }).from(responses),
     database.select({ count: sql<number>`count(*)` }).from(learnerProfiles),
     database.select({ count: sql<number>`count(*)` }).from(challenges),
-    database.select({ count: sql<number>`count(*)` }).from(collaborationUnits),
+    // [COLLAB_DISABLED] collaboration count removed
     database.select({ count: sql<number>`count(*)` }).from(records).where(gte(records.createdAt, oneWeekAgo)),
     database.select({ count: sql<number>`count(*)` }).from(responses).where(gte(responses.createdAt, oneWeekAgo)),
     database.select().from(stages).where(eq(stages.isCurrent, true)).limit(1),
@@ -61,7 +60,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
       responses: totalResponses[0]?.count ?? 0,
       learners: totalLearners[0]?.count ?? 0,
       challenges: totalChallenges[0]?.count ?? 0,
-      collaborationUnits: totalCollaborationUnits[0]?.count ?? 0,
+      collaborationUnits: 0, // [COLLAB_DISABLED]
       recentRecords: recentRecords[0]?.count ?? 0,
       recentResponses: recentResponses[0]?.count ?? 0,
     },
@@ -84,7 +83,7 @@ export default function AdminAnalyticsPage({ loaderData }: Route.ComponentProps)
           { label: "전체 응답", value: stats.responses, highlight: false },
           { label: "전체 러너", value: stats.learners, highlight: true },
           { label: "진행 중 챌린지", value: stats.challenges, highlight: false },
-          { label: "협업 유닛", value: stats.collaborationUnits, highlight: false },
+          // [COLLAB_DISABLED] { label: "협업 유닛", value: stats.collaborationUnits, highlight: false },
           { label: "최근 7일 기록", value: stats.recentRecords, highlight: true },
           { label: "최근 7일 응답", value: stats.recentResponses, highlight: true },
         ].map((item) => (

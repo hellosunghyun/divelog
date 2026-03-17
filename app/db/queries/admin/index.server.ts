@@ -1,7 +1,7 @@
 export * from "./insights/analytics.server";
 export * from "./insights/audit.server";
 export * from "./data/challenges.server";
-export * from "./data/collaboration.server";
+// [COLLAB_DISABLED] export * from "./data/collaboration.server";
 export * from "./ops/curation.server";
 export * from "./ops/dialogue.server";
 export * from "./data/learners.server";

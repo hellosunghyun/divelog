@@ -3,7 +3,7 @@ import type { Route } from "./+types/$challengeSlug";
 import { Link } from "~/components/content/SmartLink";
 import { eq, and, desc, sql } from "drizzle-orm";
 import SceneCard from "~/components/cards/SceneCard";
-import CollaborationUnitCard from "~/components/cards/CollaborationUnitCard";
+// [COLLAB_DISABLED] import CollaborationUnitCard from "~/components/cards/CollaborationUnitCard";
 import QuestionCard from "~/components/cards/QuestionCard";
 import HeroSection from "~/components/sections/HeroSection";
 import EmptyState from "~/components/feedback/EmptyState";
@@ -13,7 +13,7 @@ import { cn } from "~/lib/utils/cn";
 
 export async function loader({ params, request, context }: Route.LoaderArgs) {
   const { db } = await import("~/db/client.server");
-  const { challenges, records, collaborationUnits, learnerProfiles, stages, challengeStages } = await import("~/db/schema.server");
+  const { challenges, records, learnerProfiles, stages, challengeStages } = await import("~/db/schema.server");
   const { createLogger } = await import("~/lib/infra/logger.server");
 
   const { challengeSlug } = params;
@@ -28,20 +28,21 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
     throw data("챌린지를 찾을 수 없습니다", { status: 404 });
   }
 
-  const [challengeRecords, challengeCollabs, relatedStages] = await database.batch([
+  const [challengeRecords, relatedStages] = await database.batch([
     database.select({
       record: records,
       author: { displayName: learnerProfiles.displayName, slug: learnerProfiles.slug, profilePhotoUrl: learnerProfiles.profilePhotoUrl },
     }).from(records).leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
       .where(and(eq(records.challengeId, challenge.id), sql`${records.visibility} != 'draft'`))
       .orderBy(desc(records.createdAt)).limit(12),
-    database.select().from(collaborationUnits).where(eq(collaborationUnits.challengeId, challenge.id)),
+    // [COLLAB_DISABLED] collaboration query removed
     database
       .select({ stage: stages })
       .from(challengeStages)
       .innerJoin(stages, eq(challengeStages.stageId, stages.id))
       .where(eq(challengeStages.challengeId, challenge.id)),
   ]);
+  const challengeCollabs: never[] = [];
 
   logger.info("loader_end");
   return { challenge, challengeRecords, challengeCollabs, relatedStages };
@@ -140,23 +141,7 @@ export default function ChallengeDetailPage({ loaderData }: Route.ComponentProps
             </motion.section>
           )}
 
-          <motion.section variants={staggerItem}>
-            <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-6">
-              협업 팀
-            </h2>
-            {challengeCollabs.length === 0 ? (
-              <div className="p-8 bg-surface rounded-2xl border border-border text-center">
-                <p className="text-text-secondary">이 챌린지는 개인 탐색 중심으로 진행됩니다.</p>
-                <p className="text-meta text-text-tertiary mt-2">혼자서의 탐구도 소중한 탐구입니다.</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                {challengeCollabs.map((unit) => (
-                  <CollaborationUnitCard key={unit.id} unit={unit} />
-                ))}
-              </div>
-            )}
-          </motion.section>
+          {/* [COLLAB_DISABLED] collaboration section removed */}
 
           <motion.section variants={staggerItem}>
             <div className="flex items-center justify-between mb-6">

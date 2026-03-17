@@ -198,7 +198,7 @@ const FILTER_OPTIONS = [
     values: [
       { value: "personal", label: "개인" },
       { value: "challenge", label: "챌린지" },
-      { value: "collaboration", label: "협업" },
+      // [COLLAB_DISABLED] { value: "collaboration", label: "협업" },
     ],
   },
   {

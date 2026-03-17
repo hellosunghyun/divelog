@@ -5,7 +5,7 @@ import { eq, and, desc, sql, ne } from "drizzle-orm";
 import SceneCard from "~/components/cards/SceneCard";
 import QuestionCard from "~/components/cards/QuestionCard";
 import HighlightedSentenceCard from "~/components/cards/HighlightedSentenceCard";
-import CollaborationUnitCard from "~/components/cards/CollaborationUnitCard";
+// [COLLAB_DISABLED] import CollaborationUnitCard from "~/components/cards/CollaborationUnitCard";
 import EmptyState from "~/components/feedback/EmptyState";
 import { motion } from "~/lib/motion/motion";
 import { staggerContainer, staggerItem, fadeUp } from "~/lib/motion/motion-utils";
@@ -18,7 +18,7 @@ type TabKey = "records" | "questions";
 
 export async function loader({ params, request, context }: Route.LoaderArgs) {
   const { db } = await import("~/db/client.server");
-  const { learnerProfiles, records, questions, sentences, stages, collaborationUnits, collaborationMembers } = await import("~/db/schema.server");
+  const { learnerProfiles, records, questions, sentences, stages } = await import("~/db/schema.server");
   const { createLogger } = await import("~/lib/infra/logger.server");
 
   const { learnerSlug } = params;
@@ -70,24 +70,10 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
   }
   const recordsByStage = Array.from(stageCountMap.values());
 
-  const learnerCollaborationUnits = await database
-    .select({
-      id: collaborationUnits.id,
-      slug: collaborationUnits.slug,
-      name: collaborationUnits.name,
-      currentQuestion: collaborationUnits.currentQuestion,
-      status: collaborationUnits.status,
-      description: collaborationUnits.description,
-    })
-    .from(collaborationUnits)
-    .innerJoin(
-      collaborationMembers,
-      eq(collaborationUnits.id, collaborationMembers.unitId)
-    )
-    .where(eq(collaborationMembers.learnerId, learner.userId));
+  // [COLLAB_DISABLED] collaboration query removed
 
   logger.info("loader_end");
-  return { learner, learnerRecords, learnerQuestions, learnerSentences, recordsByStage, collaborationUnits: learnerCollaborationUnits };
+  return { learner, learnerRecords, learnerQuestions, learnerSentences, recordsByStage, collaborationUnits: [] as never[] };
 }
 
 export async function clientLoader({ params, serverLoader }: {
@@ -318,27 +304,7 @@ export default function LearnerDetailPage({ loaderData }: Route.ComponentProps) 
         </section>
       )}
 
-      <section className="max-w-content mx-auto px-6 py-12">
-        <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-8">
-          협업 이력
-        </h2>
-        {collaborationUnits.length === 0 ? (
-          <EmptyState variant="generic" message="아직 참여한 협업 그룹이 없습니다." />
-        ) : (
-          <motion.div
-            variants={staggerContainer}
-            initial="hidden"
-            animate="visible"
-            className="grid grid-cols-1 md:grid-cols-2 gap-5"
-          >
-            {collaborationUnits.map((unit) => (
-              <motion.div key={unit.id} variants={staggerItem}>
-                <CollaborationUnitCard unit={unit} />
-              </motion.div>
-            ))}
-          </motion.div>
-        )}
-      </section>
+      {/* [COLLAB_DISABLED] collaboration section removed */}
     </div>
   );
 }

@@ -53,7 +53,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { label: "러너 관리", href: "/admin/learners", icon: Users },
       { label: "Dialogue 관리", href: "/admin/dialogue", icon: ChatTeardrop },
-      { label: "Collaboration 관리", href: "/admin/collaboration", icon: UsersThree },
+      // [COLLAB_DISABLED] { label: "Collaboration 관리", href: "/admin/collaboration", icon: UsersThree },
     ],
   },
   {

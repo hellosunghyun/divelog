@@ -5,7 +5,7 @@ import { eq, and, desc, sql } from "drizzle-orm";
 import HeroSection from "~/components/sections/HeroSection";
 import SceneCard from "~/components/cards/SceneCard";
 import QuestionCard from "~/components/cards/QuestionCard";
-import CollaborationUnitCard from "~/components/cards/CollaborationUnitCard";
+// [COLLAB_DISABLED] import CollaborationUnitCard from "~/components/cards/CollaborationUnitCard";
 import EmptyState from "~/components/feedback/EmptyState";
 import StageStrip from "~/components/sections/StageStrip";
 
@@ -13,7 +13,7 @@ const cache = new Map<string, unknown>();
 
 export async function loader({ params, request, context }: Route.LoaderArgs) {
   const { db } = await import("~/db/client.server");
-  const { stages, records, questions, collaborationUnits, learnerProfiles, collectiveMemories } = await import("~/db/schema.server");
+  const { stages, records, questions, learnerProfiles, collectiveMemories } = await import("~/db/schema.server");
   const { createLogger } = await import("~/lib/infra/logger.server");
 
   const { stageSlug } = params;
@@ -35,8 +35,7 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
   // existing function: getRecords supports { stage: stage.id }
   const stageRecords = await getRecords(context.cloudflare.env.DB, { stage: stage.id, page: 1 });
   
-  // For questions, collaboration, and collectiveMemory, use existing queries or keep batch for ones without explicit functions
-  const [stageQuestions, stageCollaborations, collectiveMemoryResult] = await database.batch([
+  const [stageQuestions, collectiveMemoryResult] = await database.batch([
     database
       .select({
         question: questions,
@@ -48,13 +47,14 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
       .where(and(eq(records.stageId, stage.id), eq(questions.isOpen, true), sql`${records.visibility} != 'draft'`))
       .orderBy(desc(questions.createdAt))
       .limit(5),
-    database.select().from(collaborationUnits).where(eq(collaborationUnits.stageId, stage.id)),
+    // [COLLAB_DISABLED] collaboration query removed
     database
       .select()
       .from(collectiveMemories)
       .where(and(eq(collectiveMemories.stageId, stage.id), eq(collectiveMemories.status, "published")))
       .limit(1),
   ]);
+  const stageCollaborations: never[] = [];
   const collectiveMemory = collectiveMemoryResult[0] ?? null;
 
   logger.info("loader_end");
@@ -139,27 +139,7 @@ export default function StageDetailPage({ loaderData }: Route.ComponentProps) {
           </section>
         )}
 
-        <section className="mb-12">
-          <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-8">
-            협업
-          </h2>
-          {stageCollaborations.length === 0 ? (
-            <div className="p-8 bg-surface rounded-lg border border-border text-center">
-              <p className="text-text-secondary">
-                이 Stage는 개인 탐색 중심으로 진행됩니다.
-              </p>
-              <p className="text-meta text-text-tertiary mt-2">
-                혼자서 탐구하는 것도 충분한 탐구입니다.
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {stageCollaborations.map((unit: any) => (
-                <CollaborationUnitCard key={unit.id} unit={unit} />
-              ))}
-            </div>
-          )}
-        </section>
+        {/* [COLLAB_DISABLED] collaboration section removed */}
 
         <section>
           <div className="flex items-center justify-between mb-8">

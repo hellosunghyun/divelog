@@ -80,7 +80,7 @@ export default function AdminTemplateEditPage({ loaderData }: Route.ComponentPro
                 <SelectItem value={ALL_VALUE}>전체</SelectItem>
                 <SelectItem value="personal">개인</SelectItem>
                 <SelectItem value="challenge">챌린지</SelectItem>
-                <SelectItem value="collaboration">협업</SelectItem>
+                {/* [COLLAB_DISABLED] <SelectItem value="collaboration">협업</SelectItem> */}
               </SelectContent>
             </Select>
           </div>
