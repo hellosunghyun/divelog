@@ -142,3 +142,8 @@
 - 2026-03-14 F2 quality review: `pnpm exec tsc --noEmit` and `pnpm run build` both passed; `app/` contains 0 matches for `as any`, `@ts-ignore`/`@ts-expect-error`, empty `catch`, and `console.log`; `app/lib/auth.server.ts` still uses `WeakMap`; route file count is 41.
 
 - 2026-03-14 F4 scope fidelity check: Must-NOT and auth migration 12/12 PASS (Better Auth 잔재 없음, KV 바인딩 없음, `@adakrpos/auth/generic` 사용, WeakMap 캐시 1회 확인, cohorts 테이블/비밀번호 필드/이미지 업로드/고정 Daily 카테고리 미존재).
+
+## [2026-03-17] Task: Stage Groups Utility
+- `groupRecordsByStage()`는 레코드가 있는 Stage만 그룹으로 만들고, 그룹 순서는 `stages.order` 오름차순 + `미분류` 마지막으로 정렬한다.
+- 그룹 내부 정렬 기준은 `createdAt` 내림차순 하나로 통일하고, `notes`/`articles`는 정렬된 `allRecords`를 다시 분리해 순서를 유지한다.
+- `stageId`가 `null`이거나 전달된 Stage 목록에 없는 레코드는 `stageType: "unassigned"`, `stageName: "미분류"`로 합쳐서 처리하면 UI 분기 복잡도를 줄일 수 있다.
