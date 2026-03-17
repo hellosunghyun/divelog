@@ -1,0 +1,2 @@
+=== Checking for hardcoded hex colors in revision components ===
+No hardcoded hex colors found
