@@ -120,7 +120,7 @@ export default function ActivityFeed({ activities, className = "" }: ActivityFee
                     <p className="text-sm text-text-primary leading-relaxed">
                       {item.summary}
                     </p>
-                    <p className="text-xs text-text-tertiary mt-0.5">
+                    <p className="text-xs text-text-tertiary mt-0.5" suppressHydrationWarning>
                       {formatRelativeTime(item.timestamp)}
                     </p>
                   </div>

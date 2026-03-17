@@ -108,7 +108,7 @@ export function QuestionTimeline({ question, selfAnswers, responses, isOwn }: Qu
                   <span className="text-xs text-[--color-ocean-blue]">?</span>
                 </div>
                 <div>
-                  <p className="mb-1 text-xs text-[--color-text-tertiary]">
+                  <p className="mb-1 text-xs text-[--color-text-tertiary]" suppressHydrationWarning>
                     {getDirectionLabel(question.direction)} · {formatRelativeTime(node.createdAt)}
                   </p>
                   <p className="text-base font-medium text-[--color-text-primary]">{node.content}</p>
@@ -124,7 +124,7 @@ export function QuestionTimeline({ question, selfAnswers, responses, isOwn }: Qu
                   <span className="text-xs text-[--color-ocean-blue]">↺</span>
                 </div>
                 <div>
-                  <p className="mb-1 text-xs text-[--color-text-tertiary]">자기답변 · {formatRelativeTime(node.createdAt)}</p>
+                  <p className="mb-1 text-xs text-[--color-text-tertiary]" suppressHydrationWarning>자기답변 · {formatRelativeTime(node.createdAt)}</p>
                   <p className="text-sm text-[--color-text-secondary]">{toSnippet(node.content, 100)}</p>
                 </div>
               </div>
@@ -139,7 +139,7 @@ export function QuestionTimeline({ question, selfAnswers, responses, isOwn }: Qu
                 </span>
               </div>
               <div>
-                <p className="mb-1 text-xs text-[--color-text-tertiary]">
+                <p className="mb-1 text-xs text-[--color-text-tertiary]" suppressHydrationWarning>
                   {node.authorName} · {node.responseType ?? "응답"} · {formatRelativeTime(node.createdAt)}
                 </p>
                 <p className="text-sm text-[--color-text-secondary]">{toSnippet(node.content, 80)}</p>

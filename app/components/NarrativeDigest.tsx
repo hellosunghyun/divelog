@@ -47,7 +47,7 @@ export function NarrativeDigest({ items, className = "" }: NarrativeDigestProps)
           <p className="text-base leading-relaxed text-text-primary transition-colors group-hover:text-ocean-blue">
             {item.text}
           </p>
-          <p className="mt-1 text-xs font-medium text-text-tertiary">{formatRelativeTime(item.createdAt)}</p>
+          <p className="mt-1 text-xs font-medium text-text-tertiary" suppressHydrationWarning>{formatRelativeTime(item.createdAt)}</p>
         </Link>
       ))}
     </div>

@@ -74,7 +74,7 @@ export default function TimelineView({ records }: TimelineViewProps) {
                       {record.contentSnippet}
                     </p>
 
-                    <p className="mt-2 text-sm text-text-tertiary leading-small m-0">
+                    <p className="mt-2 text-sm text-text-tertiary leading-small m-0" suppressHydrationWarning>
                       <span>{record.author?.displayName ?? "이름 없는 러너"}</span>
                       <span className="mx-2" aria-hidden="true">·</span>
                       <span>{formatRelativeTime(record.createdAt)}</span>
