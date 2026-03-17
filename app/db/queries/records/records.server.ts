@@ -1,8 +1,10 @@
 import { and, desc, eq, like, or, sql } from "drizzle-orm";
 
 import type { CreateRecordInput, RecordFilterInput } from "../../../lib/auth/validation";
+import { compareRecordStates, computeTagDiff } from "../../../lib/utils/record-diff.server";
 import { nanoid } from "../../../lib/utils/utils.server";
 import { createAuditLog } from "../admin/insights/audit-helpers.server";
+import { createRevision, getLatestRevisionNumber } from "./revisions.server";
 import { db } from "../../client.server";
 import { learnerProfiles, records } from "../../schema.server";
 
@@ -148,13 +150,80 @@ export async function updateRecord(
   id: string,
   authorId: string,
   data: Partial<CreateRecordInput>,
-) {
+  options?: {
+    oldTags?: Array<{ id: string; name: string }>;
+    newTags?: Array<{ id: string; name: string }>;
+  },
+): Promise<{ updated: boolean; revisionCreated: boolean }> {
   const database = db(d1);
 
-  return database
+  const existing = await database
+    .select()
+    .from(records)
+    .where(and(eq(records.id, id), eq(records.authorId, authorId)))
+    .limit(1);
+
+  if (!existing[0]) {
+    return { updated: false, revisionCreated: false };
+  }
+
+  const currentRecord = existing[0];
+  const currentRecordForDiff = {
+    ...currentRecord,
+    contentText: currentRecord.contentText ?? undefined,
+  };
+  const auditAfterState = { ...currentRecord, ...data };
+  const nextRecordState = { ...currentRecordForDiff, ...data };
+  const fieldChanges = compareRecordStates(currentRecordForDiff, nextRecordState);
+  const tagDiff = computeTagDiff(options?.oldTags ?? [], options?.newTags ?? []);
+  const hasTagChanges = tagDiff.added.length > 0 || tagDiff.removed.length > 0;
+  const hasChanges = fieldChanges.length > 0 || hasTagChanges;
+
+  if (!hasChanges) {
+    return { updated: false, revisionCreated: false };
+  }
+
+  const changedFieldNames = fieldChanges.map((change) => change.field);
+  if (hasTagChanges) {
+    changedFieldNames.push("tags");
+  }
+
+  let revisionCreated = false;
+
+  try {
+    const latestRevisionNumber = await getLatestRevisionNumber(d1, id);
+    await createRevision(d1, {
+      recordId: id,
+      authorId,
+      revisionNumber: latestRevisionNumber + 1,
+      snapshot: currentRecord as Record<string, unknown>,
+      changedFields: changedFieldNames,
+      tagsSnapshot: options?.oldTags,
+    });
+    revisionCreated = true;
+  } catch (err) {
+    console.error("[revision] Failed to create revision:", err);
+  }
+
+  try {
+    await createAuditLog(d1, {
+      actorId: authorId,
+      targetType: "record",
+      targetId: id,
+      action: "update",
+      beforeState: currentRecord as Record<string, unknown>,
+      afterState: auditAfterState as Record<string, unknown>,
+    });
+  } catch (err) {
+    console.error("[audit] Failed to create audit log:", err);
+  }
+
+  await database
     .update(records)
     .set({ ...data, updatedAt: Math.floor(Date.now() / 1000) })
     .where(and(eq(records.id, id), eq(records.authorId, authorId)));
+
+  return { updated: true, revisionCreated };
 }
 
 export async function getDraftRecords(d1: D1Database, authorId: string) {
