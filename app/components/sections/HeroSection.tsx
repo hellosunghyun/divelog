@@ -110,7 +110,7 @@ export default function HeroSection({
     : "border-ocean-blue/15";
 
   return (
-    <section className="relative overflow-hidden py-16 md:py-20 px-6 bg-gradient-to-b from-mist-blue/60 via-mist-blue/30 to-bg">
+    <section className="relative overflow-hidden -mt-15 sm:-mt-16 pt-[7.75rem] sm:pt-32 md:pt-36 pb-16 md:pb-20 px-6 bg-gradient-to-b from-mist-blue/60 via-mist-blue/30 to-bg">
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
