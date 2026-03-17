@@ -1,0 +1,11 @@
+> pnpm test -- calendar --reporter=verbose
+
+> divelog@ test /Users/hellosunghyun/Documents/Github/divelog-timeline
+> vitest run -- calendar --reporter=verbose
+
+RUN v4.1.0 /Users/hellosunghyun/Documents/Github/divelog-timeline
+
+Test Files 18 passed (18)
+Tests 141 passed (141)
+Start at 17:38:32
+Duration 5.14s (transform 702ms, setup 4.66s, import 8.00s, tests 765ms, environment 20.45s)
