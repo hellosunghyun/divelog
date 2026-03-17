@@ -32,13 +32,37 @@ export { action, loader } from "./$recordSlug.server";
 type Action = typeof import("./$recordSlug.server").action;
 type LoaderData = Awaited<ReturnType<typeof import("./$recordSlug.server").loader>>;
 
-const cache = new Map<string, unknown>();
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const CACHE_MAX_SIZE = 50;
+
+type CacheEntry<T> = { data: T; timestamp: number };
+const cache = new Map<string, CacheEntry<unknown>>();
+
+function getCached<T>(key: string): T | null {
+  const entry = cache.get(key);
+  if (!entry) return null;
+  if (Date.now() - entry.timestamp > CACHE_TTL_MS) {
+    cache.delete(key);
+    return null;
+  }
+  return entry.data as T;
+}
+
+function setCached(key: string, data: unknown): void {
+  // Evict oldest entry if at max size
+  if (cache.size >= CACHE_MAX_SIZE) {
+    const firstKey = cache.keys().next().value;
+    if (firstKey !== undefined) cache.delete(firstKey);
+  }
+  cache.set(key, { data, timestamp: Date.now() });
+}
 
 export async function clientLoader({ params, serverLoader }: Route.ClientLoaderArgs) {
   const key = params.recordSlug ?? "";
-  if (cache.has(key)) return cache.get(key) as LoaderData;
+  const cached = getCached<LoaderData>(key);
+  if (cached) return cached;
   const data = await serverLoader();
-  cache.set(key, data);
+  setCached(key, data);
   return data;
 }
 
