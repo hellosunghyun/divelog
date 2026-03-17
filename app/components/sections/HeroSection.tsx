@@ -39,14 +39,14 @@ export default function HeroSection({
 
   if (isHome) {
     return (
-      <section className="relative min-h-[50vh] sm:min-h-[56vh] md:min-h-[72vh] flex items-end overflow-hidden bg-gradient-to-br from-deep-ocean via-ocean-blue/90 to-deep-ocean/80 -mt-15 sm:-mt-16 pt-15 sm:pt-16">
+      <section className="relative overflow-hidden bg-gradient-to-br from-deep-ocean via-ocean-blue/90 to-deep-ocean/80 -mt-15 sm:-mt-16 pt-15 sm:pt-16">
         <div
           className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_50%,rgba(20,108,148,0.3),transparent_70%)] pointer-events-none"
           aria-hidden="true"
         />
         <div className="hero-caustics" aria-hidden="true" />
 
-        <div className="relative z-10 max-w-content mx-auto px-6 w-full grid grid-cols-1 md:grid-cols-5 gap-8 md:gap-10 items-end pb-16 sm:pb-20 md:pb-20 pt-10 sm:pt-14 md:pt-16">
+        <div className="relative z-10 max-w-content mx-auto px-6 w-full grid grid-cols-1 md:grid-cols-5 gap-8 md:gap-10 items-end pb-12 sm:pb-16 md:pb-20 pt-8 sm:pt-12 md:pt-20">
           <div className="md:col-span-3 space-y-5 md:space-y-6">
             <div>
               <span className="inline-flex items-center rounded-full px-3 py-1 text-xs uppercase tracking-wide font-medium bg-white/10 text-white/80 backdrop-blur-sm border border-white/20">
