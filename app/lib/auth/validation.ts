@@ -8,7 +8,7 @@ export const createRecordSchema = z
     format: z.enum(["note", "article"]).default("note"),
     type: z.enum(["personal", "challenge", "collaboration"]).default("personal"),
     rhythm: z.enum(["moment", "sprint", "weekly", "monthly", "stage", "reflection", "free"]).default("free"),
-    visibility: z.enum(["draft", "cohort", "public"]).default("cohort"),
+    visibility: z.enum(["draft", "private", "cohort", "public"]).default("cohort"),
     responsePreference: z.enum(["open", "question_only", "closed"]).default("open"),
     stageId: z.string().optional(),
     challengeId: z.string().optional(),
@@ -53,7 +53,7 @@ export const autosaveDraftSchema = z.object({
   contentJson: z.string().optional(),
   stageId: z.string().optional().nullable(),
   rhythm: z.string().default("free"),
-  visibility: z.enum(["draft", "cohort", "public"]).default("draft"),
+  visibility: z.enum(["draft", "private", "cohort", "public"]).default("draft"),
   responsePreference: z.enum(["open", "question_only", "closed"]).default("open"),
 });
 
@@ -62,7 +62,7 @@ export type AutosaveDraftInput = z.infer<typeof autosaveDraftSchema>;
 export const createNoteSchema = z.object({
   content: z.string().min(1, "내용을 입력해주세요").max(50000),
   rhythm: z.enum(["moment", "sprint", "weekly", "monthly", "stage", "reflection", "free"]).default("free"),
-  visibility: z.enum(["draft", "cohort", "public"]).default("cohort"),
+  visibility: z.enum(["draft", "private", "cohort", "public"]).default("cohort"),
   responsePreference: z.enum(["open", "question_only", "closed"]).default("open"),
   stageId: z.string().optional(),
   captureQuestion: z.string().optional(),
@@ -86,7 +86,7 @@ export const createArticleSchema = z
     ),
     content: z.string().min(1, "내용을 입력해주세요").max(50000),
     rhythm: z.enum(["moment", "sprint", "weekly", "monthly", "stage", "reflection", "free"]).default("free"),
-    visibility: z.enum(["draft", "cohort", "public"]).default("cohort"),
+    visibility: z.enum(["draft", "private", "cohort", "public"]).default("cohort"),
     stageId: z.string().optional(),
     recordedAt: z.string().optional(),
     recordedEndAt: z.string().optional(),
@@ -165,7 +165,7 @@ export const personalReflectionSchema = z.object({
 export type PersonalReflectionInput = z.infer<typeof personalReflectionSchema>;
 
 export const updateSettingsSchema = z.object({
-  defaultVisibility: z.enum(["draft", "cohort", "public"]).optional(),
+  defaultVisibility: z.enum(["draft", "private", "cohort", "public"]).optional(),
   defaultResponsePreference: z.enum(["open", "question_only", "closed"]).optional(),
   notificationEmailEnabled: z.boolean().optional(),
 });
@@ -185,7 +185,7 @@ export const recordFilterSchema = z.object({
   format: z.enum(["note", "article"]).optional(),
   type: z.enum(["personal", "challenge", "collaboration"]).optional(),
   rhythm: z.enum(["moment", "sprint", "weekly", "monthly", "stage", "reflection", "free"]).optional(),
-  visibility: z.enum(["draft", "cohort", "public"]).optional(),
+  visibility: z.enum(["draft", "private", "cohort", "public"]).optional(),
   cohort: z.string().optional(),
   sort: z.enum(["recent", "oldest", "stage"]).optional(),
   page: z.coerce.number().int().positive().default(1),

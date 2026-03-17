@@ -64,7 +64,7 @@ export async function getMentionsOfUser(d1: D1Database, userId: string, limit = 
     .where(
       and(
         eq(mentions.mentionedUserId, userId),
-        sql`${records.visibility} != 'draft'`,
+        sql`${records.visibility} IN ('cohort', 'public')`,
       ),
     )
     .limit(limit);

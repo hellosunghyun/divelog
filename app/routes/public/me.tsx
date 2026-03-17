@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { Route } from "./+types/me";
 import { requireAuth } from "~/lib/auth/auth.middleware";
-import { eq, and, desc, sql, asc, ne } from "drizzle-orm";
+import { eq, and, desc, sql, asc } from "drizzle-orm";
 import SceneCard from "~/components/cards/SceneCard";
 import HighlightedSentenceCard from "~/components/cards/HighlightedSentenceCard";
 import QuestionCard from "~/components/cards/QuestionCard";
@@ -84,7 +84,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
       })
       .from(records)
       .leftJoin(stages, eq(records.stageId, stages.id))
-      .where(and(eq(records.authorId, auth.user.id), ne(records.visibility, "draft")))
+      .where(and(eq(records.authorId, auth.user.id), sql`${records.visibility} IN ('private', 'cohort', 'public')`))
       .orderBy(desc(records.createdAt)),
   ]);
 

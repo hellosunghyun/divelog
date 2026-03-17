@@ -1,7 +1,7 @@
 import { data } from "react-router";
 import type { Route } from "./+types/$learnerSlug";
 import { Link } from "~/components/content/SmartLink";
-import { eq, and, desc, sql, ne } from "drizzle-orm";
+import { eq, and, desc, sql } from "drizzle-orm";
 import SceneCard from "~/components/cards/SceneCard";
 import QuestionCard from "~/components/cards/QuestionCard";
 import HighlightedSentenceCard from "~/components/cards/HighlightedSentenceCard";
@@ -36,11 +36,11 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
   const [learnerRecords, learnerQuestions, learnerSentences] = await database.batch([
     database.select({
       record: records,
-    }).from(records).where(and(eq(records.authorId, learner.userId), sql`${records.visibility} != 'draft'`)).orderBy(desc(records.createdAt)).limit(12),
+    }).from(records).where(and(eq(records.authorId, learner.userId), sql`${records.visibility} IN ('cohort', 'public')`)).orderBy(desc(records.createdAt)).limit(12),
     database.select({ question: questions, recordSlug: records.slug, recordTitle: records.title })
       .from(questions).leftJoin(records, eq(questions.recordId, records.id))
-      .where(and(eq(records.authorId, learner.userId), eq(questions.isOpen, true), sql`${records.visibility} != 'draft'`)).orderBy(desc(questions.createdAt)).limit(5),
-    database.select({ sentence: sentences }).from(sentences).leftJoin(records, eq(sentences.recordId, records.id)).where(and(eq(sentences.savedById, learner.userId), sql`${records.visibility} != 'draft'`)).orderBy(desc(sentences.createdAt)).limit(6),
+      .where(and(eq(records.authorId, learner.userId), eq(questions.isOpen, true), sql`${records.visibility} IN ('cohort', 'public')`)).orderBy(desc(questions.createdAt)).limit(5),
+    database.select({ sentence: sentences }).from(sentences).leftJoin(records, eq(sentences.recordId, records.id)).where(and(eq(sentences.savedById, learner.userId), sql`${records.visibility} IN ('cohort', 'public')`)).orderBy(desc(sentences.createdAt)).limit(6),
   ]);
 
   const recordsWithStage = await database
@@ -51,7 +51,7 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
     })
     .from(records)
     .leftJoin(stages, eq(records.stageId, stages.id))
-    .where(and(eq(records.authorId, learner.userId), ne(records.visibility, "draft")));
+    .where(and(eq(records.authorId, learner.userId), sql`${records.visibility} IN ('cohort', 'public')`));
 
   const stageCountMap = new Map<string, { stageId: string | null; stageName: string | null; stageSlug: string | null; count: number }>();
   for (const row of recordsWithStage) {

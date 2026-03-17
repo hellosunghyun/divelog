@@ -46,7 +46,7 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
       })
       .from(records)
       .leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
-      .where(and(eq(records.collaborationUnitId, unit.id), sql`${records.visibility} != 'draft'`))
+      .where(and(eq(records.collaborationUnitId, unit.id), sql`${records.visibility} IN ('cohort', 'public')`))
       .orderBy(desc(records.createdAt))
       .limit(12),
   ]);

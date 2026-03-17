@@ -82,7 +82,7 @@ export async function getOpenQuestions(d1: D1Database, cohort?: string) {
       and(
         eq(questions.isOpen, true),
         cohort ? eq(records.cohort, cohort) : undefined,
-        sql`${records.visibility} != 'draft'`,
+        sql`${records.visibility} IN ('cohort', 'public')`,
       ),
     )
     .orderBy(desc(questions.createdAt))
@@ -151,7 +151,7 @@ export async function getOpenQuestionsForStage(d1: D1Database, stageId: string, 
       and(
         eq(records.stageId, stageId),
         eq(questions.isOpen, true),
-        sql`${records.visibility} != 'draft'`,
+        sql`${records.visibility} IN ('cohort', 'public')`,
       ),
     )
     .orderBy(desc(questions.createdAt))

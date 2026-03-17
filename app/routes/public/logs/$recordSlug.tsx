@@ -97,7 +97,7 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
   const currentUserId = optionalAuth?.isAuthenticated ? optionalAuth.user.id : null;
   const isAuthor = currentUserId === recordData.record.authorId;
 
-  if (recordData.record.visibility === "draft" && !isAuthor) {
+  if ((recordData.record.visibility === "draft" || recordData.record.visibility === "private") && !isAuthor) {
     logger.info("not_found", { slug: recordSlug });
     throw data("기록을 찾을 수 없습니다.", { status: 404 });
   }
@@ -241,7 +241,7 @@ export async function action({ request, context }: Route.ActionArgs) {
       const authorId = targetRecord[0].authorId;
       
       // Defense-in-depth: prevent responses on draft records (unless user is author)
-      if (visibility === "draft" && authorId !== auth.user.id) {
+      if ((visibility === "draft" || visibility === "private") && authorId !== auth.user.id) {
         return { error: "이 기록에 응답할 수 없습니다." };
       }
       
@@ -300,7 +300,7 @@ export async function action({ request, context }: Route.ActionArgs) {
       const visibility = targetRecord[0].visibility;
       const authorId = targetRecord[0].authorId;
       
-      if (visibility === "draft" && authorId !== auth.user.id) {
+      if ((visibility === "draft" || visibility === "private") && authorId !== auth.user.id) {
         return { error: "이 기록에 문장을 저장할 수 없습니다." };
       }
     }
@@ -576,7 +576,13 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
       {record.visibility === "draft" && (
         <div className="mb-6 rounded-xl border border-warning/30 bg-warning/5 px-5 py-4">
           <p className="text-base font-medium text-warning">임시저장 상태입니다</p>
-          <p className="text-sm text-text-secondary mt-1">이 기록은 나만 볼 수 있습니다. 준비가 되면 공개 범위를 변경해보세요.</p>
+          <p className="text-sm text-text-secondary mt-1">이 기록은 아직 작성 중입니다. 준비가 되면 공개 범위를 변경해보세요.</p>
+        </div>
+      )}
+      {record.visibility === "private" && (
+        <div className="mb-6 rounded-xl border border-border bg-surface-secondary px-5 py-4">
+          <p className="text-base font-medium text-text-primary">나만 보기 상태입니다</p>
+          <p className="text-sm text-text-secondary mt-1">이 기록은 나만 볼 수 있습니다. 다른 사람과 나누고 싶다면 공개 범위를 변경해보세요.</p>
         </div>
       )}
 
@@ -620,6 +626,11 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
           {record.visibility === "draft" && (
             <span className="text-caption px-3 py-1 rounded-full bg-warning/10 text-warning font-medium">
               임시저장
+            </span>
+          )}
+          {record.visibility === "private" && (
+            <span className="text-caption px-3 py-1 rounded-full bg-surface-secondary text-text-secondary font-medium border border-border">
+              나만 보기
             </span>
           )}
         </div>

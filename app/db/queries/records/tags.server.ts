@@ -144,7 +144,7 @@ export async function getRecordsByTag(d1: D1Database, tagId: string): Promise<Ta
   const database = db(d1);
 
   const { records, stages, learnerProfiles } = await import("../../schema.server");
-  const { desc, and, eq, ne } = await import("drizzle-orm");
+  const { desc, and, eq, sql } = await import("drizzle-orm");
 
   const result = await database
     .select({
@@ -171,7 +171,7 @@ export async function getRecordsByTag(d1: D1Database, tagId: string): Promise<Ta
     .innerJoin(records, eq(recordTags.recordId, records.id))
     .leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
     .leftJoin(stages, eq(records.stageId, stages.id))
-    .where(and(eq(recordTags.tagId, tagId), ne(records.visibility, "draft")))
+    .where(and(eq(recordTags.tagId, tagId), sql`${records.visibility} IN ('cohort', 'public')`))
     .orderBy(desc(records.createdAt));
 
   return result;

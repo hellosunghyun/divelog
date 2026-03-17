@@ -1,6 +1,6 @@
 import type { Route } from "./+types/index";
 import { useSearchParams, useNavigate } from "react-router";
-import { eq, and, asc, desc, gte, lt, ne, count } from "drizzle-orm";
+import { eq, and, asc, desc, gte, lt, sql, count } from "drizzle-orm";
 import SceneCard from "~/components/cards/SceneCard";
 import FilterBar from "~/components/filters/FilterBar";
 import SortBar from "~/components/filters/SortBar";
@@ -80,7 +80,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 
   const database = db(context.cloudflare.env.DB);
 
-  const conditions = [ne(records.visibility, "draft")];
+  const conditions = [sql`${records.visibility} IN ('cohort', 'public')`];
   if (stageId) conditions.push(eq(records.stageId, stageId));
   if (format && (format === "note" || format === "article")) {
     conditions.push(eq(records.format, format));
