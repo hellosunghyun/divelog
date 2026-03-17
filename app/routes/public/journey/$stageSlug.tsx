@@ -35,6 +35,19 @@ export function meta({ data: loaderData }: Route.MetaArgs) {
   ];
 }
 
+export function shouldRevalidate({
+  formMethod,
+  defaultShouldRevalidate,
+}: {
+  formMethod?: string;
+  defaultShouldRevalidate: boolean;
+}): boolean {
+  if (formMethod && formMethod !== "GET") {
+    return defaultShouldRevalidate;
+  }
+  return false;
+}
+
 export default function StageDetailPage({ loaderData }: Route.ComponentProps) {
   const { stage, allStages, stageRecords, stageQuestions, stageCollaborations, collectiveMemory } = loaderData as LoaderData;
 

@@ -62,6 +62,19 @@ export function meta({ data: loaderData }: Route.MetaArgs) {
   ];
 }
 
+export function shouldRevalidate({
+  formMethod,
+  defaultShouldRevalidate,
+}: {
+  formMethod?: string;
+  defaultShouldRevalidate: boolean;
+}): boolean {
+  if (formMethod && formMethod !== "GET") {
+    return defaultShouldRevalidate;
+  }
+  return false;
+}
+
 const RHYTHM_LABELS: Record<string, string> = {
   free: "자유",
   moment: "순간",

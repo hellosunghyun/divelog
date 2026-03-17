@@ -32,6 +32,19 @@ export function meta({ data: loaderData }: Route.MetaArgs) {
   return [{ title: `${typedData.learner.displayName} — DiveLog` }];
 }
 
+export function shouldRevalidate({
+  formMethod,
+  defaultShouldRevalidate,
+}: {
+  formMethod?: string;
+  defaultShouldRevalidate: boolean;
+}): boolean {
+  if (formMethod && formMethod !== "GET") {
+    return defaultShouldRevalidate;
+  }
+  return false;
+}
+
 interface TabButtonProps {
   active: boolean;
   onClick: () => void;

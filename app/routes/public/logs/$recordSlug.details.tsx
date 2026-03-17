@@ -28,6 +28,19 @@ export function meta(_args: Route.MetaArgs) {
   return [{ title: "세부 설정 — DiveLog" }];
 }
 
+export function shouldRevalidate({
+  formMethod,
+  defaultShouldRevalidate,
+}: {
+  formMethod?: string;
+  defaultShouldRevalidate: boolean;
+}): boolean {
+  if (formMethod && formMethod !== "GET") {
+    return defaultShouldRevalidate;
+  }
+  return false;
+}
+
 export async function loader({ params, request, context }: Route.LoaderArgs) {
   const auth = await requireVerified(request, context);
   const recordSlug = params.recordSlug;

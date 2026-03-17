@@ -19,6 +19,19 @@ import {
 } from "~/db/schema.server";
 import { createLogger } from "~/lib/infra/logger.server";
 
+export function shouldRevalidate({
+  formMethod,
+  defaultShouldRevalidate,
+}: {
+  formMethod?: string;
+  defaultShouldRevalidate: boolean;
+}): boolean {
+  if (formMethod && formMethod !== "GET") {
+    return defaultShouldRevalidate;
+  }
+  return false;
+}
+
 export async function loader({ params, request, context }: Route.LoaderArgs) {
   const { stageSlug } = params;
   const logger = createLogger(request, context.cloudflare.env).child({ route: "memory_detail" });

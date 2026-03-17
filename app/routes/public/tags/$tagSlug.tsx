@@ -20,6 +20,19 @@ export function meta({ data: loaderData }: Route.MetaArgs) {
   ];
 }
 
+export function shouldRevalidate({
+  formMethod,
+  defaultShouldRevalidate,
+}: {
+  formMethod?: string;
+  defaultShouldRevalidate: boolean;
+}): boolean {
+  if (formMethod && formMethod !== "GET") {
+    return defaultShouldRevalidate;
+  }
+  return false;
+}
+
 export async function loader({ params, request, context }: Route.LoaderArgs) {
   const { tagSlug } = params;
   const logger = createLogger(request, context.cloudflare.env).child({ route: "tag_detail" });

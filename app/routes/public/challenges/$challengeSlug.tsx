@@ -52,6 +52,19 @@ export function meta({ data: loaderData }: Route.MetaArgs) {
   return [{ title: `${loaderData.challenge.name} — DiveLog` }];
 }
 
+export function shouldRevalidate({
+  formMethod,
+  defaultShouldRevalidate,
+}: {
+  formMethod?: string;
+  defaultShouldRevalidate: boolean;
+}): boolean {
+  if (formMethod && formMethod !== "GET") {
+    return defaultShouldRevalidate;
+  }
+  return false;
+}
+
 const STATUS_LABELS: Record<string, string> = {
   active: "진행 중",
   completed: "완료",

@@ -18,6 +18,19 @@ export function meta(_args: Route.MetaArgs) {
   return [{ title: "내 공간 — DiveLog" }];
 }
 
+export function shouldRevalidate({
+  formMethod,
+  defaultShouldRevalidate,
+}: {
+  formMethod?: string;
+  defaultShouldRevalidate: boolean;
+}): boolean {
+  if (formMethod && formMethod !== "GET") {
+    return defaultShouldRevalidate;
+  }
+  return false;
+}
+
 const STAGE_TONE_MAP: Record<string, { bg: string; border: string; label: string }> = {
   prelude: { bg: "var(--color-prelude-bg)", border: "var(--color-prelude)", label: "전주" },
   bridge: { bg: "var(--color-bridge-bg)", border: "var(--color-bridge)", label: "연결" },
