@@ -2,6 +2,7 @@ import { and, desc, eq, like, or, sql } from "drizzle-orm";
 
 import type { CreateRecordInput, RecordFilterInput } from "../../../lib/auth/validation";
 import { nanoid } from "../../../lib/utils/utils.server";
+import { createAuditLog } from "../admin/insights/audit-helpers.server";
 import { db } from "../../client.server";
 import { learnerProfiles, records } from "../../schema.server";
 
@@ -105,7 +106,7 @@ export async function createRecord(d1: D1Database, authorId: string, data: Creat
   const slug = `${baseSlug}-${id.substring(0, 6)}`;
   const now = Math.floor(Date.now() / 1000);
 
-  await database.insert(records).values({
+  const recordData = {
     id,
     slug,
     authorId,
@@ -122,7 +123,22 @@ export async function createRecord(d1: D1Database, authorId: string, data: Creat
     collaborationUnitId: data.collaborationUnitId ?? null,
     createdAt: now,
     updatedAt: now,
-  });
+  };
+
+  await database.insert(records).values(recordData);
+
+  try {
+    await createAuditLog(d1, {
+      actorId: authorId,
+      targetType: "record",
+      targetId: id,
+      action: "create",
+      beforeState: null,
+      afterState: recordData,
+    });
+  } catch (err) {
+    console.error("[audit] createRecord audit log failed:", err);
+  }
 
   return { id, slug };
 }
