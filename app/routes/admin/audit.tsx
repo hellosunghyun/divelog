@@ -19,6 +19,7 @@ import {
   adminEmptyTitleClass,
   adminEmptyDescClass,
 } from "~/components/admin/admin-patterns";
+import { RevisionDiffView } from "~/components/revision/RevisionDiffView";
 import { auditLogs } from "~/db/schema.server";
 import { compareRecordStates, formatFieldChange } from "~/lib/utils/record-diff.server";
 
@@ -211,30 +212,22 @@ export default function AdminAuditPage({ loaderData }: Route.ComponentProps) {
                                 })
                                 .join(", ");
 
-                              return (
-                                <details className="cursor-pointer">
-                                  <summary className="text-xs text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] select-none">
-                                    {fieldNames}
-                                  </summary>
-                                  <div className="mt-2 p-2 bg-[var(--color-surface-secondary)] rounded text-xs space-y-1">
-                                    {changes.map((change) => {
-                                      const formatted = formatFieldChange(
-                                        change.field,
-                                        change.oldValue,
-                                        change.newValue
-                                      );
-                                      return (
-                                        <div
-                                          key={change.field}
-                                          className="text-[var(--color-text-secondary)]"
-                                        >
-                                          <strong>{formatted.label}:</strong> {formatted.summary}
-                                        </div>
-                                      );
-                                    })}
-                                  </div>
-                                </details>
-                              );
+                               const changedFieldNames = changes.map((c) => c.field);
+
+                               return (
+                                 <details className="cursor-pointer">
+                                   <summary className="text-xs text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] select-none">
+                                     {fieldNames}
+                                   </summary>
+                                   <div className="mt-2 p-2 bg-[var(--color-surface-secondary)] rounded">
+                                     <RevisionDiffView
+                                       changedFields={changedFieldNames}
+                                       beforeSnapshot={before}
+                                       afterState={after}
+                                     />
+                                   </div>
+                                 </details>
+                               );
                             } catch {
                               return (
                                 <span className="text-xs text-[var(--color-text-secondary)]">
