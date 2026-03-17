@@ -6,8 +6,6 @@ import {
   adminTdClass,
   adminTrClass,
   adminCardClass,
-  adminCardHeaderClass,
-  adminCardBodyClass,
   adminBadgeBase,
   adminBadgeDefault,
   adminBadgeSuccess,
@@ -19,11 +17,11 @@ import {
   adminEmptyTitleClass,
   adminEmptyDescClass,
 } from "~/components/admin/admin-patterns";
-import { RevisionDiffView } from "~/components/revision/RevisionDiffView";
-import { auditLogs } from "~/db/schema.server";
-import { compareRecordStates, formatFieldChange } from "~/lib/utils/record-diff.server";
 
-type AuditLog = typeof auditLogs.$inferSelect;
+type AuditDiffDetail = {
+  label: string;
+  summary: string;
+};
 
 export function meta(_: Route.MetaArgs) {
   return [{ title: "감사 로그" }];
@@ -33,6 +31,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const { db } = await import("~/db/client.server");
   const { createLogger } = await import("~/lib/infra/logger.server");
   const { auditLogs } = await import("~/db/schema.server");
+  const { compareRecordStates, formatFieldChange } = await import("~/lib/utils/record-diff.server");
 
   const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.audit" });
   logger.info("loader_start");
@@ -41,7 +40,71 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const database = db(context.cloudflare.env.DB);
   const base = database.select().from(auditLogs).orderBy(desc(auditLogs.createdAt)).limit(100);
   const logs = targetType ? await base.where(eq(auditLogs.targetType, targetType)) : await base;
-  return { logs, targetType };
+
+  const logsWithDiff = logs.map((log) => {
+    let diffSummary: string | null = null;
+    let diffDetails: AuditDiffDetail[] | null = null;
+    let changedFields: string[] | null = null;
+    let beforeSnapshot: Record<string, unknown> | null = null;
+    let afterSnapshot: Record<string, unknown> | null = null;
+
+    if (log.targetType === "record" && log.beforeState && log.afterState) {
+      try {
+        const before = JSON.parse(log.beforeState) as Record<string, unknown>;
+        const after = JSON.parse(log.afterState) as Record<string, unknown>;
+        beforeSnapshot = before;
+        afterSnapshot = after;
+        const changes = compareRecordStates(before, after);
+
+        if (changes.length > 0) {
+          diffSummary = `${changes
+            .map((change) => {
+              const { label } = formatFieldChange(change.field, change.oldValue, change.newValue);
+              return label;
+            })
+            .join(", ")} 변경`;
+          diffDetails = changes.map((change) =>
+            formatFieldChange(change.field, change.oldValue, change.newValue)
+          );
+          changedFields = changes.map((change) => change.field);
+        } else {
+          diffSummary = "변경 없음";
+        }
+      } catch (err) {
+        console.error("[audit] Failed to parse state:", err);
+        diffSummary = "상세 정보 있음";
+      }
+    } else if (log.action === "create") {
+      diffSummary = "기록이 생성되었습니다";
+    } else if (log.action === "delete") {
+      diffSummary = "기록이 삭제되었습니다";
+    } else if (log.beforeState || log.afterState) {
+      try {
+        const before = log.beforeState
+          ? (JSON.parse(log.beforeState) as Record<string, unknown>)
+          : {};
+        const after = log.afterState ? (JSON.parse(log.afterState) as Record<string, unknown>) : {};
+        const changedCount = Object.keys({ ...before, ...after }).filter(
+          (key) => JSON.stringify(before[key]) !== JSON.stringify(after[key])
+        ).length;
+        diffSummary = changedCount > 0 ? `${changedCount}개 필드 변경` : "변경 없음";
+      } catch (err) {
+        console.error("[audit] Failed to parse state:", err);
+        diffSummary = "상세 정보 있음";
+      }
+    }
+
+    return {
+      ...log,
+      diffSummary,
+      diffDetails,
+      changedFields,
+      beforeSnapshot,
+      afterSnapshot,
+    };
+  });
+
+  return { logs: logsWithDiff, targetType };
 }
 
 const TARGET_TYPES = ["record", "stage", "learner", "response", "challenge", "collaboration", "memory"];
@@ -137,7 +200,7 @@ export default function AdminAuditPage({ loaderData }: Route.ComponentProps) {
               </tr>
             </thead>
             <tbody>
-              {logs.map((log: AuditLog) => {
+              {logs.map((log) => {
                 const { label: actionLabel, badgeClass } = getActionBadge(log.action);
                 return (
                   <tr key={log.id} className={adminTrClass}>
@@ -172,85 +235,32 @@ export default function AdminAuditPage({ loaderData }: Route.ComponentProps) {
                     <td className={`${adminTdClass} max-w-[200px]`}>
                       {log.beforeState || log.afterState ? (
                         log.targetType === "record" ? (
-                          // Enhanced record diff display
-                          (() => {
-                            try {
-                              const before = log.beforeState ? JSON.parse(log.beforeState) : {};
-                              const after = log.afterState ? JSON.parse(log.afterState) : {};
-
-                              if (log.action === "create") {
-                                return (
-                                  <span className="text-xs text-[var(--color-text-secondary)]">
-                                    기록이 생성되었습니다
-                                  </span>
-                                );
-                              }
-
-                              if (log.action === "delete") {
-                                return (
-                                  <span className="text-xs text-[var(--color-text-secondary)]">
-                                    기록이 삭제되었습니다
-                                  </span>
-                                );
-                              }
-
-                              const changes = compareRecordStates(before, after);
-
-                              if (changes.length === 0) {
-                                return (
-                                  <span className="text-xs text-[var(--color-text-secondary)]">
-                                    변경 없음
-                                  </span>
-                                );
-                              }
-
-                              // Collapsed state: show field names
-                              const fieldNames = changes
-                                .map((c) => {
-                                  const formatted = formatFieldChange(c.field, c.oldValue, c.newValue);
-                                  return formatted.label;
-                                })
-                                .join(", ");
-
-                               const changedFieldNames = changes.map((c) => c.field);
-
-                               return (
-                                 <details className="cursor-pointer">
-                                   <summary className="text-xs text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] select-none">
-                                     {fieldNames}
-                                   </summary>
-                                   <div className="mt-2 p-2 bg-[var(--color-surface-secondary)] rounded">
-                                     <RevisionDiffView
-                                       changedFields={changedFieldNames}
-                                       beforeSnapshot={before}
-                                       afterState={after}
-                                     />
-                                   </div>
-                                 </details>
-                               );
-                            } catch {
-                              return (
-                                <span className="text-xs text-[var(--color-text-secondary)]">
-                                  상세 정보 있음
-                                </span>
-                              );
-                            }
-                          })()
+                          log.diffDetails && log.changedFields && log.beforeSnapshot && log.afterSnapshot ? (
+                            <details className="cursor-pointer">
+                              <summary className="text-xs text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] select-none">
+                                {log.diffSummary ?? "상세 정보 있음"}
+                              </summary>
+                              <div className="mt-2 p-2 bg-[var(--color-surface-secondary)] rounded">
+                                <ul className="mb-2 space-y-1">
+                                  {log.diffDetails.map((detail) => (
+                                    <li
+                                      key={`${log.id}-diff-${detail.label}-${detail.summary}`}
+                                      className="text-xs text-[var(--color-text-secondary)]"
+                                    >
+                                      {detail.label}: {detail.summary}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            </details>
+                          ) : (
+                            <span className="text-xs text-[var(--color-text-secondary)]">
+                              {log.diffSummary ?? "상세 정보 있음"}
+                            </span>
+                          )
                         ) : (
-                          // Non-record types: keep existing behavior
                           <span className="text-xs text-[var(--color-text-secondary)]">
-                            {(() => {
-                              try {
-                                const before = log.beforeState ? JSON.parse(log.beforeState) : {};
-                                const after = log.afterState ? JSON.parse(log.afterState) : {};
-                                const changed = Object.keys({ ...before, ...after }).filter(
-                                  k => JSON.stringify(before[k]) !== JSON.stringify(after[k])
-                                );
-                                return changed.length > 0 ? `${changed.length}개 필드 변경` : "변경 없음";
-                              } catch {
-                                return "상세 정보 있음";
-                              }
-                            })()}
+                            {log.diffSummary ?? "상세 정보 있음"}
                           </span>
                         )
                       ) : (
