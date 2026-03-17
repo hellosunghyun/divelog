@@ -69,8 +69,8 @@
     <!-- Triangle fade opacity -->
     <linearGradient id="triFade" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%"   stop-color="#FFFFFF" />
-      <stop offset="75%"  stop-color="#FFFFFF" stop-opacity="0.85" />
-      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.15" />
+      <stop offset="60%"  stop-color="#FFFFFF" stop-opacity="0.6" />
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0" />
     </linearGradient>
 
     <!-- Drop shadow — layered for depth -->
@@ -106,6 +106,6 @@
     <rect width="512" height="512" fill="url(#warmBounce)" />
 
     <!-- Thin triangle with glow + fade -->
-    <polygon points="253,0 259,0 256,462" fill="url(#triFade)" filter="url(#triGlow)" />
+    <polygon points="253,0 259,0 256,400" fill="url(#triFade)" filter="url(#triGlow)" />
   </g>
 </svg>
