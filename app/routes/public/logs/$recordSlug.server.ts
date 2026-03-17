@@ -99,11 +99,31 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
       .orderBy(desc(sentences.createdAt)),
   ]);
 
-  const linkedRecordsRaw = await getLinkedRecords(
-    context.cloudflare.env.DB,
-    recordData.record.id,
-    recordData.record.linkedRecordId,
-  );
+  const [linkedRecordsRaw, selfAnswersData, recordTags, incomingLinks, isAdmin] = await Promise.all([
+    getLinkedRecords(
+      context.cloudflare.env.DB,
+      recordData.record.id,
+      recordData.record.linkedRecordId,
+    ),
+    getSelfAnswersByRecord(context.cloudflare.env.DB, recordData.record.id),
+    getTagsByRecord(context.cloudflare.env.DB, recordData.record.id),
+    getIncomingLinks(context.cloudflare.env.DB, recordData.record.id).catch((err) => {
+      logger.warn("incoming_links_query_failed", {
+        error: err instanceof Error ? err.message : String(err),
+        recordId: recordData.record.id,
+      });
+
+      return [] as Awaited<ReturnType<typeof getIncomingLinks>>;
+    }),
+    optionalAuth?.isAuthenticated
+      ? database
+          .select()
+          .from(userRoles)
+          .where(and(eq(userRoles.userId, optionalAuth.user.id), eq(userRoles.role, "admin")))
+          .limit(1)
+          .then((adminRole) => adminRole.length > 0)
+      : Promise.resolve(false),
+  ]);
 
   const linkedRecords = linkedRecordsRaw.map((lr) => ({
     ...lr,
@@ -113,33 +133,12 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
     ).substring(0, 120),
   }));
 
-  const selfAnswersData = await getSelfAnswersByRecord(context.cloudflare.env.DB, recordData.record.id);
-  const recordTags = await getTagsByRecord(context.cloudflare.env.DB, recordData.record.id);
-
-  let isAdmin = false;
-  if (optionalAuth?.isAuthenticated) {
-    const adminRole = await database
-      .select()
-      .from(userRoles)
-      .where(and(eq(userRoles.userId, optionalAuth.user.id), eq(userRoles.role, "admin")))
-      .limit(1);
-    isAdmin = adminRole.length > 0;
-  }
   const isAuthorOrAdmin = isAuthor || isAdmin;
 
   const revisions = isAuthorOrAdmin
     ? await getRevisionsByRecord(context.cloudflare.env.DB, recordData.record.id)
     : [];
 
-  let incomingLinks: Awaited<ReturnType<typeof getIncomingLinks>> = [];
-  try {
-    incomingLinks = await getIncomingLinks(context.cloudflare.env.DB, recordData.record.id);
-  } catch (err) {
-    logger.warn("incoming_links_query_failed", {
-      error: err instanceof Error ? err.message : String(err),
-      recordId: recordData.record.id,
-    });
-  }
   const recordFormat = normalizeContentFormat(recordData.record.format);
   const contentHtml = renderContentToHtml(recordData.record.content, recordFormat);
   const plainTextContent = getPlainText(recordData.record.content, recordFormat);
