@@ -1,0 +1,71 @@
+F1: Plan Compliance Audit
+Date: 2026-03-17
+
+Must Have Checks
+1) git log --oneline -6
+2e6730e refactor: sub-group admin query modules
+c01d529 refactor: split editor components into editors and extensions
+462c297 refactor: reorganize app/lib into concern-based sub-folders
+8a7049d refactor: reorganize app/db/queries into domain sub-folders
+7302480 refactor: reorganize app/components into domain sub-folders
+3c5a79d fix: 표 툴바 placeholder 아이콘 교체, 글쓰기 페이지 레이아웃 개선
+
+2) ls app/components/cards/ app/components/layout/ app/components/sections/ app/components/feedback/ app/components/filters/ app/components/views/ app/components/activity/ app/components/content/
+PASS (all 8 folders listed with files)
+
+3) ls app/db/queries/records/ app/db/queries/dialogue/ app/db/queries/journey/ app/db/queries/social/ app/db/queries/learners/ app/db/queries/misc/
+PASS (all 6 folders listed with files)
+
+4) ls app/lib/auth/ app/lib/content/ app/lib/utils/ app/lib/infra/ app/lib/motion/
+PASS (all 5 folders listed with files)
+
+5) ls app/components/editor/editors/ app/components/editor/extensions/
+PASS (both folders listed with files)
+
+6) ls app/db/queries/admin/data/ app/db/queries/admin/ops/ app/db/queries/admin/insights/
+PASS (all 3 folders listed with files)
+
+7) ls .sisyphus/evidence/ts-errors-baseline.txt .sisyphus/evidence/test-baseline.txt .sisyphus/evidence/task-0-baseline.txt .sisyphus/evidence/task-1-components-reorg.txt .sisyphus/evidence/task-2-queries-reorg.txt .sisyphus/evidence/task-3-lib-reorg.txt .sisyphus/evidence/task-4-editor-split.txt .sisyphus/evidence/task-5-admin-queries.txt
+PASS (all 8 files listed)
+
+Must NOT Have Checks
+1) find app/components app/db/queries app/lib -name "index.ts" -not -path "*/admin/index.server.ts" | wc -l
+0
+PASS
+
+2) ls app/components/*.tsx 2>/dev/null | wc -l
+39
+FAIL (expected 0)
+
+3) ls app/db/queries/*.server.ts 2>/dev/null | wc -l
+39
+FAIL (expected 0)
+
+4) ls app/lib/*.ts app/lib/*.tsx 2>/dev/null
+app/lib/test-utils.tsx
+PASS (only test-utils.tsx present)
+
+5) git diff HEAD~5 -- app/hooks/ app/styles/ | wc -l
+12
+FAIL (expected 0)
+Related file from name-only diff:
+app/hooks/useAutosave.ts
+
+6) git diff HEAD~5 -- tsconfig.json vite.config.ts vitest.config.ts | wc -l
+0
+PASS
+
+7) git diff HEAD~5 -- AGENTS.md .docs/ | wc -l
+0
+PASS
+
+8) grep -rn '"~/components/SceneCard"' app/ | wc -l
+0
+   grep -rn '"~/lib/cn"' app/ | wc -l
+0
+   grep -rn '"~/db/queries/records\.server"' app/ | wc -l
+0
+PASS
+
+Result
+Must Have [7/7] | Must NOT Have [5/8] | VERDICT: REJECT

@@ -1,0 +1,60 @@
+# Task 1: Baseline 스크린샷 캡처 완료
+
+완료 시각: 2026-03-17
+서버: http://localhost:5173 (divelog-redesign)
+뷰포트: 1440×900, 768×1024, 375×812
+
+## 캡처된 파일 목록 (총 27개)
+
+### HOME (/)
+- home-1440.png
+- home-768.png
+- home-375.png
+
+### JOURNEY (/journey)
+- journey-1440.png
+- journey-768.png
+- journey-375.png
+
+### LOGS (/logs)
+- logs-1440.png
+- logs-768.png
+- logs-375.png
+
+### RECORD (/logs/jaemin-start)
+- record-1440.png
+- record-768.png
+- record-375.png
+
+### LEARNERS (/learners)
+- learners-1440.png
+- learners-768.png
+- learners-375.png
+
+### CHALLENGES (/challenges)
+- challenges-1440.png
+- challenges-768.png
+- challenges-375.png
+
+### SEARCH (/search)
+- search-1440.png
+- search-768.png
+- search-375.png
+
+### WRITE (/write → 인증 리다이렉트)
+- write-1440.png
+- write-768.png
+- write-375.png
+
+### ADMIN (/admin → ada-kr-pos.com/mypage 리다이렉트)
+- admin-1440.png
+- admin-768.png
+- admin-375.png
+
+## 검증
+ls .sisyphus/evidence/baseline/*.png | wc -l → 27 ✅
+
+## 비고
+- D1 마이그레이션 및 시드 데이터 적용 후 서버 정상 작동
+- /write, /admin은 인증 필요로 리다이렉트된 화면 캡처
+- Hydration 경고 있으나 UI 렌더링에는 영향 없음

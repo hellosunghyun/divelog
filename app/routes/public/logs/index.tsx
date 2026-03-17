@@ -12,6 +12,7 @@ import { Button } from "~/components/ui/button";
 import { normalizeContentFormat } from "~/lib/content/editor-extensions";
 import { motion } from "~/lib/motion/motion";
 import { staggerContainer, staggerItem } from "~/lib/motion/motion-utils";
+import { useReadState } from "~/hooks/useReadState";
 
 type LogSort = "recent" | "oldest" | "stage";
 
@@ -211,6 +212,10 @@ export default function LogsPage({ loaderData }: Route.ComponentProps) {
 
   const currentView = filters.view;
   const activeFormat = searchParams.get("format") ?? "";
+  const articleRecordIds = filteredRecords
+    .filter((r) => r.format === "article")
+    .map((r) => r.id);
+  const { isRead } = useReadState(articleRecordIds);
 
   const tabs = [
     { label: "전체", value: "" },
@@ -303,6 +308,7 @@ export default function LogsPage({ loaderData }: Route.ComponentProps) {
                     }
                   : undefined
               }
+              isRead={record.format === "article" && isRead(record.id)}
             />
           </motion.div>
         ))}

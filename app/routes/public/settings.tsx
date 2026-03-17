@@ -1,6 +1,8 @@
 import type { Route } from "./+types/settings";
 import { requireAuth } from "~/lib/auth/auth.middleware";
 import { eq } from "drizzle-orm";
+import { useActionData } from "react-router";
+import { Form } from "react-router";
 import HeroSection from "~/components/sections/HeroSection";
 import { Button } from "~/components/ui/button";
 import { Checkbox } from "~/components/ui/checkbox";
@@ -12,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import { clearLocalReads } from "~/lib/infra/read-storage";
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "설정 — DiveLog" }];
@@ -48,6 +51,15 @@ export async function action({ request, context }: Route.ActionArgs) {
   const database = db(context.cloudflare.env.DB);
   const now = Math.floor(Date.now() / 1000);
 
+  // Intent-based dispatch
+  const intent = formData.get("intent");
+  if (intent === "reset_all_reads") {
+    const { clearAllReads } = await import("~/db/queries/records/recordReads.server");
+    await clearAllReads(context.cloudflare.env.DB, auth.user.id);
+    logger.info("reads_reset");
+    return { readReset: "읽음 상태가 초기화되었습니다." };
+  }
+
   const defaultVisibility = formData.get("defaultVisibility") as string | null;
   const defaultResponsePreference = formData.get(
     "defaultResponsePreference"
@@ -76,6 +88,7 @@ export async function action({ request, context }: Route.ActionArgs) {
 
 export default function SettingsPage({ loaderData }: Route.ComponentProps) {
   const { learner } = loaderData;
+  const actionData = useActionData<typeof action>();
 
   return (
     <div>
@@ -217,6 +230,28 @@ export default function SettingsPage({ loaderData }: Route.ComponentProps) {
             </Button>
           </div>
         </form>
+
+        {/* 읽음 상태 섹션 */}
+        <section className="mt-12 rounded-xl border border-border bg-surface p-6">
+          <h2 className="text-xl font-semibold text-text-primary mb-2">읽음 상태</h2>
+          <p className="text-text-secondary text-base mb-5">
+            읽은 기록의 표시를 초기화합니다.
+          </p>
+          {actionData && "readReset" in actionData ? (
+            <p className="text-green-600 text-sm mb-4">{actionData.readReset}</p>
+          ) : null}
+          <Form
+            method="post"
+            onSubmit={() => {
+              clearLocalReads();
+            }}
+          >
+            <input type="hidden" name="intent" value="reset_all_reads" />
+            <Button type="submit" variant="outline" size="sm">
+              모두 읽지 않음으로 표시
+            </Button>
+          </Form>
+        </section>
       </div>
     </div>
   );

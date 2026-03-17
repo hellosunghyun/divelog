@@ -1,0 +1,9 @@
+
+[1m[46m RUN [49m[22m [36mv4.1.0 [39m[90m/Users/hellosunghyun/Documents/Github/divelog-redesign[39m
+
+
+[2m Test Files [22m [1m[32m7 passed[39m[22m[90m (7)[39m
+[2m      Tests [22m [1m[32m85 passed[39m[22m[90m (85)[39m
+[2m   Start at [22m 01:39:31
+[2m   Duration [22m 878ms[2m (transform 229ms, setup 782ms, import 271ms, tests 124ms, environment 3.09s)[22m
+

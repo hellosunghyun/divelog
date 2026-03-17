@@ -1,0 +1,55 @@
+TASK 4: Split app/components/editor/ into editors/ and extensions/
+========================================================================
+
+VERIFICATION RESULTS:
+✓ Root editor directory is empty: 0 files
+✓ editors/ subdirectory has 3 files:
+  - ArticleEditor.tsx
+  - NoteEditor.tsx
+  - SlashCommandMenu.tsx
+
+✓ extensions/ subdirectory has 7 files:
+  - CalloutExtension.ts
+  - MentionExtension.ts
+  - RecordRefExtension.ts
+  - ResizableImage.ts
+  - TagExtension.ts
+  - TocExtension.ts
+  - ToggleExtension.ts
+
+✓ Old tilde imports removed: 0 occurrences
+✓ New tilde imports in place: 4 occurrences
+  - app/routes/public/write/note.tsx
+  - app/routes/public/write/article.tsx
+  - app/routes/public/logs/$recordSlug.edit.tsx (2 imports)
+
+✓ TypeScript errors: 36 (baseline maintained)
+✓ Tests: 126 passed
+
+IMPORT UPDATES MADE:
+1. ArticleEditor.tsx internal imports:
+   - "./ResizableImage" → "../extensions/ResizableImage"
+   - "./CalloutExtension" → "../extensions/CalloutExtension"
+   - "./TagExtension" → "../extensions/TagExtension"
+   - "./TocExtension" → "../extensions/TocExtension"
+   - "./ToggleExtension" → "../extensions/ToggleExtension"
+   - "./MentionExtension" → "../extensions/MentionExtension"
+   - "./RecordRefExtension" → "../extensions/RecordRefExtension"
+
+2. ArticleEditor.tsx lib import depth fix:
+   - "../../lib/content/compress-image" → "../../../lib/content/compress-image"
+   (Adjusted for one additional nesting level)
+
+3. External tilde imports updated in:
+   - app/routes/public/write/note.tsx
+   - app/routes/public/write/article.tsx
+   - app/routes/public/logs/$recordSlug.edit.tsx
+
+COMMIT:
+  Hash: c01d529
+  Message: refactor: split editor components into editors and extensions
+  Files changed: 13
+  Insertions: 12
+  Deletions: 12
+
+STATUS: ✓ COMPLETE

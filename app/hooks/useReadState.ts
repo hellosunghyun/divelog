@@ -1,0 +1,125 @@
+import { useEffect, useState } from "react";
+import { useFetcher, useRouteLoaderData } from "react-router";
+import {
+  getLocalReadIds,
+  getLocalReads,
+  clearLocalReads,
+  hasSyncedThisSession,
+  markSyncedThisSession,
+} from "~/lib/infra/read-storage";
+
+interface PublicLoaderData {
+  isAuthenticated: boolean;
+  user: {
+    id: string;
+    name: string;
+    profilePhotoUrl: string | null;
+    isAdmin: boolean;
+  } | null;
+}
+
+interface ReadStateData {
+  readIds: string[];
+}
+
+interface UseReadStateResult {
+  isRead: (recordId: string) => boolean;
+  isLoading: boolean;
+}
+
+export function useReadState(recordIds: string[]): UseReadStateResult {
+  const data = useRouteLoaderData("routes/_public") as PublicLoaderData | undefined;
+  const fetcher = useFetcher<ReadStateData>();
+  const syncFetcher = useFetcher();
+
+  const isAuthenticated = data?.isAuthenticated ?? false;
+  const userId = data?.user?.id;
+  const recordIdsKey = recordIds.join(",");
+  const hasRecordIds = recordIdsKey.length > 0;
+
+  const [readSet, setReadSet] = useState<Set<string>>(new Set());
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (!isAuthenticated || !userId) {
+      return;
+    }
+
+    if (hasSyncedThisSession()) {
+      return;
+    }
+
+    const reads = getLocalReads();
+    const entries = Object.entries(reads).map(([recordId, readAt]) => ({ recordId, readAt }));
+
+    if (entries.length === 0) {
+      markSyncedThisSession();
+      return;
+    }
+
+    syncFetcher.submit(
+      {
+        intent: "sync_reads",
+        entries: JSON.stringify(entries),
+      },
+      {
+        method: "POST",
+        action: "/api/track-read",
+      }
+    );
+
+    markSyncedThisSession();
+  }, [isAuthenticated, syncFetcher, userId]);
+
+  useEffect(() => {
+    if (syncFetcher.data && 'success' in syncFetcher.data) {
+      clearLocalReads();
+    }
+  }, [syncFetcher.data]);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      return;
+    }
+
+    if (!hasRecordIds) {
+      setReadSet(new Set());
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
+    fetcher.load(`/api/track-read?ids=${encodeURIComponent(recordIdsKey)}`);
+  }, [fetcher, hasRecordIds, isAuthenticated, recordIdsKey]);
+
+  useEffect(() => {
+    if (fetcher.data?.readIds) {
+      setReadSet(new Set(fetcher.data.readIds));
+      setIsLoading(false);
+      return;
+    }
+
+    if (fetcher.state === "idle") {
+      setIsLoading(false);
+    }
+  }, [fetcher.data, fetcher.state]);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      return;
+    }
+
+    const localReadIds = getLocalReadIds();
+    const nextReadSet = new Set(recordIds.filter((recordId) => localReadIds.has(recordId)));
+
+    setReadSet(nextReadSet);
+    setIsLoading(false);
+  }, [isAuthenticated, recordIds]);
+
+  return {
+    isRead(recordId: string) {
+      return readSet.has(recordId);
+    },
+    isLoading,
+  };
+}

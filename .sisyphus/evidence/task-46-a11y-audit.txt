@@ -1,0 +1,82 @@
+Task 46 - Accessibility audit
+Date: 2026-03-17
+Repo: /Users/hellosunghyun/Documents/Github/divelog-redesign
+Dev server: pnpm dev --port 5290
+
+Audited public pages
+- /
+- /journey
+- /logs
+- /learners
+- /challenges
+- /search
+- /style-reference
+
+Code changes
+- app/app.css
+  - Darkened secondary/tertiary text tokens for stronger contrast.
+  - Darkened prelude/bridge/epilogue stage accent tokens for badge/chip contrast.
+- app/lib/motion.tsx
+  - Added MotionConfig reducedMotion="user" to honor prefers-reduced-motion.
+- app/components/StageStrip.tsx
+  - Removed low-contrast muted opacity treatment from completed/past stages.
+- app/components/GlobalNav.tsx
+  - Added aria-label to the main nav landmark.
+  - Marked icon-only SVGs as aria-hidden.
+- app/components/Footer.tsx
+  - Strengthened footer heading/copyright text contrast.
+- app/components/SortBar.tsx
+  - Added aria-label="정렬 방식" to the select trigger.
+- app/components/ViewToggle.tsx
+  - Added explicit aria-labels to icon-only toggle buttons.
+- app/routes/public/index.tsx
+  - Added descriptive alt text for learner profile images in the home page spotlight stack.
+- app/routes/public/journey/index.tsx
+  - Removed card opacity that caused serious contrast failures on upcoming stages.
+- app/routes/public/logs/index.tsx
+  - Added a hidden h2 for heading order.
+- app/routes/public/learners/index.tsx
+  - Added a hidden h2 for heading order.
+- app/routes/public/search.tsx
+  - Added a hidden label for the search input.
+  - Added hidden h2 landmarks/section headings for empty/loading/result states.
+  - Promoted result section headings to h2.
+
+Playwright evidence
+1) Axe audit after fixes (waited 2s after load before running axe)
+   Result:
+   - / -> 0 violations
+   - /journey -> 0 violations
+   - /logs -> 0 violations
+   - /learners -> 0 violations
+   - /challenges -> 0 violations
+   - /search -> 0 violations
+   - /style-reference -> 0 violations
+
+2) DOM audit for required checks
+   Result:
+   - All visible img elements on audited pages have alt attributes.
+   - All visible button/a elements on audited pages have accessible names.
+
+3) Reduced motion verification
+   - Playwright emulateMedia({ reducedMotion: 'reduce' }) on /logs
+   - matchMedia('(prefers-reduced-motion: reduce)').matches -> true
+   - Computed transitionDuration on the view toggle -> 1e-05s
+   - Framer Motion wrapper updated with MotionConfig reducedMotion="user"
+
+4) Focus ring verification
+   - Keyboard Tab navigation on /
+   - Focused "여정" nav link computed boxShadow:
+     rgba(0, 0, 0, 0) 0px 0px 0px 0px,
+     rgba(0, 0, 0, 0) 0px 0px 0px 0px,
+     rgb(255, 255, 255) 0px 0px 0px 2px,
+     rgb(20, 108, 148) 0px 0px 0px 4px,
+     rgba(0, 0, 0, 0) 0px 0px 0px 0px
+
+Verification
+- pnpm exec tsc --noEmit -> PASS
+- LSP diagnostics -> clean for changed TS/TSX files
+- app/app.css still reports Biome parser false positives because Tailwind v4 syntax is not understood by the CSS parser in this environment; runtime/build remained valid.
+
+Additional note
+- npx react-router build completed the client/server build but the command exited with a Sentry sourcemap upload auth error (missing auth token), which is environment/config related and unrelated to these accessibility changes.

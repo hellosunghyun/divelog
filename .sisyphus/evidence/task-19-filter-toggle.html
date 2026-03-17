@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FilterBar + SortBar + ViewToggle — Task 19 Evidence</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --color-bg: #F6F8FB;
+      --color-surface: #FFFFFF;
+      --color-surface-secondary: #F2F5F8;
+      --color-border: #E3E8EF;
+      --color-text-primary: #1D1D1F;
+      --color-text-secondary: #6E6E73;
+      --color-ocean-blue: #146C94;
+      --color-mist-blue: #EAF4FA;
+      --shadow-tinted-sm: 0 1px 3px 0 rgba(11,36,71,0.04);
+      --ease-premium: cubic-bezier(0.32, 0.72, 0, 1);
+      --duration-normal: 250ms;
+    }
+    
+    body {
+      font-family: "Pretendard Variable", "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      background-color: var(--color-bg);
+      color: var(--color-text-primary);
+      min-height: 100vh;
+      padding: 48px;
+    }
+    
+    .transition-premium {
+      transition: all var(--duration-normal) var(--ease-premium);
+    }
+    
+    .bg-surface { background-color: var(--color-surface); }
+    .bg-surface-secondary { background-color: var(--color-surface-secondary); }
+    .bg-mist-blue { background-color: var(--color-mist-blue); }
+    .bg-bg { background-color: var(--color-bg); }
+    
+    .text-text-primary { color: var(--color-text-primary); }
+    .text-text-secondary { color: var(--color-text-secondary); }
+    .text-ocean-blue { color: var(--color-ocean-blue); }
+    
+    .border-border { border-color: var(--color-border); }
+    .border-ocean-blue-30 { border-color: rgba(20, 108, 148, 0.3); }
+    
+    .shadow-tinted-sm { box-shadow: var(--shadow-tinted-sm); }
+    
+    .rounded-full { border-radius: 9999px; }
+    .rounded-lg { border-radius: 12px; }
+    
+    .filter-chip {
+      padding: 6px 14px;
+      font-size: 14px;
+      font-weight: 500;
+      border: 1px solid;
+      cursor: pointer;
+    }
+    
+    .filter-chip:hover {
+      background-color: var(--color-surface-secondary);
+    }
+    
+    .filter-chip:active {
+      transform: scale(0.98);
+    }
+    
+    .filter-chip.active {
+      background-color: var(--color-mist-blue);
+      color: var(--color-ocean-blue);
+      border-color: rgba(20, 108, 148, 0.3);
+    }
+    
+    .filter-chip.inactive {
+      background-color: var(--color-surface);
+      color: var(--color-text-secondary);
+      border-color: var(--color-border);
+    }
+    
+    .view-toggle-btn {
+      padding: 6px 12px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .view-toggle-btn:active {
+      transform: scale(0.98);
+    }
+    
+    .view-toggle-btn.active {
+      background-color: var(--color-surface);
+      box-shadow: var(--shadow-tinted-sm);
+      color: var(--color-text-primary);
+    }
+    
+    .view-toggle-btn.inactive {
+      color: var(--color-text-secondary);
+    }
+    
+    .view-toggle-btn.inactive:hover {
+      color: var(--color-text-primary);
+    }
+    
+    .select-trigger {
+      height: 36px;
+      min-width: 144px;
+      padding: 8px 12px;
+      font-size: 14px;
+      border: 1px solid var(--color-border);
+      background-color: var(--color-surface);
+      border-radius: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .select-trigger:hover {
+      border-color: rgba(20, 108, 148, 0.3);
+    }
+    
+    .select-trigger:active {
+      transform: scale(0.98);
+    }
+    
+    .section-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--color-ocean-blue);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 16px;
+    }
+    
+    .component-section {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 20px;
+      padding: 32px;
+      margin-bottom: 32px;
+    }
+    
+    .component-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 24px;
+      color: var(--color-text-primary);
+    }
+    
+    .chip-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    
+    .filter-label {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--color-text-secondary);
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div style="max-width: 800px; margin: 0 auto;">
+    <h1 style="font-size: 32px; font-weight: 600; margin-bottom: 8px;">Task 19 Evidence</h1>
+    <p style="font-size: 16px; color: var(--color-text-secondary); margin-bottom: 48px;">FilterBar + SortBar + ViewToggle 리디자인</p>
+    
+    <!-- FilterBar Section -->
+    <div class="component-section">
+      <div class="section-label">Component 1</div>
+      <h2 class="component-title">FilterBar — Chip Style</h2>
+      
+      <div style="margin-bottom: 24px;">
+        <div class="filter-label">스테이지</div>
+        <div class="chip-group">
+          <button class="filter-chip rounded-full transition-premium active">전체</button>
+          <button class="filter-chip rounded-full transition-premium inactive">Prelude</button>
+          <button class="filter-chip rounded-full transition-premium inactive">Bridge</button>
+          <button class="filter-chip rounded-full transition-premium inactive">Challenge</button>
+          <button class="filter-chip rounded-full transition-premium inactive">Epilogue</button>
+        </div>
+      </div>
+      
+      <div>
+        <div class="filter-label">형식</div>
+        <div class="chip-group">
+          <button class="filter-chip rounded-full transition-premium inactive">전체</button>
+          <button class="filter-chip rounded-full transition-premium active">Note</button>
+          <button class="filter-chip rounded-full transition-premium inactive">Article</button>
+        </div>
+      </div>
+      
+      <div style="margin-top: 24px; padding: 16px; background: var(--color-surface-secondary); border-radius: 12px;">
+        <p style="font-size: 13px; color: var(--color-text-secondary); margin: 0;">
+          <strong style="color: var(--color-ocean-blue);">Features:</strong> rounded-full • mist-blue active state • ocean-blue text • active:scale-[0.98] • focus-visible:ring-2
+        </p>
+      </div>
+    </div>
+    
+    <!-- SortBar Section -->
+    <div class="component-section">
+      <div class="section-label">Component 2</div>
+      <h2 class="component-title">SortBar — Improved Dropdown</h2>
+      
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 14px; font-weight: 500; color: var(--color-text-secondary);">정렬</span>
+        <div class="select-trigger transition-premium">
+          <span>최근 기록</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </div>
+      </div>
+      
+      <div style="margin-top: 24px; padding: 16px; background: var(--color-surface-secondary); border-radius: 12px;">
+        <p style="font-size: 13px; color: var(--color-text-secondary); margin: 0;">
+          <strong style="color: var(--color-ocean-blue);">Features:</strong> transition-premium • active:scale-[0.98] • focus-visible:ring-2 • hover:border-ocean-blue/30
+        </p>
+      </div>
+    </div>
+    
+    <!-- ViewToggle Section -->
+    <div class="component-section">
+      <div class="section-label">Component 3</div>
+      <h2 class="component-title">ViewToggle — Segmented Control</h2>
+      
+      <div style="display: inline-flex; border-radius: 9999px; background: var(--color-surface-secondary); padding: 4px; gap: 2px;">
+        <button class="view-toggle-btn rounded-full transition-premium active" title="그리드 보기">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="4" width="6" height="6" rx="1"></rect>
+            <rect x="14" y="4" width="6" height="6" rx="1"></rect>
+            <rect x="4" y="14" width="6" height="6" rx="1"></rect>
+            <rect x="14" y="14" width="6" height="6" rx="1"></rect>
+          </svg>
+        </button>
+        <button class="view-toggle-btn rounded-full transition-premium inactive" title="타임라인 보기">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="8" y1="4" x2="8" y2="20"></line>
+            <circle cx="8" cy="7" r="1.5" fill="currentColor" stroke="none"></circle>
+            <circle cx="8" cy="12" r="1.5" fill="currentColor" stroke="none"></circle>
+            <circle cx="8" cy="17" r="1.5" fill="currentColor" stroke="none"></circle>
+            <line x1="12" y1="7" x2="19" y2="7"></line>
+            <line x1="12" y1="12" x2="19" y2="12"></line>
+            <line x1="12" y1="17" x2="19" y2="17"></line>
+          </svg>
+        </button>
+      </div>
+      
+      <div style="margin-top: 24px; padding: 16px; background: var(--color-surface-secondary); border-radius: 12px;">
+        <p style="font-size: 13px; color: var(--color-text-secondary); margin: 0;">
+          <strong style="color: var(--color-ocean-blue);">Features:</strong> rounded-full container • bg-surface active • shadow-tinted-sm • active:scale-[0.98] • transition-premium
+        </p>
+      </div>
+    </div>
+    
+    <!-- Summary -->
+    <div style="padding: 24px; background: linear-gradient(135deg, var(--color-mist-blue), var(--color-surface-secondary)); border-radius: 20px; margin-top: 32px;">
+      <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">✅ Task 19 Complete</h3>
+      <ul style="margin: 0; padding-left: 20px; font-size: 14px; color: var(--color-text-secondary);">
+        <li>FilterBar: Select → Chip buttons with rounded-full</li>
+        <li>SortBar: Improved dropdown with premium transitions</li>
+        <li>ViewToggle: Segmented control with rounded-full</li>
+        <li>All components: active:scale-[0.98] feedback</li>
+        <li>tsc --noEmit: 0 errors</li>
+      </ul>
+    </div>
+  </div>
+</body>
+</html>

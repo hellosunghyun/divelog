@@ -1,0 +1,45 @@
+TASK 5: Radix Popover 래퍼 컴포넌트 생성
+==========================================
+
+FILE CREATED: app/components/ui/popover.tsx
+
+EXPORTS:
+--------
+export { Popover, PopoverTrigger, PopoverAnchor, PopoverContent }
+
+COMPONENT DETAILS:
+------------------
+✓ Popover = PopoverPrimitive.Root
+✓ PopoverTrigger = PopoverPrimitive.Trigger
+✓ PopoverAnchor = PopoverPrimitive.Anchor
+✓ PopoverContent = forwardRef wrapper with Quiet Depth styling
+
+STYLING (PopoverContent):
+------------------------
+- bg-surface border border-border rounded-xl shadow-tinted-sm
+- z-50 p-4
+- data-[state=open]:animate-in data-[state=closed]:animate-out
+- data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0
+- data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95
+- Portal rendering via PopoverPrimitive.Portal
+
+PATTERN COMPLIANCE:
+-------------------
+✓ forwardRef pattern (matches dialog.tsx)
+✓ cn() utility for class merging
+✓ Quiet Depth tokens (no hardcoded colors)
+✓ displayName set on PopoverContent
+✓ Default props: align="center", sideOffset=4
+
+TYPECHECK RESULTS:
+------------------
+✓ No new errors in popover.tsx
+✓ Pre-existing errors: 35 (unchanged)
+✓ Full typecheck completed successfully
+
+VERIFICATION:
+-------------
+✓ File exists at correct path
+✓ All 4 exports present
+✓ TypeScript strict mode compliant
+✓ Ready for use in calendar picker and dropdown components

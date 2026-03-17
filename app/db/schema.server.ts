@@ -439,6 +439,20 @@ export const savedRecords = sqliteTable(
   (table) => [primaryKey({ columns: [table.learnerId, table.recordId] })],
 );
 
+export const recordReads = sqliteTable(
+  "record_reads",
+  {
+    learnerId: text("learner_id")
+      .notNull()
+      .references(() => learnerProfiles.userId, { onDelete: "cascade" }),
+    recordId: text("record_id")
+      .notNull()
+      .references(() => records.id, { onDelete: "cascade" }),
+    readAt: integer("read_at").notNull().default(now()),
+  },
+  (table) => [primaryKey({ columns: [table.learnerId, table.recordId] })],
+);
+
 export const personalStageReflections = sqliteTable(
   "personal_stage_reflections",
   {

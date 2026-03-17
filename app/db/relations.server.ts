@@ -17,6 +17,7 @@ import {
   questionCarryOvers,
   questionReminders,
   questions,
+  recordReads,
   recordRevisions,
   recordTags,
   records,
@@ -45,6 +46,7 @@ export const learnerProfilesRelations = relations(learnerProfiles, ({ many, one 
   drafts: many(drafts),
   questionReminders: many(questionReminders),
   savedRecords: many(savedRecords),
+  recordReads: many(recordReads),
   personalStageReflections: many(personalStageReflections),
 }));
 
@@ -126,6 +128,7 @@ export const recordsRelations = relations(records, ({ many, one }) => ({
   recordTags: many(recordTags),
   savedRecords: many(savedRecords),
   revisions: many(recordRevisions),
+  reads: many(recordReads),
 }));
 
 export const recordRevisionsRelations = relations(recordRevisions, ({ one }) => ({
@@ -326,6 +329,17 @@ export const savedRecordsRelations = relations(savedRecords, ({ one }) => ({
   }),
   record: one(records, {
     fields: [savedRecords.recordId],
+    references: [records.id],
+  }),
+}));
+
+export const recordReadsRelations = relations(recordReads, ({ one }) => ({
+  learner: one(learnerProfiles, {
+    fields: [recordReads.learnerId],
+    references: [learnerProfiles.userId],
+  }),
+  record: one(records, {
+    fields: [recordReads.recordId],
     references: [records.id],
   }),
 }));

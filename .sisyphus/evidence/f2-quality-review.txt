@@ -1,0 +1,10 @@
+Build PASS | TypeCheck FAIL [36 errors - baseline mismatch] | Tests 126 pass/0 fail | VERDICT: REJECT
+
+- TypeCheck: 오류 개수는 36개로 동일하지만 baseline diff 불일치.
+- Diff 핵심: 기존 `app/db/queries/questions.server.ts`, `app/db/queries/responses.server.ts`, `app/db/queries/tags.server` 경로 기반 오류가 재구성 후 `app/db/queries/dialogue/questions.server.ts`, `app/db/queries/dialogue/responses.server.ts`, `app/db/queries/records/tags.server`로 바뀌어 baseline과 정확히 일치하지 않음.
+- Tests: Vitest 16 files passed, 126 tests passed.
+- Build: `npx react-router build` 성공, `built in` 로그 확인.
+- Barrel check: `app/components`, `app/db/queries`, `app/lib` 내 `index.ts` 0개.
+- Admin query barrel check: `app/db/queries/index.server.ts` 1개 (`admin/index.server.ts` only).
+- Export default additions: `git diff HEAD~5 -- "*.tsx" "*.ts" | grep "^+export default" | wc -l` = 0.
+- Rename tracking: `git diff --diff-filter=R --stat HEAD~5`에서 92개 rename 추적 확인.

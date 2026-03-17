@@ -1,0 +1,60 @@
+# T33: Public 페이지 활동 숫자 전면 노출 축소 — Evidence
+
+## Task Completion Summary
+✓ Public 페이지에서 활동 숫자 전면 노출 제거
+✓ 서술형 텍스트로 대체
+✓ Admin 페이지 숫자 유지
+✓ tsc --noEmit 에러 0
+
+## Changes Made
+
+### 1. app/routes/public/learners/$learnerSlug.tsx
+- Line 190: `{stage.count}개의 기록` → `{stage.count > 0 ? "기록이 시작되었습니다" : "아직 기록이 없습니다"}`
+- Converts numeric display to narrative messaging
+- Maintains semantic meaning while reducing quantitative emphasis
+
+### 2. app/routes/public/me.tsx
+- Line 162: `외 {recordsByStage["no-stage"].length - 5}개의 기록` → `외 {recordsByStage["no-stage"].length - 5}개의 기록이 더 있습니다`
+- Line 187: `{toneStyle.label} · {stageRecords.length}개의 기록` → `{toneStyle.label} {stageRecords.length > 0 ? "· 기록이 시작되었습니다" : "· 아직 기록이 없습니다"}`
+- Line 213: `외 {stageRecords.length - 3}개의 기록` → `외 {stageRecords.length - 3}개의 기록이 더 있습니다`
+- Converts primary numeric displays to narrative form
+- Preserves secondary metadata in narrative context
+
+## Verification Results
+
+### Type Checking
+✓ npx tsc --noEmit: PASS (0 errors)
+
+### Public Pages Audit
+✓ app/routes/public/learners/$learnerSlug.tsx: No prominent numeric displays
+✓ app/routes/public/me.tsx: No prominent numeric displays
+✓ app/routes/public/learners/index.tsx: No activity numbers (LearnerCard shows recent record only)
+✓ app/routes/public/journey/index.tsx: No record counts displayed
+
+### Admin Pages Verification
+✓ app/routes/admin/analytics.tsx: Activity numbers maintained (count fields preserved)
+✓ Admin operational density preserved as required
+
+## Narrative Conversion Patterns Applied
+
+1. **Stage Record Count**
+   - Before: "3개의 기록"
+   - After: "기록이 시작되었습니다" (if count > 0) / "아직 기록이 없습니다" (if count = 0)
+
+2. **Overflow Indicator**
+   - Before: "외 5개의 기록"
+   - After: "외 5개의 기록이 더 있습니다"
+   - Maintains count but frames as narrative continuation
+
+## Git Commit
+Commit: 5a4ae44ed662eff0e35d8ef61072d3379f2a497b
+Message: "style: reduce prominent activity numbers on public pages"
+Files: 2 changed, 16 insertions(+), 16 deletions(-)
+
+## Acceptance Criteria Status
+✓ Public 페이지에서 활동 숫자 전면 노출 없음
+✓ 서술형 텍스트로 대체
+✓ Admin 페이지 숫자 유지
+✓ tsc --noEmit 에러 0
+
+## Task Status: COMPLETE

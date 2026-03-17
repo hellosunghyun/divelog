@@ -23,6 +23,7 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { Textarea } from "~/components/ui/textarea";
+import { useReadTracking } from "~/hooks/useReadTracking";
 import { requireVerified } from "~/lib/auth/auth.middleware";
 import { normalizeContentFormat } from "~/lib/content/editor-extensions";
 import { createResponseSchema, saveSentenceSchema } from "~/lib/auth/validation";
@@ -428,6 +429,11 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
   const [showSentenceButton, setShowSentenceButton] = useState(false);
   const [buttonPosition, setButtonPosition] = useState({ x: 0, y: 0 });
   const articleContentRef = useRef<HTMLDivElement | null>(null);
+  const { unmarkRead } = useReadTracking({
+    recordId: record.id,
+    format: record.format,
+    isAuthenticated: !!currentUserId,
+  });
 
   const isRecordAuthor = currentUserId === record.authorId;
   const recordFormat = normalizeContentFormat(record.format);
@@ -639,13 +645,27 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
           </time>
           <EditedIndicator createdAt={record.createdAt} updatedAt={record.updatedAt} className="ml-1" />
 
-          {isRecordAuthor && (
-            <Link
-              to={`/logs/${record.slug}/edit`}
-              className="inline-flex items-center ml-auto rounded-full border border-border px-3 py-1.5 text-xs font-medium text-text-secondary no-underline transition-colors hover:bg-surface-secondary hover:text-text-primary"
-            >
-              수정
-            </Link>
+          {(isArticleRecord || isRecordAuthor) && (
+            <div className="ml-auto flex items-center gap-2">
+              {isArticleRecord && (
+                <button
+                  type="button"
+                  onClick={unmarkRead}
+                  className="inline-flex items-center rounded-full border border-border px-3 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:bg-surface-secondary hover:text-text-primary"
+                >
+                  읽지 않음으로 표시
+                </button>
+              )}
+
+              {isRecordAuthor && (
+                <Link
+                  to={`/logs/${record.slug}/edit`}
+                  className="inline-flex items-center rounded-full border border-border px-3 py-1.5 text-xs font-medium text-text-secondary no-underline transition-colors hover:bg-surface-secondary hover:text-text-primary"
+                >
+                  수정
+                </Link>
+              )}
+            </div>
           )}
         </div>
       </header>

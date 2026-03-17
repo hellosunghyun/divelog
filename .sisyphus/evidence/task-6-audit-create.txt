@@ -1,0 +1,54 @@
+# Task 6: createRecord() Audit Logging - Evidence
+
+## Test Results
+
+### audit-helpers.test.ts
+✓ All 3 tests passed
+- 정상적으로 audit log를 생성한다
+- beforeState가 null인 경우 (create action)
+- afterState가 null인 경우 (delete action)
+
+### records.test.ts
+✓ All 2 tests passed
+- createRecord calls createAuditLog with create action
+- createRecord returns id and slug
+
+### Full Test Suite
+✓ All 131 tests passed across 18 test files
+
+## Implementation Details
+
+### Files Modified
+1. app/db/queries/records/records.server.ts
+   - Added import: createAuditLog from audit-helpers.server
+   - Modified createRecord() function:
+     - Extracted record data into recordData variable
+     - Added try-catch block after insert
+     - Calls createAuditLog with:
+       - actorId: authorId
+       - targetType: "record"
+       - targetId: id
+       - action: "create"
+       - beforeState: null
+       - afterState: recordData
+     - Logs error if audit fails but doesn't block record creation
+
+### Files Created
+1. app/db/queries/admin/insights/audit-helpers.server.ts
+   - createAuditLog(d1, params) function
+   - Serializes beforeState/afterState to JSON strings
+   - Returns audit log ID
+
+2. app/db/queries/__tests__/audit-helpers.test.ts
+   - 3 unit tests for createAuditLog
+
+3. app/db/queries/__tests__/records.test.ts
+   - 2 unit tests for createRecord with audit logging
+
+## Verification
+- ✓ createRecord signature unchanged (still returns { id, slug })
+- ✓ Audit log creation doesn't block record creation
+- ✓ beforeState is null for create action
+- ✓ afterState contains full record data
+- ✓ All tests pass
+- ✓ No new TypeScript errors introduced

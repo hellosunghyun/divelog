@@ -1,0 +1,96 @@
+# Task 20: EmptyState + LoadingSkeleton + ErrorState 리디자인
+
+## 완료 상태
+✅ EmptyState — Phosphor Light 아이콘 + 허가형 메시지 + CTA
+✅ LoadingSkeleton — 레이아웃 매칭 shimmer (원형 스피너 없음)
+✅ ErrorState — WarningCircle 아이콘 + 직접적 안내 + 재시도 CTA
+✅ `tsc --noEmit` 0 errors
+
+---
+
+## EmptyState 변경사항
+
+### 새로운 기능
+- Phosphor Light 아이콘 (48px, text-text-tertiary)
+- variant별 아이콘 매핑:
+  - records: BookOpen
+  - questions: ChatTeardrop
+  - responses: Quotes
+  - learners: Users
+  - notifications: Bell
+  - search: MagnifyingGlass
+  - generic: FolderOpen
+- 아이콘 배경: p-3 rounded-2xl bg-surface-secondary
+- CTA: px-6 py-3 rounded-full bg-ocean-blue hover:bg-deep-ocean
+
+### 허가형 메시지 (예시)
+- "완성된 글이 아니어도 괜찮습니다. 지금 이 순간을 기록해보세요."
+- "기록에 질문을 달아 깊이 있는 성찰을 이어갈 수 있습니다."
+- "공명하거나, 질문을 남기거나, 연결해보세요."
+
+### 디자인 특징
+- 타이틀: text-xl font-semibold text-text-primary
+- 본문: text-base text-text-secondary leading-body max-w-[360px]
+- 여백: py-16 px-6
+
+---
+
+## LoadingSkeleton 변경사항
+
+### 새로운 variant
+- card: SceneCard 레이아웃 매칭 (배지 + 타이틀 + 본문 + 메타)
+- detail: 상세 페이지 레이아웃
+- list: 리스트 아이템 레이아웃
+- question: QuestionCard 레이아웃
+- profile: 프로필 헤더 레이아웃
+
+### Shimmer 개선
+- 배경: bg-gradient-to-r from-surface-secondary via-border/50 to-surface-secondary
+- 크기: bg-[length:200%_100%]
+- 애니메이션: animate-shimmer (기존 유지)
+
+### 접근성
+- role="status" aria-label="콘텐츠 로딩 중" aria-live="polite"
+- 스크린리더용 텍스트: "로딩 중입니다..."
+- useId()로 고유 key 생성 (index 사용 지양)
+
+---
+
+## ErrorState 변경사항
+
+### 새로운 기능
+- WarningCircle Phosphor 아이콘 (48px, weight="light")
+- 아이콘 배경: p-3 rounded-2xl bg-destructive/10
+- 재시도 버튼: border border-border bg-transparent hover:bg-surface-secondary
+
+### 직접적 안내 메시지
+- system: "연결에 실패했습니다. 잠시 후 다시 시도해주세요."
+- permission: "접근 권한이 없습니다. 이 페이지를 보려면 로그인이 필요합니다."
+- not_found: "찾을 수 없습니다. 요청하신 내용이 삭제되었거나 존재하지 않습니다."
+
+### 금지 사항 준수
+- "Oops!" 텍스트 미사용
+- 느낌표(!) 남발 지양
+
+---
+
+## 타입 검증
+
+```
+$ pnpm tsc --noEmit
+(0 errors)
+```
+
+## LSP 진단
+
+- EmptyState.tsx: No diagnostics found
+- LoadingSkeleton.tsx: No diagnostics found (role="status" 의도적 사용)
+- ErrorState.tsx: No diagnostics found
+
+---
+
+## 파일 경로
+
+- /Users/hellosunghyun/Documents/Github/divelog-redesign/app/components/EmptyState.tsx
+- /Users/hellosunghyun/Documents/Github/divelog-redesign/app/components/LoadingSkeleton.tsx
+- /Users/hellosunghyun/Documents/Github/divelog-redesign/app/components/ErrorState.tsx

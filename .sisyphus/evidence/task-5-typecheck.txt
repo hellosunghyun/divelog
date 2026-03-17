@@ -1,0 +1,60 @@
+TASK 5: /api/track-read 엔드포인트 생성
+========================================
+
+VERIFICATION COMPLETED: 2026-03-17
+
+✅ File Created: app/routes/api/track-read.tsx
+   - GET /api/track-read?ids=id1,id2,id3
+   - POST /api/track-read (intent: mark_read | unmark_read | sync_reads | clear_all_reads)
+
+✅ GET Endpoint
+   - Returns { readIds: [] } for unauthenticated users
+   - Returns { readIds: [id1, id2, ...] } for authenticated users
+   - Filters by user's own reads only
+   - Handles empty ids parameter gracefully
+
+✅ POST Endpoint - mark_read
+   - Requires authentication (401 if not authenticated)
+   - Validates recordId parameter (400 if missing)
+   - Validates record format === "article" (400 if note)
+   - Validates visibility !== "draft" (400 if draft)
+   - Returns 404 if record not found
+   - Returns { success: true } on success
+
+✅ POST Endpoint - unmark_read
+   - Requires authentication (401 if not authenticated)
+   - Validates recordId parameter (400 if missing)
+   - Returns { success: true } on success
+
+✅ POST Endpoint - sync_reads
+   - Requires authentication (401 if not authenticated)
+   - Validates entries parameter (400 if missing)
+   - Validates entries is valid JSON (400 if parse fails)
+   - Validates entries is array (400 if not array)
+   - Bulk inserts with conflict handling
+   - Returns { success: true } on success
+
+✅ POST Endpoint - clear_all_reads
+   - Requires authentication (401 if not authenticated)
+   - Clears all reads for authenticated user
+   - Returns { success: true } on success
+
+✅ Code Quality
+   - Uses getOptionalUser (not requireVerified/requireAuth)
+   - Uses dynamic imports (await import(...))
+   - Uses Response.json() pattern
+   - No TypeScript errors
+   - No as any / @ts-ignore / @ts-expect-error
+   - Proper error handling with status codes
+
+✅ TypeScript Check
+   Command: pnpm typecheck
+   Result: PASSED (no errors in track-read.tsx)
+
+IMPLEMENTATION NOTES:
+- Follows notifications.tsx pattern exactly
+- Follows upload.tsx Response.json() pattern
+- Uses recordReads.server.ts functions from Task 2
+- All imports are dynamic to avoid circular dependencies
+- Format validation prevents notes from being marked as read
+- Draft visibility validation prevents draft records from being marked as read

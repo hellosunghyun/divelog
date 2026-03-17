@@ -1,0 +1,113 @@
+# Task 31: ME + SETTINGS Pages Implementation
+
+## Status: COMPLETE
+
+## Files Modified/Created
+
+### /me (내 공간 페이지)
+- **File**: `app/routes/public/me.tsx` (421 lines)
+- **Authentication**: requireAuth middleware
+- **Features**:
+  - Profile header with avatar, name, bio, cohort badge
+  - Three tabs: 내 기록 / 내 질문 / 내 응답
+  - Records grouped by Stage with tone-colored sections
+  - Drafts section with hover-to-edit overlay
+  - Saved sentences section
+  - Unanswered questions section
+  - My responses section
+  - EmptyState for empty conditions
+
+### /settings (설정 페이지)
+- **File**: `app/routes/public/settings.tsx` (211 lines)
+- **Authentication**: requireAuth middleware
+- **Features**:
+  - Account info section with external profile link (ada-kr-pos.com)
+  - Default visibility setting (draft/cohort/public)
+  - Default response preference (open/question_only/closed)
+  - Email notification toggle
+  - Quiet Depth styling with proper tokens
+
+## Design Implementation
+
+### ME Page Structure
+```
+┌─────────────────────────────────────┐
+│ Profile Header (centered)           │
+│  - Avatar (80x80)                   │
+│  - Name (3xl, semibold)             │
+│  - Bio (if exists)                  │
+│  - Cohort badge + Settings link     │
+├─────────────────────────────────────┤
+│ Tab Navigation                      │
+│  [내 기록] [내 질문] [내 응답]        │
+├─────────────────────────────────────┤
+│ Tab Content                         │
+│  - Records by Stage (tone-colored)  │
+│  - Drafts section                   │
+│  - Saved sentences                  │
+│  - Unanswered questions             │
+│  - My responses                     │
+└─────────────────────────────────────┘
+```
+
+### SETTINGS Page Structure
+```
+┌─────────────────────────────────────┐
+│ Hero Section                        │
+│  Title: 설정                         │
+│  Subtitle: DiveLog 활동을 위한...    │
+├─────────────────────────────────────┤
+│ Account Info Section                │
+│  - Profile display (avatar + name)  │
+│  - External link to ada-kr-pos.com  │
+│  - Helper: "통합 계정 서비스에서..."  │
+├─────────────────────────────────────┤
+│ Record Settings Section             │
+│  - Default visibility select        │
+│  - Default response preference      │
+├─────────────────────────────────────┤
+│ Notification Settings Section       │
+│  - Email notification checkbox      │
+├─────────────────────────────────────┤
+│ Save Button (rounded-full)          │
+└─────────────────────────────────────┘
+```
+
+## Styling Used
+
+### Quiet Depth Tokens Applied
+- Background: `bg-surface`, `bg-surface-secondary`
+- Border: `border-border`, `border-border-subtle`
+- Text: `text-text-primary`, `text-text-secondary`, `text-text-tertiary`
+- Accent: `text-ocean-blue`, `bg-ocean-blue`
+- Stage tones: `var(--color-prelude-bg)`, `var(--color-bridge-bg)`, etc.
+
+### Form Elements
+- Select: `rounded-lg border border-border focus:ring-2 focus:ring-ocean-blue`
+- Checkbox: Custom styling with `data-[state=checked]:bg-ocean-blue`
+- Button: `rounded-full` with proper padding
+
+## Guardrails Met
+- ✅ No name/bio editing UI (external link only)
+- ✅ No likes, recommendations, rankings
+- ✅ No chat bubbles (editorial cards only)
+- ✅ No marine illustrations (tone-based depth only)
+- ✅ Quiet Depth design principles followed
+
+## Type Check Result
+```
+npx tsc --noEmit: 0 errors
+```
+
+## Components Used
+- SceneCard (for records)
+- QuestionCard (for questions)
+- ResponseCard (for responses)
+- HighlightedSentenceCard (for saved sentences)
+- EmptyState (for empty conditions)
+- HeroSection (for settings header)
+- Button, Checkbox, Label (from ui/)
+
+## Database Queries Used
+- `getResponsesByAuthor()` from `~/db/queries/responses.server`
+- Direct Drizzle queries for records, questions, sentences, stages

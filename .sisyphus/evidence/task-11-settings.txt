@@ -1,0 +1,66 @@
+TASK 11: Add read reset functionality to settings.tsx
+========================================================
+
+COMPLETED CHANGES:
+==================
+
+1. ACTION FUNCTION (lines 39-75)
+   - Added intent-based dispatch at the beginning of action function
+   - Checks for intent === "reset_all_reads"
+   - Imports clearAllReads from ~/db/queries/records/recordReads.server
+   - Calls clearAllReads(context.cloudflare.env.DB, auth.user.id)
+   - Logs "reads_reset" event
+   - Returns { readReset: "읽음 상태가 초기화되었습니다." }
+   - Existing settings update logic remains unchanged
+
+2. IMPORTS (lines 1-17)
+   - Added: import { useActionData } from "react-router"
+   - Added: import { Form } from "react-router"
+   - Added: import { clearLocalReads } from "~/lib/infra/read-storage"
+
+3. COMPONENT (lines 80-250)
+   - Added useActionData hook: const actionData = useActionData<typeof action>()
+   - Added new "읽음 상태" section after existing form (lines 223-250)
+   - Section includes:
+     * Title: "읽음 상태"
+     * Description: "읽은 기록의 표시를 초기화합니다."
+     * Success message display (conditional on actionData.readReset)
+     * Form with POST method and onSubmit handler
+     * Hidden input: name="intent" value="reset_all_reads"
+     * Button: "모두 읽지 않음으로 표시" (variant="outline" size="sm")
+   - onSubmit handler calls clearLocalReads() before form submission
+
+VERIFICATION:
+==============
+
+✓ Type checking: pnpm typecheck passed (no errors in settings.tsx)
+✓ Action intent dispatch: Properly checks for "reset_all_reads" before settings update
+✓ Database operation: clearAllReads imported and called with correct parameters
+✓ Client-side sync: clearLocalReads() called in Form onSubmit
+✓ UI messaging: Success message displays when readReset is in actionData
+✓ Form structure: Proper React Router Form with hidden intent field
+✓ Styling: Consistent with existing sections (border, padding, text colors)
+
+EXPECTED BEHAVIOR:
+===================
+
+1. User clicks "모두 읽지 않음으로 표시" button
+2. Form submits with intent="reset_all_reads"
+3. Server action:
+   - Detects intent === "reset_all_reads"
+   - Calls clearAllReads(DB, userId)
+   - Returns { readReset: "읽음 상태가 초기화되었습니다." }
+4. Client-side:
+   - onSubmit handler calls clearLocalReads() (clears localStorage)
+   - Form submission completes
+   - actionData updates with success message
+   - Success message displays: "읽음 상태가 초기화되었습니다."
+
+NOTES:
+======
+
+- No confirmation dialog added (per requirements: "확인 다이얼로그 없이 즉시 실행")
+- No read count display (per requirements: "읽음 기록 N개" 카운터 표시하지 않음)
+- No period-based reset options (per requirements: 기간별 선택 초기화 추가하지 않음)
+- Form uses React Router's Form component for proper server action integration
+- clearLocalReads() is called in onSubmit to ensure localStorage is cleared before server response

@@ -27,6 +27,7 @@ interface SceneCardProps {
   hasQuestions?: boolean;
   hasSelfAnswers?: boolean;
   hasLinkedRecord?: boolean;
+  isRead?: boolean;
 }
 
 const FORMAT_LABELS: Record<string, string> = {
@@ -59,6 +60,7 @@ export default function SceneCard({
   hasQuestions,
   hasSelfAnswers,
   hasLinkedRecord,
+  isRead,
 }: SceneCardProps) {
   const snippet =
     contentSnippet ??
@@ -70,9 +72,11 @@ export default function SceneCard({
   return (
     <motion.article
       data-testid="scene-card"
+      data-read={isRead ? "true" : undefined}
       className={cn(
         "group bg-surface-secondary ring-1 ring-border p-1.5 rounded-2xl",
-        "hover:shadow-tinted-md transition-premium cursor-pointer"
+        "hover:shadow-tinted-md transition-premium cursor-pointer",
+        isRead && "opacity-60"
       )}
       whileHover={{ y: -2 }}
       whileTap={{ scale: 0.98 }}

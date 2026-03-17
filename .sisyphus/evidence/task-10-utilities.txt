@@ -1,0 +1,41 @@
+# Task 10: Motion Utilities & CSS Extensions
+
+## Status: COMPLETED
+
+## Changes Made
+
+### New Keyframes Added (4)
+- `slideUp` - opacity 0→1, translateY 12px→0
+- `slideDown` - opacity 0→1, translateY -8px→0
+- `scaleIn` - opacity 0→1, scale 0.95→1
+- `pulseSoft` - opacity 1→0.6→1 (2s infinite)
+
+### New @utility Classes Added (8)
+- `animate-slide-up` - slideUp animation with duration-normal, ease-out
+- `animate-slide-down` - slideDown animation with duration-normal, ease-out
+- `animate-scale-in` - scaleIn animation with duration-normal, ease-out
+- `animate-pulse-soft` - pulseSoft 2s ease-in-out infinite
+- `transition-premium` - all transitions with ease-premium cubic-bezier
+- `transition-spring` - all transitions with ease-spring cubic-bezier
+- `hover-lift` - hover transform translateY(-2px) + shadow-tinted-md
+- `active-press` - active transform scale(0.98)
+
+### Accessibility
+- `@media (prefers-reduced-motion: reduce)` block added
+- Disables/reduces animation duration for all new animation utilities
+- Reduces transition duration for transition-* and hover-lift
+
+### Existing (Preserved)
+- fadeUp, fadeIn, shimmer keyframes
+- animate-fade-up, animate-fade-in, animate-shimmer utilities
+- All other existing CSS classes and tokens
+
+## Verification
+- `npx react-router build` - SUCCESS
+- CSS output: build/client/assets/root-Ddv9ZNjc.css (91.08 kB)
+
+## File Modified
+- app/app.css (lines 208-295 added)
+
+## Timestamp
+2026-03-17

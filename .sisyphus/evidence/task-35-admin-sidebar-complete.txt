@@ -1,0 +1,53 @@
+# Task 35: AdminSidebar Utilitarian Redesign
+
+## Summary
+AdminSidebar 컴포넌트를 utilitarian 스타일로 리디자인 완료
+
+## Changes Made
+- Phosphor Icons 적용 (House, BookOpen, Flag, Users, ChatTeardrop, UsersThree, Selection, Brain, Files, Tag, ChartBar, GearSix, ShieldCheck, ClipboardText, ArrowLeft, CaretRight, List)
+- 축소/확장 토글 기능 추가 (CaretRight 회전 애니메이션)
+- utilitarian 스타일: compact, dense, neutral
+- cn() 유틸리티 적용
+- SmartLink 컴포넌트 사용
+
+## Admin Design Principles Applied (AGENTS.md §Admin 디자인)
+- ✓ utilitarian, dense, neutral, compact
+- ✓ 여백: compact (Public보다 좁게)
+- ✓ radius: 약간 줄이기 (rounded-lg)
+- ✓ 정보 밀도: 높음
+- ✓ Hero: 금지
+- ✓ 블루 테마: 과하지 않게
+
+## MUST NOT DO Verified
+- ✓ Double-Bezel 미적용
+- ✓ spring physics 미적용
+- ✓ staggered entry 미적용
+- ✓ Admin 라우트 구조 변경 없음
+- ✓ Public 페이지 스타일 미적용
+
+## Verification
+- tsc --noEmit: 0 errors
+- npx react-router build: 성공
+- Screenshot: task-35-admin-sidebar.png (1150 x 999 PNG)
+
+## Files Modified
+- app/components/admin/AdminSidebar.tsx (179 lines)
+
+## Icons Used
+- House: 대시보드
+- BookOpen: Stage 관리
+- Flag: 챌린지 관리
+- Files: 기록 관리
+- List: 템플릿
+- Tag: 태그 관리
+- Users: 러너 관리
+- ChatTeardrop: Dialogue 관리
+- UsersThree: Collaboration 관리
+- Selection: 큐레이션
+- Brain: Collective Memory
+- ChartBar: 애널리틱스
+- GearSix: 시스템 설정
+- ShieldCheck: 역할 & 권한
+- ClipboardText: 감사 로그
+- ArrowLeft: 사이트로 돌아가기
+- CaretRight: 축소/확장 토글

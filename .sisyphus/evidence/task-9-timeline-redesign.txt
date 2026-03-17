@@ -1,0 +1,45 @@
+Task 9: TimelineView Redesign - Stage-based Left-Right Split Timeline
+======================================================================
+
+Date: 2026-03-17
+Status: COMPLETED
+
+Changes Made:
+-------------
+
+1. app/components/views/TimelineView.tsx (complete rewrite)
+   - Changed from date-based grouping to Stage-based grouping
+   - Added props: records (TimelineRecord[]) + stages (StageListItem[])
+   - Uses groupRecordsByStage() from stage-groups.ts
+   - Created StageSection component for each stage group
+   - Desktop layout: 2-column grid with center vertical line
+     - Notes on left column
+     - Articles on right column
+   - Mobile layout: single column with left vertical line + dot markers
+   - NULL stageId → "미분류" section at bottom
+   - Empty state handled with EmptyState component
+   - Stage tone colors: prelude=mist-blue, bridge=reef-cyan, challenge=deep-ocean, epilogue=neutral
+
+2. app/routes/public/logs/index.tsx
+   - Updated TimelineView call to pass both records and stages
+   - Added type casting for format and stageType properties
+   - Cast allStages array to proper StageListItem type
+
+TypeScript Verification:
+-----------------------
+- pnpm typecheck: No NEW errors (pre-existing errors remain)
+- All imports resolve correctly
+- Type safety maintained for TimelineRecord and StageListItem
+
+Design Compliance:
+-----------------
+- Uses Quiet Depth color palette
+- Stage accent colors match design tokens
+- Mobile-first responsive design (< md = single column)
+- Empty state uses existing EmptyState component
+- No unnecessary comments in final code
+
+Files Modified:
+--------------
+- app/components/views/TimelineView.tsx (91 lines → 146 lines)
+- app/routes/public/logs/index.tsx (line 293-304 updated)

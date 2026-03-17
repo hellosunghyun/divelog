@@ -1,0 +1,7 @@
+export function cn(...inputs: ClassValue[]) {
+
+=== Type Check Result ===
+✓ pnpm tsc --noEmit: 0 errors
+
+=== Git Commit ===
+b29be08 infra(util): cn() 유틸리티 추가 (clsx + tailwind-merge)

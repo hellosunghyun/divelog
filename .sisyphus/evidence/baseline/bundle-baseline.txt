@@ -1,0 +1,74 @@
+Build Date: 2026-03-17T01:15:00Z
+Build Status: SUCCESS
+
+=== Bundle Sizes ===
+Total client assets: 1.9 MB (uncompressed)
+Total client CSS: 92.29 KB (uncompressed) / 16.02 KB (gzip)
+Total client JS: ~1.8 MB (uncompressed)
+
+Largest JS chunks:
+- ArticleEditor-DNob2dBS.js: 677.92 KB (208.18 KB gzip)
+- entry.client-Dul5QE5f.js: 418.74 KB (135.71 KB gzip)
+- chunk-EPOLDU6W-D5YPATUh.js: 124.92 KB (42.34 KB gzip)
+- select-Gfy2cLVs.js: 53.17 KB (19.02 KB gzip)
+- debug-build-DBpbPjZL.js: 36.09 KB (12.67 KB gzip)
+
+=== Build Warnings ===
+- ArticleEditor chunk exceeds 500 KB (TipTap editor bundle)
+- entry.client chunk exceeds 500 KB (React Router + React DOM)
+- Source maps enabled in production (security warning)
+- Sentry sourcemap upload failed (no auth token)
+
+=== Dependencies (61 packages) ===
+Production (45):
+- @adakrpos/auth@0.0.2
+- @radix-ui/* (7 packages)
+- @sentry/* (2 packages)
+- @tiptap/* (17 packages - rich text editor)
+- class-variance-authority@0.7.1
+- clsx@2.1.1
+- drizzle-kit@0.31.9
+- drizzle-orm@0.45.1
+- isbot@5.1.36
+- lowlight@3.3.0
+- lucide-react@0.577.0
+- react@19.2.4
+- react-dom@19.2.4
+- react-router@7.12.0
+- tailwind-merge@3.5.0
+- zod@4.3.6
+
+Dev (16):
+- @cloudflare/vite-plugin@1.28.0
+- @cloudflare/vitest-pool-workers@0.13.0
+- @playwright/test@1.58.2
+- @react-router/dev@7.12.0
+- @tailwindcss/vite@4.2.1
+- @types/* (3 packages)
+- esbuild@0.27.4
+- tailwindcss@4.2.1
+- typescript@5.9.3
+- vite@7.3.1
+- vite-tsconfig-paths@5.1.4
+- vitest@4.1.0
+- wrangler@4.73.0
+
+=== Build Performance ===
+Client build: 3.38s
+SSR build: 2.59s
+Total: ~6s
+
+=== Key Observations ===
+1. TipTap editor (@tiptap/*) is the largest single dependency (17 packages)
+2. ArticleEditor component bundles the entire TipTap library (~678 KB)
+3. React Router entry point is substantial (~419 KB)
+4. CSS is well-optimized (92 KB uncompressed, 16 KB gzip)
+5. Multiple empty chunks generated (upload, images._, search-records, search-learners)
+6. Dynamic import warnings suggest chunking opportunities
+
+=== Optimization Opportunities ===
+- Lazy-load ArticleEditor (currently bundled in entry.client)
+- Code-split TipTap editor into separate chunk
+- Remove empty route chunks
+- Consider alternative lightweight editor for notes
+- Enable Sentry sourcemap upload for production

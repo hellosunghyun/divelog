@@ -1,0 +1,224 @@
+Test Inventory Date: 2026-03-17T00:00:00Z
+
+=== Project Status ===
+Working Directory: /Users/hellosunghyun/Documents/Github/divelog-redesign
+Test Framework: Playwright (E2E) + Vitest (Unit/Integration)
+Node Modules: NOT INSTALLED (pnpm install required to run tests)
+
+=== Vitest Configuration ===
+Config File: vitest.config.ts
+Test Pattern: app/**/*.test.ts, app/**/*.test.tsx
+Environment: node
+Globals: enabled
+
+=== Vitest Test Files Found (6 files) ===
+1. app/lib/__tests__/logger.server.test.ts (170 lines)
+2. app/lib/__tests__/example.test.ts (17 lines)
+3. app/lib/__tests__/content.integration.test.ts (47 lines)
+4. app/lib/__tests__/content.server.test.ts (367 lines)
+5. app/lib/__tests__/r2-cleanup.test.ts (125 lines)
+6. app/lib/__tests__/title.server.test.ts (128 lines)
+
+Total Vitest Lines: 854 lines
+
+=== Playwright E2E Test Files (2 files) ===
+1. tests/e2e/smoke.spec.ts (66 lines)
+2. tests/e2e/editor.spec.ts (84 lines)
+
+Total Playwright Lines: 150 lines
+
+=== Playwright Smoke Test Assertions ===
+
+File: tests/e2e/smoke.spec.ts
+
+Line 6: expect(page).toHaveTitle(/divelog/)
+Line 7: expect(page.locator("text=여정 보기")).toBeVisible()
+Line 8: expect(page.locator("text=기록 남기기").first()).toBeVisible()
+Line 13: expect(page).toHaveTitle(/여정/)
+Line 18: expect(page).toHaveTitle(/기록/)
+Line 23: expect(page).toHaveTitle(/가이드/)
+Line 28: expect(page).toHaveTitle(/검색/)
+Line 36: expect(nav.locator("text=여정")).toBeVisible()
+Line 37: expect(nav.getByRole("link", { name: "기록", exact: true })).toBeVisible()
+Line 38: expect(nav.locator("text=챌린지")).toBeVisible()
+Line 39: expect(nav.locator("text=러너")).toBeVisible()
+Line 40: expect(nav.locator("text=가이드")).toBeVisible()
+Line 47: expect(navText).not.toContain("Crew")
+Line 55: expect(body).not.toContain("좋아요")
+Line 56: expect(body).not.toContain("인기순")
+Line 57: expect(body).not.toContain("베스트")
+Line 63: expect(body).not.toContain("인기순")
+Line 64: expect(body).not.toContain("추천순")
+
+=== Playwright Editor E2E Test Assertions ===
+
+File: tests/e2e/editor.spec.ts
+
+Line 7: expect(url).not.toContain("/write")
+Line 15: expect(select).toBeVisible()
+Line 17: expect(options.some((o) => o.includes("공명"))).toBeTruthy()
+Line 18: expect(options.some((o) => o.includes("질문"))).toBeTruthy()
+Line 19: expect(options.some((o) => o.includes("연결"))).toBeTruthy()
+Line 20: expect(options.some((o) => o.includes("제안"))).toBeTruthy()
+Line 25: expect(page.locator("text=모든 응답을 환영합니다")).toBeVisible()
+Line 32: expect(questionSection).toBeVisible()
+Line 33: expect(responseSection).toBeVisible()
+Line 38: expect(questionBox.y).toBeLessThan(responseBox.y)
+Line 45: expect(hasDirection).toBeTruthy()
+Line 53: expect(page.getByRole("button", { name: "그리드 보기" })).toBeVisible()
+Line 54: expect(page.getByRole("button", { name: "타임라인 보기" })).toBeVisible()
+Line 59: expect(page.getByRole("button", { name: "타임라인 보기" })).toHaveAttribute("aria-pressed", "true")
+Line 60: expect(page.url()).toContain("view=timeline")
+Line 66: expect(hasDateGroup).toBeTruthy()
+Line 74: expect(page.locator("text=연결된 기록")).toBeVisible()
+Line 82: expect(url).not.toBe("http://localhost:5173/write")
+
+=== Critical CTA Texts (Must Not Change) ===
+
+Navigation & Primary CTAs:
+- "여정 보기" (Journey view CTA)
+- "기록 남기기" (Write record CTA - appears in nav and hero)
+- "여정" (Journey nav item)
+- "기록" (Logs nav item)
+- "챌린지" (Challenges nav item)
+- "러너" (Learners nav item)
+- "가이드" (Guide nav item)
+
+Dialogue Layer Response Types:
+- "공명" (Resonance response type)
+- "질문" (Question response type)
+- "연결" (Connection response type)
+- "제안" (Suggestion response type)
+
+Record Detail Page:
+- "모든 응답을 환영합니다" (All responses welcome message)
+- "남겨진 질문" (Left questions section)
+- "응답 남기기" (Write response CTA)
+- "연결된 기록" (Connected records section)
+
+View Controls:
+- "그리드 보기" (Grid view button)
+- "타임라인 보기" (Timeline view button)
+
+Forbidden Texts (Verified Absent):
+- "좋아요" (Like - MUST NOT APPEAR)
+- "인기순" (Popular order - MUST NOT APPEAR)
+- "베스트" (Best - MUST NOT APPEAR)
+- "추천순" (Recommended order - MUST NOT APPEAR)
+- "Crew" (Fixed nav item - MUST NOT APPEAR)
+
+=== Vitest Test Summary ===
+
+Test Categories:
+1. Logger Tests (logger.server.test.ts)
+   - JSON structure validation
+   - Log level filtering
+   - Sensitive data masking
+   - Circular reference handling
+   - Child logger context inheritance
+   - Duration tracking
+   - Module logger creation
+   - String truncation
+   - Console output routing
+   - ISO 8601 timestamp format
+
+2. Example Smoke Tests (example.test.ts)
+   - Basic arithmetic
+   - String concatenation
+   - Array operations
+
+3. Content Integration Tests (content.integration.test.ts)
+   - Article JSON image extraction
+   - Plain text content handling
+   - Image key extraction
+
+4. Content Server Tests (content.server.test.ts)
+   - Plain text extraction from Tiptap JSON
+   - Content format detection (json vs plaintext)
+   - HTML rendering for note and article formats
+   - HTML escaping for XSS prevention
+   - Tiptap JSON parsing with various structures
+   - Fallback handling for invalid content
+
+5. R2 Cleanup Tests (r2-cleanup.test.ts)
+   - Image key extraction from JSON
+   - Nested image detection
+   - Removed image cleanup
+   - Invalid JSON handling
+
+6. Title Generation Tests (title.server.test.ts)
+   - Note title generation from content
+   - Markdown stripping (bold, italic, heading, blockquote, code)
+   - Emoji preservation
+   - Newline collapsing
+   - Default title fallback ("메모")
+   - Schema validation for note and article creation
+   - Record metadata schema validation
+
+=== Test Execution Status ===
+
+Vitest Status: CANNOT RUN (node_modules not installed)
+Command: pnpm test
+Error: "vitest: command not found"
+Recommendation: Run `pnpm install` before executing tests
+
+Playwright Status: CANNOT RUN (server not running)
+Command: npx playwright test --reporter=list
+Error: "unknown command 'test'"
+Recommendation: Ensure Playwright is installed and server is running
+
+=== Key Observations ===
+
+1. Philosophy Compliance:
+   - Tests verify absence of "좋아요", "인기순", "베스트", "추천순"
+   - Tests verify absence of "Crew" in fixed navigation
+   - Tests verify presence of Dialogue Layer response types (공명, 질문, 연결, 제안)
+
+2. Content Handling:
+   - Comprehensive Tiptap JSON parsing tests
+   - XSS prevention through HTML escaping
+   - Markdown stripping for title generation
+   - Image extraction for R2 cleanup
+
+3. Test Coverage:
+   - Unit tests: Logger, content utilities, title generation, validation schemas
+   - Integration tests: Content format detection and rendering
+   - E2E tests: Navigation, response system, timeline view, record details
+
+4. Critical Assertions for Redesign:
+   - Navigation must show: 여정, 기록, 챌린지, 러너, 가이드
+   - Response types must include: 공명, 질문, 연결, 제안
+   - Must NOT show: 좋아요, 인기순, 베스트, 추천순, Crew
+   - Record detail must show: 남겨진 질문 before 응답 남기기
+   - Timeline view must support date grouping
+
+=== Files Analyzed ===
+
+Playwright Tests:
+- tests/e2e/smoke.spec.ts (66 lines, 18 assertions)
+- tests/e2e/editor.spec.ts (84 lines, 17 assertions)
+
+Vitest Tests:
+- app/lib/__tests__/logger.server.test.ts (170 lines, 13 test cases)
+- app/lib/__tests__/example.test.ts (17 lines, 3 test cases)
+- app/lib/__tests__/content.integration.test.ts (47 lines, 2 test cases)
+- app/lib/__tests__/content.server.test.ts (367 lines, 26 test cases)
+- app/lib/__tests__/r2-cleanup.test.ts (125 lines, 8 test cases)
+- app/lib/__tests__/title.server.test.ts (128 lines, 18 test cases)
+
+Total Test Assertions: 35+ test cases, 70+ individual assertions
+
+=== Verification Checklist ===
+
+[✓] Smoke test verifies core navigation elements
+[✓] Smoke test verifies absence of forbidden UI patterns
+[✓] Editor tests verify Dialogue Layer response types
+[✓] Editor tests verify record detail page structure
+[✓] Content tests verify HTML escaping and XSS prevention
+[✓] Title tests verify markdown stripping
+[✓] Logger tests verify sensitive data masking
+[✓] All critical CTA texts documented
+[✓] All forbidden texts documented
+[✓] Test file locations documented
+[✓] Test execution status documented
+

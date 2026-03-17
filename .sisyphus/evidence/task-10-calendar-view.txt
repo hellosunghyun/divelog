@@ -1,0 +1,50 @@
+# Task 10: CalendarView 컴포넌트
+
+## 완료 항목
+
+- [x] 7열 × 5-6행 월간 캘린더 그리드 (getCalendarDays 활용)
+- [x] 레코드 있는 날짜에 format별 color dot
+  - 노트: `bg-reef-cyan` (#6CC4D6)
+  - 글: `bg-ocean-blue` (#146C94)
+- [x] dot 호버 → Radix Popover (제목 + 미리보기 + format 뱃지)
+- [x] 이전/다음 월 버튼 + 월 라벨 ("2026년 3월")
+- [x] `?month=YYYY-MM` URL param 지원 (useNavigate, useSearchParams)
+- [x] 오늘 날짜 하이라이트 (bg-ocean-blue text-white rounded-full)
+- [x] 모바일: 날짜 클릭 → 아래 레코드 목록 확장 (md:hidden 조건부 렌더링)
+- [x] `pnpm typecheck` 신규 에러 없음 (기존 35개 에러 유지)
+
+## 파일 변경
+
+### 생성
+- `app/components/views/CalendarView.tsx` (285줄)
+
+### 수정
+- `app/lib/utils/calendar.ts`: RecordItem 타입에 format 필드 추가
+- `app/lib/utils/__tests__/calendar.test.ts`: createRecord 함수에 format 파라미터 추가
+
+## 주요 구현 내용
+
+### CalendarViewProps
+```typescript
+type CalendarViewProps = {
+  records: RecordItem[];
+  month: string; // "YYYY-MM" 형식
+};
+```
+
+### CalendarCell 컴포넌트
+- 현재 월이 아닌 날짜: opacity-50, bg-surface-secondary/30
+- 오늘 날짜: bg-ocean-blue text-white rounded-full w-6 h-6
+- 레코드 dot: 최대 3개 표시, 초과 시 "+N" 텍스트
+
+### 데스크톱 vs 모바일 동작
+- 데스크톱 (md+): Popover로 호버 시 레코드 목록 표시
+- 모바일 (< md): 클릭 시 캘린더 아래에 레코드 목록 확장
+
+### 월 네비게이션
+- `useNavigate` + `useSearchParams`로 URL param 변경
+- prevMonth/nextMonth: month를 1달 앞뒤로 → `?month=YYYY-MM`
+
+## 타입체크 결과
+- 기존 35개 에러 유지 (신규 에러 없음)
+- LSP 에러는 Tailwind v4 pre-existing (무시)

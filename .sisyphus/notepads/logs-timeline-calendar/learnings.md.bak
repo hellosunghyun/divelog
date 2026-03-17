@@ -1,0 +1,105 @@
+# Learnings — logs-timeline-calendar
+
+## 프로젝트 컨벤션
+- React Router 7 (Vite) + Cloudflare D1 + Drizzle ORM
+- Tailwind CSS v4 (Quiet Depth 디자인 토큰)
+- 모든 UI 텍스트 한국어, 코드(변수/함수/타입)는 영어
+- `cn()` 유틸리티로 클래스 병합
+- `~/lib/motion/motion` 래퍼 사용 (framer-motion 직접 import 금지)
+- Link: `~/components/content/SmartLink` 또는 `@react-router/dom`의 Link
+- 워크트리: /Users/hellosunghyun/Documents/Github/divelog-timeline
+- 브랜치: feature/logs-timeline-calendar
+
+## 주요 파일 위치
+- 기록 목록: app/routes/public/logs/index.tsx (332줄)
+- 기존 TimelineView: app/components/views/TimelineView.tsx (91줄, 날짜 기반)
+- 기존 ViewToggle: app/components/views/ViewToggle.tsx (82줄, 2-way)
+- SceneCard: app/components/cards/SceneCard.tsx (163줄, stageToneClasses L45-50)
+- FilterBar: app/components/filters/FilterBar.tsx
+- SortBar: app/components/filters/SortBar.tsx
+- date-groups: app/lib/utils/date-groups.ts (130줄) — 수정 금지
+- 기존 Radix 래퍼: app/components/ui/dialog.tsx — 패턴 참고
+
+## 스키마 핵심
+- records.format: "note" | "article"
+- records.stageId: FK to stages.id (NULLABLE)
+- records.createdAt: unix epoch (seconds)
+- stages.order: integer (정렬 기준)
+- stages.type: "prelude" | "bridge" | "challenge" | "epilogue"
+
+## Stage 톤 매핑 (SceneCard.tsx:45-50)
+- prelude → mist-blue
+- bridge → reef-cyan
+- challenge → deep-ocean
+- epilogue → neutral
+
+## Task 2: @radix-ui/react-popover Installation
+- Installed: `@radix-ui/react-popover@^1.1.15` (matches dialog version)
+- Commit: `ee62b04` — "chore: add @radix-ui/react-popover"
+- No new typecheck errors introduced
+- Ready for popover-based UI components (e.g., calendar picker, dropdown menus)
+
+## Task 4: Calendar Utilities
+- Added `app/lib/utils/calendar.ts` with Sunday-start month grid generation, month-scoped record grouping, and Korean month label formatting
+- `getRecordsForMonth()` follows existing epoch-seconds -> local `Date` conversion pattern from `date-groups.ts` via `new Date(record.createdAt * 1000)`
+- Added `app/lib/utils/__tests__/calendar.test.ts` with 8 Vitest cases covering 31-day months, regular/leap February, Sunday padding, empty record groups, and month label formatting
+
+## Task 5: Radix Popover 래퍼 컴포넌트
+- Created `app/components/ui/popover.tsx` following dialog.tsx pattern
+- Exports: `Popover`, `PopoverTrigger`, `PopoverAnchor`, `PopoverContent`
+- PopoverContent: forwardRef with Quiet Depth styling (bg-surface, border-border, rounded-xl, shadow-tinted-sm, z-50, p-4)
+- Animation states: data-[state=open]:animate-in/fade-in-0/zoom-in-95, data-[state=closed]:animate-out/fade-out-0/zoom-out-95
+- Portal rendering via PopoverPrimitive.Portal
+- Default props: align="center", sideOffset=4
+- Commit: `b886e01` — "feat(ui): Radix Popover 래퍼 컴포넌트"
+- No new typecheck errors (pre-existing 35 errors unchanged)
+
+## Task 6: CompactTimelineCard 컴포넌트
+- Created `app/components/cards/CompactTimelineCard.tsx` (96 lines)
+- 밀도 높은 타임라인 뷰용 카드 (SceneCard 대비 작은 패딩: px-3 py-2.5)
+- Props: slug, title, contentSnippet?, format, stageType?, createdAt, className?
+- 좌측 액센트 바: w-1 너비, stage tone 기반 색상 (prelude→mist-blue-deep, bridge→reef-cyan, challenge→deep-ocean, epilogue→bg-border)
+- Format 뱃지: note→"노트" (bg-mist-blue/60 text-ocean-blue), article→"글" (bg-surface-secondary text-secondary)
+- 상대 시간: formatRelativeTime 함수 사용 (TimelineView.tsx와 동일 패턴)
+- Link 래핑 → /logs/${slug}
+- Commit: `d97772d` — "feat(ui): CompactTimelineCard 컴포넌트"
+- No new typecheck errors
+
+## Task 10: CalendarView 컴포넌트
+- Created `app/components/views/CalendarView.tsx` (312 lines)
+- Props: `records: RecordItem[]`, `month: string` (YYYY-MM 형식)
+- 7열 × 5-6행 캘린더 그리드 (getCalendarDays 활용)
+- RecordItem 타입에 format 필드 추가 (calendar.ts)
+- format별 dot 색상: note→bg-reef-cyan, article→bg-ocean-blue
+- Radix Popover로 데스크톱 호버 시 레코드 목록 표시 (최대 5개)
+- 모바일: 클릭 시 캘린더 아래에 레코드 목록 확장 (md:hidden)
+- 월 네비게이션: useNavigate + useSearchParams로 ?month=YYYY-MM 변경
+- 오늘 날짜: bg-ocean-blue text-white rounded-full w-6 h-6
+- 셀 key: `${year}-${month.padStart(2,'0')}-${day.padStart(2,'0')}` (인덱스 사용 금지)
+- Commit: `de830a6` — "feat(logs): 월간 캘린더 뷰 + 팝오버"
+- No new typecheck errors (기존 35개 유지)
+
+## Task 11: logs/index 3-way 통합
+- 수정 파일: `app/routes/public/logs/index.tsx`
+- `CalendarView` 임포트 및 분기 추가: `currentView === "calendar"`
+- 분기 구조를 `recordsContent` 상수로 정리해 Calendar/Timeline/Grid 3-way 렌더를 명확화
+- CalendarView props 연결: `records` + `month={filters.month}`
+- TimelineView props 연결 유지: `records` + `stages` (stage `type`/`order` 포함)
+- `parseViewParam()` 기본값이 `"timeline"`임을 확인
+- 검증:
+  - `pnpm typecheck` 실패 (기존 pre-existing 타입 에러들 유지, 신규 없음)
+  - `pnpm test` 성공 (18 files, 141 passed)
+  - `pnpm build` 성공
+
+## Task 12: `/logs` QA 메모
+- `pnpm dev`(`react-router dev`)는 `/logs` 접근 시 Vite worker overlay `Network connection lost`로 실패했고, 로컬 QA 서버로 사용하기 어려웠다.
+- `pnpm build` 후 `pnpm exec wrangler dev --port 8790 --ip 127.0.0.1` 조합은 안정적으로 동작했다.
+- 최초 `wrangler dev` 실행 시 local D1에 테이블이 없어 `no such table: records` 500이 발생했다.
+- `pnpm exec wrangler d1 migrations apply DB --local` + `pnpm exec wrangler d1 execute DB --local --file=seeds/seed.sql` 적용 후 `/logs`가 정상 렌더되었다.
+- QA 기준 URL은 `http://127.0.0.1:8790/logs`로 고정했다.
+- 타임라인 데스크톱은 첫 노트 카드 x=141, 첫 글 카드 x=749로 좌우 분리 확인.
+- 모바일(375x812) 타임라인은 첫 노트/글 카드 left=64로 동일해 단일 컬럼 폴백이 확인됐다.
+- 캘린더 뷰는 `2026년 3월` 월 라벨과 `일~토` 7열 헤더가 정상 렌더되었다.
+- 그리드 뷰는 카드 20개 + 페이지네이션 `다음` 버튼이 유지되어 회귀 이상이 없었다.
+- 빈 상태 필터(`/logs?view=timeline&type=collaboration&rhythm=stage`)에서 `아직 기록이 없습니다` 메시지가 정상 노출됐다.
+- Playwright 콘솔 에러는 최종 QA 실행 기준 0건이었다.

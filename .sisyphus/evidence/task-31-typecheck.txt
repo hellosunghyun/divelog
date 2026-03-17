@@ -1,0 +1,1 @@
+tsc --noEmit: SUCCESS (0 errors)

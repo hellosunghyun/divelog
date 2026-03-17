@@ -1,0 +1,56 @@
+# Task 6: CompactTimelineCard 컴포넌트
+
+## 완료 항목
+- [x] `app/components/cards/CompactTimelineCard.tsx` 생성
+- [x] SceneCard보다 작은 패딩 (px-3 py-2.5 vs px-5 py-6)
+- [x] Stage 톤 좌측 액센트 바 (w-1, stage type 기반 색상)
+- [x] format 뱃지 ("노트" / "글")
+- [x] `pnpm typecheck` 신규 에러 없음 (기존 40개 에러 유지)
+- [x] 커밋: `feat(ui): CompactTimelineCard 컴포넌트`
+
+## 파일 생성 확인
+```
+app/components/cards/CompactTimelineCard.tsx (96 lines)
+```
+
+## 컴포넌트 Props
+```typescript
+type CompactTimelineCardProps = {
+  slug: string;
+  title: string;
+  contentSnippet?: string | null;
+  format: "note" | "article";
+  stageType?: "prelude" | "bridge" | "challenge" | "epilogue" | null;
+  createdAt: number;
+  className?: string;
+}
+```
+
+## 레이아웃 구조
+- 전체: `relative flex items-stretch rounded-lg border border-subtle bg-surface`
+- 좌측 액센트 바: `w-1 rounded-l-lg flex-shrink-0` (stage tone color)
+- 본문 영역: `flex-1 px-3 py-2.5`
+- 상단 행: format 뱃지(좌) + 날짜(우)
+- 제목: `text-sm font-semibold text-primary line-clamp-1`
+- 미리보기: `text-xs text-secondary line-clamp-2`
+
+## Stage 톤 액센트 바 매핑
+- prelude → bg-mist-blue-deep
+- bridge → bg-reef-cyan
+- challenge → bg-deep-ocean
+- epilogue → bg-border
+- null/unassigned → bg-border
+
+## Format 뱃지 스타일
+- note: `bg-mist-blue/60 text-ocean-blue` → "노트"
+- article: `bg-surface-secondary text-secondary` → "글"
+
+## Git Commit
+```
+d97772d feat(ui): CompactTimelineCard 컴포넌트
+```
+
+## pnpm typecheck 결과
+- 신규 에러 없음
+- 기존 40개 pre-existing 에러 유지 (AdminSidebar, queries, admin routes 등)
+- CompactTimelineCard.tsx에서 타입 에러 없음

@@ -191,6 +191,15 @@ export async function action({ request, context }: Route.ActionArgs) {
     await syncRecordLinksForRecord(context.cloudflare.env.DB, id, recordRefs);
   }
 
+  if (parsed.data.visibility !== "draft") {
+    try {
+      const { markAsRead } = await import("~/db/queries/records/recordReads.server");
+      await markAsRead(context.cloudflare.env.DB, auth.user.id, id);
+    } catch {
+      // silent fail — 읽음 처리 실패가 작성을 막지 않음
+    }
+  }
+
   throw redirect(`/logs/${slug}/details`);
 }
 

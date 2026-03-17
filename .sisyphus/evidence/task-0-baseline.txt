@@ -1,0 +1,31 @@
+# Task 0 Baseline — 2026-03-17
+
+## Baseline Capture Summary
+
+### TypeScript Errors
+TS_ERROR_COUNT: 36
+- All errors are pre-existing baseline errors (AdminSidebar and related files)
+- No new errors introduced
+
+### Test Results
+TEST_RESULTS: PASS
+- Test Files: 16 passed
+- Tests: 126 passed
+- Duration: 7.08s
+- Status: All tests passing
+
+### Build Status
+BUILD: PARTIAL_PASS
+- React Router build: SUCCESS (build/ directory created with client/ and server/)
+- Post-build script (tsx scripts/patch-worker.ts): FAILED (tsx command not found)
+- Exit code: 1 (due to post-build script failure)
+- Note: The actual React Router build completed successfully. The failure is in the optional post-build step.
+
+## Verification Environment Ready
+✓ TypeScript baseline captured (36 errors)
+✓ Test baseline captured (126 tests passing)
+✓ Build artifacts generated (client + server)
+✓ Evidence files created
+
+## Next Steps
+Ready for Task 1: Begin folder reorganization with known baseline state.

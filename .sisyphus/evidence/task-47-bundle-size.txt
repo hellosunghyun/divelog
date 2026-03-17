@@ -1,0 +1,76 @@
+Task 47 - 성능 최적화 + 번들 사이즈 감사
+Date: 2026-03-17
+Codebase: /Users/hellosunghyun/Documents/Github/divelog-redesign
+
+== Build ==
+Command: npx react-router build
+Result: SUCCESS (exit code 0)
+Notes:
+- Client build and SSR build completed successfully.
+- Sentry sourcemap upload emitted an auth warning, but the build command still returned exit code 0.
+- Vite warnings remained for source maps enabled in production, CSS @import order, and large chunks.
+
+== theme-color ==
+File: app/root.tsx:27
+Result: <meta name="theme-color" content="#F6F8FB" />
+Status: PASS
+
+== Current Bundle Measurements ==
+Measured directory: build/client/assets/
+du -sk build/client/assets: 2424 KB
+
+All JS/CSS totals:
+- JS: 2036637 bytes (663779 bytes gzip)
+- CSS: 225576 bytes (36642 bytes gzip)
+- JS+CSS total: 2262213 bytes (700421 bytes gzip)
+
+Largest current JS chunks:
+- ArticleEditor-CIeRqMBB.js: 703.09 KB (214.21 KB gzip)
+- entry.client-CBgsz4zB.js: 419.09 KB (135.89 KB gzip)
+- chunk-EPOLDU6W-hXl0SBtR.js: 125.28 KB (42.52 KB gzip)
+- select-Dx73qlf4.js: 73.98 KB (26.03 KB gzip)
+- style-reference-jmeWl4xB.js: 56.88 KB (15.29 KB gzip)
+- root-CvIMJomH.js: 40.16 KB (15.35 KB gzip)
+
+Current CSS files:
+- root-aD-4CA07.css: 112.79 KB (18.32 KB gzip)
+- server-build-aD-4CA07.css: 112.79 KB (18.33 KB gzip)
+
+== Baseline Comparison ==
+Baseline source: /Users/hellosunghyun/Documents/Github/divelog/.sisyphus/evidence/baseline/bundle-baseline.txt
+
+Directly comparable tracked assets from baseline:
+- CSS: 92.29 KB (16.02 KB gzip)
+- ArticleEditor: 677.92 KB (208.18 KB gzip)
+- entry.client: 418.74 KB (135.71 KB gzip)
+- chunk-EPOLDU6W: 124.92 KB (42.34 KB gzip)
+- select: 53.17 KB (19.02 KB gzip)
+- debug-build: 36.09 KB (12.67 KB gzip)
+
+Current tracked assets:
+- CSS root: 112.79 KB (18.32 KB gzip)
+- ArticleEditor: 703.09 KB (214.21 KB gzip)
+- entry.client: 419.09 KB (135.89 KB gzip)
+- chunk-EPOLDU6W: 125.28 KB (42.52 KB gzip)
+- select: 73.98 KB (26.03 KB gzip)
+- debug-build: 36.45 KB (12.85 KB gzip)
+
+Tracked gzip delta calculation:
+- Baseline tracked gzip sum: 433.94 KB
+- Current tracked gzip sum: 449.82 KB
+- Increase: +15.88 KB gzip
+
+Additional headline deltas:
+- Total client assets (uncompressed): 1.90 MB -> 2.26 MB (+0.36 MB)
+- CSS gzip: 16.02 KB -> 18.32 KB (+2.30 KB)
+- ArticleEditor gzip: 208.18 KB -> 214.21 KB (+6.03 KB)
+- entry.client gzip: 135.71 KB -> 135.89 KB (+0.18 KB)
+
+== Verdict ==
+Bundle budget target: <= +20 KB gzip
+Measured tracked increase: +15.88 KB gzip
+Status: PASS
+
+Notes on method:
+- The baseline file does not include a total gzip figure for all client assets.
+- To keep the comparison consistent, the audit used the same gzip-tracked assets explicitly recorded in the baseline evidence.
