@@ -1,3 +1,7 @@
+import { cn } from "~/lib/cn";
+import { motion } from "~/lib/motion";
+import { fadeUp } from "~/lib/motion-utils";
+
 interface SelfAnswerCardProps {
   selfAnswer: {
     id: string;
@@ -8,6 +12,7 @@ interface SelfAnswerCardProps {
       profilePhotoUrl: string | null;
     } | null;
   };
+  className?: string;
 }
 
 function formatTimestamp(unixEpoch: number): string {
@@ -18,24 +23,33 @@ function formatTimestamp(unixEpoch: number): string {
   return `${year}.${month}.${day}`;
 }
 
-export default function SelfAnswerCard({ selfAnswer }: SelfAnswerCardProps) {
+export default function SelfAnswerCard({
+  selfAnswer,
+  className,
+}: SelfAnswerCardProps) {
   return (
-    <article
+    <motion.article
       data-testid="self-answer-card"
-      className="rounded-2xl border border-reef-cyan/40 bg-mist-blue/50 p-5 lg:p-6"
+      variants={fadeUp}
+      initial="hidden"
+      animate="visible"
+      className={cn(
+        "relative pl-4 border-l-2 border-ocean-blue/60 rounded-r-xl bg-surface p-5",
+        className
+      )}
     >
-      <div className="flex items-center gap-2 mb-3">
-        <span className="text-caption px-2.5 py-1 rounded-full font-medium bg-mist-blue text-ocean-blue">
-          자기 답변
+      <div className="flex items-center gap-3 mb-2">
+        <span className="text-xs font-medium text-ocean-blue uppercase tracking-wide">
+          자기답변
         </span>
-        <span className="text-meta text-text-tertiary">
+        <span className="text-sm text-text-tertiary/60">
           {formatTimestamp(selfAnswer.createdAt)}
         </span>
       </div>
 
-      <p className="text-base leading-body text-text-primary m-0 whitespace-pre-wrap">
+      <p className="text-base leading-relaxed text-text-primary whitespace-pre-wrap">
         {selfAnswer.content}
       </p>
-    </article>
+    </motion.article>
   );
 }
