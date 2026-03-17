@@ -51,6 +51,7 @@ function CalendarCell({
   onCellClick: () => void;
   isExpanded: boolean;
 }) {
+  const [isHoverOpen, setIsHoverOpen] = useState(false);
   const hasRecords = recordsForDay.length > 0;
   const displayRecords = recordsForDay.slice(0, 3);
   const remainingCount = recordsForDay.length - 3;
@@ -116,10 +117,12 @@ function CalendarCell({
 
   if (!isMobile && hasRecords) {
     return (
-      <Popover>
+      <Popover open={isHoverOpen} onOpenChange={setIsHoverOpen}>
         <PopoverTrigger asChild>
           <button
             type="button"
+            onMouseEnter={() => setIsHoverOpen(true)}
+            onMouseLeave={() => setIsHoverOpen(false)}
             className={cn(
               "w-full text-left appearance-none",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-inset"
@@ -129,6 +132,8 @@ function CalendarCell({
           </button>
         </PopoverTrigger>
         <PopoverContent
+          onMouseEnter={() => setIsHoverOpen(true)}
+          onMouseLeave={() => setIsHoverOpen(false)}
           className="w-72 p-2 max-h-80 overflow-y-auto"
           align="start"
           side="right"
@@ -305,6 +310,12 @@ export default function CalendarView({ records, month }: CalendarViewProps) {
               )}
             </Link>
           ))}
+        </div>
+      )}
+
+      {recordsByDay.size === 0 && (
+        <div className="mt-8 text-center py-12">
+          <p className="text-sm text-tertiary">이 달에 기록이 없습니다.</p>
         </div>
       )}
     </div>
