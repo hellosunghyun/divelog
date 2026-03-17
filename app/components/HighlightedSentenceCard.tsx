@@ -1,4 +1,7 @@
 import { Link } from "~/components/SmartLink";
+import { cn } from "~/lib/cn";
+import { motion } from "~/lib/motion";
+import { fadeUp } from "~/lib/motion-utils";
 
 interface HighlightedSentenceCardProps {
   sentence: {
@@ -18,23 +21,59 @@ interface HighlightedSentenceCardProps {
 
 export default function HighlightedSentenceCard({ sentence, savedBy, record }: HighlightedSentenceCardProps) {
   return (
-    <blockquote
+    <motion.article
       data-testid="sentence-card"
-      className="rounded-2xl border border-border bg-surface p-6 shadow-card flex flex-col gap-3 transition-all duration-normal hover:shadow-card-hover hover:-translate-y-0.5"
+      variants={fadeUp}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, margin: "-50px" }}
+      whileHover={{ y: -2 }}
+      whileTap={{ scale: 0.98 }}
+      transition={{ duration: 0.15, ease: [0.32, 0.72, 0, 1] }}
+      className={cn(
+        "group bg-surface ring-1 ring-border rounded-2xl p-6 md:p-8 relative overflow-hidden",
+        "hover:shadow-tinted-md transition-premium cursor-pointer"
+      )}
     >
-      <div className="h-0.5 rounded-full bg-reef-cyan/40 w-12" />
-      <p className="text-xl md:text-2xl leading-relaxed text-text-primary italic tracking-tight">
-        "{sentence.content}"
-      </p>
+      <span
+        className="absolute -top-3 left-4 text-7xl leading-none text-text-tertiary/20 font-serif select-none pointer-events-none"
+        aria-hidden="true"
+      >
+        "
+      </span>
+
+      <blockquote className="relative z-10">
+        <p className="text-xl md:text-2xl font-medium leading-relaxed text-text-primary tracking-tight pt-4">
+          {sentence.content}
+        </p>
+      </blockquote>
+
       {sentence.reason && (
-        <p className="text-meta text-text-secondary">
+        <p className="mt-4 text-sm text-text-secondary leading-relaxed">
           {sentence.reason}
         </p>
       )}
-      <div className="flex gap-4 text-meta text-text-tertiary">
-        {savedBy && <Link to={`/learners/${savedBy.slug}`} prefetch="viewport" className="no-underline hover:text-ocean-blue transition-colors">{savedBy.displayName}</Link>}
-        {record && <Link to={`/logs/${record.slug}`} prefetch="viewport" className="no-underline hover:text-ocean-blue transition-colors">← {record.title}</Link>}
+
+      <div className="mt-6 pt-4 border-t border-border flex items-center justify-between gap-4">
+        {savedBy && (
+          <Link
+            to={`/learners/${savedBy.slug}`}
+            prefetch="viewport"
+            className="text-xs text-text-tertiary no-underline hover:text-ocean-blue transition-colors"
+          >
+            — {savedBy.displayName}
+          </Link>
+        )}
+        {record && (
+          <Link
+            to={`/logs/${record.slug}`}
+            prefetch="viewport"
+            className="text-xs text-text-tertiary no-underline hover:text-ocean-blue transition-colors ml-auto"
+          >
+            ← {record.title}
+          </Link>
+        )}
       </div>
-    </blockquote>
+    </motion.article>
   );
 }
