@@ -290,7 +290,17 @@ export default function LogsPage({ loaderData }: Route.ComponentProps) {
           <EmptyState variant="records" message="조건에 맞는 기록이 없습니다." />
         ) : (
           currentView !== "grid" ? (
-            <TimelineView records={filteredRecords} />
+            <TimelineView
+              records={filteredRecords.map((record) => ({
+                ...record,
+                format: record.format as "note" | "article",
+                stageType: record.stage?.type as "prelude" | "bridge" | "challenge" | "epilogue" | null ?? null,
+              }))}
+              stages={allStages.map((stage) => ({
+                ...stage,
+                type: stage.type as "prelude" | "bridge" | "challenge" | "epilogue",
+              }))}
+            />
           ) : (
             <motion.div
               variants={staggerContainer}
