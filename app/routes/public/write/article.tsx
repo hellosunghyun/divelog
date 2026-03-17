@@ -302,7 +302,7 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="rounded-md px-6 py-3 text-base font-medium"
+              className="h-auto rounded-md px-6 py-3 text-base font-medium"
             >
               {isSubmitting ? "저장 중..." : "저장"}
             </Button>

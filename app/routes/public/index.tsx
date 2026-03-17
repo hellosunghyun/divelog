@@ -211,7 +211,7 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
                 </div>
                 <div className="lg:w-3/4 w-full py-8 px-4 overflow-x-auto">
                   <div className="flex items-start justify-between gap-4 min-w-max relative">
-                    <div className="absolute h-0.5 bg-border top-[7px] pointer-events-none" style={{ left: "1rem", right: "2rem" }} aria-hidden="true" />
+                    <div className="absolute h-0.5 bg-border top-[7px] pointer-events-none z-0" style={{ left: "1rem", right: "2rem" }} aria-hidden="true" />
                     {allStages.map((stage: typeof allStages[number], _index: number) => {
                       const isCurrent = stage.isCurrent || stage.slug === currentStage?.slug;
                       const isPast = currentStage && stage.order < currentStage.order;
@@ -219,7 +219,7 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
                         <motion.div key={stage.id} variants={staggerItem}>
                           <Link
                             to={`/journey/${stage.slug}`}
-                            className="flex flex-col items-center gap-2 z-10 no-underline group"
+                            className="relative flex flex-col items-center gap-2 z-10 no-underline group"
                           >
                             <div
                               className={`w-4 h-4 rounded-full transition-all ${

@@ -200,7 +200,7 @@ export default function GlobalNav() {
                   to="/write/note"
                   prefetch="render"
                   className={cn(
-                    "border border-border text-text-secondary ml-1 px-4 py-1.5 rounded-full text-[13px] font-medium hover:bg-surface-secondary transition-colors no-underline",
+                    "bg-surface border border-border shadow-sm text-text-secondary ml-1 px-4 py-1.5 rounded-full text-[13px] font-medium hover:bg-surface-secondary transition-colors no-underline",
                     focusRing
                   )}
                 >
@@ -619,7 +619,7 @@ export default function GlobalNav() {
                     to="/write/note"
                     prefetch="render"
                     className={cn(
-                      "w-full border border-border text-text-secondary py-3 px-5 rounded-full text-sm font-medium text-center hover:bg-surface-secondary transition-colors no-underline",
+                      "w-full bg-surface border border-border shadow-sm text-text-secondary py-3 px-5 rounded-full text-sm font-medium text-center hover:bg-surface-secondary transition-colors no-underline",
                       focusRing
                     )}
                   >
@@ -712,7 +712,7 @@ export default function GlobalNav() {
                     to="/write/note"
                     prefetch="render"
                     className={cn(
-                      "w-full border border-border text-text-secondary py-3 px-5 rounded-full text-sm font-medium text-center hover:bg-surface-secondary transition-colors no-underline",
+                      "w-full bg-surface border border-border shadow-sm text-text-secondary py-3 px-5 rounded-full text-sm font-medium text-center hover:bg-surface-secondary transition-colors no-underline",
                       focusRing
                     )}
                   >
