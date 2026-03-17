@@ -1,4 +1,5 @@
 import { Outlet, data } from "react-router";
+import * as Sentry from "@sentry/react-router/cloudflare";
 import type { Route } from "./+types/_public";
 import { ensureAdminByEmail } from "~/lib/auth/auth.middleware";
 import { and, eq } from "drizzle-orm";
@@ -28,16 +29,21 @@ export async function loader({ request, context }: Route.LoaderArgs) {
       .limit(1);
     isAdmin = adminRole.length > 0;
 
-    // 백그라운드에서 실행 — 페이지 렌더링을 차단하지 않음
+    Sentry.setUser({
+      id: auth.user.id,
+      username: auth.user.nickname ?? auth.user.name ?? undefined,
+    });
+
     context.cloudflare.ctx.waitUntil(
       Promise.all([
         getOrCreateLearnerProfile(context.cloudflare.env.DB, auth.user),
         ensureAdminByEmail(context, auth.user.id, auth.user.verifiedEmail),
-      ]).catch((err) =>
+      ]).catch((err) => {
+        Sentry.captureException(err, { tags: { type: "background_task" } });
         logger.error("background_task_error", {
           error: err instanceof Error ? err.message : String(err),
-        })
-      ),
+        });
+      }),
     );
   }
 

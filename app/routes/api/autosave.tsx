@@ -1,4 +1,5 @@
 import type { AppLoadContext } from "react-router";
+import * as Sentry from "@sentry/react-router/cloudflare";
 
 import { upsertDraft } from "~/db/queries/records/drafts.server";
 import { getAuth } from "~/lib/auth/auth.server";
@@ -82,7 +83,8 @@ export async function action({ request, context }: { request: Request; context: 
       draftId: draft.id,
       updatedAt: draft.updatedAt,
     });
-  } catch {
+  } catch (error) {
+    Sentry.captureException(error, { tags: { type: "autosave" } });
     return Response.json({ error: "임시저장 중 문제가 발생했습니다" }, { status: 500 });
   }
 }

@@ -1,4 +1,5 @@
 import type { AuthContext } from "@adakrpos/auth";
+import * as Sentry from "@sentry/react-router/cloudflare";
 
 import { createLogger, createModuleLogger } from "../infra/logger.server";
 
@@ -112,6 +113,7 @@ export async function getAuth(request: Request, apiKey: string): Promise<AuthCon
         await new Promise((r) => setTimeout(r, 300 * (attempt + 1)));
         continue;
       }
+      Sentry.captureException(e, { tags: { type: "auth_api" } });
       logger.error("auth_api_error", {
         attempt: attempt + 1,
         error: e instanceof Error ? e.message : String(e),

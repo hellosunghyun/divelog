@@ -22,11 +22,7 @@ Sentry.init({
 startTransition(() => {
   hydrateRoot(document, <HydratedRouter />, {
     onRecoverableError(error) {
-      // Safari 등 브라우저별 HTML 파싱 차이로 hydration mismatch 발생 시
-      // 404 cascade 방지 — 에러를 Sentry에 보고만 하고 페이지는 유지
-      if (import.meta.env.DEV) {
-        console.warn("[hydration]", error);
-      }
+      Sentry.captureException(error, { tags: { type: "hydration" } });
     },
   });
 });

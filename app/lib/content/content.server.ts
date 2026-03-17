@@ -1,4 +1,5 @@
 import type { ContentFormat } from "./editor-extensions";
+import * as Sentry from "@sentry/react-router/cloudflare";
 import { createModuleLogger } from "../infra/logger.server";
 
 const logger = createModuleLogger("content.server");
@@ -64,6 +65,7 @@ export function renderContentToHtml(content: string, format: ContentFormat): str
   try {
     return tiptapJsonToHtml(document);
   } catch (err) {
+    Sentry.captureException(err, { tags: { type: "content_render" } });
     logger.error("content_render_failed", { error: err instanceof Error ? err.message : String(err) });
     return renderPlainText(content);
   }
