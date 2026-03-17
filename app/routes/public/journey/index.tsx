@@ -3,6 +3,12 @@ import { Link } from "~/components/SmartLink";
 import { db } from "~/db/client.server";
 import { stages } from "~/db/schema.server";
 import { sql } from "drizzle-orm";
+import type { InferSelectModel } from "drizzle-orm";
+
+type Stage = InferSelectModel<typeof stages>;
+import { motion } from "~/lib/motion";
+import { staggerContainer, staggerItem } from "~/lib/motion-utils";
+import { cn } from "~/lib/cn";
 import StageStrip from "~/components/StageStrip";
 import HeroSection from "~/components/HeroSection";
 import EmptyState from "~/components/EmptyState";
@@ -56,7 +62,6 @@ export default function JourneyPage({ loaderData }: Route.ComponentProps) {
         subtitle="ADA 러너의 아홉 달은 여러 Stage로 구성됩니다. 각 Stage마다 탐구와 기록이 쌓입니다."
       />
 
-      {/* Stage Strip */}
       {allStages.length > 0 && (
         <div className="bg-surface border-b border-border">
           <div className="max-w-content mx-auto px-6">
@@ -69,69 +74,87 @@ export default function JourneyPage({ loaderData }: Route.ComponentProps) {
         {allStages.length === 0 ? (
           <EmptyState variant="generic" message="아직 Stage가 등록되지 않았습니다." />
         ) : (
-          <div className="flex flex-col gap-5">
-            {allStages.map((stage, index) => {
+          <motion.div
+            variants={staggerContainer}
+            initial="hidden"
+            animate="visible"
+            className="flex flex-col gap-5"
+          >
+            {allStages.map((stage, index: number) => {
               const accentColor = STAGE_ACCENTS[stage.type] ?? "var(--color-ocean-blue)";
               const isCurrent = stage.isCurrent;
 
               return (
-                <Link
-                  key={stage.id}
-                  to={`/journey/${stage.slug}`}
-                  className={`block rounded-2xl p-7 no-underline transition-all hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2 ${
-                    isCurrent
-                      ? "quiet-depth-card shadow-md"
-                      : "bg-surface border border-border-subtle hover:bg-surface-secondary hover:shadow-card-hover"
-                  } ${stage.status === "upcoming" ? "opacity-60" : ""}`}
-                >
-                  <div className="flex items-start gap-5">
+                <motion.div key={stage.id} variants={staggerItem}>
+                  <Link
+                    to={`/journey/${stage.slug}`}
+                    className={cn(
+                      "group block no-underline",
+                      "ring-1 ring-border p-1.5 md:p-2 rounded-2xl",
+                      "hover:shadow-tinted-md transition-premium",
+                      stage.status === "upcoming" && "opacity-60"
+                    )}
+                  >
                     <div
-                      className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold shrink-0"
-                      style={{
-                        backgroundColor: `color-mix(in srgb, ${accentColor} 15%, transparent)`,
-                        color: accentColor,
-                      }}
+                      className={cn(
+                        "rounded-xl p-6 md:p-7 h-full",
+                        isCurrent
+                          ? "bg-gradient-to-br from-mist-blue/50 via-surface to-mist-blue/30"
+                          : "bg-surface"
+                      )}
                     >
-                      {index + 1}
-                    </div>
-
-                    <div className="flex-1">
-                      <div className="flex gap-2 mb-3 flex-wrap">
-                        <span
-                          className="text-caption font-medium px-2.5 py-0.5 rounded-full"
+                      <div className="flex items-start gap-5">
+                        <div
+                          className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold shrink-0"
                           style={{
-                            backgroundColor: `color-mix(in srgb, ${accentColor} 12%, transparent)`,
+                            backgroundColor: `color-mix(in srgb, ${accentColor} 15%, transparent)`,
                             color: accentColor,
                           }}
                         >
-                          {STAGE_TYPE_LABELS[stage.type] ?? stage.type}
-                        </span>
-                        <span className="text-caption font-medium px-2.5 py-0.5 rounded-full bg-surface-secondary text-text-secondary">
-                          {STATUS_LABELS[stage.status] ?? stage.status}
-                        </span>
-                        {isCurrent && (
-                          <span
-                            className="text-caption font-bold px-2.5 py-0.5 rounded-full text-white"
-                            style={{ backgroundColor: accentColor }}
-                          >
-                            현재
-                          </span>
-                        )}
+                          {index + 1}
+                        </div>
+
+                        <div className="flex-1">
+                          <div className="flex gap-2 mb-3 flex-wrap">
+                            <span
+                              className="text-caption font-medium px-2.5 py-0.5 rounded-full"
+                              style={{
+                                backgroundColor: `color-mix(in srgb, ${accentColor} 12%, transparent)`,
+                                color: accentColor,
+                              }}
+                            >
+                              {STAGE_TYPE_LABELS[stage.type] ?? stage.type}
+                            </span>
+                            <span className="text-caption font-medium px-2.5 py-0.5 rounded-full bg-surface-secondary text-text-secondary">
+                              {STATUS_LABELS[stage.status] ?? stage.status}
+                            </span>
+                            {isCurrent && (
+                              <span
+                                className="text-caption font-bold px-2.5 py-0.5 rounded-full text-white"
+                                style={{ backgroundColor: accentColor }}
+                              >
+                                현재
+                              </span>
+                            )}
+                          </div>
+
+                          <h2 className="text-xl font-bold text-deep-ocean tracking-tight mb-2">
+                            {stage.name}
+                          </h2>
+
+                          {stage.description && (
+                            <p className="text-base text-text-secondary leading-relaxed">
+                              {stage.description}
+                            </p>
+                          )}
+                        </div>
                       </div>
-                      <h2 className="text-xl font-bold text-deep-ocean tracking-tight mb-2">
-                        {stage.name}
-                      </h2>
-                      {stage.description && (
-                        <p className="text-base text-text-secondary leading-relaxed">
-                          {stage.description}
-                        </p>
-                      )}
                     </div>
-                  </div>
-                </Link>
+                  </Link>
+                </motion.div>
               );
             })}
-          </div>
+          </motion.div>
         )}
       </div>
     </div>

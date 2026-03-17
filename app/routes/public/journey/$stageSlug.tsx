@@ -20,32 +20,22 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
   logger.info("loader_start");
   const database = db(context.cloudflare.env.DB);
 
-  const [stageResult, allStages] = await database.batch([
-    database.select().from(stages).where(eq(stages.slug, stageSlug)).limit(1),
-    database.select().from(stages).orderBy(sql`"order" ASC`),
-  ]);
-
-  const stage = stageResult[0];
+  const { getStageBySlug, getStages } = await import("~/db/queries/stages.server");
+  const { getRecords } = await import("~/db/queries/records.server");
+  
+  const stage = await getStageBySlug(context.cloudflare.env.DB, stageSlug || "");
   if (!stage) {
     logger.info("not_found", { slug: stageSlug });
     throw data("Stage를 찾을 수 없습니다", { status: 404 });
   }
 
-  const [stageRecords, stageQuestions, stageCollaborations, collectiveMemoryResult] = await database.batch([
-    database
-      .select({
-        record: records,
-        author: {
-          displayName: learnerProfiles.displayName,
-          slug: learnerProfiles.slug,
-          profilePhotoUrl: learnerProfiles.profilePhotoUrl,
-        },
-      })
-      .from(records)
-      .leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
-      .where(and(eq(records.stageId, stage.id), sql`${records.visibility} != 'draft'`))
-      .orderBy(desc(records.createdAt))
-      .limit(12),
+  const allStages = await getStages(context.cloudflare.env.DB);
+  
+  // existing function: getRecords supports { stage: stage.id }
+  const stageRecords = await getRecords(context.cloudflare.env.DB, { stage: stage.id });
+  
+  // For questions, collaboration, and collectiveMemory, use existing queries or keep batch for ones without explicit functions
+  const [stageQuestions, stageCollaborations, collectiveMemoryResult] = await database.batch([
     database
       .select({
         question: questions,
@@ -64,7 +54,6 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
       .where(and(eq(collectiveMemories.stageId, stage.id), eq(collectiveMemories.status, "published")))
       .limit(1),
   ]);
-
   const collectiveMemory = collectiveMemoryResult[0] ?? null;
 
   logger.info("loader_end");
