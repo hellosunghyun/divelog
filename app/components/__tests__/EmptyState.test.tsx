@@ -9,7 +9,7 @@ describe("EmptyState", () => {
     render(<EmptyState />);
     expect(screen.getByText("내용이 없습니다")).toBeInTheDocument();
     expect(
-      screen.getByText("아직 이 공간이 비어 있습니다.")
+      screen.getByText("이 공간은 아직 비어 있습니다.")
     ).toBeInTheDocument();
   });
 
@@ -25,7 +25,7 @@ describe("EmptyState", () => {
     render(<EmptyState variant="questions" />);
     expect(screen.getByText("남겨진 질문이 없습니다")).toBeInTheDocument();
     expect(
-      screen.getByText("기록을 남기면 질문을 달 수 있습니다.")
+      screen.getByText("기록에 질문을 달아 깊이 있는 성찰을 이어갈 수 있습니다.")
     ).toBeInTheDocument();
   });
 
@@ -33,9 +33,7 @@ describe("EmptyState", () => {
     render(<EmptyState variant="responses" />);
     expect(screen.getByText("아직 응답이 없습니다")).toBeInTheDocument();
     expect(
-      screen.getByText(
-        "이 기록에 공명하거나, 질문을 남기거나, 연결할 수 있습니다."
-      )
+      screen.getByText("공명하거나, 질문을 남기거나, 연결해보세요.")
     ).toBeInTheDocument();
   });
 
