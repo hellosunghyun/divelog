@@ -3,7 +3,7 @@ import { useSearchParams } from "react-router";
 
 import { cn } from "~/lib/utils/cn";
 
-export type RecordView = "grid" | "timeline";
+export type RecordView = "grid" | "timeline" | "calendar";
 
 interface ViewToggleProps {
   currentView: RecordView;
@@ -36,9 +36,21 @@ const TimelineIcon = (
   </svg>
 );
 
+const CalendarIcon = (
+  <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <rect x="3" y="4" width="18" height="18" rx="2" />
+    <path d="M3 10h18" />
+    <path d="M8 1v6M16 1v6" />
+    <rect x="6" y="14" width="2.5" height="2.5" rx="0.5" fill="currentColor" />
+    <rect x="10.75" y="14" width="2.5" height="2.5" rx="0.5" fill="currentColor" />
+    <rect x="15.5" y="14" width="2.5" height="2.5" rx="0.5" fill="currentColor" />
+  </svg>
+);
+
 const OPTIONS: ToggleOption[] = [
   { value: "grid", label: "그리드 보기", icon: GridIcon },
   { value: "timeline", label: "타임라인 보기", icon: TimelineIcon },
+  { value: "calendar", label: "캘린더 보기", icon: CalendarIcon },
 ];
 
 export default function ViewToggle({ currentView }: ViewToggleProps) {
