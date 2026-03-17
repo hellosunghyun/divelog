@@ -9,7 +9,6 @@ import {
 import * as Sentry from "@sentry/react-router/cloudflare";
 
 import type { Route } from "./+types/root";
-import { NavigationFade } from "~/components/layout/NavigationFade";
 import { MotionProvider } from "~/lib/motion/motion";
 import "./app.css";
 
@@ -45,9 +44,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 export default function App() {
   return (
     <MotionProvider>
-      <NavigationFade>
-        <Outlet />
-      </NavigationFade>
+      <Outlet />
     </MotionProvider>
   );
 }
