@@ -10,7 +10,6 @@ Sentry.init({
 
   integrations: [
     Sentry.reactRouterTracingIntegration(),
-    Sentry.replayIntegration(),
   ],
 
   tracesSampleRate: 0.1,
@@ -18,6 +17,13 @@ Sentry.init({
 
   replaysSessionSampleRate: 0.01,
   replaysOnErrorSampleRate: 0.5,
+});
+
+window.addEventListener("load", () => {
+  setTimeout(async () => {
+    const { replayIntegration } = await import("@sentry/react-router/cloudflare");
+    Sentry.addIntegration(replayIntegration());
+  }, 2000);
 });
 
 // 배포 후 구 청크 로딩 실패 시 자동 새로고침 (1회만)
