@@ -16,6 +16,36 @@ const requestHandler = createRequestHandler(
   import.meta.env.MODE
 );
 
+function withHtmlCacheHeaders(response: Response, request: Request) {
+  const contentType = response.headers.get("Content-Type") ?? "";
+
+  if (!contentType.includes("text/html")) {
+    return response;
+  }
+
+  const isAuthenticated =
+    request.headers.get("cookie")?.includes("adakrpos_session") ?? false;
+  const headers = new Headers(response.headers);
+  const existingVary = headers.get("Vary");
+
+  headers.set(
+    "Vary",
+    existingVary ? `${existingVary}, Cookie` : "Cookie",
+  );
+  headers.set(
+    "Cache-Control",
+    isAuthenticated
+      ? "private, no-cache"
+      : "public, s-maxage=60, stale-while-revalidate=300",
+  );
+
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext) {
     const logger = createLogger(request, env as { LOG_LEVEL?: string });
@@ -33,7 +63,7 @@ export default {
         {
           options: {
             dsn: "https://eb0588c8197661ea070258e9aca009e4@o4509761661304832.ingest.us.sentry.io/4511052944572416",
-            tracesSampleRate: 1.0,
+            tracesSampleRate: 0.1,
             sendDefaultPii: true,
           },
           request,
@@ -50,7 +80,7 @@ export default {
         status: response.status,
         durationMs: Date.now() - startMs,
       });
-      return response;
+      return withHtmlCacheHeaders(response, request);
     } catch (thrown: unknown) {
       if (thrown instanceof Response) {
         logger.info("request_response_throw", {

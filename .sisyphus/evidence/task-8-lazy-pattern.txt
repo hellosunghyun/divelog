@@ -1,0 +1,30 @@
+=== Task 8: React.lazy + Suspense Pattern Verification ===
+
+File 1: app/routes/public/write/article.tsx
+Command: grep -n "React.lazy\|lazy\|Suspense" app/routes/public/write/article.tsx
+
+4:import { useState, Suspense, lazy } from "react";
+10:const ArticleEditor = lazy(() =>
+496:            <Suspense fallback={<div className="animate-pulse bg-surface-secondary rounded-lg h-64" />}>
+503:            </Suspense>
+
+Status: ✓ PASS - Imports lazy and Suspense at top, defines lazy component, wraps usage
+
+---
+
+File 2: app/routes/public/logs/$recordSlug.edit.tsx
+Command: grep -n "React.lazy\|lazy\|Suspense" "app/routes/public/logs/$recordSlug.edit.tsx"
+
+4:import { useState, Suspense, lazy } from "react";
+8:const ArticleEditor = lazy(() =>
+389:             <Suspense fallback={<div className="animate-pulse bg-surface-secondary rounded-lg h-64" />}>
+396:             </Suspense>
+
+Status: ✓ PASS - Imports lazy and Suspense at top, defines lazy component, wraps usage
+
+---
+
+Summary:
+✓ Both files have React.lazy() import + const ArticleEditor = lazy(...)
+✓ Both files wrap <ArticleEditor /> with <Suspense>
+✓ Both have fallback UI with loading skeleton

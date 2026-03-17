@@ -1,4 +1,5 @@
 name = "divelog"
+account_id = "affecc6aaec94a3ab40da3da7a7ef1af"
 main = "workers/app.ts"
 compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
@@ -8,7 +9,6 @@ routes = [
 ]
 
 [vars]
-ADAKRPOS_API_KEY = "ak_277c6498-ee78-4f04-a09c-808d241f7d2c"
 ADMIN_USER_ID = "usr_placeholder_replace_with_real_admin_id"
 ADMIN_EMAILS = "sunkima26@pos.idserve.net"
 LOG_LEVEL = "INFO"

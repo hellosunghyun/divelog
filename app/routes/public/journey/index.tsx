@@ -1,9 +1,5 @@
 import type { Route } from "./+types/index";
 import { Link } from "~/components/content/SmartLink";
-import { sql } from "drizzle-orm";
-import type { InferSelectModel } from "drizzle-orm";
-
-type Stage = InferSelectModel<typeof stages>;
 import { motion } from "~/lib/motion/motion";
 import { staggerContainer, staggerItem } from "~/lib/motion/motion-utils";
 import { cn } from "~/lib/utils/cn";
@@ -18,18 +14,32 @@ export function meta(_args: Route.MetaArgs) {
   ];
 }
 
-export async function loader({ request, context }: Route.LoaderArgs) {
+export async function loader({ request, context }: Route.LoaderArgs): Promise<{ stages: any[]; currentStage: any }> {
   const { db } = await import("~/db/client.server");
   const { stages } = await import("~/db/schema.server");
+  const { sql } = await import("drizzle-orm");
   const { createLogger } = await import("~/lib/infra/logger.server");
 
   const logger = createLogger(request, context.cloudflare.env).child({ route: "journey" });
   logger.info("loader_start");
   const database = db(context.cloudflare.env.DB);
   const allStages = await database.select().from(stages).orderBy(sql`"order" ASC`);
-  const currentStage = allStages.find((s) => s.isCurrent) ?? null;
+  const currentStage = allStages.find((s: any) => s.isCurrent) ?? null;
   logger.info("loader_end");
   return { stages: allStages, currentStage };
+}
+
+export function shouldRevalidate({
+  formMethod,
+  defaultShouldRevalidate,
+}: {
+  formMethod?: string;
+  defaultShouldRevalidate: boolean;
+}): boolean {
+  if (formMethod && formMethod !== "GET") {
+    return defaultShouldRevalidate;
+  }
+  return false;
 }
 
 const STAGE_TYPE_LABELS: Record<string, string> = {
@@ -81,7 +91,7 @@ export default function JourneyPage({ loaderData }: Route.ComponentProps) {
             animate="visible"
             className="flex flex-col gap-5"
           >
-            {allStages.map((stage: Stage, index: number) => {
+            {allStages.map((stage: any, index: number) => {
               const accentColor = STAGE_ACCENTS[stage.type] ?? "var(--color-ocean-blue)";
               const isCurrent = stage.isCurrent;
 

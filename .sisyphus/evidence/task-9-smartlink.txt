@@ -1,0 +1,20 @@
+=== Task 9: SmartLink Prefetch Default Change ===
+
+FILE: app/components/content/SmartLink.tsx
+CHANGE: prefetch default "intent" → "viewport"
+
+VERIFICATION:
+$ grep -n "prefetch" app/components/content/SmartLink.tsx
+
+5:  prefetch?: "none" | "intent" | "render" | "viewport";
+9:  prefetch = "viewport",
+12:  return <RRLink prefetch={prefetch} {...props} />;
+
+✓ Line 9: Default value changed to "viewport"
+✓ Props interface unchanged (line 5)
+✓ Component logic unchanged (line 12)
+
+IMPACT:
+- All SmartLink instances without explicit prefetch prop now use "viewport"
+- More conservative prefetch strategy (only when in viewport, not on intent)
+- Reduces unnecessary prefetch requests for links not yet visible

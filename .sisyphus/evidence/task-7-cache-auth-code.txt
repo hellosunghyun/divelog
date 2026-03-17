@@ -1,0 +1,7 @@
+38:      ? "private, no-cache"
+33-    existingVary ? `${existingVary}, Cookie` : "Cookie",
+34-  );
+35-  headers.set(
+36-    "Cache-Control",
+37-    isAuthenticated
+38:      ? "private, no-cache"

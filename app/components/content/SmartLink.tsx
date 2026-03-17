@@ -6,7 +6,7 @@ type SmartLinkProps = React.ComponentProps<typeof RRLink> & {
 };
 
 export function SmartLink({
-  prefetch = "intent",
+  prefetch = "viewport",
   ...props
 }: SmartLinkProps) {
   return <RRLink prefetch={prefetch} {...props} />;

@@ -1,11 +1,13 @@
 import { eq } from "drizzle-orm";
 import { Link } from "~/components/content/SmartLink";
 import { data, redirect, useActionData, useNavigation } from "react-router";
-import { useState } from "react";
+import { useState, Suspense, lazy } from "react";
 
 import type { Route } from "./+types/$recordSlug.edit";
 
-import { ArticleEditor } from "~/components/editor/editors/ArticleEditor";
+const ArticleEditor = lazy(() =>
+  import("~/components/editor/editors/ArticleEditor").then(m => ({ default: m.ArticleEditor }))
+);
 import NoteEditor from "~/components/editor/editors/NoteEditor";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -375,22 +377,24 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
           <p className="block text-meta font-medium text-text-secondary mb-2">
             내용 <span className="text-error">*</span>
           </p>
-          {record.format === "note" ? (
-            <NoteEditor
-              name="content"
-              defaultValue={record.content}
-              placeholder="짧은 생각, 메모, 기록을 남겨보세요..."
-              error={contentError}
-              htmlProps={{ required: true }}
-            />
-          ) : (
-            <ArticleEditor
-              name="content"
-              content={articleContent}
-              onChange={(json) => setArticleContent(JSON.stringify(json))}
-              placeholder="여기에 글을 쓰세요. `/`를 입력하면 블록을 추가할 수 있습니다."
-            />
-          )}
+           {record.format === "note" ? (
+             <NoteEditor
+               name="content"
+               defaultValue={record.content}
+               placeholder="짧은 생각, 메모, 기록을 남겨보세요..."
+               error={contentError}
+               htmlProps={{ required: true }}
+             />
+           ) : (
+             <Suspense fallback={<div className="animate-pulse bg-surface-secondary rounded-lg h-64" />}>
+               <ArticleEditor
+                 name="content"
+                 content={articleContent}
+                 onChange={(json) => setArticleContent(JSON.stringify(json))}
+                 placeholder="여기에 글을 쓰세요. `/`를 입력하면 블록을 추가할 수 있습니다."
+               />
+             </Suspense>
+           )}
           {contentError ? <p className="text-error text-meta mt-1">{contentError}</p> : null}
         </div>
 

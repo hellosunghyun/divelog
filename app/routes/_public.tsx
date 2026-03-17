@@ -3,17 +3,16 @@ import * as Sentry from "@sentry/react-router/cloudflare";
 import type { Route } from "./+types/_public";
 import { ensureAdminByEmail } from "~/lib/auth/auth.middleware";
 import { and, eq } from "drizzle-orm";
+import { db } from "~/db/client.server";
+import { userRoles } from "~/db/schema.server";
+import { getOrCreateLearnerProfile } from "~/db/queries/learners/learners.server";
+import { getAuth, getAuthDebug } from "~/lib/auth/auth.server";
+import { createLogger } from "~/lib/infra/logger.server";
 import GlobalNav from "~/components/layout/GlobalNav";
 import Footer from "~/components/layout/Footer";
 import { FloatingWriteCTA } from "~/components/layout/FloatingWriteCTA";
 
 export async function loader({ request, context }: Route.LoaderArgs) {
-  const { getAuth, getAuthDebug } = await import("~/lib/auth/auth.server");
-  const { getOrCreateLearnerProfile } = await import("~/db/queries/learners/learners.server");
-  const { createLogger } = await import("~/lib/infra/logger.server");
-  const { db } = await import("~/db/client.server");
-  const { userRoles } = await import("~/db/schema.server");
-
   const logger = createLogger(request, context.cloudflare.env).child({ route: "_public" });
   logger.info("loader_start");
   const auth = await getAuth(request, context.cloudflare.env.ADAKRPOS_API_KEY);

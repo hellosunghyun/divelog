@@ -1,170 +1,24 @@
+=== Task 8: Build Success + ArticleEditor Chunk Isolation ===
 
-> test
-> vitest run
+Command: pnpm build
 
+Build Status: ✓ SUCCESS (built in 4.89s)
 
-[1m[46m RUN [49m[22m [36mv4.1.0 [39m[90m/Users/hellosunghyun/Documents/Github/divelog-contradictions-fix[39m
+Client Build Output:
+build/client/assets/ArticleEditor-Bw7dPAHp.js  696K (SEPARATE LAZY CHUNK)
+build/client/assets/article-B6ZhQyxC.js        83K  (route chunk)
 
+Verification:
+✓ ArticleEditor is now a separate lazy-loaded chunk (696KB)
+✓ Not bundled into main client bundle or route chunks
+✓ Will be loaded on-demand when /write/article or /logs/:slug/edit is accessed
 
-[2m Test Files [22m [1m[32m6 passed[39m[22m[90m (6)[39m
-[2m      Tests [22m [1m[32m78 passed[39m[22m[90m (78)[39m
-[2m   Start at [22m 00:18:00
-[2m   Duration [22m 235ms[2m (transform 175ms, setup 0ms, import 260ms, tests 90ms, environment 2ms)[22m
+Key Metrics:
+- ArticleEditor chunk size: 696KB
+- Location: build/client/assets/ (client-side lazy load)
+- Lazy loading pattern: import(...).then(m => ({ default: m.ArticleEditor }))
 
-
-> build
-> react-router build && node scripts/patch-worker.mjs
-
-[sentry-vite-plugin] Info: Sending telemetry data on issues and performance to Sentry. To disable telemetry, set `options.telemetry` to `false`.
-Using Vite Environment API (experimental)
-vite v7.3.1 building client environment for production...
-
-  ⚠️  Source maps are enabled in production
-     This makes your server code publicly
-     visible in the browser. This is highly
-     discouraged! If you insist, ensure that
-     you are using environment variables for
-     secrets and not hard-coding them in
-     your source code.
-
-[sentry-vite-plugin] Info: Sending telemetry data on issues and performance to Sentry. To disable telemetry, set `options.telemetry` to `false`.
-transforming...
-node_modules/.pnpm/react-router@7.12.0_react-dom@19.2.4_react@19.2.4__react@19.2.4/node_modules/react-router/dist/development/dom-export.mjs (1:0): Error when using sourcemap for reporting an error: Can't resolve original location of error.
-✓ 2629 modules transformed.
-Generated an empty chunk: "upload".
-Generated an empty chunk: "images._".
-rendering chunks...
-[plugin react-router:split-route-modules] Sourcemap is likely to be incorrect: a plugin (react-router:split-route-modules) was used to transform files, but didn't generate a sourcemap for the transformation. Consult the plugin documentation for help
-[plugin react-router:split-route-modules] Sourcemap is likely to be incorrect: a plugin (react-router:split-route-modules) was used to transform files, but didn't generate a sourcemap for the transformation. Consult the plugin documentation for help
-[sentry-vite-plugin] Warning: No auth token provided. Will not create release. Please set the `authToken` option. You can find information on how to generate a Sentry auth token here: https://docs.sentry.io/api/auth/
-computing gzip size...
-build/client/.assetsignore                                    0.02 kB
-build/client/.vite/manifest.json                             24.57 kB │ gzip:   2.42 kB
-build/client/assets/root-FrfJyyae.css                        80.09 kB │ gzip:  14.18 kB
-build/client/assets/upload-l0sNRNKZ.js                        0.00 kB │ gzip:   0.02 kB │ map:     0.10 kB
-build/client/assets/images._-l0sNRNKZ.js                      0.00 kB │ gzip:   0.02 kB │ map:     0.10 kB
-build/client/assets/_recordSlug-client-action-nMZz1j13.js     0.47 kB │ gzip:   0.32 kB │ map:     0.12 kB
-build/client/assets/_recordSlug-client-loader-D0mFbS5Z.js     0.47 kB │ gzip:   0.32 kB │ map:     0.12 kB
-build/client/assets/editor-extensions-blijAngU.js             0.48 kB │ gzip:   0.32 kB │ map:     0.80 kB
-build/client/assets/SmartLink-CdNKBudf.js                     0.56 kB │ gzip:   0.38 kB │ map:     0.71 kB
-build/client/assets/_stageSlug-client-loader-WVDE-M5F.js      0.59 kB │ gzip:   0.39 kB │ map:     9.66 kB
-build/client/assets/_learnerSlug-client-loader-CBqUtyVI.js    0.59 kB │ gzip:   0.39 kB │ map:     7.25 kB
-build/client/assets/useUnsavedWarning-CYXRnEPF.js             0.85 kB │ gzip:   0.50 kB │ map:     1.66 kB
-build/client/assets/compress-image-BBQPTnDI.js                1.23 kB │ gzip:   0.68 kB │ map:     3.33 kB
-build/client/assets/HighlightedSentenceCard-BPETu5F3.js       1.46 kB │ gzip:   0.78 kB │ map:     2.32 kB
-build/client/assets/createLucideIcon-1-7q5syR.js              1.63 kB │ gzip:   0.93 kB │ map:     7.88 kB
-build/client/assets/analytics-LQPnSf0v.js                     1.63 kB │ gzip:   0.79 kB │ map:     4.08 kB
-build/client/assets/index-hspd9KaY.js                         1.67 kB │ gzip:   0.97 kB │ map:     3.18 kB
-build/client/assets/QuestionCard-CarSTHWQ.js                  1.70 kB │ gzip:   0.99 kB │ map:     2.66 kB
-build/client/assets/StageStrip-BgFxL7Dr.js                    1.81 kB │ gzip:   0.95 kB │ map:     3.50 kB
-build/client/assets/index-CjywHhvq.js                         1.82 kB │ gzip:   0.92 kB │ map:     3.88 kB
-build/client/assets/CollaborationUnitCard-BsLre_hC.js         1.82 kB │ gzip:   0.98 kB │ map:     3.41 kB
-build/client/assets/LearnerCard-CsMPMI8L.js                   1.84 kB │ gzip:   0.90 kB │ map:     3.43 kB
-build/client/assets/settings-h7Z3c8jl.js                      1.86 kB │ gzip:   1.02 kB │ map:     4.53 kB
-build/client/assets/index-C0olsREC.js                         1.92 kB │ gzip:   0.96 kB │ map:     3.82 kB
-build/client/assets/index-Dm41RZKY.js                         1.92 kB │ gzip:   0.96 kB │ map:     3.82 kB
-build/client/assets/EmptyState-BUgvbHDv.js                    1.96 kB │ gzip:   1.10 kB │ map:     3.04 kB
-build/client/assets/index-CEiM6OBy.js                         1.96 kB │ gzip:   0.97 kB │ map:     3.92 kB
-build/client/assets/index-CGBOoTGj.js                         1.99 kB │ gzip:   1.13 kB │ map:     4.35 kB
-build/client/assets/index-hHHDIpRv.js                         2.03 kB │ gzip:   1.00 kB │ map:     4.14 kB
-build/client/assets/_learnerId-CwUG32gp.js                    2.04 kB │ gzip:   0.90 kB │ map:     4.30 kB
-build/client/assets/index-CU2l8WyP.js                         2.11 kB │ gzip:   1.03 kB │ map:     4.45 kB
-build/client/assets/index-Da7l76Rw.js                         2.29 kB │ gzip:   1.26 kB │ map:     6.77 kB
-build/client/assets/index-BlkJokJm.js                         2.31 kB │ gzip:   1.07 kB │ map:     4.90 kB
-build/client/assets/_tagSlug-Cts3KwHh.js                      2.39 kB │ gzip:   1.23 kB │ map:     6.54 kB
-build/client/assets/index-DNZDG2BE.js                         2.45 kB │ gzip:   1.13 kB │ map:     5.26 kB
-build/client/assets/_stageId-B64-_nkk.js                      2.50 kB │ gzip:   1.03 kB │ map:     5.41 kB
-build/client/assets/_recordId-B6606Ov3.js                     2.51 kB │ gzip:   1.10 kB │ map:     5.80 kB
-build/client/assets/audit-BfMSJC5M.js                         2.58 kB │ gzip:   1.08 kB │ map:     5.23 kB
-build/client/assets/index-BwYr3SsN.js                         2.58 kB │ gzip:   1.06 kB │ map:     5.94 kB
-build/client/assets/_groupSlug-BEKqEDqv.js                    2.61 kB │ gzip:   1.31 kB │ map:     7.17 kB
-build/client/assets/_responseId-Bu6Y7hWC.js                   2.63 kB │ gzip:   1.07 kB │ map:     5.71 kB
-build/client/assets/root-BHJsRQbg.js                          2.65 kB │ gzip:   1.34 kB │ map:     6.27 kB
-build/client/assets/SceneCard-uhYbefn6.js                     2.75 kB │ gzip:   1.27 kB │ map:     5.89 kB
-build/client/assets/curation-CbCTZB2q.js                      2.79 kB │ gzip:   1.12 kB │ map:     7.06 kB
-build/client/assets/_stageId-DEUp8JnJ.js                      2.81 kB │ gzip:   1.12 kB │ map:     5.97 kB
-build/client/assets/_groupId-w6sYC512.js                      2.83 kB │ gzip:   1.11 kB │ map:     5.69 kB
-build/client/assets/_stageSlug-DMSv0L19.js                    2.84 kB │ gzip:   1.31 kB │ map:     7.99 kB
-build/client/assets/_learnerSlug-main-R5fHKjHl.js             2.85 kB │ gzip:   1.30 kB │ map:     7.64 kB
-build/client/assets/_challengeSlug-CnCBTnN7.js                2.88 kB │ gzip:   1.37 kB │ map:     6.98 kB
-build/client/assets/HeroSection-BS7ydN3U.js                   2.92 kB │ gzip:   1.28 kB │ map:     5.24 kB
-build/client/assets/index-cKuEF9Tp.js                         2.94 kB │ gzip:   1.26 kB │ map:     6.19 kB
-build/client/assets/settings-D67NTDco.js                      3.00 kB │ gzip:   1.31 kB │ map:     7.62 kB
-build/client/assets/inbox-BL0LAxZC.js                         3.22 kB │ gzip:   1.40 kB │ map:     8.97 kB
-build/client/assets/index-Cfy8HIzZ.js                         3.32 kB │ gzip:   1.57 kB │ map:     8.21 kB
-build/client/assets/note-BKVFFyGX.js                          3.41 kB │ gzip:   1.56 kB │ map:    12.21 kB
-build/client/assets/_templateId-fW1FBFTx.js                   3.69 kB │ gzip:   1.39 kB │ map:     8.45 kB
-build/client/assets/_challengeId-Bsqj8aQA.js                  3.72 kB │ gzip:   1.19 kB │ map:     7.11 kB
-build/client/assets/search-D39USsbM.js                        3.85 kB │ gzip:   1.65 kB │ map:    11.86 kB
-build/client/assets/roles-DKhtylRL.js                         3.90 kB │ gzip:   1.58 kB │ map:    10.47 kB
-build/client/assets/index-yBPyuHdA.js                         4.12 kB │ gzip:   1.63 kB │ map:    13.02 kB
-build/client/assets/_stageSlug-main-C_ivMLnN.js               4.30 kB │ gzip:   1.85 kB │ map:    11.46 kB
-build/client/assets/NoteEditor-47-36w_D.js                    4.53 kB │ gzip:   1.95 kB │ map:    14.15 kB
-build/client/assets/article-DOLhCDq-.js                       4.89 kB │ gzip:   1.89 kB │ map:    15.34 kB
-build/client/assets/_recordSlug.details-xIsNmPNh.js           5.05 kB │ gzip:   2.11 kB │ map:    15.42 kB
-build/client/assets/tags-VRek3_pb.js                          5.42 kB │ gzip:   1.84 kB │ map:    15.80 kB
-build/client/assets/_admin-CKOtXQQH.js                        5.44 kB │ gzip:   2.04 kB │ map:    13.18 kB
-build/client/assets/me-CICSx_Gh.js                            6.31 kB │ gzip:   2.12 kB │ map:    19.01 kB
-build/client/assets/guide-BE08nRdE.js                         6.81 kB │ gzip:   2.32 kB │ map:    12.13 kB
-build/client/assets/_recordSlug.edit-8KjqP3Os.js              8.53 kB │ gzip:   2.88 kB │ map:    25.38 kB
-build/client/assets/index-FQml7miy.js                         9.34 kB │ gzip:   3.57 kB │ map:    32.10 kB
-build/client/assets/_public-CCI16qcq.js                      20.44 kB │ gzip:   4.81 kB │ map:    50.54 kB
-build/client/assets/index-Do4yWGis.js                        20.70 kB │ gzip:   5.50 kB │ map:    47.60 kB
-build/client/assets/_recordSlug-vG6TlVT6.js                  21.23 kB │ gzip:   5.90 kB │ map:    61.66 kB
-build/client/assets/debug-build-CxbRD6AF.js                  36.09 kB │ gzip:  12.67 kB │ map:   241.85 kB
-build/client/assets/chunk-EPOLDU6W-U-CIegNv.js              124.91 kB │ gzip:  42.34 kB │ map:   581.10 kB
-build/client/assets/entry.client-DOyjnHOp.js                418.74 kB │ gzip: 135.71 kB │ map: 2,162.84 kB
-build/client/assets/ArticleEditor-BanJKwXw.js               697.57 kB │ gzip: 215.58 kB │ map: 2,798.80 kB
-
-(!) Some chunks are larger than 500 kB after minification. Consider:
-- Using dynamic import() to code-split the application
-- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
-- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
-✓ built in 3.59s
-vite v7.3.1 building ssr environment for production...
-[sentry-vite-plugin] Info: Sending telemetry data on issues and performance to Sentry. To disable telemetry, set `options.telemetry` to `false`.
-transforming...
-app/components/editor/ArticleEditor.tsx (1:0): Error when using sourcemap for reporting an error: Can't resolve original location of error.
-✓ 2757 modules transformed.
-rendering chunks...
-[plugin vite:reporter] 
-(!) /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/lib/auth.server.ts is dynamically imported by /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/lib/auth.middleware.ts but also statically imported by /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/lib/auth.middleware.ts, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/_public.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/api/upload.tsx, dynamic import will not move module into another chunk.
-
-[plugin vite:reporter] 
-(!) /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/node_modules/.pnpm/drizzle-orm@0.45.1_@opentelemetry+api@1.9.0_@types+pg@8.15.6/node_modules/drizzle-orm/index.js is dynamically imported by /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/db/queries/tags.server.ts but also statically imported by /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/db/queries/activity.server.ts, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/db/queries/learners.server.ts, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/db/queries/mentions.server.ts, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/db/queries/recordLinks.server.ts, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/db/queries/records.server.ts, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/db/queries/selfAnswers.server.ts, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/db/queries/sentences.server.ts, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/db/queries/tags.server.ts, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/db/relations.server.ts, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/db/schema.server.ts, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/lib/auth.middleware.ts, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/_public.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/admin/analytics.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/admin/audit.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/admin/challenges/$challengeId.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/admin/challenges/index.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/admin/collaboration/$groupId.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/admin/collaboration/index.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/admin/curation.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/admin/dialogue/$responseId.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/admin/dialogue/index.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/admin/index.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/admin/learners/$learnerId.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/admin/learners/index.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/admin/memories/$stageId.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/admin/memories/index.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/admin/records/$recordId.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/admin/records/index.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/admin/roles.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/admin/settings.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/admin/stages/$stageId.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/admin/stages/index.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/admin/tags.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/admin/templates/$templateId.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/admin/templates/index.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/public/challenges/$challengeSlug.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/public/challenges/index.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/public/groups/$groupSlug.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/public/inbox.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/public/index.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/public/journey/$stageSlug.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/public/journey/index.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/public/learners/$learnerSlug.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/public/logs/$recordSlug.details.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/public/logs/$recordSlug.edit.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/public/logs/$recordSlug.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/public/logs/index.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/public/me.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/public/memories/$stageSlug.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/public/search.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/public/settings.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/public/write/article.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/public/write/note.tsx, dynamic import will not move module into another chunk.
-
-[plugin vite:reporter] 
-(!) /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/db/schema.server.ts is dynamically imported by /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/db/queries/mentions.server.ts, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/db/queries/tags.server.ts but also statically imported by /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/db/client.server.ts, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/db/queries/activity.server.ts, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/db/queries/learners.server.ts, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/db/queries/mentions.server.ts, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/db/queries/recordLinks.server.ts, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/db/queries/records.server.ts, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/db/queries/selfAnswers.server.ts, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/db/queries/sentences.server.ts, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/db/queries/tags.server.ts, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/db/relations.server.ts, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/lib/auth.middleware.ts, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/_public.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/admin/analytics.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/admin/audit.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/admin/challenges/$challengeId.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/admin/challenges/index.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/admin/collaboration/$groupId.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/admin/collaboration/index.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/admin/curation.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/admin/dialogue/$responseId.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/admin/dialogue/index.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/admin/index.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/admin/learners/$learnerId.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/admin/learners/index.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/admin/memories/$stageId.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/admin/memories/index.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/admin/records/$recordId.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/admin/records/index.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/admin/roles.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/admin/settings.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/admin/stages/$stageId.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/admin/stages/index.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/admin/tags.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/admin/templates/$templateId.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/admin/templates/index.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/public/challenges/$challengeSlug.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/public/challenges/index.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/public/groups/$groupSlug.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/public/inbox.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/public/index.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/public/journey/$stageSlug.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/public/journey/index.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/public/learners/$learnerSlug.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/public/logs/$recordSlug.details.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/public/logs/$recordSlug.edit.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/public/logs/$recordSlug.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/public/logs/index.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/public/me.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/public/memories/$stageSlug.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/public/search.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/public/settings.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/public/write/article.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/public/write/note.tsx, dynamic import will not move module into another chunk.
-
-[plugin vite:reporter] 
-(!) /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/lib/content.server.ts is dynamically imported by /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/public/index.tsx but also statically imported by /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/admin/records/$recordId.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/public/logs/$recordSlug.edit.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/public/logs/$recordSlug.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/public/logs/index.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/public/search.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/public/tags/$tagSlug.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/public/write/article.tsx, /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/app/routes/public/write/note.tsx, dynamic import will not move module into another chunk.
-
-[sentry-vite-plugin] Warning: No auth token provided. Will not create release. Please set the `authToken` option. You can find information on how to generate a Sentry auth token here: https://docs.sentry.io/api/auth/
-build/server/.vite/manifest.json                    0.96 kB
-build/server/wrangler.json                          1.75 kB
-build/server/assets/server-build-FrfJyyae.css      80.09 kB
-build/server/index.js                               0.66 kB │ map:     0.10 kB
-build/server/assets/compress-image-CkRocFyx.js      2.08 kB │ map:     3.25 kB
-build/server/assets/worker-entry-CZd1UIUn.js      546.93 kB │ map: 1,391.71 kB
-build/server/assets/server-build-COqMcmlC.js    2,798.00 kB │ map: 5,231.96 kB
-✓ built in 3.67s
-error: Auth token is required for this request. Please run `sentry-cli login` and try again!
-
-Add --log-level=[info|debug] or export SENTRY_LOG_LEVEL=[info|debug] to see more output.
-Please attach the full debug log to all bug reports.
-[Sentry] Could not upload sourcemaps Error: Command sourcemaps upload --release undefined /Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/build --ignore node_modules failed with exit code 1
-    at ChildProcess.<anonymous> (/Users/hellosunghyun/Documents/Github/divelog-contradictions-fix/node_modules/.pnpm/@sentry+cli@2.58.5/node_modules/@sentry/cli/js/helper.js:321:32)
-    at ChildProcess.emit (node:events:508:20)
-    at ChildProcess.emit (node:domain:489:12)
-    at Process.ChildProcess._handle.onexit (node:internal/child_process:293:12)
-
-  build/worker.js  3.4mb ⚠️
-
-⚡ Done in 99ms
-[patch-worker] bundled build/client/_worker.js for Cloudflare Pages
-app/routes/public/logs/$recordSlug.edit.tsx:12:import { syncMentionsForRecord } from "~/db/queries/mentions.server";
-app/routes/public/logs/$recordSlug.edit.tsx:14:import { syncRecordLinksForRecord } from "~/db/queries/recordLinks.server";
-app/routes/public/logs/$recordSlug.edit.tsx:139:    await syncMentionsForRecord(
-app/routes/public/logs/$recordSlug.edit.tsx:146:    await syncRecordLinksForRecord(context.cloudflare.env.DB, recordData.record.id, recordRefs);
-app/routes/public/write/note.tsx:9:import { syncMentionsForRecord } from "~/db/queries/mentions.server";
-app/routes/public/write/note.tsx:115:    await syncMentionsForRecord(
+Conclusion:
+✓ Build successful
+✓ ArticleEditor properly code-split as lazy chunk
+✓ Ready for deployment

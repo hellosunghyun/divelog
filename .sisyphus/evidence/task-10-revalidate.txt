@@ -1,0 +1,4 @@
+app/routes/public/journey/index.tsx
+app/routes/public/logs/index.tsx
+app/routes/public/learners/index.tsx
+app/routes/public/challenges/index.tsx

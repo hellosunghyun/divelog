@@ -1,0 +1,24 @@
+=== Task 9: FloatingWriteCTA Prefetch Explicit None ===
+
+FILE: app/components/layout/FloatingWriteCTA.tsx
+CHANGE: /write/note link prefetch "render" → "none"
+
+VERIFICATION:
+$ grep -n "prefetch" app/components/layout/FloatingWriteCTA.tsx
+
+29:      prefetch="none"
+
+✓ Line 29: FloatingWriteCTA write link has prefetch="none"
+✓ Link target: /write/note (write entry point)
+✓ No other prefetch attributes in file
+
+CONTEXT:
+- FloatingWriteCTA is fixed on all pages (except /write, /admin, /settings)
+- Appears after 200px scroll
+- Prefetch="none" prevents unnecessary prefetch of write page
+- Aligns with GlobalNav.tsx changes (Task 3)
+
+RATIONALE:
+- Write page is not frequently navigated to from floating CTA
+- Prevents prefetch overhead for users who don't click
+- Explicit "none" overrides SmartLink default "viewport"

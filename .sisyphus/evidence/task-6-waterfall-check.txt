@@ -1,0 +1,25 @@
+Task 6 Waterfall Check
+
+[Command] grep -n "await database" app/routes/public/index.tsx
+29:  const [allStages, currentStageResult, openQuestions, spotlightLearners, learnerCountResult] = await database.batch([
+
+[Command] grep -n "await Promise.all" app/routes/public/index.tsx
+56:  const [recentRecords, recentSentences, recentActivity] = await Promise.all([
+
+[Command] grep -n "Promise.all" app/routes/public/index.tsx
+56:  const [recentRecords, recentSentences, recentActivity] = await Promise.all([
+
+[Command] grep -n -B2 -A2 "getRecentActivity\|getNarrativeDigest" app/routes/public/index.tsx
+18-  const { db } = await import("~/db/client.server");
+19-  const { stages, records, questions, sentences, learnerProfiles } = await import("~/db/schema.server");
+20:  const { getRecentActivity } = await import("~/db/queries/social/activity.server");
+21-  const { createLogger } = await import("~/lib/infra/logger.server");
+22-
+--
+97-      .orderBy(desc(sentences.createdAt))
+98-      .limit(4),
+99:    getRecentActivity(context.cloudflare.env.DB, {
+100-      limit: 8,
+101-      cohort: currentStage?.cohort ?? null,
+
+Result: loader DB await 블록은 batch + Promise.all 2단이며, getRecentActivity는 Promise.all 내부에서 병렬 실행됨.

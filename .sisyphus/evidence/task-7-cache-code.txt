@@ -1,0 +1,11 @@
+39:      : "public, s-maxage=60, stale-while-revalidate=300",
+36:    "Cache-Control",
+29:  const existingVary = headers.get("Vary");
+32:    "Vary",
+33:    existingVary ? `${existingVary}, Cookie` : "Cookie",
+34-  );
+35-  headers.set(
+36-    "Cache-Control",
+37-    isAuthenticated
+38-      ? "private, no-cache"
+39:      : "public, s-maxage=60, stale-while-revalidate=300",

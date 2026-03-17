@@ -1,13 +1,15 @@
 import { eq, sql } from "drizzle-orm";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
-import { useState } from "react";
+import { useState, Suspense, lazy } from "react";
 import { Link } from "~/components/content/SmartLink";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import type { DateRange } from "react-day-picker";
 import type { Route } from "./+types/article";
 
-import { ArticleEditor } from "~/components/editor/editors/ArticleEditor";
+const ArticleEditor = lazy(() =>
+  import("~/components/editor/editors/ArticleEditor").then(m => ({ default: m.ArticleEditor }))
+);
 import { Button } from "~/components/ui/button";
 import { Calendar } from "~/components/ui/calendar";
 import { Input } from "~/components/ui/input";
@@ -491,12 +493,14 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
             <p className="mb-2 block text-meta font-medium text-text-secondary">
               내용 <span className="text-error">*</span>
             </p>
-            <ArticleEditor
-              name="content"
-              content={articleContent}
-              onChange={(_json, text) => setArticleContent(text)}
-              placeholder="여기에 글을 쓰세요. `/`를 입력하면 블록을 추가할 수 있습니다."
-            />
+            <Suspense fallback={<div className="animate-pulse bg-surface-secondary rounded-lg h-64" />}>
+              <ArticleEditor
+                name="content"
+                content={articleContent}
+                onChange={(_json, text) => setArticleContent(text)}
+                placeholder="여기에 글을 쓰세요. `/`를 입력하면 블록을 추가할 수 있습니다."
+              />
+            </Suspense>
             {contentError ? <p className="mt-1 text-meta text-error">{contentError}</p> : null}
           </div>
         </Form>

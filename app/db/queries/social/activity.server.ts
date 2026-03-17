@@ -30,6 +30,7 @@ export interface ActivityItem {
 interface DigestQueryOptions {
   limit?: number;
   stageId?: string;
+  cohort?: string | null;
 }
 
 interface RecordDigestRow {
@@ -103,7 +104,8 @@ export async function getNarrativeDigest(
   const database = db(d1);
   const limit = options.limit ?? 8;
   const twoWeeksAgo = Math.floor(Date.now() / 1000) - 14 * 24 * 60 * 60;
-  const stageCohort = await resolveStageCohort(database, options.stageId);
+  const stageCohort =
+    options.cohort !== undefined ? options.cohort : await resolveStageCohort(database, options.stageId);
 
   const recordWhere = stageCohort
     ? and(

@@ -1,0 +1,12 @@
+Task 11 static import verification
+
+Command:
+grep -c "await import" app/routes/_public.tsx app/routes/public/index.tsx
+
+Result:
+app/routes/_public.tsx:0
+app/routes/public/index.tsx:0
+
+Notes:
+- loader 내부 dynamic import 제거 확인
+- 정적 import는 .server.ts 모듈만 사용

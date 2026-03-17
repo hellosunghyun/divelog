@@ -1,0 +1,6 @@
+    options.cohort !== undefined ? options.cohort : await resolveStageCohort(database, options.stageId);
+
+  const recordWhere = stageCohort
+    ? and(
+        gte(records.createdAt, twoWeeksAgo),
+        sql`${records.visibility} != 'draft'`,

@@ -1,6 +1,11 @@
 import type { Route } from "./+types/index";
 import { Link } from "~/components/content/SmartLink";
 import { eq, desc, and, sql, count } from "drizzle-orm";
+import { db } from "~/db/client.server";
+import { stages, records, questions, sentences, learnerProfiles } from "~/db/schema.server";
+import { getRecentActivity } from "~/db/queries/social/activity.server";
+import { getPlainText } from "~/lib/content/content.server";
+import { createLogger } from "~/lib/infra/logger.server";
 
 import HeroSection from "~/components/sections/HeroSection";
 import ActivityFeed from "~/components/activity/ActivityFeed";
@@ -15,11 +20,6 @@ export function meta(_args: Route.MetaArgs) {
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {
-  const { db } = await import("~/db/client.server");
-  const { stages, records, questions, sentences, learnerProfiles } = await import("~/db/schema.server");
-  const { getRecentActivity } = await import("~/db/queries/social/activity.server");
-  const { createLogger } = await import("~/lib/infra/logger.server");
-
   const logger = createLogger(request, context.cloudflare.env).child({ route: "home" });
   logger.info("loader_start");
   const database = db(context.cloudflare.env.DB);
@@ -50,7 +50,10 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     database.select({ total: count() }).from(learnerProfiles),
   ]);
 
-  const [recentRecords, recentSentences] = await Promise.all([
+  const currentStage = currentStageResult[0] ?? null;
+  const learnerCount = learnerCountResult[0]?.total ?? 0;
+
+  const [recentRecords, recentSentences, recentActivity] = await Promise.all([
     database
       .select({
         id: records.id,
@@ -93,15 +96,13 @@ export async function loader({ request, context }: Route.LoaderArgs) {
       .where(sql`${records.visibility} != 'draft'`)
       .orderBy(desc(sentences.createdAt))
       .limit(4),
+    getRecentActivity(context.cloudflare.env.DB, {
+      limit: 8,
+      cohort: currentStage?.cohort ?? null,
+    }),
   ]);
 
-  const currentStage = currentStageResult[0] ?? null;
-  const learnerCount = learnerCountResult[0]?.total ?? 0;
-
-  const recentActivity = await getRecentActivity(context.cloudflare.env.DB, { limit: 8 });
-
   // Pre-compute plain text snippets and relative times on server to avoid hydration mismatch
-  const { getPlainText } = await import("~/lib/content/content.server");
   const nowMs = Date.now();
   const recentRecordsWithSnippets = recentRecords.map(row => {
     const plainText = getPlainText(row.content ?? "", (row.format === "article" ? "article" : "note") as "note" | "article");

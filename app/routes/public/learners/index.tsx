@@ -28,6 +28,19 @@ export async function loader({ context, request }: Route.LoaderArgs) {
   return { learners, cohorts, selectedCohort: cohortFilter ?? null };
 }
 
+export function shouldRevalidate({
+  formMethod,
+  defaultShouldRevalidate,
+}: {
+  formMethod?: string;
+  defaultShouldRevalidate: boolean;
+}): boolean {
+  if (formMethod && formMethod !== "GET") {
+    return defaultShouldRevalidate;
+  }
+  return false;
+}
+
 export default function LearnersPage({ loaderData }: Route.ComponentProps) {
   const { learners, cohorts, selectedCohort } = loaderData;
 

@@ -642,42 +642,42 @@ export default function GlobalNav() {
 
                 {/* Write buttons */}
                 <Link
-                  to="/write/note"
-                  prefetch="render"
-                  className={cn(
-                    "bg-surface border border-border shadow-sm text-text-secondary ml-1 px-4 py-1.5 rounded-full text-[13px] font-medium hover:bg-surface-secondary transition-colors no-underline",
-                    focusRing
-                  )}
-                >
-                  짧은 메모
-                </Link>
-                <Link
-                  to="/write/article"
-                  prefetch="render"
-                  className={cn(
-                    "bg-ocean-blue text-white ml-1 px-4 py-1.5 rounded-full text-[13px] font-semibold",
-                    "hover:bg-ocean-blue/90 active:scale-[0.98] transition-all",
-                    "flex items-center gap-1.5 no-underline",
-                    focusRing
-                  )}
-                >
-                  <svg
-                    className="w-3.5 h-3.5"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M12 20h9" />
-                    <path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z" />
-                  </svg>
-                  글쓰기
-                </Link>
+                   to="/write/note"
+                   prefetch="none"
+                   className={cn(
+                     "bg-surface border border-border shadow-sm text-text-secondary ml-1 px-4 py-1.5 rounded-full text-[13px] font-medium hover:bg-surface-secondary transition-colors no-underline",
+                     focusRing
+                   )}
+                 >
+                   짧은 메모
+                 </Link>
+                 <Link
+                   to="/write/article"
+                   prefetch="none"
+                   className={cn(
+                     "bg-ocean-blue text-white ml-1 px-4 py-1.5 rounded-full text-[13px] font-semibold",
+                     "hover:bg-ocean-blue/90 active:scale-[0.98] transition-all",
+                     "flex items-center gap-1.5 no-underline",
+                     focusRing
+                   )}
+                 >
+                   <svg
+                     className="w-3.5 h-3.5"
+                     viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     strokeWidth="2.5"
+                     strokeLinecap="round"
+                     strokeLinejoin="round"
+                     aria-hidden="true"
+                   >
+                     <path d="M12 20h9" />
+                     <path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z" />
+                   </svg>
+                   글쓰기
+                 </Link>
 
-                {/* ═══ PROFILE DROPDOWN ═══ */}
+                 {/* ═══ PROFILE DROPDOWN ═══ */}
                 <div className="relative self-center">
                   <Button
                     ref={profileButtonRef}
@@ -856,45 +856,45 @@ export default function GlobalNav() {
                 </div>
               </>
             ) : (
-              <>
-                <Link
-                  to="/write/note"
-                  prefetch="render"
-                  className={cn(
-                    "border border-border text-text-secondary ml-1 px-4 py-1.5 rounded-full text-[13px] font-medium hover:bg-surface-secondary transition-colors no-underline",
-                    focusRing
-                  )}
-                >
-                  짧은 메모
-                </Link>
-                <Link
-                  to="/write/article"
-                  prefetch="render"
-                  className={cn(
-                    "bg-ocean-blue text-white ml-1 px-4 py-1.5 rounded-full text-[13px] font-semibold",
-                    "hover:bg-ocean-blue/90 active:scale-[0.98] transition-all",
-                    "flex items-center gap-1.5 no-underline",
-                    focusRing
-                  )}
-                >
-                  <svg
-                    className="w-3.5 h-3.5"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M12 20h9" />
-                    <path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z" />
-                  </svg>
-                  글쓰기
-                </Link>
-              </>
-            )}
-          </div>
+               <>
+                 <Link
+                   to="/write/note"
+                   prefetch="none"
+                   className={cn(
+                     "border border-border text-text-secondary ml-1 px-4 py-1.5 rounded-full text-[13px] font-medium hover:bg-surface-secondary transition-colors no-underline",
+                     focusRing
+                   )}
+                 >
+                   짧은 메모
+                 </Link>
+                 <Link
+                   to="/write/article"
+                   prefetch="none"
+                   className={cn(
+                     "bg-ocean-blue text-white ml-1 px-4 py-1.5 rounded-full text-[13px] font-semibold",
+                     "hover:bg-ocean-blue/90 active:scale-[0.98] transition-all",
+                     "flex items-center gap-1.5 no-underline",
+                     focusRing
+                   )}
+                 >
+                   <svg
+                     className="w-3.5 h-3.5"
+                     viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     strokeWidth="2.5"
+                     strokeLinecap="round"
+                     strokeLinejoin="round"
+                     aria-hidden="true"
+                   >
+                     <path d="M12 20h9" />
+                     <path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z" />
+                   </svg>
+                   글쓰기
+                 </Link>
+               </>
+             )}
+           </div>
 
           {/* Mobile hamburger */}
           <Button
@@ -1054,48 +1054,48 @@ export default function GlobalNav() {
                   )}
                 </motion.nav>
 
-                <motion.div
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4, duration: 0.35, ease: [0.32, 0.72, 0, 1] }}
-                  className="mt-6 flex flex-col gap-2"
-                >
-                  <Link
-                    to="/write/note"
-                    prefetch="render"
-                    className={cn(
-                      "w-full bg-surface border border-border shadow-sm text-text-secondary py-3 px-5 rounded-full text-sm font-medium text-center hover:bg-surface-secondary transition-colors no-underline",
-                      focusRing
-                    )}
-                  >
-                    짧은 메모
-                  </Link>
-                  <Link
-                    to="/write/article"
-                    prefetch="render"
-                    className={cn(
-                      "w-full bg-ocean-blue text-white py-3 px-5 rounded-full text-sm font-semibold text-center",
-                      "hover:bg-ocean-blue/90 active:scale-[0.98] transition-all",
-                      "flex items-center justify-center gap-2 no-underline",
-                      focusRing
-                    )}
-                  >
-                    <svg
-                      className="w-4 h-4"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      aria-hidden="true"
-                    >
-                      <path d="M12 20h9" />
-                      <path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z" />
-                    </svg>
-                    글쓰기
-                  </Link>
-                </motion.div>
+                 <motion.div
+                   initial={{ opacity: 0, y: 16 }}
+                   animate={{ opacity: 1, y: 0 }}
+                   transition={{ delay: 0.4, duration: 0.35, ease: [0.32, 0.72, 0, 1] }}
+                   className="mt-6 flex flex-col gap-2"
+                 >
+                   <Link
+                     to="/write/note"
+                     prefetch="none"
+                     className={cn(
+                       "w-full bg-surface border border-border shadow-sm text-text-secondary py-3 px-5 rounded-full text-sm font-medium text-center hover:bg-surface-secondary transition-colors no-underline",
+                       focusRing
+                     )}
+                   >
+                     짧은 메모
+                   </Link>
+                   <Link
+                     to="/write/article"
+                     prefetch="none"
+                     className={cn(
+                       "w-full bg-ocean-blue text-white py-3 px-5 rounded-full text-sm font-semibold text-center",
+                       "hover:bg-ocean-blue/90 active:scale-[0.98] transition-all",
+                       "flex items-center justify-center gap-2 no-underline",
+                       focusRing
+                     )}
+                   >
+                     <svg
+                       className="w-4 h-4"
+                       viewBox="0 0 24 24"
+                       fill="none"
+                       stroke="currentColor"
+                       strokeWidth="2"
+                       strokeLinecap="round"
+                       strokeLinejoin="round"
+                       aria-hidden="true"
+                     >
+                       <path d="M12 20h9" />
+                       <path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z" />
+                     </svg>
+                     글쓰기
+                   </Link>
+                 </motion.div>
 
                 <motion.div
                   initial={{ opacity: 0 }}
@@ -1147,32 +1147,32 @@ export default function GlobalNav() {
               <>
                 <div className="h-px bg-border-subtle my-6" />
 
-                <motion.div
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3, duration: 0.35, ease: [0.32, 0.72, 0, 1] }}
-                  className="flex flex-col gap-3"
-                >
-                  <Link
-                    to="/write/note"
-                    prefetch="render"
-                    className={cn(
-                      "w-full bg-surface border border-border shadow-sm text-text-secondary py-3 px-5 rounded-full text-sm font-medium text-center hover:bg-surface-secondary transition-colors no-underline",
-                      focusRing
-                    )}
-                  >
-                    짧은 메모
-                  </Link>
-                  <Link
-                    to="/write/article"
-                    prefetch="render"
-                    className={cn(
-                      "w-full bg-ocean-blue text-white py-3 px-5 rounded-full text-sm font-semibold text-center",
-                      "hover:bg-ocean-blue/90 active:scale-[0.98] transition-all",
-                      "flex items-center justify-center gap-2 no-underline",
-                      focusRing
-                    )}
-                  >
+                 <motion.div
+                   initial={{ opacity: 0, y: 16 }}
+                   animate={{ opacity: 1, y: 0 }}
+                   transition={{ delay: 0.3, duration: 0.35, ease: [0.32, 0.72, 0, 1] }}
+                   className="flex flex-col gap-3"
+                 >
+                   <Link
+                     to="/write/note"
+                     prefetch="none"
+                     className={cn(
+                       "w-full bg-surface border border-border shadow-sm text-text-secondary py-3 px-5 rounded-full text-sm font-medium text-center hover:bg-surface-secondary transition-colors no-underline",
+                       focusRing
+                     )}
+                   >
+                     짧은 메모
+                   </Link>
+                   <Link
+                     to="/write/article"
+                     prefetch="none"
+                     className={cn(
+                       "w-full bg-ocean-blue text-white py-3 px-5 rounded-full text-sm font-semibold text-center",
+                       "hover:bg-ocean-blue/90 active:scale-[0.98] transition-all",
+                       "flex items-center justify-center gap-2 no-underline",
+                       focusRing
+                     )}
+                   >
                     <svg
                       className="w-4 h-4"
                       viewBox="0 0 24 24"

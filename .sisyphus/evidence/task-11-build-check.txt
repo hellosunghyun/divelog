@@ -1,0 +1,18 @@
+Task 11 build and leak check
+
+Build:
+- Command: pnpm build
+- Result: success
+- Notes: Sentry sourcemap upload warning/auth token error was logged, but build artifacts were generated successfully.
+
+Client leak check:
+- Command: grep -rl "drizzle" build/client/assets/ 2>/dev/null || true
+- Result: no matches
+
+Typecheck:
+- Command: pnpm typecheck
+- Result: failed due to pre-existing unrelated project errors outside this task scope
+- Known examples:
+  - app/components/admin/AdminSidebar.tsx
+  - app/db/queries/dialogue/questions.server.ts
+  - app/routes/_admin.tsx

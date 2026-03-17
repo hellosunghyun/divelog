@@ -26,7 +26,7 @@ export function FloatingWriteCTA() {
   return (
     <Link
       to="/write/note"
-      prefetch="render"
+      prefetch="none"
       data-testid="floating-write-cta"
       aria-label="기록 남기기"
       className={`

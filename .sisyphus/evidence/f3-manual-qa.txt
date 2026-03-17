@@ -1,1 +1,10 @@
-Routes [5/5 render] | Console Errors [0] | VERDICT: APPROVE
+Scenario 1: PASS — `/` returned `200`
+Scenario 2: PASS — `cache-control: public, s-maxage=60, stale-while-revalidate=300` and `vary: Cookie`
+Scenario 3: PASS — TTFB runs `1.411054s`, `1.521899s`, `0.867826s`; avg `1.266926s` vs baseline `1.610000s` (~`21.3%` faster)
+Scenario 4: PASS — `/`, `/journey`, `/logs`, `/learners`, `/challenges`, `/guide` all returned `200`
+Scenario 5: FAIL — homepage `data-testid` count was `2` (expected `7+`)
+Scenario 6: PASS — `/write` returned `302` redirect, not `500`
+Scenario 7: PASS — `workers/app.ts` contains `tracesSampleRate: 0.1`
+Scenario 8: PASS — invalid session cookie still returned `cache-control: private, no-cache`
+Scenarios [7/8 pass]
+VERDICT: REJECT
