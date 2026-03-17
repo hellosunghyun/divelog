@@ -6,6 +6,9 @@ import { asc } from "drizzle-orm";
 import HeroSection from "~/components/HeroSection";
 import EmptyState from "~/components/EmptyState";
 import { createLogger } from "~/lib/logger.server";
+import { motion } from "~/lib/motion";
+import { staggerContainer, staggerItem } from "~/lib/motion-utils";
+import { cn } from "~/lib/cn";
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "챌린지 — DiveLog" }];
@@ -26,38 +29,86 @@ const STATUS_LABELS: Record<string, string> = {
   upcoming: "예정",
 };
 
+const STATUS_ACCENTS: Record<string, { bg: string; text: string; border?: string }> = {
+  active: { bg: "bg-challenge/10", text: "text-challenge" },
+  completed: { bg: "bg-surface-secondary", text: "text-text-secondary" },
+  upcoming: { bg: "bg-mist-blue", text: "text-ocean-blue" },
+};
+
 export default function ChallengesPage({ loaderData }: Route.ComponentProps) {
   const { challenges: allChallenges } = loaderData;
-  
+
   return (
     <div>
       <HeroSection variant="challenge" title="챌린지" subtitle="함께 탐구하는 공동의 도전들" />
-      <div className="max-w-content mx-auto py-16 px-6">
+
+      <div className="max-w-content mx-auto px-6 py-16 md:py-24">
         {allChallenges.length === 0 ? (
           <EmptyState variant="generic" message="아직 진행 중인 챌린지가 없습니다." />
         ) : (
-          <div className="flex flex-col gap-5">
-            {allChallenges.map((challenge) => (
-              <Link key={challenge.id} to={`/challenges/${challenge.slug}`} className="block no-underline bg-surface rounded-lg border border-border p-6 shadow-sm transition-all duration-normal hover:shadow-card-hover hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2">
-                {challenge.currentQuestion && (
-                  <p className="text-base text-ocean-blue italic mb-3">
-                    "{challenge.currentQuestion}"
-                  </p>
-                )}
-                <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-2">
-                  {challenge.name}
-                </h2>
-                {challenge.problemDefinition && (
-                  <p className="text-base text-text-secondary leading-normal">
-                    {challenge.problemDefinition}
-                  </p>
-                )}
-                <div className="mt-3 text-caption px-2 py-0.5 rounded-full bg-border text-text-secondary inline-block">
-                  {STATUS_LABELS[challenge.status] ?? challenge.status}
-                </div>
-              </Link>
-            ))}
-          </div>
+          <motion.div
+            variants={staggerContainer}
+            initial="hidden"
+            animate="visible"
+            className="flex flex-col gap-5"
+          >
+            {allChallenges.map((challenge: { id: string; slug: string; name: string; status: string; currentQuestion: string | null; problemDefinition: string | null }) => {
+              const statusAccent = STATUS_ACCENTS[challenge.status] ?? STATUS_ACCENTS.active;
+              const isActive = challenge.status === "active";
+
+              return (
+                <motion.div key={challenge.id} variants={staggerItem}>
+                  <Link
+                    to={`/challenges/${challenge.slug}`}
+                    className={cn(
+                      "group block no-underline",
+                      "ring-1 ring-border p-1.5 rounded-2xl",
+                      "hover:shadow-tinted-md transition-premium",
+                      challenge.status === "upcoming" && "opacity-60"
+                    )}
+                  >
+                    <div
+                      className={cn(
+                        "rounded-xl p-6 md:p-7 h-full flex flex-col gap-4",
+                        isActive
+                          ? "bg-gradient-to-br from-mist-blue/40 via-surface to-mist-blue/20"
+                          : "bg-surface"
+                      )}
+                    >
+                      {challenge.currentQuestion && (
+                        <p className="text-lg md:text-xl text-ocean-blue italic leading-relaxed">
+                          "{challenge.currentQuestion}"
+                        </p>
+                      )}
+
+                      <h2 className="text-xl font-semibold text-deep-ocean tracking-tight">
+                        {challenge.name}
+                      </h2>
+
+                      {challenge.problemDefinition && (
+                        <p className="text-base text-text-secondary leading-relaxed">
+                          {challenge.problemDefinition}
+                        </p>
+                      )}
+
+                      <div className="pt-2">
+                        <span
+                          className={cn(
+                            "text-caption font-medium px-3 py-1 rounded-full",
+                            statusAccent.bg,
+                            statusAccent.text,
+                            statusAccent.border
+                          )}
+                        >
+                          {STATUS_LABELS[challenge.status] ?? challenge.status}
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                </motion.div>
+              );
+            })}
+          </motion.div>
         )}
       </div>
     </div>
