@@ -2,6 +2,7 @@ export type RecordItem = {
   id: string;
   slug: string;
   title: string;
+  format: "note" | "article";
   createdAt: number;
   contentSnippet?: string;
   author?: {

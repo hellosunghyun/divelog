@@ -12,11 +12,12 @@ function getExpectedCellCount(year: number, month: number): number {
   return firstDay + daysInMonth <= 35 ? 35 : 42;
 }
 
-function createRecord(id: string, date: Date): RecordItem {
+function createRecord(id: string, date: Date, format: "note" | "article" = "note"): RecordItem {
   return {
     id,
     slug: `record-${id}`,
     title: `기록 ${id}`,
+    format,
     createdAt: Math.floor(date.getTime() / 1000),
   };
 }
