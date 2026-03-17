@@ -108,7 +108,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     const plainText = getPlainText(row.content ?? "", (row.format === "article" ? "article" : "note") as "note" | "article");
     return {
       ...row,
-      snippet: plainText.length > 120 ? plainText.substring(0, 120) + "…" : plainText,
+      snippet: plainText.length > 300 ? plainText.substring(0, 300) : plainText,
       relativeTime: formatRelativeTime(row.createdAt, nowMs),
     };
   });
