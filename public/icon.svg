@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <defs>
     <clipPath id="iconClip">
-      <rect width="512" height="512" rx="115" ry="115" />
+      <circle cx="256" cy="256" r="256" />
     </clipPath>
 
     <!-- Per-block vertical gradients -->
@@ -81,7 +81,7 @@
   </defs>
 
   <!-- Shadow layer -->
-  <rect width="512" height="512" rx="115" ry="115" fill="transparent" filter="url(#shadow)" />
+  <circle cx="256" cy="256" r="256" fill="transparent" filter="url(#shadow)" />
 
   <!-- Icon body -->
   <g clip-path="url(#iconClip)">
