@@ -219,9 +219,19 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
   useUnsavedWarning(hasChanges);
 
   return (
-    <div className="mx-auto py-12 px-4 md:py-20" style={{ maxWidth: 960 }}>
-      <h1 className="text-3xl font-semibold text-text-primary mb-2">기록 수정</h1>
-      <p className="text-base text-text-secondary mb-8">이전 기록을 지금의 생각에 맞게 다듬어보세요.</p>
+    <div className="min-h-screen bg-background">
+      <div className="max-w-[720px] mx-auto py-16 px-6">
+        <div className="mb-8 flex items-center gap-3">
+          <Link
+            to={`/logs/${record.slug}`}
+            className="text-sm text-text-tertiary no-underline hover:text-text-secondary"
+          >
+            ← 기록으로 돌아가기
+          </Link>
+        </div>
+
+        <h1 className="text-3xl font-semibold text-text-primary mb-2">기록 수정</h1>
+        <p className="text-base text-text-secondary mb-8">이전 기록을 지금의 생각에 맞게 다듬어보세요.</p>
 
       {formError ? <p className="mb-6 text-meta text-error">{formError}</p> : null}
 
@@ -454,6 +464,7 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
           </Link>
         </div>
       </form>
+      </div>
     </div>
   );
 }
