@@ -1,9 +1,9 @@
-import { and, desc, eq, like, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, like, or, sql } from "drizzle-orm";
 
 import type { CreateRecordInput, RecordFilterInput } from "../../../lib/auth/validation";
 import { nanoid } from "../../../lib/utils/utils.server";
 import { db } from "../../client.server";
-import { learnerProfiles, records } from "../../schema.server";
+import { learnerProfiles, records, stages } from "../../schema.server";
 
 function slugify(title: string): string {
   return title
@@ -42,6 +42,12 @@ export async function getRecords(d1: D1Database, filters: RecordFilterInput = { 
 
   const pageSize = 20;
   const offset = (filters.page - 1) * pageSize;
+  const orderBy =
+    filters.sort === "stage"
+      ? [asc(stages.order), desc(records.createdAt)]
+      : filters.sort === "oldest"
+        ? [asc(records.createdAt)]
+        : [desc(records.createdAt)];
 
   return database
     .select({
@@ -54,8 +60,9 @@ export async function getRecords(d1: D1Database, filters: RecordFilterInput = { 
     })
     .from(records)
     .leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
+    .leftJoin(stages, eq(records.stageId, stages.id))
     .where(and(...conditions))
-    .orderBy(desc(records.createdAt))
+    .orderBy(...orderBy)
     .limit(pageSize)
     .offset(offset);
 }
