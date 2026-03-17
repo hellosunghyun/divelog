@@ -143,6 +143,17 @@ export async function action({ params, request, context }: Route.ActionArgs) {
     return { errors: parsed.error.flatten().fieldErrors };
   }
 
+  // Get old tags snapshot for revision tracking
+  const currentTags = await getTagsByRecord(context.cloudflare.env.DB, recordData.record.id);
+  const oldTags = currentTags.map((t: { id: string; name: string }) => ({ id: t.id, name: t.name }));
+
+  // Build new tags from form data
+  const tagIdStrings = formData.getAll("tagIds") as string[];
+  const allTagsForLookup = await getAllTags(context.cloudflare.env.DB);
+  const newTags = allTagsForLookup
+    .filter((t: { id: string; name: string }) => tagIdStrings.includes(t.id))
+    .map((t: { id: string; name: string }) => ({ id: t.id, name: t.name }));
+
   await updateRecord(context.cloudflare.env.DB, recordData.record.id, auth.user.id, {
     title: parsed.data.title,
     content: parsed.data.content,
@@ -155,7 +166,7 @@ export async function action({ params, request, context }: Route.ActionArgs) {
     stageId: parsed.data.stageId,
     challengeId: parsed.data.challengeId,
     collaborationUnitId: parsed.data.collaborationUnitId,
-  });
+  }, { oldTags, newTags });
 
   if (parsed.data.format === "article") {
     const mentionedUsers = extractUserMentions(parsed.data.content);
