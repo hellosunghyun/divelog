@@ -526,7 +526,7 @@ export function ArticleEditor({
 
       <EditorContent
         editor={editor}
-        className="[&_.ProseMirror]:min-h-[200px] [&_.ProseMirror]:p-5"
+        className="[&_.ProseMirror]:min-h-[480px] [&_.ProseMirror]:p-5"
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
         onDrop={(event) => {
