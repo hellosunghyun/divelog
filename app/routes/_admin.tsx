@@ -36,7 +36,7 @@ export function shouldRevalidate({
 
 export default function AdminLayout() {
   return (
-    <div className="flex h-screen overflow-hidden bg-admin-bg">
+    <div className="flex min-h-screen overflow-hidden bg-admin-bg">
       <AdminSidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <AdminContextBar />
