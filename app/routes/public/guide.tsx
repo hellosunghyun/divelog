@@ -30,7 +30,7 @@ export default function GuidePage() {
         subtitle="탐구를 기록하는 방법을 안내합니다. 완성된 글이 아니어도 괜찮습니다."
       />
 
-      <div className="max-w-reading mx-auto py-12 px-6 md:py-20">
+      <div className="max-w-reading mx-auto pt-12 px-6 md:pt-20">
         {(isSessionError || isConfigError) && (
           <div className="mb-8 rounded-2xl border border-ocean-blue/20 bg-mist-blue/30 p-6">
             {isConfigError ? (
@@ -218,12 +218,13 @@ export default function GuidePage() {
           </div>
         </section>
 
-        <CTABand
-          message="지금 시작할 준비가 됐다면, 첫 기록을 남겨보세요."
-          primaryCta={{ label: "기록하기", href: "/write" }}
-          secondaryCta={{ label: "기록 둘러보기", href: "/logs" }}
-        />
       </div>
+
+      <CTABand
+        message="지금 시작할 준비가 됐다면, 첫 기록을 남겨보세요."
+        primaryCta={{ label: "기록하기", href: "/write" }}
+        secondaryCta={{ label: "기록 둘러보기", href: "/logs" }}
+      />
     </div>
   );
 }
