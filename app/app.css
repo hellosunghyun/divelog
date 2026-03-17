@@ -1,14 +1,35 @@
 @import "tailwindcss" source(".");
+@import "./styles/fonts.css";
 @import "./styles/global.css";
 @import "./styles/editor.css";
 
 @theme {
   /* Spacing: 4px base (design.md 6.1 — 4px multiples) */
   --spacing: 4px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 28px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
 
-  /* Typography — Wanted Sans Variable + system fallback */
-  --font-sans: "Wanted Sans Variable", "Wanted Sans", -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
-  --font-display: "Wanted Sans Variable", "Wanted Sans", -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+  --section-gap-mobile: 48px;
+  --section-gap-tablet: 64px;
+  --section-gap-desktop: 96px;
+
+  /* Typography — Pretendard Variable (한글) + Geist (라틴/숫자) */
+  --font-sans: "Pretendard Variable", "Pretendard", "Geist", -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+  --font-display: "Pretendard Variable", "Pretendard", "Geist", -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+  --tracking-tight: -0.025em;
+  --tracking-tighter: -0.05em;
+  --tracking-wide: 0.05em;
 
   --text-caption: 12px;
   --text-meta: 13px;
@@ -24,11 +45,36 @@
   --text-7xl: 56px;
   --text-8xl: 64px;
 
+  --font-size-caption: 12px;
+  --font-size-meta: 13px;
+  --font-size-sm: 14px;
+  --font-size-base: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 20px;
+  --font-size-2xl: 24px;
+  --font-size-3xl: 28px;
+  --font-size-4xl: 32px;
+  --font-size-5xl: 40px;
+  --font-size-6xl: 48px;
+  --font-size-7xl: 56px;
+  --font-size-8xl: 64px;
+
   --leading-hero: 1.1;
   --leading-title: 1.2;
   --leading-small: 1.5;
   --leading-body: 1.6;
   --leading-relaxed: 1.75;
+
+  --line-height-hero: 1.1;
+  --line-height-title: 1.2;
+  --line-height-small: 1.5;
+  --line-height-body: 1.6;
+  --line-height-relaxed: 1.75;
+
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
 
   /* Colors — Quiet Depth palette (design.md 7.2) */
   --color-bg: #F6F8FB;
@@ -37,8 +83,8 @@
   --color-border: #E3E8EF;
   --color-border-subtle: #EEF1F6;
   --color-text-primary: #1D1D1F;
-  --color-text-secondary: #6E6E73;
-  --color-text-tertiary: #8C8C91;
+  --color-text-secondary: #4E5865;
+  --color-text-tertiary: #5B6470;
 
   --color-deep-ocean: #0B2447;
   --color-ocean-blue: #146C94;
@@ -47,13 +93,13 @@
   --color-mist-blue-deep: #D6EBF5;
 
   /* Stage Tone Mapping (design.md 7.3) */
-  --color-prelude: #4A8DA8;
+  --color-prelude: #2F6C84;
   --color-prelude-bg: #EAF4FA;
-  --color-bridge: #1A9EB4;
+  --color-bridge: #0C6E82;
   --color-bridge-bg: #E0F4F8;
   --color-challenge: #0B2447;
   --color-challenge-bg: #E3EAF3;
-  --color-epilogue: #7E8E9E;
+  --color-epilogue: #5B6673;
   --color-epilogue-bg: #EFF2F6;
 
   /* Semantic */
@@ -83,6 +129,10 @@
   --radius-lg: 24px;
   --radius-full: 9999px;
 
+  --card-padding-sm: 20px;
+  --card-padding: 24px;
+  --card-padding-lg: 28px;
+
   /* Shadows — very subtle (design.md 9.2, 9.5) */
   --shadow-xs: 0 1px 2px 0 rgba(0,0,0,0.02);
   --shadow-sm: 0 1px 3px 0 rgba(0,0,0,0.04), 0 1px 2px -1px rgba(0,0,0,0.02);
@@ -90,11 +140,17 @@
   --shadow-lg: 0 10px 32px -4px rgba(0,0,0,0.06), 0 4px 12px -2px rgba(0,0,0,0.02);
   --shadow-card: 0 1px 3px 0 rgba(11,36,71,0.03), 0 1px 2px -1px rgba(11,36,71,0.02);
   --shadow-card-hover: 0 4px 16px -2px rgba(11,36,71,0.06), 0 2px 4px -2px rgba(11,36,71,0.03);
+  --shadow-tinted-sm: 0 1px 3px 0 rgba(11,36,71,0.04);
+  --shadow-tinted-md: 0 4px 16px -2px rgba(11,36,71,0.06);
 
   /* Layout Widths (design.md 5.2) */
   --container-reading: 720px;
   --container-content: 1200px;
   --container-canvas: 1440px;
+  --max-reading-width: 720px;
+  --max-content-width: 1200px;
+  --max-canvas-width: 1440px;
+  --rail-width: 300px;
 
   /* Motion (design.md 21) */
   --duration-fast: 150ms;
@@ -103,6 +159,7 @@
   --ease-default: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-out: cubic-bezier(0, 0, 0.2, 1);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-premium: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 /* Custom utilities */
@@ -148,6 +205,104 @@
 
 @utility animate-shimmer {
   animation: shimmer 2s ease-in-out infinite;
+}
+
+/* Additional Quiet Depth animation keyframes */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes pulseSoft {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+@utility animate-slide-up {
+  animation: slideUp var(--duration-normal, 300ms) var(--ease-out, ease-out) both;
+}
+
+@utility animate-slide-down {
+  animation: slideDown var(--duration-normal, 300ms) var(--ease-out, ease-out) both;
+}
+
+@utility animate-scale-in {
+  animation: scaleIn var(--duration-normal, 300ms) var(--ease-out, ease-out) both;
+}
+
+@utility animate-pulse-soft {
+  animation: pulseSoft 2s ease-in-out infinite;
+}
+
+@utility transition-premium {
+  transition: all var(--duration-normal, 300ms) var(--ease-premium, cubic-bezier(0.32, 0.72, 0, 1));
+}
+
+@utility transition-spring {
+  transition: all var(--duration-normal, 300ms) var(--ease-spring, cubic-bezier(0.34, 1.56, 0.64, 1));
+}
+
+@utility hover-lift {
+  transition: transform var(--duration-fast, 150ms) var(--ease-premium, cubic-bezier(0.32, 0.72, 0, 1)),
+              box-shadow var(--duration-fast, 150ms) var(--ease-premium, cubic-bezier(0.32, 0.72, 0, 1));
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-tinted-md, 0 4px 16px -2px rgba(11,36,71,0.06));
+  }
+}
+
+@utility active-press {
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+/* Accessibility: reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .animate-slide-up,
+  .animate-slide-down,
+  .animate-scale-in,
+  .animate-pulse-soft {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+  .transition-premium,
+  .transition-spring,
+  .hover-lift {
+    transition-duration: 0.01ms !important;
+  }
 }
 
 .deep-ocean-hero {

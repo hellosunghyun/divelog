@@ -5,12 +5,13 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
-import { db } from "~/db/client.server";
-import { createLogger } from "~/lib/logger.server";
-import { collaborationUnits } from "~/db/schema.server";
 import { eq } from "drizzle-orm";
 
 export async function loader({ params, request, context }: Route.LoaderArgs) {
+  const { db } = await import("~/db/client.server");
+  const { createLogger } = await import("~/lib/logger.server");
+  const { collaborationUnits } = await import("~/db/schema.server");
+
   const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.collaboration.$groupId" });
   logger.info("loader_start");
   const unit = await db(context.cloudflare.env.DB).select().from(collaborationUnits).where(eq(collaborationUnits.id, params.groupId)).limit(1);
@@ -18,6 +19,10 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
   return { unit: unit[0] };
 }
 export async function action({ params, request, context }: Route.ActionArgs) {
+  const { db } = await import("~/db/client.server");
+  const { createLogger } = await import("~/lib/logger.server");
+  const { collaborationUnits } = await import("~/db/schema.server");
+
   const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.collaboration.$groupId" });
   const f = await request.formData();
   logger.info("action_start", { intent: "update_collaboration" });

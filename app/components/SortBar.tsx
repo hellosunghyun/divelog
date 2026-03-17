@@ -1,6 +1,6 @@
 import { useSearchParams } from "react-router";
 
-import { Label } from "~/components/ui/label";
+import { cn } from "~/lib/cn";
 import {
   Select,
   SelectContent,
@@ -14,7 +14,6 @@ interface SortOption {
   label: string;
 }
 
-// NO 인기순/추천순/popular
 const DEFAULT_SORT_OPTIONS: SortOption[] = [
   { value: "recent", label: "최근 기록" },
   { value: "oldest", label: "오래된 기록" },
@@ -28,8 +27,10 @@ export default function SortBar({ options = DEFAULT_SORT_OPTIONS }: SortBarProps
   const [searchParams, setSearchParams] = useSearchParams();
 
   return (
-    <div className="flex gap-2 items-center">
-      <Label htmlFor="sort-select" className="text-sm text-text-secondary whitespace-nowrap">정렬</Label>
+    <div className="flex items-center gap-2">
+      <span className="text-sm font-medium text-text-secondary whitespace-nowrap">
+        정렬
+      </span>
       <Select
         value={searchParams.get("sort") ?? "recent"}
         onValueChange={(value) => {
@@ -39,8 +40,13 @@ export default function SortBar({ options = DEFAULT_SORT_OPTIONS }: SortBarProps
         }}
       >
         <SelectTrigger
-          id="sort-select"
-          className="h-9 min-w-36 rounded-lg border-border bg-surface px-3 py-2 text-sm shadow-none focus-visible:border-ocean-blue focus-visible:ring-ocean-blue/20"
+          aria-label="정렬 방식"
+          className={cn(
+            "h-9 min-w-36 rounded-lg border-border bg-surface px-3 py-2 text-sm shadow-none",
+            "transition-premium active:scale-[0.98]",
+            "focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2",
+            "hover:border-ocean-blue/30"
+          )}
         >
           <SelectValue />
         </SelectTrigger>

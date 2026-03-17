@@ -10,6 +10,7 @@ import * as Sentry from "@sentry/react-router/cloudflare";
 
 import type { Route } from "./+types/root";
 import { NavigationFade } from "~/components/NavigationFade";
+import { MotionProvider } from "~/lib/motion";
 import "./app.css";
 
 export const links: Route.LinksFunction = () => [
@@ -29,10 +30,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
         <link rel="manifest" href="/site.webmanifest" />
         <link rel="preconnect" href="https://cdn.jsdelivr.net" crossOrigin="anonymous" />
-        <link
-          rel="stylesheet"
-          href="https://cdn.jsdelivr.net/gh/wanteddev/wanted-sans@v1.0.3/packages/wanted-sans/fonts/webfonts/variable/split/WantedSansVariable.min.css"
-        />
         <Meta />
         <Links />
       </head>
@@ -47,9 +44,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   return (
-    <NavigationFade>
-      <Outlet />
-    </NavigationFade>
+    <MotionProvider>
+      <NavigationFade>
+        <Outlet />
+      </NavigationFade>
+    </MotionProvider>
   );
 }
 

@@ -5,7 +5,11 @@ export default defineConfig({
   plugins: [tsconfigPaths()],
   test: {
     globals: true,
-    environment: "node",
+    environment: "jsdom",
+    setupFiles: ["./tests/setup.ts"],
     include: ["app/**/*.test.ts", "app/**/*.test.tsx"],
+    coverage: {
+      provider: "v8",
+    },
   },
 });

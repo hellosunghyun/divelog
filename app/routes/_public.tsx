@@ -1,17 +1,18 @@
 import { Outlet, data } from "react-router";
 import type { Route } from "./+types/_public";
-import { getAuth, getAuthDebug } from "~/lib/auth.server";
-import { getOrCreateLearnerProfile } from "~/db/queries/learners.server";
 import { ensureAdminByEmail } from "~/lib/auth.middleware";
-import { createLogger } from "~/lib/logger.server";
-import { db } from "~/db/client.server";
-import { userRoles } from "~/db/schema.server";
 import { and, eq } from "drizzle-orm";
 import GlobalNav from "~/components/GlobalNav";
 import Footer from "~/components/Footer";
 import { FloatingWriteCTA } from "~/components/FloatingWriteCTA";
 
 export async function loader({ request, context }: Route.LoaderArgs) {
+  const { getAuth, getAuthDebug } = await import("~/lib/auth.server");
+  const { getOrCreateLearnerProfile } = await import("~/db/queries/learners.server");
+  const { createLogger } = await import("~/lib/logger.server");
+  const { db } = await import("~/db/client.server");
+  const { userRoles } = await import("~/db/schema.server");
+
   const logger = createLogger(request, context.cloudflare.env).child({ route: "_public" });
   logger.info("loader_start");
   const auth = await getAuth(request, context.cloudflare.env.ADAKRPOS_API_KEY);

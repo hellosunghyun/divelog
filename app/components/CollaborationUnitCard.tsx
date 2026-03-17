@@ -1,4 +1,7 @@
 import { Link } from "~/components/SmartLink";
+import { cn } from "~/lib/cn";
+import { motion } from "~/lib/motion";
+import { fadeUp } from "~/lib/motion-utils";
 
 interface CollaborationUnitCardProps {
   unit: {
@@ -23,56 +26,84 @@ const STATUS_LABELS: Record<string, string> = {
   archived: "아카이브",
 };
 
+const STATUS_CLASSES: Record<string, string> = {
+  forming: "bg-mist-blue text-ocean-blue",
+  active: "bg-reef-cyan/20 text-deep-ocean",
+  restructured: "bg-border text-text-secondary",
+  archived: "bg-surface-secondary text-text-tertiary",
+};
+
 export default function CollaborationUnitCard({ unit, memberCount, challenge }: CollaborationUnitCardProps) {
   return (
-    <article
+    <motion.article
       data-testid="collaboration-card"
-      className="bg-surface rounded-2xl border border-border shadow-card p-6 flex flex-col gap-4 transition-all duration-normal hover:shadow-card-hover hover:-translate-y-0.5"
+      variants={fadeUp}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, margin: "-50px" }}
+      whileHover={{ y: -2 }}
+      whileTap={{ scale: 0.98 }}
+      transition={{ duration: 0.15, ease: [0.32, 0.72, 0, 1] }}
+      className={cn(
+        "group bg-surface ring-1 ring-border rounded-2xl p-5",
+        "hover:shadow-tinted-md transition-premium cursor-pointer"
+      )}
     >
-      <div>
-        <span className={
-          `text-caption px-2 py-0.5 rounded-full font-medium ` +
-          (unit.status === "active" 
-            ? "bg-mist-blue text-ocean-blue" 
-            : "bg-border text-text-secondary")
-        }>
-          {STATUS_LABELS[unit.status] ?? unit.status}
-        </span>
-      </div>
-      
-      {/* Team Question FIRST — before team intro (DOM order matters) */}
       {unit.currentQuestion && (
-        <p className="text-lg text-ocean-blue leading-body italic">
+        <p className="text-base md:text-lg font-medium leading-relaxed text-text-primary mb-4 line-clamp-3">
           "{unit.currentQuestion}"
         </p>
       )}
 
-      <Link 
-        to={`/groups/${unit.slug}`}
-        prefetch="viewport"
-        className="font-semibold text-text-primary text-lg tracking-tight no-underline hover:text-ocean-blue transition-colors"
-      >
-        {unit.name}
-      </Link>
-      
-      {unit.description && (
-        <p className="text-meta text-text-secondary">
+      {!unit.currentQuestion && unit.description && (
+        <p className="text-base text-text-secondary leading-body line-clamp-2 mb-4">
           {unit.description}
         </p>
       )}
 
-      <div className="flex gap-4 text-meta text-text-tertiary">
-        {memberCount !== undefined && <span>팀원 {memberCount}명</span>}
-         {challenge && (
-           <Link 
-             to={`/challenges/${challenge.slug}`}
-             prefetch="viewport"
-             className="no-underline hover:text-ocean-blue transition-colors"
-           >
-             {challenge.name}
-           </Link>
-         )}
+      {!unit.currentQuestion && !unit.description && (
+        <p className="text-base text-text-tertiary italic mb-4">
+          아직 질문이 없습니다
+        </p>
+      )}
+
+      <div className="flex items-center justify-between pt-4 border-t border-border">
+        <div className="min-w-0 flex-1">
+          <Link
+            to={`/groups/${unit.slug}`}
+            prefetch="viewport"
+            className="text-sm font-semibold text-text-primary no-underline hover:text-ocean-blue transition-colors truncate block"
+          >
+            {unit.name}
+          </Link>
+          <div className="flex items-center gap-2 mt-1 text-xs text-text-tertiary">
+            <span
+              className={cn(
+                "px-2 py-0.5 rounded-full font-medium",
+                STATUS_CLASSES[unit.status] ?? STATUS_CLASSES.archived
+              )}
+            >
+              {STATUS_LABELS[unit.status] ?? unit.status}
+            </span>
+            {memberCount !== undefined && (
+              <>
+                <span>·</span>
+                <span>팀원 {memberCount}명</span>
+              </>
+            )}
+          </div>
+        </div>
+
+        {challenge && (
+          <Link
+            to={`/challenges/${challenge.slug}`}
+            prefetch="viewport"
+            className="text-xs text-text-tertiary no-underline hover:text-ocean-blue transition-colors ml-2 shrink-0"
+          >
+            {challenge.name}
+          </Link>
+        )}
       </div>
-    </article>
+    </motion.article>
   );
 }

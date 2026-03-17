@@ -1,16 +1,17 @@
 import { data } from "react-router";
 import type { Route } from "./+types/$groupSlug";
 import { Link } from "~/components/SmartLink";
-import { db } from "~/db/client.server";
-import { collaborationUnits, collaborationMembers, learnerProfiles, records } from "~/db/schema.server";
 import { eq, and, desc, sql } from "drizzle-orm";
 import SceneCard from "~/components/SceneCard";
 import LearnerCard from "~/components/LearnerCard";
 import HeroSection from "~/components/HeroSection";
 import EmptyState from "~/components/EmptyState";
-import { createLogger } from "~/lib/logger.server";
 
 export async function loader({ params, request, context }: Route.LoaderArgs) {
+  const { db } = await import("~/db/client.server");
+  const { collaborationUnits, collaborationMembers, learnerProfiles, records } = await import("~/db/schema.server");
+  const { createLogger } = await import("~/lib/logger.server");
+
   const { groupSlug } = params;
   const logger = createLogger(request, context.cloudflare.env).child({ route: "group_detail" });
   logger.info("loader_start");

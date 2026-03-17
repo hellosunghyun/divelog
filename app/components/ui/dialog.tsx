@@ -1,6 +1,6 @@
 import * as React from "react"
 import * as DialogPrimitive from "@radix-ui/react-dialog"
-import { X } from "lucide-react"
+import { X } from "@phosphor-icons/react"
 
 import { cn } from "~/lib/utils"
 
@@ -40,7 +40,7 @@ const DialogContent = React.forwardRef<
     >
       {children}
       <DialogPrimitive.Close className="absolute right-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-full border border-transparent text-muted-foreground transition-colors hover:border-border hover:bg-muted/70 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30 focus-visible:ring-offset-2 focus-visible:ring-offset-card disabled:pointer-events-none">
-        <X className="h-4 w-4" />
+        <X weight="light" className="h-4 w-4" />
         <span className="sr-only">닫기</span>
       </DialogPrimitive.Close>
     </DialogPrimitive.Content>

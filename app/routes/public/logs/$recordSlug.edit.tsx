@@ -18,18 +18,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { db } from "~/db/client.server";
-import { collaborationUnits, recordTags, stages, templates } from "~/db/schema.server";
-import { syncMentionsForRecord } from "~/db/queries/mentions.server";
-import { getRecordBySlug, updateRecord } from "~/db/queries/records.server";
-import { syncRecordLinksForRecord } from "~/db/queries/recordLinks.server";
-import { getAllTags, getTagsByRecord } from "~/db/queries/tags.server";
 import { requireVerified } from "~/lib/auth.middleware";
-import { getPlainText } from "~/lib/content.server";
-import { extractRecordRefs, extractUserMentions } from "~/lib/extract-references.server";
-import { createLogger } from "~/lib/logger.server";
 import { createRecordSchema } from "~/lib/validation";
-import { cleanupRemovedImages } from "~/lib/r2-cleanup.server";
 import { useUnsavedWarning } from "~/hooks/useUnsavedWarning";
 
 const NO_SELECTION_VALUE = "__none__";
@@ -39,6 +29,17 @@ export function meta(_args: Route.MetaArgs) {
 }
 
 export async function loader({ params, request, context }: Route.LoaderArgs) {
+  const { db } = await import("~/db/client.server");
+  const { collaborationUnits, recordTags, stages, templates } = await import("~/db/schema.server");
+  const { syncMentionsForRecord } = await import("~/db/queries/mentions.server");
+  const { getRecordBySlug, updateRecord } = await import("~/db/queries/records.server");
+  const { syncRecordLinksForRecord } = await import("~/db/queries/recordLinks.server");
+  const { getAllTags, getTagsByRecord } = await import("~/db/queries/tags.server");
+  const { getPlainText } = await import("~/lib/content.server");
+  const { extractRecordRefs, extractUserMentions } = await import("~/lib/extract-references.server");
+  const { createLogger } = await import("~/lib/logger.server");
+  const { cleanupRemovedImages } = await import("~/lib/r2-cleanup.server");
+
   const logger = createLogger(request, context.cloudflare.env).child({ route: "logs_edit" });
   logger.info("loader_start");
   const auth = await requireVerified(request, context);
@@ -79,6 +80,17 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
 }
 
 export async function action({ params, request, context }: Route.ActionArgs) {
+  const { db } = await import("~/db/client.server");
+  const { collaborationUnits, recordTags, stages, templates } = await import("~/db/schema.server");
+  const { syncMentionsForRecord } = await import("~/db/queries/mentions.server");
+  const { getRecordBySlug, updateRecord } = await import("~/db/queries/records.server");
+  const { syncRecordLinksForRecord } = await import("~/db/queries/recordLinks.server");
+  const { getAllTags, getTagsByRecord } = await import("~/db/queries/tags.server");
+  const { getPlainText } = await import("~/lib/content.server");
+  const { extractRecordRefs, extractUserMentions } = await import("~/lib/extract-references.server");
+  const { createLogger } = await import("~/lib/logger.server");
+  const { cleanupRemovedImages } = await import("~/lib/r2-cleanup.server");
+
   const logger = createLogger(request, context.cloudflare.env).child({ route: "logs_edit" });
   logger.info("action_start");
   const auth = await requireVerified(request, context);
@@ -219,9 +231,19 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
   useUnsavedWarning(hasChanges);
 
   return (
-    <div className="mx-auto py-12 px-4 md:py-20" style={{ maxWidth: 960 }}>
-      <h1 className="text-3xl font-semibold text-text-primary mb-2">기록 수정</h1>
-      <p className="text-base text-text-secondary mb-8">이전 기록을 지금의 생각에 맞게 다듬어보세요.</p>
+    <div className="min-h-screen bg-background">
+      <div className="max-w-[720px] mx-auto py-16 px-6">
+        <div className="mb-8 flex items-center gap-3">
+          <Link
+            to={`/logs/${record.slug}`}
+            className="text-sm text-text-tertiary no-underline hover:text-text-secondary"
+          >
+            ← 기록으로 돌아가기
+          </Link>
+        </div>
+
+        <h1 className="text-3xl font-semibold text-text-primary mb-2">기록 수정</h1>
+        <p className="text-base text-text-secondary mb-8">이전 기록을 지금의 생각에 맞게 다듬어보세요.</p>
 
       {formError ? <p className="mb-6 text-meta text-error">{formError}</p> : null}
 
@@ -454,6 +476,7 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
           </Link>
         </div>
       </form>
+      </div>
     </div>
   );
 }

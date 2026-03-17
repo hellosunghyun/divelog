@@ -1,21 +1,16 @@
-import { useState } from "react";
 import type { Route } from "./+types/index";
 import { useSearchParams, useNavigate } from "react-router";
-import { db } from "~/db/client.server";
-import { records, stages, learnerProfiles, questions, selfAnswers, recordLinks } from "~/db/schema.server";
 import { eq, and, desc, sql, ne, count } from "drizzle-orm";
 import SceneCard from "~/components/SceneCard";
 import FilterBar from "~/components/FilterBar";
-import { FilterBottomSheet } from "~/components/FilterBottomSheet";
 import SortBar from "~/components/SortBar";
 import ViewToggle from "~/components/ViewToggle";
 import TimelineView from "~/components/TimelineView";
 import EmptyState from "~/components/EmptyState";
-import HeroSection from "~/components/HeroSection";
 import { Button } from "~/components/ui/button";
-import { getPlainText } from "~/lib/content.server";
 import { normalizeContentFormat } from "~/lib/editor-extensions";
-import { createLogger } from "~/lib/logger.server";
+import { motion } from "~/lib/motion";
+import { staggerContainer, staggerItem } from "~/lib/motion-utils";
 
 export function meta({ data: loaderData }: Route.MetaArgs) {
   return [
@@ -25,6 +20,11 @@ export function meta({ data: loaderData }: Route.MetaArgs) {
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {
+  const { db } = await import("~/db/client.server");
+  const { records, stages, learnerProfiles } = await import("~/db/schema.server");
+  const { getPlainText } = await import("~/lib/content.server");
+  const { createLogger } = await import("~/lib/logger.server");
+
   const logger = createLogger(request, context.cloudflare.env).child({ route: "logs" });
   logger.info("loader_start");
   const url = new URL(request.url);
@@ -54,7 +54,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 
   const orderBy = sort === "oldest" ? records.createdAt : desc(records.createdAt);
 
-  const [filteredRecords, allStages] = await Promise.all([
+  const [filteredRecords, allStages, totalCountResult] = await Promise.all([
     database
       .select({
         id: records.id,
@@ -76,17 +76,6 @@ export async function loader({ request, context }: Route.LoaderArgs) {
           name: stages.name,
           type: stages.type,
         },
-        questionCount: sql<number>`(
-          SELECT COUNT(*) FROM ${questions} WHERE ${questions.recordId} = ${records.id}
-        )`.mapWith(Number),
-        selfAnswerCount: sql<number>`(
-          SELECT COUNT(*) FROM ${selfAnswers} sa
-          INNER JOIN ${questions} q ON sa.${selfAnswers.questionId} = q.${questions.id}
-          WHERE q.${questions.recordId} = ${records.id}
-        )`.mapWith(Number),
-        linkedCount: sql<number>`(
-          SELECT COUNT(*) FROM ${recordLinks} WHERE ${recordLinks.targetRecordId} = ${records.id}
-        )`.mapWith(Number),
       })
       .from(records)
       .leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
@@ -99,7 +88,14 @@ export async function loader({ request, context }: Route.LoaderArgs) {
       .select({ id: stages.id, name: stages.name })
       .from(stages)
       .orderBy(sql`"order" ASC`),
+    database
+      .select({ count: count() })
+      .from(records)
+      .where(and(...conditions)),
   ]);
+
+  const totalCount = totalCountResult[0]?.count ?? 0;
+  const totalPages = Math.ceil(totalCount / pageSize);
 
   const recordsWithSnippets = filteredRecords.map((record) => {
     const plainTextContent = getPlainText(record.content, normalizeContentFormat(record.format));
@@ -123,6 +119,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     records: recordsWithSnippets,
     allStages,
     page,
+    totalPages,
     filters: { stageId, format, type, rhythm, sort },
     metaDescription,
   };
@@ -154,23 +151,13 @@ const FILTER_OPTIONS = [
 ];
 
 export default function LogsPage({ loaderData }: Route.ComponentProps) {
-  const { records: filteredRecords, allStages } = loaderData;
+  const { records: filteredRecords, allStages, page, totalPages } = loaderData;
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   const viewParam = searchParams.get("view");
   const currentView = viewParam === "timeline" ? "timeline" : "grid";
   const activeFormat = searchParams.get("format") ?? "";
-
-  const activeRhythm = searchParams.get("rhythm") ?? "";
-  const activeHasQuestion = searchParams.get("hasQuestion") ?? "";
-  const activeHasSelfAnswer = searchParams.get("hasSelfAnswer") ?? "";
-  const activeSecondaryFilterCount = [
-    activeRhythm,
-    activeHasQuestion,
-    activeHasSelfAnswer,
-  ].filter(Boolean).length;
 
   const tabs = [
     { label: "전체", value: "" },
@@ -189,7 +176,13 @@ export default function LogsPage({ loaderData }: Route.ComponentProps) {
     navigate(`/logs?${newParams.toString()}`);
   }
 
-  const stageFilterOptions = allStages.map((s) => ({ value: s.id, label: s.name }));
+  function handlePageChange(newPage: number) {
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set("page", String(newPage));
+    navigate(`/logs?${newParams.toString()}`);
+  }
+
+  const stageFilterOptions = allStages.map((s: { id: string; name: string }) => ({ value: s.id, label: s.name }));
 
   const allFilters = [
     { key: "stage", label: "Stage", values: stageFilterOptions },
@@ -198,14 +191,17 @@ export default function LogsPage({ loaderData }: Route.ComponentProps) {
 
   return (
     <div>
-      <HeroSection
-        variant="stage"
-        title="기록"
-        subtitle="러너들이 남긴 탐구의 기록들"
-      />
+      <div className="max-w-content mx-auto px-6 pt-12 pb-8 md:pt-16 md:pb-12">
+        <h1 className="text-4xl font-semibold tracking-tight text-text-primary mb-2">
+          기록
+        </h1>
+        <p className="text-lg text-text-secondary leading-body">
+          러너들이 남긴 탐구의 기록들
+        </p>
+      </div>
 
-      <div className="max-w-content mx-auto px-6 py-12 md:py-16">
-        {/* 탭 */}
+      <div className="max-w-content mx-auto px-6 pb-12 md:pb-16">
+        <h2 className="sr-only">기록 목록</h2>
         <div className="mb-6 flex gap-1 border-b border-border">
           {tabs.map((tab) => (
             <Button
@@ -225,34 +221,12 @@ export default function LogsPage({ loaderData }: Route.ComponentProps) {
         </div>
 
         <div className="mb-8 flex flex-wrap gap-4 items-center justify-between">
-          <div className="hidden md:block">
-            <FilterBar filters={allFilters} />
-          </div>
-          <div className="flex md:hidden flex-wrap gap-2 items-center">
-            <button
-              type="button"
-              onClick={() => setIsSheetOpen(true)}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-full border border-border bg-surface text-text-primary text-sm font-medium hover:bg-surface-secondary transition-colors"
-            >
-              <span>필터</span>
-              {activeSecondaryFilterCount > 0 && (
-                <span className="flex items-center justify-center w-5 h-5 rounded-full bg-ocean-blue text-white text-xs">
-                  {activeSecondaryFilterCount}
-                </span>
-              )}
-            </button>
-          </div>
+          <FilterBar filters={allFilters} />
           <div className="flex items-center gap-3">
             <SortBar />
             <ViewToggle currentView={currentView} />
           </div>
         </div>
-
-        <FilterBottomSheet
-          isOpen={isSheetOpen}
-          onClose={() => setIsSheetOpen(false)}
-          stages={allStages}
-        />
 
         {filteredRecords.length === 0 ? (
           <EmptyState variant="records" message="조건에 맞는 기록이 없습니다." />
@@ -260,43 +234,97 @@ export default function LogsPage({ loaderData }: Route.ComponentProps) {
           currentView === "timeline" ? (
             <TimelineView records={filteredRecords} />
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {filteredRecords.map((record) => (
-                <SceneCard
-                   key={record.id}
-                   record={{
-                     slug: record.slug,
-                     title: record.title,
-                     content: record.content,
-                     format: record.format as "note" | "article",
-                     type: record.type as "personal" | "challenge" | "collaboration",
-                     rhythm: record.rhythm ?? undefined,
-                     createdAt: record.createdAt,
-                     questionCount: record.questionCount,
-                     selfAnswerCount: record.selfAnswerCount,
-                     linkedCount: record.linkedCount,
-                   }}
-                  contentSnippet={record.contentSnippet}
-                  author={
-                    record.author?.displayName
-                      ? {
-                          displayName: record.author.displayName,
-                          slug: record.author.slug ?? "",
-                        }
-                      : undefined
-                  }
-                  stage={
-                    record.stage?.name
-                      ? {
-                          name: record.stage.name,
-                          type: record.stage.type ?? "",
-                        }
-                      : undefined
-                  }
-                />
+            <motion.div
+              variants={staggerContainer}
+              initial="hidden"
+              animate="visible"
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            >
+              {filteredRecords.map((record: typeof filteredRecords[number]) => (
+                <motion.div key={record.id} variants={staggerItem}>
+                  <SceneCard
+                    record={{
+                      slug: record.slug,
+                      title: record.title,
+                      content: record.content,
+                      format: record.format as "note" | "article",
+                      type: record.type as "personal" | "challenge" | "collaboration",
+                      rhythm: record.rhythm ?? undefined,
+                      createdAt: record.createdAt,
+                    }}
+                    contentSnippet={record.contentSnippet}
+                    author={
+                      record.author?.displayName
+                        ? {
+                            displayName: record.author.displayName,
+                            slug: record.author.slug ?? "",
+                          }
+                        : undefined
+                    }
+                    stage={
+                      record.stage?.name
+                        ? {
+                            name: record.stage.name,
+                            type: record.stage.type ?? "",
+                          }
+                        : undefined
+                    }
+                  />
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           )
+        )}
+
+        {totalPages > 1 && (
+          <div className="mt-12 flex justify-center items-center gap-2">
+            <button
+              type="button"
+              onClick={() => handlePageChange(page - 1)}
+              disabled={page <= 1}
+              className="rounded-full px-4 py-2 border border-border text-sm font-medium text-text-secondary hover:bg-surface-secondary disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              이전
+            </button>
+            
+            <div className="flex gap-1">
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                let pageNum: number;
+                if (totalPages <= 5) {
+                  pageNum = i + 1;
+                } else if (page <= 3) {
+                  pageNum = i + 1;
+                } else if (page >= totalPages - 2) {
+                  pageNum = totalPages - 4 + i;
+                } else {
+                  pageNum = page - 2 + i;
+                }
+                return (
+                  <button
+                    key={pageNum}
+                    type="button"
+                    onClick={() => handlePageChange(pageNum)}
+                    className={`rounded-full w-10 h-10 text-sm font-medium transition-colors ${
+                      pageNum === page
+                        ? "bg-ocean-blue text-white"
+                        : "border border-border text-text-secondary hover:bg-surface-secondary"
+                    }`}
+                  >
+                    {pageNum}
+                  </button>
+                );
+              })}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => handlePageChange(page + 1)}
+              disabled={page >= totalPages}
+              className="rounded-full px-4 py-2 border border-border text-sm font-medium text-text-secondary hover:bg-surface-secondary disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              다음
+            </button>
+          </div>
         )}
       </div>
     </div>

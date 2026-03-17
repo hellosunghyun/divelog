@@ -1,25 +1,17 @@
 import { data } from "react-router";
 import type { Route } from "./+types/$stageSlug";
 import { Link } from "~/components/SmartLink";
-import { db } from "~/db/client.server";
-import {
-  collectiveMemories,
-  stages,
-  memoryQuestions,
-  memoryRecords,
-  memorySentences,
-  questions,
-  records,
-  sentences,
-} from "~/db/schema.server";
 import { eq, and } from "drizzle-orm";
 import HeroSection from "~/components/HeroSection";
 import QuestionCard from "~/components/QuestionCard";
 import HighlightedSentenceCard from "~/components/HighlightedSentenceCard";
 import SceneCard from "~/components/SceneCard";
-import { createLogger } from "~/lib/logger.server";
 
 export async function loader({ params, request, context }: Route.LoaderArgs) {
+  const { db } = await import("~/db/client.server");
+  const { collectiveMemories, stages, memoryQuestions, memoryRecords, memorySentences, questions, records, sentences } = await import("~/db/schema.server");
+  const { createLogger } = await import("~/lib/logger.server");
+
   const { stageSlug } = params;
   const logger = createLogger(request, context.cloudflare.env).child({ route: "memory_detail" });
   logger.info("loader_start");

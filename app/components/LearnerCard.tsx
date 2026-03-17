@@ -1,4 +1,7 @@
 import { Link } from "~/components/SmartLink";
+import { cn } from "~/lib/cn";
+import { motion } from "~/lib/motion";
+import { fadeUp } from "~/lib/motion-utils";
 
 interface LearnerCardProps {
   learner: {
@@ -21,58 +24,75 @@ interface LearnerCardProps {
 
 export default function LearnerCard({ learner, recentRecord, stage }: LearnerCardProps) {
   return (
-    <article
+    <motion.article
       data-testid="learner-card"
-      className="bg-surface rounded-2xl border border-border shadow-card p-6 flex flex-col gap-4 transition-all duration-normal hover:shadow-card-hover hover:-translate-y-0.5"
+      variants={fadeUp}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, margin: "-50px" }}
+      whileHover={{ y: -2 }}
+      whileTap={{ scale: 0.98 }}
+      transition={{ duration: 0.15, ease: [0.32, 0.72, 0, 1] }}
+      className={cn(
+        "group bg-surface ring-1 ring-border rounded-2xl p-5",
+        "hover:shadow-tinted-md transition-premium cursor-pointer"
+      )}
     >
-      {/* Question FIRST — before profile (DOM order matters) */}
       {learner.currentQuestion && (
-        <p className="text-lg text-ocean-blue leading-body italic">
+        <p className="text-base md:text-lg font-medium leading-relaxed text-text-primary mb-4 line-clamp-3">
           "{learner.currentQuestion}"
         </p>
       )}
-      
-      <div className="flex items-center gap-3">
-        {learner.profilePhotoUrl ? (
-          <img
-            src={learner.profilePhotoUrl}
-            alt={learner.displayName}
-            className="w-10 h-10 rounded-full object-cover"
-          />
-        ) : (
-          <div className="w-10 h-10 rounded-full bg-mist-blue flex items-center justify-center text-base text-ocean-blue">
-            {learner.displayName[0]}
-          </div>
-        )}
-         <div>
-           <Link 
-             to={`/learners/${learner.slug}`}
-             prefetch="viewport"
-             className="font-semibold text-text-primary text-base tracking-tight no-underline hover:text-ocean-blue transition-colors"
-           >
-             {learner.displayName}
-           </Link>
-          {stage && (
-            <p className="text-caption text-text-tertiary">{stage.name}</p>
-          )}
-        </div>
-      </div>
-      
-      {learner.bio && (
-        <p className="text-meta text-text-secondary leading-body">
+
+      {!learner.currentQuestion && learner.bio && (
+        <p className="text-base text-text-secondary leading-body line-clamp-2 mb-4">
           {learner.bio}
         </p>
       )}
 
-       {recentRecord && (
-         <Link 
-           to={`/logs/${recentRecord.slug}`}
-           prefetch="viewport"
-           className="text-meta text-text-tertiary no-underline hover:text-ocean-blue transition-colors"
-         >
-           최근: {recentRecord.title}
-         </Link>
-       )}
-    </article>
+      {!learner.currentQuestion && !learner.bio && (
+        <p className="text-base text-text-tertiary italic mb-4">
+          아직 질문이 없습니다
+        </p>
+      )}
+
+      <div className="flex items-center gap-3 pt-4 border-t border-border">
+        {learner.profilePhotoUrl ? (
+          <img
+            src={learner.profilePhotoUrl}
+            alt={learner.displayName}
+            className="w-8 h-8 rounded-full object-cover ring-1 ring-border"
+          />
+        ) : (
+          <div className="w-8 h-8 rounded-full bg-mist-blue flex items-center justify-center text-sm text-ocean-blue font-medium">
+            {learner.displayName[0]}
+          </div>
+        )}
+        <div className="min-w-0 flex-1">
+          <Link
+            to={`/learners/${learner.slug}`}
+            prefetch="viewport"
+            className="text-sm font-semibold text-text-primary no-underline hover:text-ocean-blue transition-colors truncate block"
+          >
+            {learner.displayName}
+          </Link>
+          <div className="flex items-center gap-2 text-xs text-text-tertiary">
+            {stage && <span>{stage.name}</span>}
+            {learner.cohort && stage && <span>·</span>}
+            {learner.cohort && <span>{learner.cohort}</span>}
+          </div>
+        </div>
+      </div>
+
+      {recentRecord && (
+        <Link
+          to={`/logs/${recentRecord.slug}`}
+          prefetch="viewport"
+          className="block mt-3 text-xs text-text-tertiary no-underline hover:text-ocean-blue transition-colors truncate"
+        >
+          최근: {recentRecord.title}
+        </Link>
+      )}
+    </motion.article>
   );
 }

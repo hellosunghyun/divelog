@@ -58,6 +58,7 @@
 .ProseMirror h6 {
   font-weight: var(--font-weight-semibold);
   line-height: var(--line-height-title);
+  letter-spacing: var(--tracking-tight);
   color: var(--color-text-primary);
   margin: 1em 0 0.25em 0;
 }
@@ -370,8 +371,8 @@
 }
 
 .callout[data-callout-type="info"] {
-  background: #EAF4FA;
-  border-left-color: #146C94;
+  background: var(--color-mist-blue);
+  border-left-color: var(--color-ocean-blue);
 }
 
 .callout[data-callout-type="tip"] {

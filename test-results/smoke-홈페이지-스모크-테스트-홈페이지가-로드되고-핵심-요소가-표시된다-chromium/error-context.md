@@ -1,0 +1,500 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - link "DiveLog" [ref=e7] [cursor=pointer]:
+          - /url: /
+          - img [ref=e8]
+          - generic [ref=e9]: DiveLog
+        - navigation [ref=e10]:
+          - link "여정" [ref=e11] [cursor=pointer]:
+            - /url: /journey
+          - link "기록" [ref=e12] [cursor=pointer]:
+            - /url: /logs
+          - link "챌린지" [ref=e13] [cursor=pointer]:
+            - /url: /challenges
+          - link "러너" [ref=e14] [cursor=pointer]:
+            - /url: /learners
+          - link "가이드" [ref=e15] [cursor=pointer]:
+            - /url: /guide
+      - generic [ref=e16]:
+        - link "검색" [ref=e17] [cursor=pointer]:
+          - /url: /search
+          - img [ref=e18]
+        - link "짧은 메모" [ref=e21] [cursor=pointer]:
+          - /url: /write/note
+        - link "글쓰기" [ref=e22] [cursor=pointer]:
+          - /url: /write/article
+          - img [ref=e23]
+          - text: 글쓰기
+  - main [ref=e25]:
+    - generic [ref=e26]:
+      - generic [ref=e29]:
+        - generic [ref=e31]: 성찰적 다이빙
+        - heading "수면 아래, 기록이 깊어지는 곳" [level=1] [ref=e32]:
+          - text: 수면 아래,
+          - text: 기록이 깊어지는 곳
+        - paragraph [ref=e33]:
+          - text: 완성된 글이 아니어도 괜찮습니다.
+          - text: 질문을 남기고, 조용히 깊어지는 여정의 아카이브입니다.
+        - generic [ref=e34]:
+          - link "여정 보기" [ref=e35] [cursor=pointer]:
+            - /url: /journey
+            - generic [ref=e36]: 여정 보기
+            - img [ref=e37]
+          - link "기록 남기기" [ref=e39] [cursor=pointer]:
+            - /url: /write
+      - generic [ref=e47]:
+        - generic [ref=e48]:
+          - generic [ref=e49]: 코호트 여정
+          - heading "아홉 달의 여정" [level=2] [ref=e50]
+          - generic [ref=e51]:
+            - generic [ref=e52]:
+              - img [ref=e53]
+              - generic [ref=e56]: 현재 구간
+            - paragraph [ref=e57]: Challenge 1
+        - generic [ref=e59]:
+          - link "Prelude Prelude" [ref=e60] [cursor=pointer]:
+            - /url: /journey/prelude
+            - img "Prelude" [ref=e61]
+            - generic [ref=e62]: Prelude
+          - link "Challenge 1 (현재) Challenge 1" [ref=e63] [cursor=pointer]:
+            - /url: /journey/challenge-1
+            - img "Challenge 1 (현재)" [ref=e64]
+            - generic [ref=e65]: Challenge 1
+          - link "Bridge 1 Bridge 1" [ref=e66] [cursor=pointer]:
+            - /url: /journey/bridge-1
+            - img "Bridge 1" [ref=e67]
+            - generic [ref=e68]: Bridge 1
+          - link "Challenge 2 Challenge 2" [ref=e69] [cursor=pointer]:
+            - /url: /journey/challenge-2
+            - img "Challenge 2" [ref=e70]
+            - generic [ref=e71]: Challenge 2
+          - link "Bridge 2 Bridge 2" [ref=e72] [cursor=pointer]:
+            - /url: /journey/bridge-2
+            - img "Bridge 2" [ref=e73]
+            - generic [ref=e74]: Bridge 2
+          - link "Challenge 3 Challenge 3" [ref=e75] [cursor=pointer]:
+            - /url: /journey/challenge-3
+            - img "Challenge 3" [ref=e76]
+            - generic [ref=e77]: Challenge 3
+          - link "Bridge 3 Bridge 3" [ref=e78] [cursor=pointer]:
+            - /url: /journey/bridge-3
+            - img "Bridge 3" [ref=e79]
+            - generic [ref=e80]: Bridge 3
+          - link "Challenge 4 Challenge 4" [ref=e81] [cursor=pointer]:
+            - /url: /journey/challenge-4
+            - img "Challenge 4" [ref=e82]
+            - generic [ref=e83]: Challenge 4
+          - link "Bridge 4 Bridge 4" [ref=e84] [cursor=pointer]:
+            - /url: /journey/bridge-4
+            - img "Bridge 4" [ref=e85]
+            - generic [ref=e86]: Bridge 4
+          - link "Challenge 5 Challenge 5" [ref=e87] [cursor=pointer]:
+            - /url: /journey/challenge-5
+            - img "Challenge 5" [ref=e88]
+            - generic [ref=e89]: Challenge 5
+          - link "Bridge 5 Bridge 5" [ref=e90] [cursor=pointer]:
+            - /url: /journey/bridge-5
+            - img "Bridge 5" [ref=e91]
+            - generic [ref=e92]: Bridge 5
+          - link "Challenge 6 Challenge 6" [ref=e93] [cursor=pointer]:
+            - /url: /journey/challenge-6
+            - img "Challenge 6" [ref=e94]
+            - generic [ref=e95]: Challenge 6
+          - link "Epilogue Epilogue" [ref=e96] [cursor=pointer]:
+            - /url: /journey/epilogue
+            - img "Epilogue" [ref=e97]
+            - generic [ref=e98]: Epilogue
+      - generic [ref=e99]:
+        - generic [ref=e101]:
+          - generic [ref=e102]: 여정 활동
+          - heading "여정에서 일어나는 일" [level=2] [ref=e103]
+          - paragraph [ref=e104]: 지난 2주간의 활동 요약
+        - generic [ref=e105]:
+          - generic [ref=e106]:
+            - heading "이번 주" [level=3] [ref=e107]
+            - generic [ref=e108]:
+              - generic [ref=e109]:
+                - img [ref=e111]
+                - generic [ref=e113]:
+                  - paragraph [ref=e114]: 7개의 새 기록이 남겨졌습니다
+                  - paragraph [ref=e115]: 1일 전
+              - generic [ref=e116]:
+                - img [ref=e118]
+                - generic [ref=e121]:
+                  - paragraph [ref=e122]: 3개의 새 질문이 올라왔습니다
+                  - paragraph [ref=e123]: 1일 전
+              - generic [ref=e124]:
+                - img [ref=e126]
+                - generic [ref=e128]:
+                  - paragraph [ref=e129]: 7개의 새 응답이 달렸습니다
+                  - paragraph [ref=e130]: 1일 전
+          - generic [ref=e131]:
+            - heading "지난 주" [level=3] [ref=e132]
+            - generic [ref=e133]:
+              - generic [ref=e134]:
+                - img [ref=e136]
+                - generic [ref=e138]:
+                  - paragraph [ref=e139]: 9개의 새 기록이 남겨졌습니다
+                  - paragraph [ref=e140]: 지난 주
+              - generic [ref=e141]:
+                - img [ref=e143]
+                - generic [ref=e146]:
+                  - paragraph [ref=e147]: 4개의 새 질문이 올라왔습니다
+                  - paragraph [ref=e148]: 지난 주
+              - generic [ref=e149]:
+                - img [ref=e151]
+                - generic [ref=e153]:
+                  - paragraph [ref=e154]: 4개의 새 응답이 달렸습니다
+                  - paragraph [ref=e155]: 지난 주
+              - generic [ref=e156]:
+                - img [ref=e158]
+                - generic [ref=e162]:
+                  - paragraph [ref=e163]: 1개의 새 협업이 시작되었습니다
+                  - paragraph [ref=e164]: 지난 주
+      - generic [ref=e166]:
+        - generic [ref=e168]:
+          - generic [ref=e169]: 현재 구간
+          - heading "Challenge 1" [level=3] [ref=e170]
+          - paragraph [ref=e171]: “CBL을 통해 기본 역량을 쌓고 탐구의 기초를 다지는 시기입니다.”
+          - generic [ref=e172]:
+            - generic [ref=e173]:
+              - generic [ref=e174]: 이
+              - generic [ref=e175]: 박
+              - generic [ref=e176]: "+4"
+            - generic [ref=e177]: 6명의 러너가 함께 다이빙하는 중
+          - paragraph [ref=e179]: 지금은 개인 다이빙 중심입니다. 협업이 시작되면 이곳에 함께 나타납니다.
+        - generic [ref=e180]:
+          - generic [ref=e181]:
+            - heading "이번 구간의 열린 질문들" [level=2] [ref=e182]:
+              - img [ref=e183]
+              - text: 이번 구간의 열린 질문들
+            - link "모두 보기" [ref=e185] [cursor=pointer]:
+              - /url: /journey
+          - generic [ref=e186]:
+            - article [ref=e187] [cursor=pointer]:
+              - generic [ref=e188]: 질문 01
+              - paragraph [ref=e189]: 학습은 결국 무엇을 바꾸는 일이라고 생각하시나요?
+              - generic [ref=e190]:
+                - generic [ref=e191]: 정소연 • 3일 전
+                - link "응답하기" [ref=e192]:
+                  - /url: /logs/soyeon-question
+            - article [ref=e193] [cursor=pointer]:
+              - generic [ref=e194]: 질문 02
+              - paragraph [ref=e195]: 진짜 궁금한 것을 찾는 과정에서 어떤 장면이 단서가 되었나요?
+              - generic [ref=e196]:
+                - generic [ref=e197]: 이하나 • 4일 전
+                - link "응답하기" [ref=e198]:
+                  - /url: /logs/hana-weekly-1
+            - article [ref=e199] [cursor=pointer]:
+              - generic [ref=e200]: 질문 03
+              - paragraph [ref=e201]: 혼자서 탐구할 때 외로움이 지나가도록 돕는 것은 무엇인가요?
+              - generic [ref=e202]:
+                - generic [ref=e203]: 이하나 • 6일 전
+                - link "응답하기" [ref=e204]:
+                  - /url: /logs/challenge-article
+            - article [ref=e205] [cursor=pointer]:
+              - generic [ref=e206]: 질문 04
+              - paragraph [ref=e207]: 탐색을 시작하면서 가장 먼저 떠오른 질문은 무엇이었나요?
+              - generic [ref=e208]:
+                - generic [ref=e209]: 이하나 • 1주 전
+                - link "응답하기" [ref=e210]:
+                  - /url: /logs/first-note
+            - article [ref=e211] [cursor=pointer]:
+              - generic [ref=e212]: 질문 05
+              - paragraph [ref=e213]: 완성되지 않은 상태를 견딜 수 있게 해 준 것은 무엇이었나요?
+              - generic [ref=e214]:
+                - generic [ref=e215]: 이하나 • 1주 전
+                - link "응답하기" [ref=e216]:
+                  - /url: /logs/first-note
+            - article [ref=e217] [cursor=pointer]:
+              - generic [ref=e218]: 질문 06
+              - paragraph [ref=e219]: 학습에서 실패를 다시 읽는 일은 왜 중요할까요?
+              - generic [ref=e220]:
+                - generic [ref=e221]: 박지원 • 1주 전
+                - link "응답하기" [ref=e222]:
+                  - /url: /logs/jiwon-question
+            - article [ref=e223] [cursor=pointer]:
+              - generic [ref=e224]: 질문 07
+              - paragraph [ref=e225]: 답보다 질문을 오래 들고 간다는 것은 어떤 태도일까요?
+              - generic [ref=e226]:
+                - generic [ref=e227]: 이하나 • 1주 전
+                - link "응답하기" [ref=e228]:
+                  - /url: /logs/hana-question-record
+            - article [ref=e229] [cursor=pointer]:
+              - generic [ref=e230]: 질문 08
+              - paragraph [ref=e231]: 기록이 나를 다시 보게 만든 순간이 있었나요?
+              - generic [ref=e232]:
+                - generic [ref=e233]: 김현진 • 2주 전
+                - link "응답하기" [ref=e234]:
+                  - /url: /logs/hyunjin-solo
+      - generic [ref=e236]:
+        - generic [ref=e238]:
+          - generic [ref=e239]: 최근 장면
+          - heading "최근 장면들" [level=2] [ref=e240]
+          - paragraph [ref=e241]: 수면 아래에서 남겨진 최근 기록과 질문들
+        - generic [ref=e242]:
+          - article [ref=e243]:
+            - generic [ref=e244]:
+              - generic [ref=e245]:
+                - generic [ref=e246]: 노트
+                - generic [ref=e247]: 개인
+                - link "Challenge 1" [ref=e248] [cursor=pointer]:
+                  - /url: /journey/challenge-1
+              - generic [ref=e249]: 1일 전
+            - link "시작하는 마음" [ref=e250] [cursor=pointer]:
+              - /url: /logs/jaemin-start
+              - heading "시작하는 마음" [level=3] [ref=e251]
+            - paragraph [ref=e252]: 무엇을 써야 할지 모르겠지만 일단 시작해 보기로 했습니다. 작은 기록이라도 남겨 두면 다음 문장이 조금 더 쉬워질 것 같았습니다. 오늘의 기록은 그 마음을 잊지 않기 위한 표시입니다.
+            - generic [ref=e254]:
+              - generic [ref=e255]: 오
+              - link "오재민" [ref=e256] [cursor=pointer]:
+                - /url: /learners/learner-jaemin
+          - article [ref=e257]:
+            - generic [ref=e258]:
+              - generic [ref=e259]:
+                - generic [ref=e260]: 노트
+                - generic [ref=e261]: 협업
+                - link "Challenge 1" [ref=e262] [cursor=pointer]:
+                  - /url: /journey/challenge-1
+              - generic [ref=e263]: 2일 전
+            - link "팀 탐구 두 번째 기록" [ref=e264] [cursor=pointer]:
+              - /url: /logs/minjun-team-2
+              - heading "팀 탐구 두 번째 기록" [level=3] [ref=e265]
+            - paragraph [ref=e266]: 오늘 팀 미팅에서는 우리가 결과를 너무 빨리 정리하려 했다는 사실을 함께 확인했습니다. 질문이 충분히 열려 있지 않으면 기록도 얇아진다는 이야기가 나왔고, 그 말이 오래 남았습니다. 잠시 멈춰서 질문을 다시 적어 보
+            - generic [ref=e268]:
+              - generic [ref=e269]: 최
+              - link "최민준" [ref=e270] [cursor=pointer]:
+                - /url: /learners/learner-minjun
+          - article [ref=e271]:
+            - generic [ref=e272]:
+              - generic [ref=e273]:
+                - generic [ref=e274]: 노트
+                - generic [ref=e275]: 개인
+                - link "Challenge 1" [ref=e276] [cursor=pointer]:
+                  - /url: /journey/challenge-1
+              - generic [ref=e277]: 2일 전
+            - link "오늘의 한 줄" [ref=e278] [cursor=pointer]:
+              - /url: /logs/soyeon-short
+              - heading "오늘의 한 줄" [level=3] [ref=e279]
+            - paragraph [ref=e280]: 탐구는 정답을 서둘러 고르는 일이 아니라 더 오래 남는 질문을 찾는 일에 가깝다.
+            - generic [ref=e282]:
+              - generic [ref=e283]: 정
+              - link "정소연" [ref=e284] [cursor=pointer]:
+                - /url: /learners/learner-soyeon
+          - article [ref=e285]:
+            - generic [ref=e286]:
+              - generic [ref=e287]:
+                - generic [ref=e288]: 노트
+                - generic [ref=e289]: 개인
+                - link "Challenge 1" [ref=e290] [cursor=pointer]:
+                  - /url: /journey/challenge-1
+              - generic [ref=e291]: 3일 전
+            - link "지금 나에게 남겨진 질문" [ref=e292] [cursor=pointer]:
+              - /url: /logs/soyeon-question
+              - heading "지금 나에게 남겨진 질문" [level=3] [ref=e293]
+            - paragraph [ref=e294]: 이번 구간에서 가장 오래 붙잡힌 문장은 학습이 결국 무엇을 바꾸는가라는 질문이었습니다. 지식을 더하는 일인지, 태도를 바꾸는 일인지, 나를 대하는 방식을 바꾸는 일인지 아직 말하기 어렵습니다. 그래서 당분간은 이 질
+            - generic [ref=e296]:
+              - generic [ref=e297]: 정
+              - link "정소연" [ref=e298] [cursor=pointer]:
+                - /url: /learners/learner-soyeon
+          - article [ref=e299]:
+            - generic [ref=e300]:
+              - generic [ref=e301]:
+                - generic [ref=e302]: 글
+                - generic [ref=e303]: 협업
+                - link "Challenge 1" [ref=e304] [cursor=pointer]:
+                  - /url: /journey/challenge-1
+              - generic [ref=e305]: 4일 전
+            - link "팀과 함께 발견한 것들" [ref=e306] [cursor=pointer]:
+              - /url: /logs/minjun-collab
+              - heading "팀과 함께 발견한 것들" [level=3] [ref=e307]
+            - paragraph [ref=e308]: 다른 시선이 모일 때 혼자서는 지나쳤을 문장을 팀과 함께 읽으니 전혀 다른 의미가 보였습니다. 누군가는 질문을 붙들고, 누군가는 장면을 떠올리고, 누군가는 흐름을 정리했습니다. 각자의 역할이 자연스럽게 나타났습니다.
+            - generic [ref=e310]:
+              - generic [ref=e311]: 최
+              - link "최민준" [ref=e312] [cursor=pointer]:
+                - /url: /learners/learner-minjun
+          - article [ref=e313]:
+            - generic [ref=e314]:
+              - generic [ref=e315]:
+                - generic [ref=e316]: 노트
+                - generic [ref=e317]: 개인
+                - link "Challenge 1" [ref=e318] [cursor=pointer]:
+                  - /url: /journey/challenge-1
+              - generic [ref=e319]: 5일 전
+            - 'link "이번 주 메모: 질문을 찾아서" [ref=e320] [cursor=pointer]':
+              - /url: /logs/hana-weekly-1
+              - 'heading "이번 주 메모: 질문을 찾아서" [level=3] [ref=e321]'
+            - paragraph [ref=e322]: 이번 주에는 진짜 궁금한 것이 무엇인지 알아보려 했습니다. 아직 한 문장으로 정리되지는 않았지만, 내가 오래 머무는 장면과 자꾸 돌아보는 문장은 분명해졌습니다. 질문은 갑자기 떠오르기보다 천천히 드러난다는 사실을 배
+            - generic [ref=e324]:
+              - generic [ref=e325]: 이
+              - link "이하나" [ref=e326] [cursor=pointer]:
+                - /url: /learners/learner-hana
+          - article [ref=e327]:
+            - generic [ref=e328]:
+              - generic [ref=e329]:
+                - generic [ref=e330]: 노트
+                - generic [ref=e331]: 협업
+                - link "Challenge 1" [ref=e332] [cursor=pointer]:
+                  - /url: /journey/challenge-1
+              - generic [ref=e333]: 6일 전
+            - link "팀 챌린지에 합류하며" [ref=e334] [cursor=pointer]:
+              - /url: /logs/jiwon-collab
+              - heading "팀 챌린지에 합류하며" [level=3] [ref=e335]
+            - paragraph [ref=e336]: 처음에는 각자가 다른 방향을 보고 있어서 조금 조심스러웠습니다. 하지만 서로의 기록을 읽고 질문을 주고받는 사이에 공통의 관심사가 ��이기 시작했습니다. 다름을 바로 맞추기보다 먼저 듣는 태도가 중요하다는 것을 느꼈습…
+            - generic [ref=e338]:
+              - generic [ref=e339]: 박
+              - link "박지원" [ref=e340] [cursor=pointer]:
+                - /url: /learners/learner-jiwon
+          - article [ref=e341]:
+            - generic [ref=e342]:
+              - generic [ref=e343]:
+                - generic [ref=e344]: 글
+                - generic [ref=e345]: 챌린지
+                - link "Challenge 1" [ref=e346] [cursor=pointer]:
+                  - /url: /journey/challenge-1
+              - generic [ref=e347]: 1주 전
+            - link "챌린지를 시작하며" [ref=e348] [cursor=pointer]:
+              - /url: /logs/challenge-article
+              - heading "챌린지를 시작하며" [level=3] [ref=e349]
+            - paragraph [ref=e350]: 혼자서 탐구를 이어가기 혼자서 탐구를 이어가는 일은 처음에는 외롭게 느껴졌습니다. 그런데 기록을 남기다 보니 내 생각이 흩어지는 대신 한곳으로 모이기 시작했습니다. 누군가와 바로 대화하지 않아도 기록이 나를 다시 불
+            - generic [ref=e352]:
+              - generic [ref=e353]: 이
+              - link "이하나" [ref=e354] [cursor=pointer]:
+                - /url: /learners/learner-hana
+          - article [ref=e355]:
+            - generic [ref=e356]:
+              - generic [ref=e357]:
+                - generic [ref=e358]: 노트
+                - generic [ref=e359]: 개인
+                - link "Challenge 1" [ref=e360] [cursor=pointer]:
+                  - /url: /journey/challenge-1
+              - generic [ref=e361]: 1주 전
+            - link "첫 주 메모" [ref=e362] [cursor=pointer]:
+              - /url: /logs/jaemin-week1
+              - heading "첫 주 메모" [level=3] [ref=e363]
+            - paragraph [ref=e364]: 첫 주가 지나고 나니 기록이 생각보다 부담스럽지 않다는 사실을 알게 되었습니다. 길게 쓰지 않아도 그날의 생각을 붙잡아 두는 것만으로 충분했습니다.
+            - generic [ref=e366]:
+              - generic [ref=e367]: 오
+              - link "오재민" [ref=e368] [cursor=pointer]:
+                - /url: /learners/learner-jaemin
+        - link "더 많은 기록 탐색하기" [ref=e370] [cursor=pointer]:
+          - /url: /logs
+      - generic [ref=e371]:
+        - heading "남겨둔 문장" [level=2] [ref=e373]
+        - generic [ref=e374]:
+          - article [ref=e375]:
+            - blockquote [ref=e376]: “학습이 결국 무엇을 바꾸는가라는 질문이었습니다.”
+            - paragraph [ref=e377]: 구간 전체를 관통하는 질문처럼 느껴졌습니다.
+            - generic [ref=e378]:
+              - generic [ref=e379]: 김현진
+              - link "원문 보기" [ref=e380] [cursor=pointer]:
+                - /url: /logs/soyeon-question
+          - article [ref=e381]:
+            - blockquote [ref=e382]: “탐구는 정답을 서둘러 고르는 일이 아니라 더 오래 남는 질문을 찾는 일에 가깝다.”
+            - paragraph [ref=e383]: 한 문장으로 탐구의 태도를 또렷하게 보여 줍니다.
+            - generic [ref=e384]:
+              - generic [ref=e385]: 김현진
+              - link "원문 보기" [ref=e386] [cursor=pointer]:
+                - /url: /logs/soyeon-short
+          - article [ref=e387]:
+            - blockquote [ref=e388]: “기록이 나를 다시 불러 세운다는 사실이 든든했습니다.”
+            - paragraph [ref=e389]: 기록의 역할을 간결하게 보여 주는 문장입니다.
+            - generic [ref=e390]:
+              - generic [ref=e391]: 정소연
+              - link "원문 보기" [ref=e392] [cursor=pointer]:
+                - /url: /logs/challenge-article
+          - article [ref=e393]:
+            - blockquote [ref=e394]: “완성된 문장이 없어도 질문은 자랄 수 있다는 사실을 조금씩 알게 되었습니다.”
+            - paragraph [ref=e395]: 질문을 두려워하지 않게 만드는 문장이라 저장했습니다.
+            - generic [ref=e396]:
+              - generic [ref=e397]: 박지원
+              - link "원문 보기" [ref=e398] [cursor=pointer]:
+                - /url: /logs/first-note
+      - generic [ref=e399]:
+        - generic [ref=e400]:
+          - generic [ref=e401]:
+            - generic [ref=e402]: 러너 스포트라이트
+            - heading "함께 잠수하는 러너들" [level=2] [ref=e403]:
+              - img [ref=e404]
+              - text: 함께 잠수하는 러너들
+          - link "전체 러너 보기 (6)" [ref=e408] [cursor=pointer]:
+            - /url: /learners
+        - generic [ref=e409]:
+          - article [ref=e410]:
+            - paragraph [ref=e412]: “지금 나를 가장 오래 붙드는 질문은 무엇일까?”
+            - generic [ref=e413]:
+              - generic [ref=e414]: 이
+              - generic [ref=e415]:
+                - link "이하나" [ref=e416] [cursor=pointer]:
+                  - /url: /learners/learner-hana
+                - paragraph [ref=e417]: 러너
+          - article [ref=e418]:
+            - paragraph [ref=e420]: “실패를 다시 읽으면 무엇이 남을까?”
+            - generic [ref=e421]:
+              - generic [ref=e422]: 박
+              - generic [ref=e423]:
+                - link "박지원" [ref=e424] [cursor=pointer]:
+                  - /url: /learners/learner-jiwon
+                - paragraph [ref=e425]: 러너
+          - article [ref=e426]:
+            - paragraph [ref=e428]: “서로 다른 시선을 어떻게 한 질문으로 묶을 수 있을까?”
+            - generic [ref=e429]:
+              - generic [ref=e430]: 최
+              - generic [ref=e431]:
+                - link "최민준" [ref=e432] [cursor=pointer]:
+                  - /url: /learners/learner-minjun
+                - paragraph [ref=e433]: 러너
+          - article [ref=e434]:
+            - paragraph [ref=e436]: “학습은 무엇을 바꿀 때 시작될까?”
+            - generic [ref=e437]:
+              - generic [ref=e438]: 정
+              - generic [ref=e439]:
+                - link "정소연" [ref=e440] [cursor=pointer]:
+                  - /url: /learners/learner-soyeon
+                - paragraph [ref=e441]: 러너
+      - generic [ref=e443]:
+        - heading "더 깊은 곳에서, 기록은 시작됩니다" [level=2] [ref=e444]
+        - paragraph [ref=e445]: 완성된 글이 아니어도 괜찮습니다. 지금 떠오른 생각부터 남겨보세요.
+        - link "기록 남기기" [ref=e446] [cursor=pointer]:
+          - /url: /write
+  - contentinfo [ref=e447]:
+    - generic [ref=e448]:
+      - generic [ref=e449]:
+        - generic [ref=e450]:
+          - link "DiveLog" [ref=e451] [cursor=pointer]:
+            - /url: /
+            - img [ref=e452]
+            - generic [ref=e453]: DiveLog
+          - paragraph [ref=e454]: 아홉 달의 여정을 기록하고, 질문을 남기고, 서로의 사유에 공명하는 공간
+        - generic [ref=e455]:
+          - navigation "푸터 내비게이션" [ref=e456]:
+            - heading "탐색" [level=3] [ref=e457]
+            - list [ref=e458]:
+              - listitem [ref=e459]:
+                - link "여정" [ref=e460] [cursor=pointer]:
+                  - /url: /journey
+              - listitem [ref=e461]:
+                - link "기록" [ref=e462] [cursor=pointer]:
+                  - /url: /logs
+              - listitem [ref=e463]:
+                - link "챌린지" [ref=e464] [cursor=pointer]:
+                  - /url: /challenges
+              - listitem [ref=e465]:
+                - link "러너" [ref=e466] [cursor=pointer]:
+                  - /url: /learners
+          - navigation "법적 고지" [ref=e467]:
+            - heading "법적 고지" [level=3] [ref=e468]
+            - list [ref=e469]:
+              - listitem [ref=e470]:
+                - link "개인정보처리방침" [ref=e471] [cursor=pointer]:
+                  - /url: /privacy
+              - listitem [ref=e472]:
+                - link "이용약관" [ref=e473] [cursor=pointer]:
+                  - /url: /terms
+      - paragraph [ref=e475]: © 2026 DiveLog. All rights reserved.
+```

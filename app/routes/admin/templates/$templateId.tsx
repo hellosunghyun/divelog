@@ -8,14 +8,15 @@ import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
 import { Textarea } from "~/components/ui/textarea";
-import { db } from "~/db/client.server";
-import { createLogger } from "~/lib/logger.server";
-import { templates } from "~/db/schema.server";
 import { eq } from "drizzle-orm";
 
 const ALL_VALUE = "__all__";
 
 export async function loader({ params, request, context }: Route.LoaderArgs) {
+  const { db } = await import("~/db/client.server");
+  const { createLogger } = await import("~/lib/logger.server");
+  const { templates } = await import("~/db/schema.server");
+
   const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.templates.$templateId" });
   logger.info("loader_start");
   const tmpl = await db(context.cloudflare.env.DB).select().from(templates).where(eq(templates.id, params.templateId)).limit(1);
@@ -23,6 +24,10 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
   return { template: tmpl[0] };
 }
 export async function action({ params, request, context }: Route.ActionArgs) {
+  const { db } = await import("~/db/client.server");
+  const { createLogger } = await import("~/lib/logger.server");
+  const { templates } = await import("~/db/schema.server");
+
   const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.templates.$templateId" });
   const f = await request.formData();
   logger.info("action_start", { intent: "update_template" });

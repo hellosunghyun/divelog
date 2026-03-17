@@ -1,48 +1,37 @@
 import type { Route } from "./+types/tags";
 import { data, redirect } from "react-router";
-import { db } from "~/db/client.server";
-import { createLogger } from "~/lib/logger.server";
-import { tags } from "~/db/schema.server";
 import { eq } from "drizzle-orm";
 import {
-  getAllTags,
-  createTag,
-  updateTag,
-  deleteTag,
-  getTagByName,
-  getTagBySlug,
-  type TagWithUsage,
-} from "~/db/queries/tags.server";
-import EmptyState from "~/components/EmptyState";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "~/components/ui/alert-dialog";
-import { Badge } from "~/components/ui/badge";
-import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
-import { Label } from "~/components/ui/label";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "~/components/ui/table";
+  adminTableClass,
+  adminThClass,
+  adminTdClass,
+  adminTrClass,
+  adminLabelClass,
+  adminInputClass,
+  adminBtnPrimary,
+  adminBtnDanger,
+  adminBtnSm,
+  adminCardClass,
+  adminCardHeaderClass,
+  adminCardBodyClass,
+  adminBadgeBase,
+  adminBadgeDefault,
+  adminEmptyStateClass,
+  adminEmptyIconClass,
+  adminEmptyTitleClass,
+  adminEmptyDescClass,
+} from "~/components/admin/admin-patterns";
 
 export function meta(_: Route.MetaArgs) {
   return [{ title: "태그 관리" }];
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {
+  const { db } = await import("~/db/client.server");
+  const { createLogger } = await import("~/lib/logger.server");
+  const { tags } = await import("~/db/schema.server");
+  const { getAllTags, createTag, updateTag, deleteTag, getTagByName, getTagBySlug, TagWithUsage } = await import("~/db/queries/tags.server");
+
   const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.tags" });
   logger.info("loader_start");
   const allTags = await getAllTags(context.cloudflare.env.DB);
@@ -50,6 +39,11 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
+  const { db } = await import("~/db/client.server");
+  const { createLogger } = await import("~/lib/logger.server");
+  const { tags } = await import("~/db/schema.server");
+  const { getAllTags, createTag, updateTag, deleteTag, getTagByName, getTagBySlug, TagWithUsage } = await import("~/db/queries/tags.server");
+
   const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.tags" });
   const formData = await request.formData();
   const intent = formData.get("intent");
@@ -174,7 +168,12 @@ export default function AdminTagsPage({ loaderData, actionData }: Route.Componen
 
   return (
     <div>
-      <h2 className="text-xl font-semibold text-admin-text mb-6">태그 관리</h2>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-xl font-semibold text-admin-text">태그 관리</h2>
+        <p className="text-meta text-admin-text-secondary">
+          전체 {loaderData.tags.length}개
+        </p>
+      </div>
 
       {error && (
         <div className="mb-4 p-3 bg-error/10 border border-error/20 rounded-lg text-error text-caption">
@@ -182,153 +181,162 @@ export default function AdminTagsPage({ loaderData, actionData }: Route.Componen
         </div>
       )}
 
-      <div className="bg-admin-surface rounded-lg border border-admin-border p-4 mb-6">
-        <h3 className="text-meta font-semibold text-admin-text mb-4">새 태그 추가</h3>
-        <form method="post" className="flex flex-wrap gap-3 items-end">
-          <input type="hidden" name="intent" value="create_tag" />
-          <div className="flex flex-col gap-1">
-            <Label htmlFor="name" className="text-caption text-admin-text-secondary">
-              이름 *
-            </Label>
-            <Input
-              type="text"
-              id="name"
-              name="name"
-              required
-              className="h-10 rounded-md border-admin-border bg-admin-bg px-3 py-2 text-caption text-admin-text"
-              placeholder="태그 이름"
-              onInput={(e) => {
-                const slugInput = document.getElementById("slug") as HTMLInputElement;
-                if (slugInput && !slugInput.dataset.manual) {
-                  slugInput.value = generateSlug(e.currentTarget.value);
-                }
-              }}
-            />
-          </div>
-          <div className="flex flex-col gap-1">
-            <Label htmlFor="slug" className="text-caption text-admin-text-secondary">
-              슬러그 *
-            </Label>
-            <Input
-              type="text"
-              id="slug"
-              name="slug"
-              required
-              className="h-10 rounded-md border-admin-border bg-admin-bg px-3 py-2 text-caption text-admin-text"
-              placeholder="tag-slug"
-              onChange={(e) => {
-                e.currentTarget.dataset.manual = "true";
-              }}
-            />
-          </div>
-          <div className="flex flex-col gap-1">
-            <Label htmlFor="description" className="text-caption text-admin-text-secondary">
-              설명
-            </Label>
-            <Input
-              type="text"
-              id="description"
-              name="description"
-              className="h-10 w-48 rounded-md border-admin-border bg-admin-bg px-3 py-2 text-caption text-admin-text"
-              placeholder="태그 설명"
-            />
-          </div>
-          <div className="flex flex-col gap-1">
-            <Label htmlFor="color" className="text-caption text-admin-text-secondary">
-              색상
-            </Label>
-            <div className="flex items-center gap-2">
-              <input type="color" id="color" name="color" defaultValue="#6E6E73" className="w-8 h-8 border border-admin-border rounded cursor-pointer" />
-              <span className="text-caption text-admin-text-secondary">#</span>
+      <div className={`${adminCardClass} mb-6`}>
+        <div className={adminCardHeaderClass}>
+          <h3 className="text-sm font-semibold text-admin-text">새 태그 추가</h3>
+        </div>
+        <div className={adminCardBodyClass}>
+          <form method="post" className="flex flex-wrap gap-4 items-end">
+            <input type="hidden" name="intent" value="create_tag" />
+            
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="name" className={adminLabelClass}>
+                이름 <span className="text-error">*</span>
+              </label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                required
+                className={`${adminInputClass} w-40`}
+                placeholder="태그 이름"
+                onInput={(e) => {
+                  const slugInput = document.getElementById("slug") as HTMLInputElement;
+                  if (slugInput && !slugInput.dataset.manual) {
+                    slugInput.value = generateSlug(e.currentTarget.value);
+                  }
+                }}
+              />
             </div>
-          </div>
-          <Button type="submit" className="h-10 px-4 text-caption font-medium">
-            추가
-          </Button>
-        </form>
+
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="slug" className={adminLabelClass}>
+                슬러그 <span className="text-error">*</span>
+              </label>
+              <input
+                type="text"
+                id="slug"
+                name="slug"
+                required
+                className={`${adminInputClass} w-40 font-mono`}
+                placeholder="tag-slug"
+                onChange={(e) => {
+                  e.currentTarget.dataset.manual = "true";
+                }}
+              />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="description" className={adminLabelClass}>
+                설명
+              </label>
+              <input
+                type="text"
+                id="description"
+                name="description"
+                className={`${adminInputClass} w-56`}
+                placeholder="태그 설명"
+              />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="color" className={adminLabelClass}>
+                색상
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="color"
+                  id="color"
+                  name="color"
+                  defaultValue="#6E6E73"
+                  className="w-9 h-9 border border-admin-border rounded cursor-pointer"
+                />
+              </div>
+            </div>
+
+            <button type="submit" className={adminBtnPrimary}>
+              추가
+            </button>
+          </form>
+        </div>
       </div>
 
       {loaderData.tags.length === 0 ? (
-        <EmptyState variant="generic" message="태그가 없습니다" />
+        <div className={adminCardClass}>
+          <div className={adminEmptyStateClass}>
+            <svg className={adminEmptyIconClass} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+            </svg>
+            <p className={adminEmptyTitleClass}>태그가 없습니다</p>
+            <p className={adminEmptyDescClass}>위에서 새 태그를 추가하세요</p>
+          </div>
+        </div>
       ) : (
-        <Table>
-          <TableHeader className="bg-admin-bg">
-            <TableRow className="border-admin-border hover:bg-admin-bg">
-              {["색상", "이름", "슬러그", "설명", "사용 횟수", "생성일", "작업"].map((header) => (
-                <TableHead
-                  key={header}
-                  className="h-auto px-4 py-3 text-caption font-semibold text-admin-text-secondary uppercase tracking-wide"
-                >
-                  {header}
-                </TableHead>
-              ))}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {loaderData.tags.map((tag: TagWithUsage) => {
-              const deleteFormId = `delete-tag-${tag.id}`;
+        <div className={adminCardClass}>
+          <table className={adminTableClass}>
+            <thead>
+              <tr>
+                {["색상", "이름", "슬러그", "설명", "사용", "생성일", "작업"].map((header) => (
+                  <th key={header} className={adminThClass}>
+                    {header}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {loaderData.tags.map((tag: TagWithUsage) => {
+                const deleteFormId = `delete-tag-${tag.id}`;
 
-              return (
-                <TableRow key={tag.id} className="border-admin-border hover:bg-admin-bg/50">
-                  <TableCell className="px-4 py-3">
-                    <div
-                      className="h-5 w-5 rounded border border-admin-border"
-                      style={{ backgroundColor: tag.color ?? "#6E6E73" }}
-                    />
-                  </TableCell>
-                  <TableCell className="px-4 py-3 text-meta font-medium text-admin-text">
-                    {tag.name}
-                  </TableCell>
-                  <TableCell className="px-4 py-3 font-mono text-meta text-admin-text-secondary">
-                    <Badge variant="outline">{tag.slug}</Badge>
-                  </TableCell>
-                  <TableCell className="max-w-[200px] px-4 py-3 text-meta text-admin-text-secondary">
-                    {tag.description || "-"}
-                  </TableCell>
-                  <TableCell className="px-4 py-3 text-meta text-admin-text-secondary">
-                    <Badge variant="secondary">{tag.usageCount}회</Badge>
-                  </TableCell>
-                  <TableCell className="px-4 py-3 text-meta text-admin-text-secondary">
-                    {new Date(tag.createdAt * 1000).toLocaleDateString("ko-KR")}
-                  </TableCell>
-                  <TableCell className="px-4 py-3">
-                    <form id={deleteFormId} method="post" className="inline">
-                      <input type="hidden" name="intent" value="delete_tag" />
-                      <input type="hidden" name="id" value={tag.id} />
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button type="button" variant="destructive" size="sm">
-                            삭제
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>태그 삭제</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              정말 삭제하시겠습니까?
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>취소</AlertDialogCancel>
-                            <AlertDialogAction
-                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                              onClick={() => {
-                                const form = document.getElementById(deleteFormId) as HTMLFormElement | null;
-                                form?.requestSubmit();
-                              }}
-                            >
-                              삭제
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </form>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
+                return (
+                  <tr key={tag.id} className={adminTrClass}>
+                    <td className={adminTdClass}>
+                      <div
+                        className="h-5 w-5 rounded border border-admin-border"
+                        style={{ backgroundColor: tag.color ?? "#6E6E73" }}
+                      />
+                    </td>
+                    <td className={`${adminTdClass} font-medium text-admin-text`}>
+                      {tag.name}
+                    </td>
+                    <td className={adminTdClass}>
+                      <span className={`${adminBadgeBase} ${adminBadgeDefault} font-mono`}>
+                        {tag.slug}
+                      </span>
+                    </td>
+                    <td className={`${adminTdClass} max-w-[200px] truncate text-admin-text-secondary`}>
+                      {tag.description || <span className="text-admin-text-tertiary">-</span>}
+                    </td>
+                    <td className={adminTdClass}>
+                      <span className="text-caption text-admin-text-secondary tabular-nums">
+                        {tag.usageCount}회
+                      </span>
+                    </td>
+                    <td className={`${adminTdClass} text-admin-text-secondary tabular-nums`}>
+                      {new Date(tag.createdAt * 1000).toLocaleDateString("ko-KR")}
+                    </td>
+                    <td className={adminTdClass}>
+                      <form id={deleteFormId} method="post" className="inline">
+                        <input type="hidden" name="intent" value="delete_tag" />
+                        <input type="hidden" name="id" value={tag.id} />
+                        <button
+                          type="submit"
+                          className={`${adminBtnDanger} ${adminBtnSm}`}
+                          onClick={(e) => {
+                            if (!confirm(`"${tag.name}" 태그를 삭제하시겠습니까?`)) {
+                              e.preventDefault();
+                            }
+                          }}
+                        >
+                          삭제
+                        </button>
+                      </form>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

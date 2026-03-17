@@ -1,4 +1,5 @@
 import { Link } from "~/components/SmartLink";
+import { cn } from "~/lib/cn";
 
 interface Stage {
   id: string;
@@ -15,48 +16,102 @@ interface StageStripProps {
   currentStageSlug?: string;
 }
 
-const STAGE_ACCENT_CLASSES: Record<string, { bg: string; border: string; text: string }> = {
-  prelude: { bg: "bg-prelude/10", border: "border-prelude", text: "text-prelude" },
-  bridge: { bg: "bg-bridge/10", border: "border-bridge", text: "text-bridge" },
-  challenge: { bg: "bg-challenge/10", border: "border-challenge", text: "text-challenge" },
-  epilogue: { bg: "bg-epilogue/10", border: "border-epilogue", text: "text-epilogue" },
+const STAGE_ACCENT_CLASSES: Record<string, { glow: string; bg: string; text: string }> = {
+  prelude: {
+    glow: "shadow-[0_0_12px_rgba(74,141,168,0.25)]",
+    bg: "bg-prelude",
+    text: "text-white",
+  },
+  bridge: {
+    glow: "shadow-[0_0_12px_rgba(26,158,180,0.3)]",
+    bg: "bg-bridge",
+    text: "text-white",
+  },
+  challenge: {
+    glow: "shadow-[0_0_14px_rgba(11,36,71,0.35)]",
+    bg: "bg-deep-ocean",
+    text: "text-white",
+  },
+  epilogue: {
+    glow: "shadow-[0_0_10px_rgba(126,142,158,0.2)]",
+    bg: "bg-epilogue",
+    text: "text-white",
+  },
 };
 
 export default function StageStrip({ stages, currentStageSlug }: StageStripProps) {
+  const currentIndex = stages.findIndex(
+    (stage) => stage.isCurrent || stage.slug === currentStageSlug
+  );
+
   return (
     <nav
       data-testid="stage-strip"
       aria-label="여정 Stage 목록"
-      className="flex gap-3 overflow-x-auto py-5 px-4 md:px-6 scrollbar-thin"
+      className="-mx-4 overflow-x-auto px-4 md:mx-0 md:px-0 scrollbar-thin"
     >
-      {stages.map((stage) => {
-        const isCurrent = stage.isCurrent || stage.slug === currentStageSlug;
-        const accentClasses = STAGE_ACCENT_CLASSES[stage.type] ?? STAGE_ACCENT_CLASSES.challenge;
+      <div className="flex w-max min-w-full gap-2.5 sm:gap-3 py-5 md:px-6">
+        {stages.map((stage, index) => {
+          const isCurrent = stage.isCurrent || stage.slug === currentStageSlug;
+          const isPast = currentIndex !== -1 && index < currentIndex;
+          const isFuture = currentIndex !== -1 && index > currentIndex;
+          const accentClasses = STAGE_ACCENT_CLASSES[stage.type] ?? STAGE_ACCENT_CLASSES.challenge;
 
-        let stageClasses = "flex-shrink-0 px-5 py-3 rounded-full text-sm whitespace-nowrap no-underline transition-all duration-normal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2";
+          const baseClasses = cn(
+            "flex-shrink-0 px-3 py-2.5 text-[13px] sm:px-5 sm:py-3 sm:text-sm rounded-full whitespace-nowrap no-underline",
+            "transition-all duration-normal ease-out",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
+          );
 
-        if (isCurrent) {
-          stageClasses += ` ${accentClasses.bg} ${accentClasses.text} border-1.5 ${accentClasses.border} font-semibold`;
-        } else if (stage.status === "completed") {
-          stageClasses += " bg-transparent text-text-tertiary border border-border opacity-60 font-normal";
-        } else if (stage.status === "upcoming") {
-          stageClasses += " bg-transparent text-text-secondary border border-dashed border-border font-normal";
-        } else {
-          stageClasses += " bg-transparent text-text-secondary border border-border font-normal";
-        }
+          let stateClasses = "";
 
-         return (
-           <Link
-             key={stage.id}
-             to={`/journey/${stage.slug}`}
-             prefetch="render"
-             className={stageClasses}
-             aria-current={isCurrent ? "page" : undefined}
-           >
-             {stage.name}
-           </Link>
-         );
-      })}
+          if (isCurrent) {
+            stateClasses = cn(
+              accentClasses.bg,
+              accentClasses.text,
+              accentClasses.glow,
+              "font-semibold",
+              "hover:brightness-110"
+            );
+          } else if (isPast || stage.status === "completed") {
+            stateClasses = cn(
+              "bg-surface-secondary/70",
+              "text-text-secondary",
+              "border border-border-subtle",
+              "font-normal",
+              "hover:bg-surface-secondary hover:text-text-primary"
+            );
+          } else if (isFuture || stage.status === "upcoming") {
+            stateClasses = cn(
+              "bg-transparent",
+              "text-text-secondary",
+              "border border-dashed border-border",
+              "font-normal",
+              "hover:border-ocean-blue/40 hover:text-text-primary"
+            );
+          } else {
+            stateClasses = cn(
+              "bg-transparent",
+              "text-text-secondary",
+              "border border-border",
+              "font-normal",
+              "hover:border-ocean-blue/30"
+            );
+          }
+
+          return (
+            <Link
+              key={stage.id}
+              to={`/journey/${stage.slug}`}
+              prefetch="render"
+              className={cn(baseClasses, stateClasses)}
+              aria-current={isCurrent ? "page" : undefined}
+            >
+              {stage.name}
+            </Link>
+          );
+        })}
+      </div>
     </nav>
   );
 }

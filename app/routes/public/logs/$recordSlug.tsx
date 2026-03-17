@@ -1,32 +1,28 @@
 import { and, desc, eq } from "drizzle-orm";
 import { Link } from "~/components/SmartLink";
-import { Form, data, useActionData, useNavigation, useSubmit } from "react-router";
+import { data, redirect, useActionData, useNavigation, useSubmit } from "react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import EmptyState from "~/components/EmptyState";
 import HighlightedSentenceCard from "~/components/HighlightedSentenceCard";
 import QuestionCard from "~/components/QuestionCard";
-import { QuestionTimeline } from "~/components/QuestionTimeline";
 import ResponseCard from "~/components/ResponseCard";
 import SelfAnswerCard from "~/components/SelfAnswerCard";
 import SceneCard from "~/components/SceneCard";
 import { ContentRenderer } from "~/components/ContentRenderer";
-import { db } from "~/db/client.server";
-import { createQuestion } from "~/db/queries/questions.server";
-import { getSentenceById, saveSentence } from "~/db/queries/sentences.server";
-import { learnerProfiles, questions, records, responses, sentences } from "~/db/schema.server";
-import { createSelfAnswer, getSelfAnswersByRecord } from "~/db/queries/selfAnswers.server";
-import { getLinkedRecords } from "~/db/queries/records.server";
-import { getIncomingLinks } from "~/db/queries/recordLinks.server";
-import { createReminder } from "~/db/queries/reminders.server";
-import { createCarryOver, getCarryOversByQuestion } from "~/db/queries/carryOvers.server";
-import { getNextStage } from "~/db/queries/stages.server";
-import { getTagsByRecord } from "~/db/queries/tags.server";
+import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
+import { Textarea } from "~/components/ui/textarea";
 import { requireVerified } from "~/lib/auth.middleware";
-import { getPlainText, renderContentToHtml } from "~/lib/content.server";
 import { normalizeContentFormat } from "~/lib/editor-extensions";
-import { createLogger } from "~/lib/logger.server";
-import { nanoid } from "~/lib/utils.server";
 import { createResponseSchema, saveSentenceSchema } from "~/lib/validation";
 import { getOptionalUser } from "~/lib/auth.middleware";
 
@@ -49,6 +45,17 @@ export async function clientAction({ params, serverAction }: Route.ClientActionA
 }
 
 export async function loader({ params, context, request }: Route.LoaderArgs) {
+  const { db } = await import("~/db/client.server");
+  const { saveSentence } = await import("~/db/queries/sentences.server");
+  const { learnerProfiles, questions, records, responses, sentences, stages } = await import("~/db/schema.server");
+  const { createSelfAnswer, getSelfAnswersByRecord } = await import("~/db/queries/selfAnswers.server");
+  const { getLinkedRecords } = await import("~/db/queries/records.server");
+  const { getIncomingLinks } = await import("~/db/queries/recordLinks.server");
+  const { getTagsByRecord } = await import("~/db/queries/tags.server");
+  const { getPlainText, renderContentToHtml } = await import("~/lib/content.server");
+  const { createLogger } = await import("~/lib/logger.server");
+  const { nanoid } = await import("~/lib/utils.server");
+
   const { recordSlug } = params;
   const logger = createLogger(request, context.cloudflare.env).child({ route: "logs_detail" });
   logger.info("loader_start");
@@ -64,9 +71,15 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
         profilePhotoUrl: learnerProfiles.profilePhotoUrl,
         userId: learnerProfiles.userId,
       },
+      stage: {
+        id: stages.id,
+        name: stages.name,
+        slug: stages.slug,
+      },
     })
     .from(records)
     .leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
+    .leftJoin(stages, eq(records.stageId, stages.id))
     .where(eq(records.slug, recordSlug))
     .limit(1);
 
@@ -130,10 +143,16 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
 
   const selfAnswersData = await getSelfAnswersByRecord(context.cloudflare.env.DB, recordData.record.id);
   const recordTags = await getTagsByRecord(context.cloudflare.env.DB, recordData.record.id);
-  const incomingLinks = await getIncomingLinks(context.cloudflare.env.DB, recordData.record.id);
-  const nextStage = recordData.record.stageId
-    ? await getNextStage(context.cloudflare.env.DB, recordData.record.stageId)
-    : null;
+
+  let incomingLinks: Awaited<ReturnType<typeof getIncomingLinks>> = [];
+  try {
+    incomingLinks = await getIncomingLinks(context.cloudflare.env.DB, recordData.record.id);
+  } catch (err) {
+    logger.warn("incoming_links_query_failed", {
+      error: err instanceof Error ? err.message : String(err),
+      recordId: recordData.record.id,
+    });
+  }
   const recordFormat = normalizeContentFormat(recordData.record.format);
   const contentHtml = renderContentToHtml(recordData.record.content, recordFormat);
   const plainTextContent = getPlainText(recordData.record.content, recordFormat);
@@ -141,6 +160,7 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
   return {
     record: recordData.record,
     author: recordData.author,
+    stage: recordData.stage,
     questions: recordQuestions,
     responses: recordResponses,
     sentences: recordSentences,
@@ -148,83 +168,29 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
     incomingLinks,
     selfAnswers: selfAnswersData,
     tags: recordTags,
-    nextStage,
     currentUserId,
-    canRespond:
-      Boolean(optionalAuth?.isAuthenticated)
-      && Boolean(optionalAuth?.user.isVerified)
-      && recordData.record.responsePreference !== "closed",
     contentHtml,
     plainTextContent,
   };
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
+  const { db } = await import("~/db/client.server");
+  const { saveSentence } = await import("~/db/queries/sentences.server");
+  const { learnerProfiles, questions, records, responses, sentences, stages } = await import("~/db/schema.server");
+  const { createSelfAnswer, getSelfAnswersByRecord } = await import("~/db/queries/selfAnswers.server");
+  const { getLinkedRecords } = await import("~/db/queries/records.server");
+  const { getIncomingLinks } = await import("~/db/queries/recordLinks.server");
+  const { getTagsByRecord } = await import("~/db/queries/tags.server");
+  const { getPlainText, renderContentToHtml } = await import("~/lib/content.server");
+  const { createLogger } = await import("~/lib/logger.server");
+  const { nanoid } = await import("~/lib/utils.server");
+
   const logger = createLogger(request, context.cloudflare.env).child({ route: "logs_detail" });
   const auth = await requireVerified(request, context);
   const formData = await request.formData();
   const intent = formData.get("intent");
   const database = db(context.cloudflare.env.DB);
-
-  if (intent === "carry_over_question") {
-    const questionId = formData.get("questionId")?.toString();
-    const toStageId = formData.get("toStageId")?.toString();
-
-    if (!questionId || !toStageId) {
-      return { error: "질문 정보를 확인해주세요.", intent: "carry_over_question", questionId: questionId ?? null };
-    }
-
-    const questionData = await database
-      .select({
-        questionId: questions.id,
-        isOpen: questions.isOpen,
-        authorId: records.authorId,
-        stageId: records.stageId,
-      })
-      .from(questions)
-      .innerJoin(records, eq(questions.recordId, records.id))
-      .where(eq(questions.id, questionId))
-      .limit(1);
-
-    if (questionData.length === 0) {
-      return { error: "질문을 찾을 수 없습니다.", intent: "carry_over_question", questionId };
-    }
-
-    const targetQuestion = questionData[0];
-
-    if (targetQuestion.authorId !== auth.user.id) {
-      return { error: "자신의 질문만 가져갈 수 있습니다.", intent: "carry_over_question", questionId };
-    }
-
-    if (!targetQuestion.isOpen) {
-      return { error: "열린 질문만 가져갈 수 있습니다.", intent: "carry_over_question", questionId };
-    }
-
-    if (!targetQuestion.stageId) {
-      return { error: "구간 정보가 없는 질문입니다.", intent: "carry_over_question", questionId };
-    }
-
-    const nextStage = await getNextStage(context.cloudflare.env.DB, targetQuestion.stageId);
-    if (!nextStage || nextStage.id !== toStageId) {
-      return { error: "다음 구간 정보를 다시 확인해주세요.", intent: "carry_over_question", questionId };
-    }
-
-    const existingCarryOvers = await getCarryOversByQuestion(context.cloudflare.env.DB, questionId);
-    if (existingCarryOvers.length > 0) {
-      return { error: "이미 다음 구간으로 가져간 질문입니다.", intent: "carry_over_question", questionId };
-    }
-
-    await createCarryOver(context.cloudflare.env.DB, {
-      originalQuestionId: questionId,
-      fromStageId: targetQuestion.stageId,
-      toStageId,
-      newQuestionId: null,
-    });
-
-    logger.info("question_carry_over_create", { questionId, fromStageId: targetQuestion.stageId, toStageId });
-
-    return { success: "다음 구간으로 가져갔습니다.", intent: "carry_over_question", questionId };
-  }
 
   if (intent === "create_response") {
     const parsed = createResponseSchema.safeParse({
@@ -232,7 +198,7 @@ export async function action({ request, context }: Route.ActionArgs) {
       type: formData.get("type"),
       recordId: formData.get("recordId"),
       questionId: formData.get("questionId") || undefined,
-      visibility: "cohort",
+      visibility: formData.get("visibility") || "cohort",
     });
 
     if (!parsed.success) {
@@ -241,13 +207,21 @@ export async function action({ request, context }: Route.ActionArgs) {
 
     // 응답 선호도에 따른 서버사이드 검증
     const targetRecord = await database
-      .select({ responsePreference: records.responsePreference })
+      .select({ responsePreference: records.responsePreference, visibility: records.visibility, authorId: records.authorId })
       .from(records)
       .where(eq(records.id, parsed.data.recordId))
       .limit(1);
 
     if (targetRecord.length > 0) {
       const pref = targetRecord[0].responsePreference;
+      const visibility = targetRecord[0].visibility;
+      const authorId = targetRecord[0].authorId;
+      
+      // Defense-in-depth: prevent responses on draft records (unless user is author)
+      if (visibility === "draft" && authorId !== auth.user.id) {
+        return { error: "이 기록에 응답할 수 없습니다." };
+      }
+      
       if (pref === "closed") {
         return { error: "이 기록은 응답이 닫혀 있습니다." };
       }
@@ -266,7 +240,7 @@ export async function action({ request, context }: Route.ActionArgs) {
       authorId: auth.user.id,
       type: parsed.data.type,
       content: parsed.data.content,
-      visibility: "cohort",
+      visibility: parsed.data.visibility,
       moderationStatus: "clean",
       createdAt: now,
       updatedAt: now,
@@ -281,38 +255,6 @@ export async function action({ request, context }: Route.ActionArgs) {
     return { success: "응답이 등록되었습니다." };
   }
 
-  if (intent === "create_question_from_sentence") {
-    const sentenceId = formData.get("sentenceId")?.toString();
-    const recordId = formData.get("recordId")?.toString();
-    const sentenceContent = formData.get("sentenceContent")?.toString().trim();
-
-    if (!sentenceId || !recordId) {
-      return { error: "문장 정보를 확인해주세요." };
-    }
-
-    const sentence = await getSentenceById(context.cloudflare.env.DB, sentenceId);
-
-    if (!sentence || sentence.recordId !== recordId) {
-      return { error: "문장을 찾을 수 없습니다." };
-    }
-
-    const questionContent = sentenceContent || sentence.content;
-
-    if (!questionContent) {
-      return { error: "문장 내용을 확인해주세요." };
-    }
-
-    await createQuestion(context.cloudflare.env.DB, {
-      recordId,
-      content: questionContent,
-      direction: "inward",
-    });
-
-    logger.info("question_create_from_sentence", { sentenceId, recordId });
-
-    return { success: "이 문장에서 질문을 만들었습니다." };
-  }
-
   if (intent === "save_sentence") {
     const parsed = saveSentenceSchema.safeParse({
       content: formData.get("content"),
@@ -322,6 +264,22 @@ export async function action({ request, context }: Route.ActionArgs) {
 
     if (!parsed.success) {
       return { error: parsed.error.issues[0]?.message ?? "문장을 확인해주세요." };
+    }
+
+    // Defense-in-depth: prevent saving sentences from draft records (unless user is author)
+    const targetRecord = await database
+      .select({ visibility: records.visibility, authorId: records.authorId })
+      .from(records)
+      .where(eq(records.id, parsed.data.recordId))
+      .limit(1);
+
+    if (targetRecord.length > 0) {
+      const visibility = targetRecord[0].visibility;
+      const authorId = targetRecord[0].authorId;
+      
+      if (visibility === "draft" && authorId !== auth.user.id) {
+        return { error: "이 기록에 문장을 저장할 수 없습니다." };
+      }
     }
 
     await saveSentence(context.cloudflare.env.DB, auth.user.id, parsed.data);
@@ -370,47 +328,6 @@ export async function action({ request, context }: Route.ActionArgs) {
     return { success: "자기 답변이 등록되었습니다." };
   }
 
-  if (intent === "create_reminder") {
-    const questionId = formData.get("questionId");
-
-    if (typeof questionId !== "string" || !questionId) {
-      return { error: "질문을 찾을 수 없습니다.", intent: "create_reminder", questionId: null };
-    }
-
-    const questionData = await database
-      .select({
-        questionId: questions.id,
-        isOpen: questions.isOpen,
-        authorId: records.authorId,
-      })
-      .from(questions)
-      .innerJoin(records, eq(questions.recordId, records.id))
-      .where(eq(questions.id, questionId))
-      .limit(1);
-
-    if (questionData.length === 0) {
-      return { error: "질문을 찾을 수 없습니다.", intent: "create_reminder", questionId };
-    }
-
-    if (questionData[0].authorId !== auth.user.id) {
-      return { error: "자신의 질문에만 알림을 설정할 수 있습니다.", intent: "create_reminder", questionId };
-    }
-
-    if (!questionData[0].isOpen) {
-      return { error: "닫힌 질문에는 알림을 설정할 수 없습니다.", intent: "create_reminder", questionId };
-    }
-
-    await createReminder(context.cloudflare.env.DB, {
-      questionId,
-      learnerId: auth.user.id,
-      remindAt: Math.floor(Date.now() / 1000) + 7 * 24 * 60 * 60,
-    });
-
-    logger.info("question_reminder_create", { questionId });
-
-    return { success: "1주 후 알림이 설정되었습니다.", intent: "create_reminder", questionId };
-  }
-
   return { error: "알 수 없는 요청입니다." };
 }
 
@@ -428,20 +345,13 @@ export function meta({ data: loaderData }: Route.MetaArgs) {
   ];
 }
 
-type ResponseFormType = "resonance" | "question" | "connection" | "suggestion";
-
-type ResponseTypeOption = {
-  value: ResponseFormType;
-  label: string;
-  description: string;
-};
-
-const ALL_RESPONSE_TYPE_OPTIONS: ResponseTypeOption[] = [
-  { value: "resonance", label: "공명", description: "이 기록에서 무엇이 남았는지 말합니다" },
-  { value: "question", label: "질문", description: "기록에서 생긴 질문을 남깁니다" },
-  { value: "connection", label: "연결", description: "관련된 다른 기록과 연결합니다" },
-  { value: "suggestion", label: "제안", description: "개선이나 다른 시각을 제안합니다" },
+const ALL_RESPONSE_TYPE_OPTIONS = [
+  { value: "resonance", label: "공명 — 이 기록에서 무엇이 남았는지 말합니다" },
+  { value: "question", label: "질문 — 더 듣고 싶은 지점을 엽니다" },
+  { value: "connection", label: "연결 — 내 경험이나 다른 기록과 이어봅니다" },
+  { value: "suggestion", label: "제안 — 다음 시도를 조심스럽게 제안합니다" },
 ];
+const NO_QUESTION_VALUE = "__none__";
 
 const RESPONSE_PREFERENCE_LABELS: Record<string, string> = {
   open: "모든 응답을 환영합니다",
@@ -449,24 +359,11 @@ const RESPONSE_PREFERENCE_LABELS: Record<string, string> = {
   closed: "그냥 읽어줘도 괜찮아요",
 };
 
-const INITIAL_RESPONSE_COUNT = 2;
-
-function getResponseTypeOptions(preference: string): ResponseTypeOption[] {
+function getResponseTypeOptions(preference: string) {
   if (preference === "question_only") {
     return ALL_RESPONSE_TYPE_OPTIONS.filter((opt) => opt.value === "question");
   }
   return ALL_RESPONSE_TYPE_OPTIONS;
-}
-
-function getDefaultResponseType(preference: string): ResponseFormType {
-  return getResponseTypeOptions(preference)[0]?.value ?? "resonance";
-}
-
-function getResponsePreferenceText(pref: string): string {
-  if (pref === "open") return "이 기록은 모든 유형의 응답을 환영합니다.";
-  if (pref === "question_only") return "이 기록은 질문 응답만 받고 있습니다.";
-  if (pref === "closed") return "이 기록은 현재 응답을 받지 않습니다.";
-  return "";
 }
 
 const MIN_SELECTED_SENTENCE_LENGTH = 10;
@@ -474,13 +371,6 @@ const MAX_SELECTED_SENTENCE_LENGTH = 500;
 const FLOATING_BUTTON_OFFSET = 48;
 const FLOATING_BUTTON_EDGE_PADDING = 96;
 const FLOATING_BUTTON_TOP_PADDING = 16;
-
-function getLinkTypeLabel(type: string): string {
-  if (type === "expansion") return "확장";
-  if (type === "reference") return "참고";
-  if (type === "related") return "관련";
-  return type;
-}
 
 function normalizeSelectedSentence(value: string) {
   return value.replace(/\s+/g, " ").trim();
@@ -499,60 +389,8 @@ function isSelectionInsideElement(selection: Selection, element: HTMLElement | n
   return anchorNode instanceof Node && element.contains(anchorNode);
 }
 
-function ResponseTypeChipGroup(
-  {
-    availableTypes,
-    selectedType,
-    onSelect,
-  }: {
-    availableTypes: ResponseTypeOption[];
-    selectedType: ResponseFormType;
-    onSelect: (type: ResponseFormType) => void;
-  },
-) {
-  return (
-    <div className="flex flex-wrap gap-2">
-      {availableTypes.map((type) => {
-        const isSelected = selectedType === type.value;
-
-        return (
-          <button
-            key={type.value}
-            type="button"
-            data-testid="response-type-chip"
-            title={type.description}
-            aria-pressed={isSelected}
-            onClick={() => onSelect(type.value)}
-            className={`min-h-11 rounded-full border px-3 py-1.5 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2 ${
-              isSelected
-                ? "border-[--color-ocean-blue] bg-[--color-ocean-blue] text-white"
-                : "border-[--color-border] text-[--color-text-secondary] hover:border-[--color-ocean-blue]/50 hover:text-[--color-ocean-blue]"
-            }`}
-          >
-            {type.label}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
 export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
-  const {
-    record,
-    author,
-    questions: recordQuestions,
-    responses: recordResponses,
-    sentences: recordSentences,
-    linkedRecords,
-    incomingLinks,
-    selfAnswers,
-    tags: recordTags,
-    nextStage,
-    currentUserId,
-    canRespond,
-    contentHtml,
-  } = loaderData;
+  const { record, author, stage, questions: recordQuestions, responses: recordResponses, sentences: recordSentences, linkedRecords, incomingLinks, selfAnswers, tags: recordTags, currentUserId, contentHtml } = loaderData;
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const submit = useSubmit();
@@ -560,42 +398,18 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
   const isSubmittingResponse = navigation.state === "submitting" && submittingIntent === "create_response";
   const isSubmittingSentence = navigation.state === "submitting" && submittingIntent === "save_sentence";
   const isSubmittingSelfAnswer = navigation.state === "submitting" && submittingIntent === "create_self_answer";
-  const isSubmittingReminder = navigation.state === "submitting" && submittingIntent === "create_reminder";
-  const isSubmittingCarryOver = navigation.state === "submitting" && submittingIntent === "carry_over_question";
-  const reminderQuestionId = navigation.formData?.get("questionId");
-  const reminderFeedback = actionData && "intent" in actionData && actionData.intent === "create_reminder"
-    ? actionData
-    : null;
-  const carryOverFeedback = actionData && "intent" in actionData && actionData.intent === "carry_over_question"
-    ? actionData
-    : null;
 
   const [expandedQuestionId, setExpandedQuestionId] = useState<string | null>(null);
-  const [showResponseForm, setShowResponseForm] = useState(false);
-  const [showFormForQuestion, setShowFormForQuestion] = useState<string | null>(null);
-  const [showAllResponses, setShowAllResponses] = useState(false);
-  const [selectedRecordResponseType, setSelectedRecordResponseType] = useState<ResponseFormType>(
-    getDefaultResponseType(loaderData.record.responsePreference),
-  );
-  const [selectedQuestionResponseType, setSelectedQuestionResponseType] = useState<ResponseFormType>(
-    getDefaultResponseType(loaderData.record.responsePreference),
-  );
+  const responseTypeOptions = getResponseTypeOptions(record.responsePreference);
+  const [responseQuestionValue, setResponseQuestionValue] = useState(NO_QUESTION_VALUE);
   const [selectedText, setSelectedText] = useState("");
   const [showSentenceButton, setShowSentenceButton] = useState(false);
   const [buttonPosition, setButtonPosition] = useState({ x: 0, y: 0 });
-  const [showLinkedRecords, setShowLinkedRecords] = useState(false);
-  const [showSentences, setShowSentences] = useState(false);
   const articleContentRef = useRef<HTMLDivElement | null>(null);
 
   const isRecordAuthor = currentUserId === record.authorId;
   const recordFormat = normalizeContentFormat(record.format);
   const isArticleRecord = recordFormat === "article";
-  const expansionLinks = incomingLinks.filter((link) => link.linkType === "expansion");
-  const referenceLinks = incomingLinks.filter((link) => link.linkType !== "expansion");
-  const displayedResponses = showAllResponses
-    ? recordResponses
-    : recordResponses.slice(0, INITIAL_RESPONSE_COUNT);
-  const availableResponseTypes = getResponseTypeOptions(record.responsePreference);
 
   const selfAnswersByQuestion = new Map<string, typeof selfAnswers>();
   for (const sa of selfAnswers) {
@@ -682,13 +496,6 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
   }, [dismissSentenceSelection, record.id, selectedText, submit]);
 
   useEffect(() => {
-    const defaultType = getDefaultResponseType(record.responsePreference);
-
-    setSelectedRecordResponseType(defaultType);
-    setSelectedQuestionResponseType(defaultType);
-  }, [record.responsePreference]);
-
-  useEffect(() => {
     if (!isArticleRecord) {
       return;
     }
@@ -735,7 +542,8 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
   }, [hideSentenceButton, showSentenceButton]);
 
   return (
-    <div className="max-w-reading mx-auto py-16 px-6 md:py-24">
+    <div className="max-w-[1200px] mx-auto px-6 py-16 md:py-24 flex flex-col lg:flex-row gap-12 lg:gap-24 relative">
+      <div className="flex-1 max-w-[720px] mx-auto lg:mx-0 w-full min-w-0">
       {record.visibility === "draft" && (
         <div className="mb-6 rounded-xl border border-warning/30 bg-warning/5 px-5 py-4">
           <p className="text-base font-medium text-warning">임시저장 상태입니다</p>
@@ -743,71 +551,78 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
         </div>
       )}
 
-      <header className="mb-10">
-        <div className="flex gap-2 mb-4 flex-wrap">
-          <span className="text-caption px-2 py-0.5 rounded-full bg-border text-text-secondary">
+      <nav aria-label="breadcrumb" className="mb-6">
+        <ol className="flex items-center gap-2 text-sm text-text-secondary">
+          <li>
+            <Link to="/logs" className="hover:text-ocean-blue transition-colors no-underline">
+              기록
+            </Link>
+          </li>
+          {stage && (
+            <>
+              <li aria-hidden="true" className="text-text-tertiary">/</li>
+              <li>
+                <Link to={`/journey/${stage.slug}`} className="hover:text-ocean-blue transition-colors no-underline">
+                  {stage.name}
+                </Link>
+              </li>
+            </>
+          )}
+          <li aria-hidden="true" className="text-text-tertiary">/</li>
+          <li className="text-text-primary truncate max-w-[200px]" aria-current="page">
+            {record.title}
+          </li>
+        </ol>
+      </nav>
+
+      <header className="mb-12">
+        <div className="flex gap-2 mb-5 flex-wrap">
+          {stage && (
+            <Link to={`/journey/${stage.slug}`} className="text-caption px-3 py-1 rounded-full bg-mist-blue/30 text-ocean-blue font-medium no-underline hover:bg-mist-blue transition-colors">
+              {stage.name}
+            </Link>
+          )}
+          <span className="text-caption px-3 py-1 rounded-full border border-border bg-surface text-text-secondary">
             {record.format === "note" ? "노트" : "글"}
           </span>
-          <span className="text-caption px-2 py-0.5 rounded-full bg-border text-text-secondary">
+          <span className="text-caption px-3 py-1 rounded-full border border-border bg-surface text-text-secondary">
             {record.type === "personal" ? "개인" : record.type === "challenge" ? "챌린지" : "협업"}
           </span>
           {record.visibility === "draft" && (
-            <span className="text-caption px-2 py-0.5 rounded-full bg-warning/10 text-warning font-medium">
+            <span className="text-caption px-3 py-1 rounded-full bg-warning/10 text-warning font-medium">
               임시저장
             </span>
           )}
         </div>
 
-        <h1 className="text-3xl font-semibold text-text-primary leading-tight tracking-tight mb-4">
+        <h1 
+          className="text-4xl md:text-5xl font-semibold text-text-primary leading-[1.15] mb-6"
+          style={{ letterSpacing: 'var(--tracking-tighter, -0.04em)' }}
+        >
           {record.title}
         </h1>
 
-        <div className="flex items-center gap-4 flex-wrap">
+        <div className="flex items-center gap-3 flex-wrap">
           {author?.slug ? (
-            <Link to={`/learners/${author.slug}`} className="text-sm text-text-secondary no-underline hover:text-ocean-blue transition-colors">
+            <Link to={`/learners/${author.slug}`} className="inline-flex items-center text-sm font-medium text-text-primary bg-surface-secondary px-3 py-1.5 rounded-full hover:bg-mist-blue hover:text-ocean-blue transition-colors no-underline">
               {author.displayName ?? "작성자"}
             </Link>
           ) : (
-            <p className="text-sm text-text-secondary">{author?.displayName ?? "작성자"}</p>
+            <span className="inline-flex items-center text-sm font-medium text-text-primary bg-surface-secondary px-3 py-1.5 rounded-full">
+              {author?.displayName ?? "작성자"}
+            </span>
           )}
-
-          {recordTags.length > 0 && (
-            <div className="flex gap-2 flex-wrap">
-              {recordTags.map((tag) => (
-                <Link
-                  key={tag.id}
-                  to={`/tags/${tag.slug}`}
-                  className="text-caption px-2 py-0.5 rounded-full border border-border bg-surface text-text-secondary no-underline transition-all duration-normal hover:border-reef-cyan/40 hover:bg-mist-blue/20 hover:text-ocean-blue"
-                >
-                  {tag.name}
-                </Link>
-              ))}
-            </div>
-          )}
+          <time className="text-sm text-text-tertiary">
+            {new Date(record.createdAt * 1000).toLocaleDateString("ko-KR")}
+          </time>
 
           {isRecordAuthor && (
-            <div className="flex items-center gap-3 flex-wrap">
-              <Link
-                to={`/logs/${record.slug}/edit`}
-                className="inline-flex items-center rounded-full border border-border px-3 py-1.5 text-caption font-medium text-text-secondary no-underline transition-colors hover:bg-surface-secondary hover:text-text-primary"
-              >
-                수정
-              </Link>
-
-              {recordFormat === "note" ? (
-                <Link
-                  to={`/write/article?expandFrom=${encodeURIComponent(record.slug)}`}
-                  data-testid="expand-to-article"
-                  className="inline-flex items-center gap-1.5 text-sm text-[--color-text-tertiary] no-underline transition-colors hover:text-[--color-ocean-blue]"
-                >
-                  <span>이 메모를 글로 확장</span>
-                  <svg aria-hidden="true" className="h-3.5 w-3.5" viewBox="0 0 16 16" fill="none">
-                    <path d="M3.5 8H12.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                    <path d="M8.5 4L12.5 8L8.5 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </Link>
-              ) : null}
-            </div>
+            <Link
+              to={`/logs/${record.slug}/edit`}
+              className="inline-flex items-center ml-auto rounded-full border border-border px-3 py-1.5 text-xs font-medium text-text-secondary no-underline transition-colors hover:bg-surface-secondary hover:text-text-primary"
+            >
+              수정
+            </Link>
           )}
         </div>
       </header>
@@ -830,15 +645,17 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
               transform: "translateX(-50%)",
             }}
           >
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="sm"
               disabled={isSubmittingSentence}
               onMouseDown={(event) => event.preventDefault()}
               onClick={handleFloatingSentenceSave}
               className="rounded-full border border-border bg-surface px-4 py-2 text-sm font-medium text-text-primary shadow-[0_10px_24px_rgba(11,36,71,0.12)] transition-all duration-normal hover:-translate-y-0.5 hover:border-reef-cyan/40 hover:text-ocean-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2 disabled:opacity-60"
             >
               {isSubmittingSentence ? "저장 중..." : "문장 저장"}
-            </button>
+            </Button>
           </div>
         ) : null}
       </section>
@@ -851,44 +668,13 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
           <div className="flex flex-col gap-8">
             {recordQuestions.map((question) => {
               const questionSelfAnswers = selfAnswersByQuestion.get(question.id) ?? [];
-              const questionResponses = recordResponses
-                .filter(({ response }) => response.questionId === question.id)
-                .map(({ response, author: responseAuthor }) => ({
-                  id: response.id,
-                  content: response.content,
-                  type: response.type,
-                  authorName: responseAuthor?.displayName ?? "이름 없는 러너",
-                  createdAt: response.createdAt,
-                  questionId: response.questionId ?? undefined,
-                }));
-              const hasTimelineNodes = questionSelfAnswers.length > 0 || questionResponses.length > 0;
               const isExpanded = expandedQuestionId === question.id;
 
-                return (
-                  <div key={question.id} className="flex flex-col gap-4">
-                  {hasTimelineNodes ? (
-                    <QuestionTimeline
-                      question={{
-                        id: question.id,
-                        content: question.content,
-                        direction: question.direction,
-                        createdAt: question.createdAt,
-                        authorName: author?.displayName ?? "기록 작성자",
-                      }}
-                      selfAnswers={questionSelfAnswers.map(({ selfAnswer, author: selfAnswerAuthor }) => ({
-                        id: selfAnswer.id,
-                        content: selfAnswer.content,
-                        authorName: selfAnswerAuthor?.displayName ?? "기록 작성자",
-                        createdAt: selfAnswer.createdAt,
-                      }))}
-                      responses={questionResponses}
-                      isOwn={isRecordAuthor}
-                    />
-                  ) : (
-                    <QuestionCard question={question} />
-                  )}
-
-                  {!hasTimelineNodes && questionSelfAnswers.length > 0 && (
+              return (
+                <div key={question.id} className="flex flex-col gap-4">
+                  <QuestionCard question={question} />
+                  
+                  {questionSelfAnswers.length > 0 && (
                     <div className="ml-4 flex flex-col gap-3">
                       {questionSelfAnswers.map(({ selfAnswer, author: selfAnswerAuthor }) => (
                         <SelfAnswerCard
@@ -899,82 +685,8 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
                     </div>
                   )}
 
-                  {canRespond && !isRecordAuthor ? (
-                    <div className="ml-4">
-                      {showFormForQuestion === question.id ? (
-                        <form method="post" className="flex flex-col gap-5 rounded-2xl border border-border bg-surface p-6">
-                          <input type="hidden" name="intent" value="create_response" />
-                          <input type="hidden" name="recordId" value={record.id} />
-                          <input type="hidden" name="questionId" value={question.id} />
-                          <input type="hidden" name="type" value={selectedQuestionResponseType} />
-
-                          <div className="flex flex-col gap-2">
-                            <p className="text-xs text-[--color-text-tertiary]">
-                              {getResponsePreferenceText(record.responsePreference)}
-                            </p>
-                            <p className="text-sm text-text-secondary">
-                              이 질문과 이어서 응답이 남겨집니다.
-                            </p>
-                          </div>
-
-                          <div>
-                            <p className="mb-2 block text-sm font-medium text-text-secondary">응답 유형</p>
-                            <ResponseTypeChipGroup
-                              availableTypes={availableResponseTypes}
-                              selectedType={selectedQuestionResponseType}
-                              onSelect={setSelectedQuestionResponseType}
-                            />
-                          </div>
-
-                          <div>
-                            <label htmlFor={`question-response-content-${question.id}`} className="mb-2 block text-sm font-medium text-text-secondary">
-                              내용
-                            </label>
-                            <textarea
-                              id={`question-response-content-${question.id}`}
-                              name="content"
-                              required
-                              rows={5}
-                              placeholder="이 질문과 맞닿은 생각을 남겨보세요."
-                              className="min-h-[120px] w-full resize-y rounded-lg border border-border bg-surface px-4 py-3 text-base text-text-primary placeholder:text-text-tertiary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
-                            />
-                          </div>
-
-                          <div className="flex flex-wrap gap-3">
-                            <button
-                              type="submit"
-                              disabled={isSubmittingResponse}
-                              className="self-start rounded-full bg-deep-ocean px-7 py-3 text-[15px] font-medium text-white shadow-sm transition-all hover:bg-ocean-blue hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2 disabled:opacity-60"
-                            >
-                              {isSubmittingResponse ? "등록 중..." : "응답 등록"}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setShowFormForQuestion(null)}
-                              className="min-h-11 rounded-full border border-border px-4 py-2 text-sm text-text-secondary transition-colors hover:bg-surface-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
-                            >
-                              취소
-                            </button>
-                          </div>
-                        </form>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSelectedQuestionResponseType(getDefaultResponseType(record.responsePreference));
-                            setShowResponseForm(false);
-                            setShowFormForQuestion(question.id);
-                          }}
-                          className="min-h-11 rounded-full px-4 py-2 text-sm border border-reef-cyan/40 bg-mist-blue/20 text-ocean-blue cursor-pointer transition-all duration-normal hover:bg-mist-blue/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
-                        >
-                          이 질문에 응답하기
-                        </button>
-                      )}
-                    </div>
-                  ) : null}
-
                   {isRecordAuthor && (
-                    <div className="ml-4 flex flex-col gap-3">
+                    <div className="ml-4">
                       {isExpanded ? (
                         <form method="post" className="flex flex-col gap-4 bg-mist-blue/30 rounded-xl border border-reef-cyan/30 p-5">
                           <input type="hidden" name="intent" value="create_self_answer" />
@@ -982,10 +694,10 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
                           <input type="hidden" name="recordId" value={record.id} />
                           
                           <div>
-                            <label htmlFor={`self-answer-content-${question.id}`} className="text-sm font-medium text-text-secondary mb-2 block">
+                            <Label htmlFor={`self-answer-content-${question.id}`} className="text-sm font-medium text-text-secondary mb-2 block">
                               나의 답변
-                            </label>
-                            <textarea
+                            </Label>
+                            <Textarea
                               id={`self-answer-content-${question.id}`}
                               name="content"
                               required
@@ -996,74 +708,35 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
                           </div>
 
                           <div className="flex gap-3">
-                            <button
+                            <Button
                               type="submit"
                               disabled={isSubmittingSelfAnswer}
                               className="rounded-full bg-deep-ocean text-white px-5 py-2.5 text-sm font-medium hover:bg-ocean-blue transition-all shadow-sm hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2 disabled:opacity-60"
                             >
                               {isSubmittingSelfAnswer ? "등록 중..." : "답변 등록"}
-                            </button>
-                            <button
+                            </Button>
+                            <Button
                               type="button"
+                              variant="ghost"
+                              size="sm"
                               onClick={() => setExpandedQuestionId(null)}
                               className="rounded-full px-5 py-2.5 text-sm border border-border bg-transparent text-text-secondary cursor-pointer transition-all duration-normal hover:border-text-secondary/30 hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
                             >
                               취소
-                            </button>
+                            </Button>
                           </div>
                         </form>
                       ) : (
-                        <button
+                        <Button
                           type="button"
+                          variant="ghost"
+                          size="sm"
                           onClick={() => setExpandedQuestionId(question.id)}
                           className="rounded-full px-4 py-2 text-sm border border-reef-cyan/40 bg-mist-blue/20 text-ocean-blue cursor-pointer transition-all duration-normal hover:bg-mist-blue/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
                         >
                           답변하기
-                        </button>
+                        </Button>
                       )}
-
-                      {question.isOpen && nextStage ? (
-                        <form method="post">
-                          <input type="hidden" name="intent" value="carry_over_question" />
-                          <input type="hidden" name="questionId" value={question.id} />
-                          <input type="hidden" name="toStageId" value={nextStage.id} />
-                          <button
-                            type="submit"
-                            disabled={isSubmittingCarryOver && reminderQuestionId === question.id}
-                            className="min-h-11 text-left text-xs text-[--color-text-tertiary] transition-colors hover:text-[--color-ocean-blue] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2 disabled:opacity-60"
-                          >
-                            {isSubmittingCarryOver && reminderQuestionId === question.id
-                              ? "가져가는 중..."
-                              : "다음 구간으로 가져가기"}
-                          </button>
-                        </form>
-                      ) : null}
-
-                      {question.isOpen ? (
-                        <form method="post">
-                          <input type="hidden" name="intent" value="create_reminder" />
-                          <input type="hidden" name="questionId" value={question.id} />
-                          <button
-                            type="submit"
-                            disabled={isSubmittingReminder && reminderQuestionId === question.id}
-                            className="min-h-11 text-left text-xs text-[--color-text-tertiary] transition-colors hover:text-[--color-ocean-blue] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2 disabled:opacity-60"
-                          >
-                            {isSubmittingReminder && reminderQuestionId === question.id ? "설정 중..." : "1주 후 다시 알림"}
-                          </button>
-                        </form>
-                      ) : null}
-
-                      {reminderFeedback && reminderFeedback.questionId === question.id ? (
-                        <p className={"text-sm " + ("error" in reminderFeedback ? "text-error" : "text-success")}>
-                          {"error" in reminderFeedback ? reminderFeedback.error : reminderFeedback.success}
-                        </p>
-                      ) : null}
-
-                      {carryOverFeedback && carryOverFeedback.questionId === question.id ? (
-                        <p className={"text-sm " + ("error" in carryOverFeedback ? "text-error" : "text-success")}>
-                          {"error" in carryOverFeedback ? carryOverFeedback.error : carryOverFeedback.success}
-                        </p>
-                      ) : null}
                     </div>
                   )}
                 </div>
@@ -1084,67 +757,87 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
             {RESPONSE_PREFERENCE_LABELS[record.responsePreference] ?? "이 기록에 응답해보세요."}
           </p>
 
-          {actionData && !reminderFeedback && !carryOverFeedback && "error" in actionData ? (
+          {actionData && "error" in actionData ? (
             <p className="text-error mb-4 text-sm">{actionData.error}</p>
           ) : null}
 
-          {actionData && !reminderFeedback && !carryOverFeedback && "success" in actionData ? (
+          {actionData && "success" in actionData ? (
             <p className="text-success mb-4 text-sm">{actionData.success}</p>
           ) : null}
 
           <div className="grid gap-6">
-            <div className="flex flex-col gap-3">
-              {canRespond && !showResponseForm ? (
-                <button
-                  type="button"
-                  data-testid="response-form-toggle"
-                  onClick={() => {
-                    setSelectedRecordResponseType(getDefaultResponseType(record.responsePreference));
-                    setShowFormForQuestion(null);
-                    setShowResponseForm(true);
-                  }}
-                  className="inline-flex min-h-11 items-center gap-2 self-start rounded-full border border-[--color-ocean-blue]/30 px-4 py-2 text-sm text-[--color-ocean-blue] transition-colors hover:bg-[--color-mist-blue]/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
-                >
-                  응답 남기기
-                </button>
+            <form method="post" className="flex flex-col gap-5 bg-surface rounded-lg border border-border p-6">
+              <input type="hidden" name="intent" value="create_response" />
+              <input type="hidden" name="recordId" value={record.id} />
+
+              <div>
+                <Label htmlFor="response-type" className="text-sm font-medium text-text-secondary mb-2 block">
+                  응답 유형
+                </Label>
+                <Select name="type" required defaultValue={responseTypeOptions[0]?.value}>
+                  <SelectTrigger id="response-type" className="w-full bg-surface">
+                    <SelectValue placeholder="응답 유형 선택" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {responseTypeOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label htmlFor="response-visibility" className="text-sm font-medium text-text-secondary mb-2 block">
+                  공개 범위
+                </label>
+                <select id="response-visibility" name="visibility" defaultValue="cohort" className="w-full rounded-lg border border-border bg-surface px-4 py-3 text-base text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2">
+                  <option value="cohort">코호트 공개</option>
+                  <option value="public">전체 공개</option>
+                </select>
+              </div>
+
+              {recordQuestions.length > 0 ? (
+                <div>
+                  <Label htmlFor="question-id" className="text-sm font-medium text-text-secondary mb-2 block">
+                    연결할 질문 (선택)
+                  </Label>
+                  <input type="hidden" name="questionId" value={responseQuestionValue === NO_QUESTION_VALUE ? "" : responseQuestionValue} />
+                  <Select value={responseQuestionValue} onValueChange={setResponseQuestionValue}>
+                    <SelectTrigger id="question-id" className="w-full bg-surface">
+                      <SelectValue placeholder="질문 선택" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={NO_QUESTION_VALUE}>질문을 선택하지 않음</SelectItem>
+                      {recordQuestions.map((question) => (
+                        <SelectItem key={question.id} value={question.id}>
+                          {question.content}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               ) : null}
 
-              {showResponseForm && record.responsePreference ? (
-                <p className="mb-2 text-xs text-[--color-text-tertiary]">
-                  {getResponsePreferenceText(record.responsePreference)}
-                </p>
-              ) : null}
+              <div>
+                <Label htmlFor="response-content" className="text-sm font-medium text-text-secondary mb-2 block">
+                  내용
+                </Label>
+                <Textarea
+                  id="response-content"
+                  name="content"
+                  required
+                  rows={5}
+                  placeholder="이 기록에 응답해보세요."
+                  className="min-h-[120px] bg-surface"
+                />
+              </div>
 
-              {showResponseForm && canRespond ? (
-                <form method="post" data-testid="response-form" className="flex flex-col gap-5 rounded-lg border border-border bg-surface p-6">
-                  <input type="hidden" name="intent" value="create_response" />
-                  <input type="hidden" name="recordId" value={record.id} />
-                  <input type="hidden" name="type" value={selectedRecordResponseType} />
-
-                  <div>
-                    <p className="mb-2 block text-sm font-medium text-text-secondary">
-                      응답 유형
-                    </p>
-                    <ResponseTypeChipGroup
-                      availableTypes={availableResponseTypes}
-                      selectedType={selectedRecordResponseType}
-                      onSelect={setSelectedRecordResponseType}
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="response-content" className="mb-2 block text-sm font-medium text-text-secondary">
-                      내용
-                    </label>
-                    <textarea id="response-content" name="content" required rows={5} placeholder="이 기록에 응답해보세요." className="min-h-[120px] w-full resize-y rounded-lg border border-border bg-surface px-4 py-3 text-base text-text-primary placeholder:text-text-tertiary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2" />
-                  </div>
-
-                  <button type="submit" disabled={isSubmittingResponse} className="self-start rounded-full bg-deep-ocean px-7 py-3 text-[15px] font-medium text-white shadow-sm transition-all hover:bg-ocean-blue hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2 disabled:opacity-60">
-                    {isSubmittingResponse ? "등록 중..." : "응답 등록"}
-                  </button>
-                </form>
-              ) : null}
-            </div>
+              <Button type="submit" disabled={isSubmittingResponse} className="self-start rounded-full bg-deep-ocean px-7 py-3 text-[15px] font-medium text-white hover:bg-ocean-blue">
+                {isSubmittingResponse ? "등록 중..." : "응답 등록"}
+              </Button>
+            </form>
 
             <form method="post" className="flex flex-col gap-5 bg-surface rounded-lg border border-border p-6">
               <input type="hidden" name="intent" value="save_sentence" />
@@ -1153,22 +846,34 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
               <h3 className="text-lg font-semibold text-text-primary tracking-tight">문장 저장하기</h3>
 
               <div>
-                <label htmlFor="sentence-content" className="text-sm font-medium text-text-secondary mb-2 block">
+                <Label htmlFor="sentence-content" className="text-sm font-medium text-text-secondary mb-2 block">
                   남겨두고 싶은 문장
-                </label>
-                <textarea id="sentence-content" name="content" required rows={3} placeholder="기록에서 기억하고 싶은 문장을 남겨보세요." className="w-full rounded-lg border border-border bg-surface px-4 py-3 text-base text-text-primary placeholder:text-text-tertiary min-h-[80px] resize-y focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2" />
+                </Label>
+                <Input
+                  id="sentence-content"
+                  name="content"
+                  required
+                  placeholder="기록에서 기억하고 싶은 문장을 남겨보세요."
+                  className="w-full bg-surface"
+                />
               </div>
 
               <div>
-                <label htmlFor="sentence-reason" className="text-sm font-medium text-text-secondary mb-2 block">
+                <Label htmlFor="sentence-reason" className="text-sm font-medium text-text-secondary mb-2 block">
                   이유 (선택)
-                </label>
-                <textarea id="sentence-reason" name="reason" rows={2} placeholder="왜 이 문장을 남기고 싶은지 적어보세요." className="w-full rounded-lg border border-border bg-surface px-4 py-3 text-base text-text-primary placeholder:text-text-tertiary resize-y focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2" />
+                </Label>
+                <Textarea
+                  id="sentence-reason"
+                  name="reason"
+                  rows={2}
+                  placeholder="왜 이 문장을 남기고 싶은지 적어보세요."
+                  className="bg-surface"
+                />
               </div>
 
-              <button type="submit" disabled={isSubmittingSentence} className="rounded-full bg-deep-ocean text-white px-7 py-3 text-[15px] font-medium hover:bg-ocean-blue transition-all shadow-sm hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2 self-start disabled:opacity-60">
+              <Button type="submit" disabled={isSubmittingSentence} className="self-start rounded-full bg-deep-ocean px-7 py-3 text-[15px] font-medium text-white hover:bg-ocean-blue">
                 {isSubmittingSentence ? "저장 중..." : "문장 저장"}
-              </button>
+              </Button>
             </form>
           </div>
         </section>
@@ -1179,242 +884,100 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
           응답 {recordResponses.length}개
         </h2>
         {recordResponses.length > 0 ? (
-          <div className="flex flex-col gap-5">
-            {displayedResponses.map(({ response, author: responseAuthor }) => (
-              <ResponseCard key={response.id} response={response} author={responseAuthor ?? undefined} isSelfAnswer={response.type === "self_answer"} />
-            ))}
-
-            {recordResponses.length > INITIAL_RESPONSE_COUNT && !showAllResponses ? (
-              <button
-                type="button"
-                data-testid="response-expand-button"
-                onClick={() => setShowAllResponses(true)}
-                className="min-h-11 self-start text-sm text-[--color-text-secondary] transition-colors hover:text-[--color-ocean-blue] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
+          <div className="relative border-l-2 border-mist-blue pl-6 py-2 flex flex-col gap-8">
+            {recordResponses.map(({ response, author: responseAuthor }, i) => (
+              <div 
+                key={response.id} 
+                className="animate-in fade-in slide-in-from-bottom-4 relative"
+                style={{ animationDelay: `${i * 100}ms`, animationFillMode: "both" }}
               >
-                응답 {recordResponses.length - INITIAL_RESPONSE_COUNT}개 더 보기
-              </button>
-            ) : null}
+                <div className="absolute -left-[31px] top-6 w-3 h-3 rounded-full border-2 border-surface bg-reef-cyan shadow-sm z-10" />
+                <ResponseCard response={response} author={responseAuthor ?? undefined} isSelfAnswer={response.type === "self_answer"} />
+              </div>
+            ))}
           </div>
         ) : (
           <EmptyState variant="responses" />
         )}
       </section>
 
-      <section className="mb-12">
-        <div>
-          {/* 모바일 토글 버튼 */}
-          <button
-            type="button"
-            className="md:hidden w-full flex items-center justify-between py-3 text-sm font-medium text-[--color-text-secondary]"
-            onClick={() => setShowLinkedRecords(v => !v)}
-            aria-expanded={showLinkedRecords}
-          >
-            <span>연결된 기록 {linkedRecords.length + incomingLinks.length > 0 ? `(${linkedRecords.length + incomingLinks.length})` : ''}</span>
-            <svg aria-hidden className={`w-4 h-4 transition-transform ${showLinkedRecords ? 'rotate-180' : ''}`} viewBox="0 0 16 16" fill="none">
-              <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </button>
+      
 
-          {/* 데스크톱 제목 */}
-          <h2 className="hidden md:block text-xl font-semibold text-text-primary tracking-tight mb-8">
-            연결된 기록
-          </h2>
-        </div>
-
-        {/* 콘텐츠 */}
-        <div 
-          data-testid="section-accordion-linked"
-          className={`${showLinkedRecords ? 'block' : 'hidden'} md:block`}
-        >
-          {linkedRecords.length > 0 || incomingLinks.length > 0 ? (
-            <div className="flex flex-col gap-8">
-              {/* Outgoing links (이 기록에서 이어진 기록) */}
-              {linkedRecords.length > 0 && (
-                <div>
-                  <h3 className="text-sm font-medium text-[--color-text-secondary] mb-4 flex items-center gap-2">
-                    <span>→</span>
-                    <span>이 기록에서 이어진 기록</span>
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {linkedRecords.map((linkedRecord) => (
-                      <div key={linkedRecord.record.id} className="relative">
-                        <SceneCard
-                          record={linkedRecord.record}
-                          contentSnippet={linkedRecord.contentSnippet}
-                          author={linkedRecord.author?.displayName ? {
-                            displayName: linkedRecord.author.displayName,
-                            slug: linkedRecord.author.slug ?? "",
-                          } : undefined}
-                        />
-                        <span className="absolute top-4 right-4 text-caption px-2 py-0.5 rounded-full bg-mist-blue text-ocean-blue">
-                          {getLinkTypeLabel(linkedRecord.linkType)}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Incoming links (이 기록으로 이어온 기록) */}
-              {incomingLinks.length > 0 && (
-                <div>
-                  <h3 className="text-sm font-medium text-[--color-text-secondary] mb-4 flex items-center gap-2">
-                    <span>←</span>
-                    <span>이 기록으로 이어온 기록</span>
-                  </h3>
-                  <div className="flex flex-col gap-3">
-                    {incomingLinks.map((link) => (
-                      <Link
-                        key={link.linkId}
-                        to={`/logs/${link.sourceSlug}`}
-                        className="block p-4 rounded-xl bg-surface-secondary border border-border hover:border-ocean-blue/30 transition-colors no-underline"
-                      >
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="flex-1 min-w-0">
-                            <p className="text-base font-medium text-text-primary truncate">{link.sourceTitle ?? "기록"}</p>
-                            <p className="text-sm text-text-tertiary mt-1">{link.sourceAuthorName}</p>
-                          </div>
-                          <span className="text-caption px-2 py-0.5 rounded-full bg-mist-blue text-ocean-blue whitespace-nowrap">
-                            {getLinkTypeLabel(link.linkType)}
-                          </span>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Write continuation CTA for author */}
-              {isRecordAuthor && (
-                <div className="pt-4 border-t border-border">
-                  <Link
-                    to={`/write/note?linkedTo=${encodeURIComponent(record.slug)}`}
-                    className="inline-flex items-center gap-2 text-sm text-[--color-text-tertiary] no-underline transition-colors hover:text-[--color-ocean-blue] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
-                  >
-                    <span>이 기록을 이어서 쓰기</span>
-                    <svg aria-hidden="true" className="h-3.5 w-3.5" viewBox="0 0 16 16" fill="none">
-                      <path d="M3.5 8H12.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                      <path d="M8.5 4L12.5 8L8.5 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </Link>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="flex flex-col items-center text-center py-12 px-4 gap-4">
-              <p className="text-base text-text-secondary leading-body">아직 연결된 기록이 없습니다.</p>
-              {isRecordAuthor && (
-                <Link
-                  to={`/write/note?linkedTo=${encodeURIComponent(record.slug)}`}
-                  className="mt-2 px-5 py-2.5 rounded-full bg-ocean-blue text-white text-sm font-medium hover:bg-deep-ocean transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2 no-underline"
-                >
-                  이어서 기록하기
-                </Link>
-              )}
-            </div>
-          )}
-        </div>
-      </section>
-
-      {recordFormat === "note" && expansionLinks.length > 0 && (
-        <section className="mb-12">
-          <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-6">
-            이 메모에서 확장된 글
-          </h2>
-          <div className="flex flex-col gap-3">
-            {expansionLinks.map((link) => (
-              <Link
-                key={link.linkId}
-                to={`/logs/${link.sourceSlug}`}
-                className="block p-4 rounded-xl bg-surface-secondary border border-border hover:border-ocean-blue/30 transition-colors no-underline"
-              >
-                <p className="text-base font-medium text-text-primary">{link.sourceTitle ?? "글"}</p>
-                <p className="text-sm text-text-tertiary mt-1">{link.sourceAuthorName}</p>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {referenceLinks.length > 0 && (
-        <section className="mb-12">
-          <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-6">
-            {isArticleRecord ? "이 글을 참조한 기록" : "이 기록을 참조한 기록"}
-          </h2>
-          <div className="flex flex-col gap-3">
-            {referenceLinks.map((link) => (
-              <Link
-                key={link.linkId}
-                to={`/logs/${link.sourceSlug}`}
-                className="block p-4 rounded-xl bg-surface-secondary border border-border hover:border-ocean-blue/30 transition-colors no-underline"
-              >
-                <p className="text-base font-medium text-text-primary">{link.sourceTitle ?? "기록"}</p>
-                <p className="text-sm text-text-tertiary mt-1">{link.sourceAuthorName}</p>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
+      
 
       <section>
-        <div>
-          {/* 모바일 토글 버튼 */}
-          <button
-            type="button"
-            className="md:hidden w-full flex items-center justify-between py-3 text-sm font-medium text-[--color-text-secondary]"
-            onClick={() => setShowSentences(v => !v)}
-            aria-expanded={showSentences}
-          >
-            <span>남겨두고 싶은 문장들 {recordSentences.length > 0 ? `(${recordSentences.length})` : ''}</span>
-            <svg aria-hidden className={`w-4 h-4 transition-transform ${showSentences ? 'rotate-180' : ''}`} viewBox="0 0 16 16" fill="none">
-              <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </button>
+        <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-8">
+          남겨두고 싶은 문장들
+        </h2>
+        {recordSentences.length > 0 ? (
+          <div className="flex flex-col gap-5">
+            {recordSentences.map(({ sentence, savedBy }) => (
+              <HighlightedSentenceCard key={sentence.id} sentence={sentence} savedBy={savedBy ?? undefined} />
+            ))}
+          </div>
+        ) : (
+          <EmptyState variant="generic" message="아직 저장된 문장이 없습니다." />
+        )}
+      </section>
+      </div>
 
-          {/* 데스크톱 제목 */}
-          <h2 className="hidden md:block text-xl font-semibold text-text-primary tracking-tight mb-8">
-            남겨두고 싶은 문장들
-          </h2>
-        </div>
-
-        {/* 콘텐츠 */}
-        <div 
-          data-testid="section-accordion-sentences"
-          className={`${showSentences ? 'block' : 'hidden'} md:block`}
-        >
-          {recordSentences.length > 0 ? (
-            <div className="flex flex-col gap-5">
-              {recordSentences.map(({ sentence, savedBy }) => (
-                <div key={sentence.id} className="flex flex-col gap-2">
-                  <HighlightedSentenceCard sentence={sentence} savedBy={savedBy ?? undefined} />
-                  <div className="flex flex-wrap gap-2">
-                    <Form method="post">
-                      <input type="hidden" name="intent" value="create_question_from_sentence" />
-                      <input type="hidden" name="sentenceId" value={sentence.id} />
-                      <input type="hidden" name="recordId" value={record.id} />
-                      <input type="hidden" name="sentenceContent" value={sentence.content} />
-                      <button
-                        type="submit"
-                        className="min-h-11 text-xs text-[--color-text-tertiary] transition-colors hover:text-[--color-ocean-blue] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
-                      >
-                        이 문장으로 질문 만들기
-                      </button>
-                    </Form>
-                    <Link
-                      to={`/write/note?from=sentence&id=${encodeURIComponent(sentence.id)}`}
-                      className="inline-flex min-h-11 items-center text-xs text-[--color-text-tertiary] no-underline transition-colors hover:text-[--color-ocean-blue] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
-                    >
-                      이 문장으로 기록 시작하기
-                    </Link>
-                  </div>
-                </div>
+      {/* 사이드바 영역 */}
+      <aside className="w-full lg:w-[320px] shrink-0 space-y-10 lg:sticky lg:top-24 self-start">
+        {recordTags.length > 0 && (
+          <div>
+            <h3 className="text-sm font-medium text-text-secondary mb-4 uppercase tracking-wider">태그</h3>
+            <div className="flex flex-wrap gap-2">
+              {recordTags.map(tag => (
+                <Link key={tag.id} to={`/tags/${tag.slug}`}
+                  className="rounded-full px-3 py-1.5 text-xs font-medium bg-surface border border-border text-text-secondary hover:bg-mist-blue hover:text-ocean-blue hover:border-reef-cyan/30 transition-all duration-normal no-underline">
+                  #{tag.name}
+                </Link>
               ))}
             </div>
-          ) : (
-            <EmptyState variant="generic" message="아직 저장된 문장이 없습니다." />
-          )}
-        </div>
-      </section>
+          </div>
+        )}
+
+        {linkedRecords.length > 0 && (
+          <div>
+            <h3 className="text-sm font-medium text-text-secondary mb-4 uppercase tracking-wider">연결된 기록</h3>
+            <div className="flex flex-col gap-3">
+              {linkedRecords.map((linkedRecord) => (
+                <Link key={linkedRecord.record.id} to={`/logs/${linkedRecord.record.slug}`} className="group block rounded-xl border border-border bg-surface p-4 hover:border-ocean-blue/30 transition-colors no-underline">
+                  <span className="text-[11px] font-medium px-2 py-0.5 rounded-sm bg-mist-blue/30 text-ocean-blue mb-2 inline-block">
+                    {linkedRecord.direction === "outgoing" ? "참조함" : "참조됨"}
+                  </span>
+                  <p className="text-sm font-medium text-text-primary line-clamp-2 group-hover:text-ocean-blue transition-colors">
+                    {linkedRecord.record.title}
+                  </p>
+                  {linkedRecord.author?.displayName && (
+                    <p className="text-xs text-text-tertiary mt-1.5">
+                      {linkedRecord.author.displayName}
+                    </p>
+                  )}
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {incomingLinks.length > 0 && (
+          <div>
+            <h3 className="text-sm font-medium text-text-secondary mb-4 uppercase tracking-wider">이 글을 참조한 기록</h3>
+            <div className="flex flex-col gap-3">
+              {incomingLinks.map((link) => (
+                <Link
+                  key={link.linkId}
+                  to={`/logs/${link.sourceSlug}`}
+                  className="group block p-4 rounded-xl bg-surface-secondary border border-transparent hover:border-border transition-colors no-underline"
+                >
+                  <p className="text-sm font-medium text-text-primary line-clamp-2 group-hover:text-ocean-blue transition-colors">{link.sourceTitle ?? "기록"}</p>
+                  <p className="text-xs text-text-tertiary mt-1.5">{link.sourceAuthorName}</p>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+      </aside>
     </div>
   );
 }

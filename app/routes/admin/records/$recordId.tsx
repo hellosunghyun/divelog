@@ -5,70 +5,262 @@ import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
 import { Textarea } from "~/components/ui/textarea";
-import { db } from "~/db/client.server";
-import { createLogger } from "~/lib/logger.server";
-import { records } from "~/db/schema.server";
-import { getPlainText } from "~/lib/content.server";
+import { Badge } from "~/components/ui/badge";
 import { normalizeContentFormat } from "~/lib/editor-extensions";
-import { eq } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 
 export async function loader({ params, request, context }: Route.LoaderArgs) {
+  const { db } = await import("~/db/client.server");
+  const { createLogger } = await import("~/lib/logger.server");
+  const { records, learnerProfiles, stages, challenges, questions, responses } = await import("~/db/schema.server");
+  const { getPlainText } = await import("~/lib/content.server");
+
   const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.records.$recordId" });
   logger.info("loader_start");
-  const record = await db(context.cloudflare.env.DB).select().from(records).where(eq(records.id, params.recordId)).limit(1);
-  if (!record[0]) throw data("Record not found", { status: 404 });
+  const database = db(context.cloudflare.env.DB);
+
+  const record = await database
+    .select()
+    .from(records)
+    .where(eq(records.id, params.recordId))
+    .limit(1);
+
+  if (!record[0]) {
+    throw data("Record not found", { status: 404 });
+  }
+
+  const [author, stage, challenge, relatedQuestions, relatedResponses] = await Promise.all([
+    record[0].authorId
+      ? database.select().from(learnerProfiles).where(eq(learnerProfiles.userId, record[0].authorId)).limit(1)
+      : [],
+    record[0].stageId
+      ? database.select().from(stages).where(eq(stages.id, record[0].stageId)).limit(1)
+      : [],
+    record[0].challengeId
+      ? database.select().from(challenges).where(eq(challenges.id, record[0].challengeId)).limit(1)
+      : [],
+    database.select().from(questions).where(eq(questions.recordId, record[0].id)).orderBy(desc(questions.createdAt)),
+    database.select().from(responses).where(eq(responses.recordId, record[0].id)).orderBy(desc(responses.createdAt)).limit(10),
+  ]);
+
   const plainTextPreview = getPlainText(record[0].content, normalizeContentFormat(record[0].format));
-  return { record: record[0], plainTextPreview };
+
+  return {
+    record: record[0],
+    author: author[0] ?? null,
+    stage: stage[0] ?? null,
+    challenge: challenge[0] ?? null,
+    questions: relatedQuestions,
+    responses: relatedResponses,
+    plainTextPreview,
+  };
 }
+
 export async function action({ params, request, context }: Route.ActionArgs) {
+  const { db } = await import("~/db/client.server");
+  const { createLogger } = await import("~/lib/logger.server");
+  const { records, learnerProfiles, stages, challenges, questions, responses } = await import("~/db/schema.server");
+  const { getPlainText } = await import("~/lib/content.server");
+
   const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.records.$recordId" });
   const f = await request.formData();
   logger.info("action_start", { intent: "moderate_record" });
+
   const moderationStatus = f.get("moderationStatus") as string;
   const moderationNote = (f.get("note") as string) || null;
-  await db(context.cloudflare.env.DB).update(records).set({ moderationStatus, moderationNote, updatedAt: Math.floor(Date.now() / 1000) }).where(eq(records.id, params.recordId));
+
+  await db(context.cloudflare.env.DB)
+    .update(records)
+    .set({
+      moderationStatus,
+      moderationNote,
+      updatedAt: Math.floor(Date.now() / 1000),
+    })
+    .where(eq(records.id, params.recordId));
+
   logger.info("admin_moderate_record", { recordId: params.recordId, newStatus: moderationStatus });
   throw redirect("/admin/records");
 }
-export function meta(_: Route.MetaArgs) { return [{ title: "기록 검토" }]; }
+
+export function meta(_: Route.MetaArgs) {
+  return [{ title: "기록 검토" }];
+}
+
+const getModerationBadgeVariant = (
+  status: string,
+): "destructive" | "secondary" | "outline" | "default" => {
+  switch (status) {
+    case "flagged":
+      return "destructive";
+    case "hidden":
+      return "secondary";
+    case "clean":
+      return "outline";
+    default:
+      return "default";
+  }
+};
+
 export default function AdminRecordDetailPage({ loaderData }: Route.ComponentProps) {
-  const { record, plainTextPreview } = loaderData;
+  const { record, author, stage, challenge, questions, responses, plainTextPreview } = loaderData;
+
   return (
     <div>
       <div className="flex gap-4 items-center mb-6">
-        <Link to="/admin/records" className="text-[13px] text-admin-text-secondary hover:text-admin-text">← 목록</Link>
+        <Link to="/admin/records" className="text-sm text-admin-text-secondary hover:text-admin-text transition-colors">
+          ← 목록
+        </Link>
         <h2 className="text-xl font-semibold text-admin-text">기록 검토</h2>
       </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-admin-surface rounded-md p-4 border border-admin-border">
-          <h3 className="text-base font-semibold mb-3">{record.title}</h3>
-          <p className="text-[13px] text-admin-text-secondary whitespace-pre-wrap leading-relaxed">{plainTextPreview.substring(0, 500)}{plainTextPreview.length > 500 ? "..." : ""}</p>
+        <div className="lg:col-span-2 space-y-6">
+          <div className="bg-admin-surface rounded-lg p-5 border border-admin-border">
+            <div className="flex items-start justify-between mb-4">
+              <h3 className="text-lg font-semibold text-admin-text">{record.title}</h3>
+              <Badge variant={getModerationBadgeVariant(record.moderationStatus)} className="text-xs shrink-0">
+                {record.moderationStatus}
+              </Badge>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 text-sm mb-4">
+              <div>
+                <span className="text-admin-text-secondary">작성자:</span>
+                <span className="ml-2 text-admin-text">{author?.displayName ?? "-"}</span>
+              </div>
+              <div>
+                <span className="text-admin-text-secondary">Stage:</span>
+                <span className="ml-2 text-admin-text">{stage?.name ?? "-"}</span>
+              </div>
+              <div>
+                <span className="text-admin-text-secondary">형식:</span>
+                <span className="ml-2 text-admin-text">{record.format}</span>
+              </div>
+              <div>
+                <span className="text-admin-text-secondary">공개 범위:</span>
+                <span className="ml-2 text-admin-text">{record.visibility}</span>
+              </div>
+              <div>
+                <span className="text-admin-text-secondary">Challenge:</span>
+                <span className="ml-2 text-admin-text">{challenge?.name ?? "-"}</span>
+              </div>
+              <div>
+                <span className="text-admin-text-secondary">리듬:</span>
+                <span className="ml-2 text-admin-text">{record.rhythm}</span>
+              </div>
+            </div>
+
+            <div className="border-t border-admin-border pt-4">
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-admin-text-secondary mb-2">
+                본문 미리보기
+              </h4>
+              <p className="text-sm text-admin-text-secondary whitespace-pre-wrap leading-relaxed max-h-64 overflow-y-auto">
+                {plainTextPreview.substring(0, 1000)}
+                {plainTextPreview.length > 1000 ? "..." : ""}
+              </p>
+            </div>
+          </div>
+
+          {questions.length > 0 && (
+            <div className="bg-admin-surface rounded-lg p-5 border border-admin-border">
+              <h3 className="text-sm font-semibold mb-4 text-admin-text">
+                남긴 질문 ({questions.length})
+              </h3>
+              <div className="space-y-2">
+                {questions.map((q) => (
+                  <div key={q.id} className="p-3 bg-admin-bg rounded-lg">
+                    <p className="text-sm text-admin-text">{q.content}</p>
+                    <div className="flex gap-2 mt-2">
+                      <Badge variant="outline" className="text-xs">
+                        {q.direction === "outward" ? "밖으로" : "안으로"}
+                      </Badge>
+                      <Badge variant={q.isOpen ? "default" : "secondary"} className="text-xs">
+                        {q.isOpen ? "열림" : "닫힘"}
+                      </Badge>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {responses.length > 0 && (
+            <div className="bg-admin-surface rounded-lg p-5 border border-admin-border">
+              <h3 className="text-sm font-semibold mb-4 text-admin-text">
+                받은 응답 ({responses.length})
+              </h3>
+              <div className="space-y-2">
+                {responses.slice(0, 5).map((r) => (
+                  <div key={r.id} className="p-3 bg-admin-bg rounded-lg">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Badge variant="outline" className="text-xs">{r.type}</Badge>
+                      <Badge variant={getModerationBadgeVariant(r.moderationStatus)} className="text-xs">
+                        {r.moderationStatus}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-admin-text line-clamp-2">{r.content}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
-        <form method="post" className="bg-admin-surface rounded-md p-4 border border-admin-border flex flex-col gap-2 h-fit">
-          <Label htmlFor="moderation-status" className="text-xs text-admin-text-secondary">Moderation</Label>
-          <Select name="moderationStatus" defaultValue={record.moderationStatus ?? "clean"}>
-            <SelectTrigger id="moderation-status" className="h-9 rounded-sm border-admin-border px-2.5 py-1.5 text-[13px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="clean">Clean</SelectItem>
-              <SelectItem value="flagged">Flagged</SelectItem>
-              <SelectItem value="hidden">Hidden</SelectItem>
-            </SelectContent>
-          </Select>
-          <Label htmlFor="moderation-note" className="text-xs text-admin-text-secondary">메모</Label>
-          <Textarea
-            id="moderation-note"
-            name="note"
-            placeholder="메모 (선택)"
-            rows={2}
-            defaultValue={record.moderationNote ?? ""}
-            className="min-h-0 rounded-sm border-admin-border px-2.5 py-1.5 text-[13px]"
-          />
-          <Button type="submit" className="h-9 rounded-sm bg-admin-accent px-3 py-1.5 text-[13px] text-white hover:opacity-90">
-            저장
-          </Button>
-        </form>
+
+        <div className="space-y-6">
+          <form method="post" className="bg-admin-surface rounded-lg p-5 border border-admin-border">
+            <h3 className="text-sm font-semibold mb-4 text-admin-text">Moderation</h3>
+
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="moderation-status" className="text-xs text-admin-text-secondary">
+                  상태
+                </Label>
+                <Select name="moderationStatus" defaultValue={record.moderationStatus ?? "clean"}>
+                  <SelectTrigger id="moderation-status" className="h-9 rounded-md border-admin-border px-3 text-sm mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="clean">Clean</SelectItem>
+                    <SelectItem value="flagged">Flagged</SelectItem>
+                    <SelectItem value="hidden">Hidden</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="moderation-note" className="text-xs text-admin-text-secondary">
+                  메모
+                </Label>
+                <Textarea
+                  id="moderation-note"
+                  name="note"
+                  placeholder="메모 (선택)"
+                  rows={3}
+                  defaultValue={record.moderationNote ?? ""}
+                  className="min-h-0 rounded-md border-admin-border px-3 py-2 text-sm mt-1"
+                />
+              </div>
+
+              <Button
+                type="submit"
+                className="w-full h-9 rounded-md bg-admin-accent text-white text-sm hover:opacity-90"
+              >
+                저장
+              </Button>
+            </div>
+          </form>
+
+          <div className="bg-admin-surface rounded-lg p-5 border border-admin-border">
+            <h3 className="text-sm font-semibold mb-4 text-admin-text">공개 링크</h3>
+            <Link
+              to={`/logs/${record.slug}`}
+              className="text-sm text-admin-accent hover:underline"
+              target="_blank"
+            >
+              /logs/{record.slug} ↗
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
   );

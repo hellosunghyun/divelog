@@ -1,13 +1,6 @@
 import { useSearchParams } from "react-router";
 
-import { Label } from "~/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "~/components/ui/select";
+import { cn } from "~/lib/cn";
 
 const ALL_FILTER_VALUE = "__all__";
 
@@ -26,7 +19,7 @@ export default function FilterBar({ filters }: FilterBarProps) {
 
   const handleChange = (key: string, value: string) => {
     const newParams = new URLSearchParams(searchParams);
-    if (value === "") {
+    if (value === "" || value === ALL_FILTER_VALUE) {
       newParams.delete(key);
     } else {
       newParams.set(key, value);
@@ -36,35 +29,58 @@ export default function FilterBar({ filters }: FilterBarProps) {
   };
 
   return (
-    <div className="flex gap-3 flex-wrap items-center">
-      {filters.map((filter) => (
-        <div key={filter.key} className="flex items-center gap-2">
-          <Label htmlFor={`filter-${filter.key}`} className="text-sm text-text-secondary whitespace-nowrap">
-            {filter.label}
-          </Label>
-          <Select
-            value={searchParams.get(filter.key) ?? ALL_FILTER_VALUE}
-            onValueChange={(value) =>
-              handleChange(filter.key, value === ALL_FILTER_VALUE ? "" : value)
-            }
-          >
-            <SelectTrigger
-              id={`filter-${filter.key}`}
-              className="h-9 min-w-32 rounded-lg border-border bg-surface px-3 py-2 text-sm text-text-primary shadow-none focus-visible:border-ocean-blue focus-visible:ring-ocean-blue/20"
-            >
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={ALL_FILTER_VALUE}>전체</SelectItem>
+    <div className="flex flex-col gap-4">
+      {filters.map((filter) => {
+        const currentValue = searchParams.get(filter.key) ?? ALL_FILTER_VALUE;
+
+        return (
+          <div key={filter.key} className="flex flex-col gap-2">
+            <span className="text-sm font-medium text-text-secondary">
+              {filter.label}
+            </span>
+            <div className="flex flex-wrap gap-2">
+              <FilterChip
+                label="전체"
+                isActive={currentValue === ALL_FILTER_VALUE}
+                onClick={() => handleChange(filter.key, "")}
+              />
               {filter.values.map((v) => (
-                <SelectItem key={v.value} value={v.value}>
-                  {v.label}
-                </SelectItem>
+                <FilterChip
+                  key={v.value}
+                  label={v.label}
+                  isActive={currentValue === v.value}
+                  onClick={() => handleChange(filter.key, v.value)}
+                />
               ))}
-            </SelectContent>
-          </Select>
-        </div>
-      ))}
+            </div>
+          </div>
+        );
+      })}
     </div>
+  );
+}
+
+interface FilterChipProps {
+  label: string;
+  isActive: boolean;
+  onClick: () => void;
+}
+
+function FilterChip({ label, isActive, onClick }: FilterChipProps) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "rounded-full px-3.5 py-1.5 text-sm font-medium border transition-premium",
+        "hover:bg-surface-secondary active:scale-[0.98]",
+        "focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2 focus-visible:outline-none",
+        isActive
+          ? "bg-mist-blue text-ocean-blue border-ocean-blue/30"
+          : "bg-surface text-text-secondary border-border"
+      )}
+    >
+      {label}
+    </button>
   );
 }

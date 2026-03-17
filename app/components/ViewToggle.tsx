@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { useSearchParams } from "react-router";
 
-import { Button } from "~/components/ui/button";
+import { cn } from "~/lib/cn";
 
 export type RecordView = "grid" | "timeline";
 
@@ -52,28 +52,29 @@ export default function ViewToggle({ currentView }: ViewToggleProps) {
   };
 
   return (
-    <div className="inline-flex items-center rounded-xl border border-border bg-surface p-1 shadow-xs">
+    <div className="inline-flex rounded-full bg-surface-secondary p-1 gap-0.5">
       {OPTIONS.map((option) => {
         const isActive = option.value === currentView;
 
         return (
-          <Button
+          <button
             key={option.value}
             type="button"
-            variant="ghost"
-            size="sm"
             onClick={() => handleViewChange(option.value)}
+            aria-label={option.label}
             aria-pressed={isActive}
-            className={`h-11 min-w-11 rounded-lg px-3 transition-colors duration-normal focus-visible:ring-ocean-blue ${
+            className={cn(
+              "rounded-full px-3 py-1.5 text-sm font-medium transition-premium",
+              "focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2 focus-visible:outline-none",
+              "active:scale-[0.98]",
               isActive
-                ? "bg-mist-blue text-ocean-blue"
-                : "text-text-secondary hover:bg-surface-secondary hover:text-text-primary"
-            }`}
-            title={option.label}
+                ? "bg-surface shadow-tinted-sm text-text-primary"
+                : "text-text-secondary hover:text-text-primary"
+            )}
           >
             <span className="sr-only">{option.label}</span>
             {option.icon}
-          </Button>
+          </button>
         );
       })}
     </div>

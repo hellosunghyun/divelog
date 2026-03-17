@@ -5,11 +5,11 @@ import { Color } from "@tiptap/extension-color";
 import { Highlight } from "@tiptap/extension-highlight";
 import { TextStyle } from "@tiptap/extension-text-style";
 import { ResizableImage } from "./ResizableImage";
-import { Link } from "@tiptap/extension-link";
+import { Link as TiptapLink } from "@tiptap/extension-link";
 import { Placeholder } from "@tiptap/extension-placeholder";
 import { Subscript } from "@tiptap/extension-subscript";
 import { Superscript } from "@tiptap/extension-superscript";
-import { Table } from "@tiptap/extension-table";
+import { Table as TiptapTable } from "@tiptap/extension-table";
 import { TableCell } from "@tiptap/extension-table-cell";
 import { TableHeader } from "@tiptap/extension-table-header";
 import { TableRow } from "@tiptap/extension-table-row";
@@ -26,11 +26,10 @@ import { TocExtension } from "./TocExtension";
 import { ToggleBlock } from "./ToggleExtension";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  Bold, Italic, Underline as UnderlineIcon, Strikethrough, Code, Link2, Highlighter,
-  Heading1, Heading2, Heading3, ListChecks, Table as TableIcon, ImagePlus,
-  BetweenHorizontalStart, BetweenHorizontalEnd, BetweenVerticalStart, BetweenVerticalEnd,
-  TableColumnsSplit, TableRowsSplit, TableCellsMerge, TableCellsSplit, Trash2,
-} from "lucide-react";
+  TextB, TextItalic, TextUnderline, TextStrikethrough, Code, Link, Image, ListNumbers, Quotes,
+  TextH, Minus, Table, Trash,
+  ArrowCounterClockwise, ArrowClockwise, TextAlignLeft, TextAlignCenter,
+} from "@phosphor-icons/react";
 
 import { createSlashCommandExtension } from "./SlashCommandMenu";
 import { createUserMentionExtension } from "./MentionExtension";
@@ -302,11 +301,11 @@ export function ArticleEditor({
       ResizableImage.configure({ allowBase64: false }),
       TextStyle,
       Color,
-      Link.configure({ autolink: true, openOnClick: false, defaultProtocol: "https" }),
+      TiptapLink.configure({ autolink: true, openOnClick: false, defaultProtocol: "https" }),
       Highlight.configure({ multicolor: true }),
       TaskList,
       TaskItem.configure({ nested: true }),
-      Table.configure({ resizable: true }),
+      TiptapTable.configure({ resizable: true }),
       TableRow,
       TableCell,
       TableHeader,
@@ -429,12 +428,12 @@ export function ArticleEditor({
           shouldShow={({ editor: currentEditor }) => currentEditor.state.selection.empty === false}
         >
           <div className="bubble-toolbar">
-            <BubbleBtn onClick={() => editor.chain().focus().toggleBold().run()} isActive={editor.isActive("bold")} label="굵게" title="굵게 (⌘B)"><Bold size={16} /></BubbleBtn>
-            <BubbleBtn onClick={() => editor.chain().focus().toggleItalic().run()} isActive={editor.isActive("italic")} label="기울임" title="기울임 (⌘I)"><Italic size={16} /></BubbleBtn>
-            <BubbleBtn onClick={() => editor.chain().focus().toggleUnderline().run()} isActive={editor.isActive("underline")} label="밑줄" title="밑줄 (⌘U)"><UnderlineIcon size={16} /></BubbleBtn>
-            <BubbleBtn onClick={() => editor.chain().focus().toggleStrike().run()} isActive={editor.isActive("strike")} label="취소선" title="취소선"><Strikethrough size={16} /></BubbleBtn>
+            <BubbleBtn onClick={() => editor.chain().focus().toggleBold().run()} isActive={editor.isActive("bold")} label="굵게" title="굵게 (⌘B)"><TextB size={16} weight="light" /></BubbleBtn>
+            <BubbleBtn onClick={() => editor.chain().focus().toggleItalic().run()} isActive={editor.isActive("italic")} label="기울임" title="기울임 (⌘I)"><TextItalic size={16} weight="light" /></BubbleBtn>
+            <BubbleBtn onClick={() => editor.chain().focus().toggleUnderline().run()} isActive={editor.isActive("underline")} label="밑줄" title="밑줄 (⌘U)"><TextUnderline size={16} weight="light" /></BubbleBtn>
+            <BubbleBtn onClick={() => editor.chain().focus().toggleStrike().run()} isActive={editor.isActive("strike")} label="취소선" title="취소선"><TextStrikethrough size={16} weight="light" /></BubbleBtn>
             <span className="bubble-sep" />
-            <BubbleBtn onClick={() => editor.chain().focus().toggleCode().run()} isActive={editor.isActive("code")} label="인라인 코드" title="인라인 코드"><Code size={16} /></BubbleBtn>
+            <BubbleBtn onClick={() => editor.chain().focus().toggleCode().run()} isActive={editor.isActive("code")} label="인라인 코드" title="인라인 코드"><Code size={16} weight="light" /></BubbleBtn>
             <BubbleBtn
               onClick={() => {
                 const url = prompt("링크 URL을 입력하세요:");
@@ -443,12 +442,12 @@ export function ArticleEditor({
               isActive={editor.isActive("link")}
               label="링크"
               title="링크 추가"
-            ><Link2 size={16} /></BubbleBtn>
-            <BubbleBtn onClick={() => editor.chain().focus().toggleHighlight().run()} isActive={editor.isActive("highlight")} label="형광펜" title="형광펜"><Highlighter size={16} /></BubbleBtn>
+            ><Link size={16} weight="light" /></BubbleBtn>
+            <BubbleBtn onClick={() => editor.chain().focus().toggleHighlight().run()} isActive={editor.isActive("highlight")} label="형광펜" title="형광펜"><Image size={16} weight="light" /></BubbleBtn>
             <span className="bubble-sep" />
-            <BubbleBtn onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} isActive={editor.isActive("heading", { level: 1 })} label="제목 1" title="제목 1"><Heading1 size={16} /></BubbleBtn>
-            <BubbleBtn onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} isActive={editor.isActive("heading", { level: 2 })} label="제목 2" title="제목 2"><Heading2 size={16} /></BubbleBtn>
-            <BubbleBtn onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} isActive={editor.isActive("heading", { level: 3 })} label="제목 3" title="제목 3"><Heading3 size={16} /></BubbleBtn>
+            <BubbleBtn onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} isActive={editor.isActive("heading", { level: 1 })} label="제목 1" title="제목 1"><TextH size={16} weight="light" /></BubbleBtn>
+            <BubbleBtn onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} isActive={editor.isActive("heading", { level: 2 })} label="제목 2" title="제목 2"><TextH size={16} weight="light" /></BubbleBtn>
+            <BubbleBtn onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} isActive={editor.isActive("heading", { level: 3 })} label="제목 3" title="제목 3"><TextH size={16} weight="light" /></BubbleBtn>
             <span className="bubble-sep" />
             <ColorPickerMenu editor={editor} />
           </div>
@@ -457,18 +456,18 @@ export function ArticleEditor({
 
       {editor && editor.isActive("table") && (
         <div className="table-edit-toolbar">
-          <BubbleBtn onClick={() => editor.chain().focus().addColumnBefore().run()} isActive={false} label="왼쪽에 열 추가" title="왼쪽에 열 추가"><BetweenHorizontalStart size={16} /></BubbleBtn>
-          <BubbleBtn onClick={() => editor.chain().focus().addColumnAfter().run()} isActive={false} label="오른쪽에 열 추가" title="오른쪽에 열 추가"><BetweenHorizontalEnd size={16} /></BubbleBtn>
-          <BubbleBtn onClick={() => editor.chain().focus().addRowBefore().run()} isActive={false} label="위에 행 추가" title="위에 행 추가"><BetweenVerticalStart size={16} /></BubbleBtn>
-          <BubbleBtn onClick={() => editor.chain().focus().addRowAfter().run()} isActive={false} label="아래에 행 추가" title="아래에 행 추가"><BetweenVerticalEnd size={16} /></BubbleBtn>
-          <span className="bubble-sep" />
-          <BubbleBtn onClick={() => editor.chain().focus().deleteColumn().run()} isActive={false} label="열 삭제" title="열 삭제"><TableColumnsSplit size={16} /></BubbleBtn>
-          <BubbleBtn onClick={() => editor.chain().focus().deleteRow().run()} isActive={false} label="행 삭제" title="행 삭제"><TableRowsSplit size={16} /></BubbleBtn>
-          <span className="bubble-sep" />
-          <BubbleBtn onClick={() => editor.chain().focus().mergeCells().run()} isActive={false} label="셀 병합" title="셀 병합"><TableCellsMerge size={16} /></BubbleBtn>
-          <BubbleBtn onClick={() => editor.chain().focus().splitCell().run()} isActive={false} label="셀 분할" title="셀 분할"><TableCellsSplit size={16} /></BubbleBtn>
-          <span className="bubble-sep" />
-          <BubbleBtn onClick={() => editor.chain().focus().deleteTable().run()} isActive={false} label="표 삭제" title="표 삭제"><Trash2 size={16} /></BubbleBtn>
+           <BubbleBtn onClick={() => editor.chain().focus().addColumnBefore().run()} isActive={false} label="왼쪽에 열 추가" title="왼쪽에 열 추가"><Minus size={16} weight="light" /></BubbleBtn>
+           <BubbleBtn onClick={() => editor.chain().focus().addColumnAfter().run()} isActive={false} label="오른쪽에 열 추가" title="오른쪽에 열 추가"><Minus size={16} weight="light" /></BubbleBtn>
+           <BubbleBtn onClick={() => editor.chain().focus().addRowBefore().run()} isActive={false} label="위에 행 추가" title="위에 행 추가"><Minus size={16} weight="light" /></BubbleBtn>
+           <BubbleBtn onClick={() => editor.chain().focus().addRowAfter().run()} isActive={false} label="아래에 행 추가" title="아래에 행 추가"><Minus size={16} weight="light" /></BubbleBtn>
+           <span className="bubble-sep" />
+           <BubbleBtn onClick={() => editor.chain().focus().deleteColumn().run()} isActive={false} label="열 삭제" title="열 삭제"><Minus size={16} weight="light" /></BubbleBtn>
+           <BubbleBtn onClick={() => editor.chain().focus().deleteRow().run()} isActive={false} label="행 삭제" title="행 삭제"><Minus size={16} weight="light" /></BubbleBtn>
+           <span className="bubble-sep" />
+           <BubbleBtn onClick={() => editor.chain().focus().mergeCells().run()} isActive={false} label="셀 병합" title="셀 병합"><Minus size={16} weight="light" /></BubbleBtn>
+           <BubbleBtn onClick={() => editor.chain().focus().splitCell().run()} isActive={false} label="셀 분할" title="셀 분할"><Minus size={16} weight="light" /></BubbleBtn>
+           <span className="bubble-sep" />
+           <BubbleBtn onClick={() => editor.chain().focus().deleteTable().run()} isActive={false} label="표 삭제" title="표 삭제"><Trash size={16} weight="light" /></BubbleBtn>
         </div>
       )}
 
@@ -488,40 +487,40 @@ export function ArticleEditor({
             <option value="codeBlock">코드 블록</option>
           </select>
           <span className="bubble-sep" style={{ height: 20 }} />
-          <BubbleBtn onClick={() => editor.chain().focus().toggleBold().run()} isActive={editor.isActive("bold")} label="굵게" title="굵게 (⌘B)"><Bold size={16} /></BubbleBtn>
-          <BubbleBtn onClick={() => editor.chain().focus().toggleItalic().run()} isActive={editor.isActive("italic")} label="기울임" title="기울임 (⌘I)"><Italic size={16} /></BubbleBtn>
-          <BubbleBtn onClick={() => editor.chain().focus().toggleUnderline().run()} isActive={editor.isActive("underline")} label="밑줄" title="밑줄 (⌘U)"><UnderlineIcon size={16} /></BubbleBtn>
-          <BubbleBtn onClick={() => editor.chain().focus().toggleStrike().run()} isActive={editor.isActive("strike")} label="취소선" title="취소선"><Strikethrough size={16} /></BubbleBtn>
-          <BubbleBtn onClick={() => editor.chain().focus().toggleCode().run()} isActive={editor.isActive("code")} label="인라인 코드" title="인라인 코드"><Code size={16} /></BubbleBtn>
-          <BubbleBtn
-            onClick={() => {
-              const url = prompt("링크 URL을 입력하세요:");
-              if (url) editor.chain().focus().setLink({ href: url }).run();
-            }}
-            isActive={editor.isActive("link")}
-            label="링크"
-            title="링크 추가"
-          ><Link2 size={16} /></BubbleBtn>
-          <BubbleBtn onClick={() => editor.chain().focus().toggleHighlight().run()} isActive={editor.isActive("highlight")} label="형광펜" title="형광펜"><Highlighter size={16} /></BubbleBtn>
-          <span className="bubble-sep" style={{ height: 20 }} />
-          <BubbleBtn onClick={() => editor.chain().focus().toggleTaskList().run()} isActive={editor.isActive("taskList")} label="체크리스트" title="체크리스트"><ListChecks size={16} /></BubbleBtn>
-          <BubbleBtn onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()} isActive={false} label="표" title="표 삽입"><TableIcon size={16} /></BubbleBtn>
-          <BubbleBtn
-            onClick={async () => {
-              const file = await pickImageFile();
-              if (file) {
-                try {
-                  const src = await uploadImage(file);
-                  editor.chain().focus().setImage({ src, alt: file.name }).run();
-                } catch (e) {
-                  setEditorError(e instanceof Error ? e.message : "이미지 업로드 실패");
-                }
-              }
-            }}
-            isActive={false}
-            label="이미지"
-            title="이미지 삽입"
-          ><ImagePlus size={16} /></BubbleBtn>
+           <BubbleBtn onClick={() => editor.chain().focus().toggleBold().run()} isActive={editor.isActive("bold")} label="굵게" title="굵게 (⌘B)"><TextB size={16} weight="light" /></BubbleBtn>
+           <BubbleBtn onClick={() => editor.chain().focus().toggleItalic().run()} isActive={editor.isActive("italic")} label="기울임" title="기울임 (⌘I)"><TextItalic size={16} weight="light" /></BubbleBtn>
+           <BubbleBtn onClick={() => editor.chain().focus().toggleUnderline().run()} isActive={editor.isActive("underline")} label="밑줄" title="밑줄 (⌘U)"><TextUnderline size={16} weight="light" /></BubbleBtn>
+           <BubbleBtn onClick={() => editor.chain().focus().toggleStrike().run()} isActive={editor.isActive("strike")} label="취소선" title="취소선"><TextStrikethrough size={16} weight="light" /></BubbleBtn>
+           <BubbleBtn onClick={() => editor.chain().focus().toggleCode().run()} isActive={editor.isActive("code")} label="인라인 코드" title="인라인 코드"><Code size={16} weight="light" /></BubbleBtn>
+           <BubbleBtn
+             onClick={() => {
+               const url = prompt("링크 URL을 입력하세요:");
+               if (url) editor.chain().focus().setLink({ href: url }).run();
+             }}
+             isActive={editor.isActive("link")}
+             label="링크"
+             title="링크 추가"
+           ><Link size={16} weight="light" /></BubbleBtn>
+           <BubbleBtn onClick={() => editor.chain().focus().toggleHighlight().run()} isActive={editor.isActive("highlight")} label="형광펜" title="형광펜"><Image size={16} weight="light" /></BubbleBtn>
+           <span className="bubble-sep" style={{ height: 20 }} />
+           <BubbleBtn onClick={() => editor.chain().focus().toggleTaskList().run()} isActive={editor.isActive("taskList")} label="체크리스트" title="체크리스트"><ListNumbers size={16} weight="light" /></BubbleBtn>
+           <BubbleBtn onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()} isActive={false} label="표" title="표 삽입"><Table size={16} weight="light" /></BubbleBtn>
+           <BubbleBtn
+             onClick={async () => {
+               const file = await pickImageFile();
+               if (file) {
+                 try {
+                   const src = await uploadImage(file);
+                   editor.chain().focus().setImage({ src, alt: file.name }).run();
+                 } catch (e) {
+                   setEditorError(e instanceof Error ? e.message : "이미지 업로드 실패");
+                 }
+               }
+             }}
+             isActive={false}
+             label="이미지"
+             title="이미지 삽입"
+           ><Image size={16} weight="light" /></BubbleBtn>
         </div>
       )}
 

@@ -1,106 +1,81 @@
 import { Link } from "~/components/SmartLink";
+import { cn } from "~/lib/cn";
+import { motion } from "~/lib/motion";
+import { fadeUp } from "~/lib/motion-utils";
 
-export interface QuestionCardQuestion {
-  id: string;
-  content: string;
-  direction?: string;
-  isOpen?: boolean;
-  recordSlug?: string;
-  authorName?: string;
-  createdAt?: number;
-  type?: "personal" | "challenge";
-  selfAnswerCount?: number;
-  responseCount?: number;
-  isCarryOver?: boolean;
-}
+import { Button } from "~/components/ui/button";
 
 interface QuestionCardProps {
-  question: QuestionCardQuestion;
+  question: {
+    id: string;
+    content: string;
+    direction?: string;
+    isOpen?: boolean;
+  };
   record?: {
     slug: string;
     title: string;
   };
   onRespond?: () => void;
+  className?: string;
 }
 
-export function QuestionMetadataBadges({ question }: { question: QuestionCardQuestion }) {
-  const hasNoAnswers =
-    (!question.selfAnswerCount || question.selfAnswerCount === 0) &&
-    (!question.responseCount || question.responseCount === 0);
+const DIRECTION_LABELS: Record<string, string> = {
+  inward: "스스로에게 묻다",
+  next_stage: "다음 구간으로 가져갈 질문",
+  outward: "함께 생각해볼 질문",
+};
 
-  if (!question.isCarryOver && question.type !== "challenge" && !hasNoAnswers && !question.selfAnswerCount) {
-    return null;
-  }
-
-  return (
-    <div className="mb-2 flex flex-wrap gap-1.5">
-      {question.type === "challenge" && (
-        <span className="rounded-full border border-[--color-border] px-2 py-0.5 text-xs text-[--color-text-tertiary]">
-          챌린지 질문
-        </span>
-      )}
-      {hasNoAnswers && (
-        <span className="rounded-full bg-[--color-mist-blue]/50 px-2 py-0.5 text-xs text-[--color-ocean-blue]">
-          아직 답 없음
-        </span>
-      )}
-      {question.isCarryOver && (
-        <span className="rounded-full border border-[--color-border] px-2 py-0.5 text-xs text-[--color-text-tertiary]">
-          이전 구간에서 가져온 질문
-        </span>
-      )}
-      {question.selfAnswerCount && question.selfAnswerCount > 0 && (
-        <span className="rounded-full bg-[--color-surface-secondary] px-2 py-0.5 text-xs text-[--color-text-secondary]">
-          ↺ 자기답변
-        </span>
-      )}
-    </div>
-  );
-}
-
-export default function QuestionCard({ question, record, onRespond }: QuestionCardProps) {
-  const linkedRecord = record ?? (question.recordSlug ? { slug: question.recordSlug, title: "기록 보기" } : undefined);
+export default function QuestionCard({
+  question,
+  record,
+  onRespond,
+  className,
+}: QuestionCardProps) {
+  const directionLabel =
+    DIRECTION_LABELS[question.direction || "outward"] || "남겨진 질문";
 
   return (
-    <article
+    <motion.article
       data-testid="question-card"
-      className="rounded-2xl border border-border bg-surface p-7 lg:p-8 shadow-card"
+      variants={fadeUp}
+      initial="hidden"
+      animate="visible"
+      className={cn(
+        "bg-mist-blue/30 rounded-2xl p-6 md:p-8 border border-mist-blue",
+        className
+      )}
     >
-      <div className="text-caption font-medium tracking-widest uppercase text-ocean-blue/70 mb-4">
-        {question.direction === "inward"
-          ? "스스로에게 묻다"
-          : question.direction === "next_stage"
-          ? "다음 구간으로 가져갈 질문"
-          : "함께 생각해볼 질문"}
-      </div>
+      <span className="text-xs font-medium text-ocean-blue uppercase tracking-wide">
+        {directionLabel}
+      </span>
 
-      <QuestionMetadataBadges question={question} />
-
-      <p className="text-xl md:text-2xl leading-relaxed text-text-primary font-semibold mb-6 tracking-tight">
+      <p className="text-xl md:text-2xl font-medium leading-relaxed text-text-primary mt-3 mb-6">
         {question.content}
       </p>
 
-      {linkedRecord && (
+      {record && (
         <div className="mb-4">
           <Link
-            to={`/logs/${linkedRecord.slug}`}
+            to={`/logs/${record.slug}`}
             prefetch="viewport"
-            className="text-sm text-text-tertiary no-underline"
+            className="text-sm text-text-tertiary no-underline hover:text-ocean-blue transition-colors"
           >
-            ← {linkedRecord.title}
+            ← {record.title}
           </Link>
         </div>
       )}
 
       {question.isOpen !== false && onRespond && (
-        <button
+        <Button
           type="button"
+          variant="ghost"
           onClick={onRespond}
-          className="rounded-full px-5 py-2.5 text-sm border border-border bg-transparent text-text-secondary cursor-pointer transition-all duration-normal hover:border-ocean-blue/30 hover:bg-mist-blue/30 hover:text-ocean-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
+          className="h-auto rounded-full border border-border bg-transparent px-5 py-2.5 text-sm text-text-secondary hover:border-ocean-blue/30 hover:bg-mist-blue/50 hover:text-ocean-blue focus-visible:ring-ocean-blue transition-all duration-normal"
         >
           이 질문에 응답하기
-        </button>
+        </Button>
       )}
-    </article>
+    </motion.article>
   );
 }
