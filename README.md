@@ -118,4 +118,4 @@ ADMIN_USER_ID=      # 관리자 사용자 ID
 
 ## 라이선스
 
-Private repository.
+[MIT License](LICENSE) — Copyright (c) 2025 Sunghyun Kim
