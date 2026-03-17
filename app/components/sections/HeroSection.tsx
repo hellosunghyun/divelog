@@ -80,7 +80,7 @@ export default function HeroSection({
             </div>
           </div>
 
-          <div className="md:col-span-2 hidden md:flex items-center justify-center">
+          <div className="md:col-span-2 hidden md:flex items-center justify-end self-center">
             <div
               className="w-48 h-48 md:w-56 md:h-56 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 shadow-[0_8px_32px_rgba(11,36,71,0.15)] flex items-center justify-center overflow-hidden"
               aria-hidden="true"
