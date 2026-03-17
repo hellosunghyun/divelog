@@ -1,8 +1,7 @@
 import type { Route } from "./+types/index";
 import { Link } from "~/components/content/SmartLink";
 import { eq, desc, and, sql, count } from "drizzle-orm";
-import { motion } from "~/lib/motion/motion";
-import { staggerContainer, staggerItem, fadeUp } from "~/lib/motion/motion-utils";
+
 import HeroSection from "~/components/sections/HeroSection";
 import ActivityFeed from "~/components/activity/ActivityFeed";
 
@@ -178,17 +177,15 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
       </HeroSection>
 
       {allStages.length > 0 && (
-        <motion.section
-          variants={staggerContainer}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-100px" }}
+        <section
+          
+
           className="bg-bg pt-8 pb-12 md:py-16"
           data-testid="journey-timeline-section"
         >
           <div className="max-w-[1200px] mx-auto px-6">
-            <motion.div
-              variants={staggerItem}
+            <div
+             
               className="bg-white/60 backdrop-blur-xl rounded-[32px] p-8 border border-white/80 shadow-sm relative overflow-hidden"
             >
               <div className="absolute top-0 left-0 w-1.5 h-full bg-ocean-blue/10" aria-hidden="true" />
@@ -216,7 +213,7 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
                       const isCurrent = stage.isCurrent || stage.slug === currentStage?.slug;
                       const isPast = currentStage && stage.order < currentStage.order;
                       return (
-                        <motion.div key={stage.id} variants={staggerItem}>
+                        <div key={stage.id}>
                           <Link
                             to={`/journey/${stage.slug}`}
                             className="relative flex flex-col items-center gap-2 z-10 no-underline group"
@@ -238,48 +235,44 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
                               {stage.name}
                             </span>
                           </Link>
-                        </motion.div>
+                        </div>
                       );
                     })}
                   </div>
                 </div>
               </div>
-            </motion.div>
+            </div>
           </div>
-        </motion.section>
+        </section>
       )}
 
-      <motion.section
-        variants={staggerContainer}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, margin: "-100px" }}
+      <section
+        
+
         className="max-w-[1200px] mx-auto px-6 py-16 md:py-24"
         data-testid="activity-section"
       >
-        <motion.div variants={staggerItem} className="flex items-end justify-between mb-8">
+        <div className="flex items-end justify-between mb-8">
           <div>
             <span className="text-xs font-bold tracking-[0.3em] text-ocean-blue/50 mb-2 block uppercase">여정 활동</span>
             <h2 className="text-3xl md:text-4xl font-semibold tracking-tight text-deep-ocean">여정에서 일어나는 일</h2>
             <p className="text-text-secondary mt-2 text-md font-light">지난 2주간의 활동 요약</p>
           </div>
-        </motion.div>
-        <motion.div variants={staggerItem}>
+        </div>
+        <div>
           <ActivityFeed activities={recentActivity} />
-        </motion.div>
-      </motion.section>
+        </div>
+      </section>
 
       {currentStage && (
-        <motion.section
-          variants={staggerContainer}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-100px" }}
+        <section
+          
+
           className="max-w-[1200px] mx-auto px-6 py-16 md:py-24"
           data-testid="questions-section"
         >
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
-            <motion.div variants={staggerItem} className="lg:col-span-4 lg:sticky lg:top-24">
+            <div className="lg:col-span-4 lg:sticky lg:top-24">
               <div className="quiet-depth-card p-10 rounded-[40px]">
                 <span className="text-ocean-blue font-bold text-xs tracking-[0.2em] uppercase mb-4 block">현재 구간</span>
                 <h3 className="text-3xl md:text-4xl font-semibold tracking-tight text-deep-ocean mb-6">{currentStage.name}</h3>
@@ -313,21 +306,21 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
                   <p className="text-xs text-text-tertiary leading-relaxed">지금은 개인 다이빙 중심입니다. 협업이 시작되면 이곳에 함께 나타납니다.</p>
                 </div>
               </div>
-            </motion.div>
+            </div>
             <div className="lg:col-span-8">
-              <motion.div variants={staggerItem} className="flex items-center justify-between mb-8">
+              <div className="flex items-center justify-between mb-8">
                 <h2 className="text-3xl md:text-4xl font-semibold tracking-tight flex items-center gap-3 text-deep-ocean">
                     <svg className="w-7 h-7 text-ocean-blue" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
                     이번 구간의 열린 질문들
                   </h2>
                 <Link to="/journey" className="text-ocean-blue font-bold hover:underline text-[13px] no-underline">모두 보기</Link>
-              </motion.div>
+              </div>
               {openQuestions.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {openQuestions.map((row: typeof openQuestions[number], idx: number) => (
-                    <motion.article
+                    <article
                       key={row.questionId}
-                      variants={staggerItem}
+                     
                       className="quiet-depth-card p-5 rounded-2xl group cursor-pointer hover:border-ocean-blue/30"
                     >
                       <span className="text-xs font-bold text-ocean-blue tracking-widest mb-2 block">질문 {String(idx + 1).padStart(2, "0")}</span>
@@ -345,11 +338,11 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
                         응답하기
                       </Link>
                     </div>
-                  </motion.article>
+                  </article>
                 ))}
                 </div>
               ) : (
-                <motion.article variants={staggerItem} className="quiet-depth-card p-8 rounded-3xl">
+                <article className="quiet-depth-card p-8 rounded-3xl">
                   <p className="text-base text-text-secondary mb-6">이 구간의 첫 질문을 남겨보세요.</p>
                   <Link
                     to="/write"
@@ -357,29 +350,27 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
                   >
                     질문 남기기
                   </Link>
-                </motion.article>
+                </article>
               )}
             </div>
           </div>
-        </motion.section>
+        </section>
       )}
 
-      <motion.section
-        variants={staggerContainer}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, margin: "-100px" }}
+      <section
+        
+
         className="bg-surface-secondary/50 py-16 md:py-24 border-y border-border-subtle"
         data-testid="records-section"
       >
         <div className="max-w-[1200px] mx-auto px-6">
-          <motion.div variants={staggerItem} className="flex items-end justify-between mb-12">
+          <div className="flex items-end justify-between mb-12">
             <div>
               <span className="text-xs font-bold tracking-[0.3em] text-ocean-blue/50 mb-2 block uppercase">최근 장면</span>
               <h2 className="text-3xl md:text-4xl font-semibold tracking-tight text-deep-ocean">최근 장면들</h2>
               <p className="text-text-secondary mt-2 text-md font-light">수면 아래에서 남겨진 최근 기록과 질문들</p>
             </div>
-          </motion.div>
+          </div>
           {recentRecords.length > 0 ? (
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -387,9 +378,9 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
                    const initial = row.author?.displayName ? row.author.displayName[0] : "?";
                    const stage = row.stageId ? allStages.find((s: typeof allStages[number]) => s.id === row.stageId) : null;
                   return (
-                    <motion.article
+                    <article
                       key={row.id}
-                      variants={staggerItem}
+                     
                       className="quiet-depth-card p-7 rounded-[28px] flex flex-col"
                     >
                       <div className="flex items-center justify-between mb-5">
@@ -438,21 +429,21 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
                           </Link>
                         </div>
                       </div>
-                    </motion.article>
+                    </article>
                   );
                 })}
               </div>
-              <motion.div variants={staggerItem} className="mt-12 text-center">
+              <div className="mt-12 text-center">
                 <Link
                   to="/logs"
                   className="bg-white border border-border px-8 py-3 rounded-full text-sm font-bold text-text-secondary hover:border-ocean-blue hover:text-ocean-blue transition-all no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
                 >
                   더 많은 기록 탐색하기
                 </Link>
-              </motion.div>
+              </div>
             </>
           ) : (
-            <motion.div variants={staggerItem} className="text-center py-12">
+            <div className="text-center py-12">
               <p className="text-text-secondary mb-6">아직 기록이 시작되지 않았습니다. 완성된 글이 아니어도 괜찮습니다.</p>
               <Link
                 to="/write"
@@ -460,28 +451,26 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
               >
                 첫 기록 남기기
               </Link>
-            </motion.div>
+            </div>
           )}
         </div>
-      </motion.section>
+      </section>
 
-      <motion.section
-        variants={staggerContainer}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, margin: "-100px" }}
+      <section
+        
+
         className="max-w-[1200px] mx-auto px-6 py-16 md:py-24"
         data-testid="sentence-section"
       >
-        <motion.div variants={staggerItem} className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-8">
           <h2 className="text-3xl md:text-4xl font-semibold tracking-tight text-deep-ocean">남겨둔 문장</h2>
-        </motion.div>
+        </div>
         {recentSentences.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
             {recentSentences.map((sentence: typeof recentSentences[number]) => (
-              <motion.article
+              <article
                 key={sentence.sentenceId}
-                variants={staggerItem}
+               
                 className="quiet-depth-card p-6 rounded-2xl flex flex-col"
               >
                 <blockquote className="text-xl font-semibold leading-snug text-deep-ocean mb-4">
@@ -499,25 +488,23 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
                     원문 보기
                   </Link>
                 </div>
-              </motion.article>
+              </article>
             ))}
           </div>
         ) : (
-          <motion.article variants={staggerItem} className="quiet-depth-card p-8 rounded-3xl text-center">
+          <article className="quiet-depth-card p-8 rounded-3xl text-center">
             <p className="text-base text-text-secondary">아직 남겨둔 문장이 없습니다.</p>
-          </motion.article>
+          </article>
         )}
-      </motion.section>
+      </section>
 
-      <motion.section
-        variants={staggerContainer}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, margin: "-100px" }}
+      <section
+        
+
         className="max-w-[1200px] mx-auto px-6 py-16 md:py-24 border-t border-border-subtle"
         data-testid="learners-section"
       >
-          <motion.div variants={staggerItem} className="flex items-end justify-between mb-12">
+          <div className="flex items-end justify-between mb-12">
             <div>
               <span className="text-xs font-bold tracking-[0.3em] text-ocean-blue/50 mb-2 block uppercase">러너 스포트라이트</span>
               <h2 className="text-3xl md:text-4xl font-semibold tracking-tight text-deep-ocean flex items-center gap-3">
@@ -526,13 +513,13 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
               </h2>
             </div>
             <Link to="/learners" className="text-ocean-blue font-bold hover:underline text-[13px] no-underline">전체 러너 보기 ({learnerCount})</Link>
-          </motion.div>
+          </div>
           {spotlightLearners.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
               {spotlightLearners.map((learner: typeof spotlightLearners[number]) => (
-              <motion.article
+              <article
                 key={learner.userId}
-                variants={staggerItem}
+               
                 className="quiet-depth-card p-6 rounded-2xl flex flex-col hover:bg-white transition-all"
               >
                 <div className="mb-6 min-h-[52px]">
@@ -564,37 +551,35 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
                     <p className="text-xs text-text-tertiary font-medium uppercase tracking-wider">러너</p>
                   </div>
                 </div>
-              </motion.article>
+              </article>
               ))}
             </div>
           ) : (
-            <motion.article variants={staggerItem} className="quiet-depth-card p-8 rounded-3xl text-center">
+            <article className="quiet-depth-card p-8 rounded-3xl text-center">
               <p className="text-base text-text-secondary">아직 소개할 러너가 없습니다.</p>
-            </motion.article>
+            </article>
           )}
-      </motion.section>
+      </section>
 
-      <motion.section
-        variants={staggerContainer}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, margin: "-100px" }}
+      <section
+        
+
         className="bg-mist-blue/40 py-16 md:py-20 text-center"
         data-testid="start-cta-section"
       >
         <div className="max-w-2xl mx-auto px-6">
-          <motion.h2 variants={staggerItem} className="text-3xl md:text-4xl font-semibold tracking-tight text-deep-ocean mb-4">더 깊은 곳에서, 기록은 시작됩니다</motion.h2>
-          <motion.p variants={staggerItem} className="text-text-secondary text-lg mb-8">완성된 글이 아니어도 괜찮습니다. 지금 떠오른 생각부터 남겨보세요.</motion.p>
-          <motion.div variants={staggerItem}>
+          <h2 className="text-3xl md:text-4xl font-semibold tracking-tight text-deep-ocean mb-4">더 깊은 곳에서, 기록은 시작됩니다</h2>
+          <p className="text-text-secondary text-lg mb-8">완성된 글이 아니어도 괜찮습니다. 지금 떠오른 생각부터 남겨보세요.</p>
+          <div>
             <Link
               to="/write"
               className="inline-flex items-center gap-2 bg-deep-ocean text-white px-8 py-3.5 rounded-full text-base font-semibold hover:bg-ocean-blue transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
             >
               기록 남기기
             </Link>
-          </motion.div>
+          </div>
         </div>
-      </motion.section>
+      </section>
     </div>
   );
 }

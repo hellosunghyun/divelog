@@ -1,5 +1,3 @@
-import { motion } from "~/lib/motion/motion";
-import { fadeUp as fadeUpVariant, staggerContainer, staggerItem } from "~/lib/motion/motion-utils";
 import { Link } from "~/components/content/SmartLink";
 
 interface HeroSectionProps {
@@ -41,47 +39,35 @@ export default function HeroSection({
 
   if (isHome) {
     return (
-      <section className="relative min-h-[60vh] sm:min-h-[68vh] md:min-h-[85vh] flex items-center overflow-hidden bg-gradient-to-br from-deep-ocean via-ocean-blue/90 to-deep-ocean/80 -mt-15 sm:-mt-16 pt-15 sm:pt-16">
+      <section className="relative min-h-[50vh] sm:min-h-[56vh] md:min-h-[72vh] flex items-end overflow-hidden bg-gradient-to-br from-deep-ocean via-ocean-blue/90 to-deep-ocean/80 -mt-15 sm:-mt-16 pt-15 sm:pt-16">
         <div
           className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_50%,rgba(20,108,148,0.3),transparent_70%)] pointer-events-none"
           aria-hidden="true"
         />
         <div className="hero-caustics" aria-hidden="true" />
 
-        <motion.div
-          variants={staggerContainer}
-          initial="hidden"
-          animate="visible"
-          className="relative z-10 max-w-content mx-auto px-6 w-full grid grid-cols-1 md:grid-cols-5 gap-8 md:gap-10 items-center py-14 sm:py-18 md:py-16"
-        >
+        <div className="relative z-10 max-w-content mx-auto px-6 w-full grid grid-cols-1 md:grid-cols-5 gap-8 md:gap-10 items-end pb-16 sm:pb-20 md:pb-20 pt-10 sm:pt-14 md:pt-16">
           <div className="md:col-span-3 space-y-5 md:space-y-6">
-            <motion.div variants={staggerItem}>
+            <div>
               <span className="inline-flex items-center rounded-full px-3 py-1 text-xs uppercase tracking-wide font-medium bg-white/10 text-white/80 backdrop-blur-sm border border-white/20">
                 {badge ?? "Apple Developer Academy @ POSTECH Learner 9개월의 여정"}
               </span>
-            </motion.div>
+            </div>
 
-            <motion.h1
-              variants={staggerItem}
+            <h1
               className="text-[2.75rem] sm:text-5xl md:text-7xl font-semibold text-white leading-hero"
               style={{ letterSpacing: "var(--tracking-tighter)" }}
             >
               {title}
-            </motion.h1>
+            </h1>
 
             {subtitle && (
-              <motion.p
-                variants={staggerItem}
-                className="text-base sm:text-lg text-white/70 leading-relaxed max-w-[50ch]"
-              >
+              <p className="text-base sm:text-lg text-white/70 leading-relaxed max-w-[50ch]">
                 {subtitle}
-              </motion.p>
+              </p>
             )}
 
-            <motion.div
-              variants={staggerItem}
-              className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4"
-            >
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
               {ctaHref && ctaText && (
                 <Link
                   to={ctaHref}
@@ -91,13 +77,10 @@ export default function HeroSection({
                 </Link>
               )}
               {children}
-            </motion.div>
+            </div>
           </div>
 
-          <motion.div
-            variants={fadeUpVariant}
-            className="md:col-span-2 hidden md:flex items-center justify-center"
-          >
+          <div className="md:col-span-2 hidden md:flex items-center justify-center">
             <div
               className="w-48 h-48 md:w-56 md:h-56 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 shadow-[0_8px_32px_rgba(11,36,71,0.15)] flex items-center justify-center overflow-hidden"
               aria-hidden="true"
@@ -108,8 +91,8 @@ export default function HeroSection({
                 className="w-full h-full object-cover drop-shadow-lg scale-[1.2]"
               />
             </div>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
 
         <div
           className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#F6F8FB] to-transparent"
@@ -137,45 +120,36 @@ export default function HeroSection({
         aria-hidden="true"
       />
 
-      <motion.div
-        variants={staggerContainer}
-        initial="hidden"
-        animate="visible"
-        className="relative max-w-content mx-auto"
-      >
+      <div className="relative max-w-content mx-auto">
         {badge && (
-          <motion.div variants={staggerItem}>
+          <div>
             <div
               className={`inline-block text-caption font-medium tracking-wide px-3 py-1 rounded-full border ${accentBgClass} ${accentBorderClass} mb-5`}
             >
               {badge}
             </div>
-          </motion.div>
+          </div>
         )}
 
-        <motion.h1
-          variants={staggerItem}
+        <h1
           className={`font-semibold text-deep-ocean leading-hero text-3xl md:text-4xl ${subtitle ? "mb-5" : ""}`}
           style={{ letterSpacing: "var(--tracking-tight)" }}
         >
           {title}
-        </motion.h1>
+        </h1>
 
         {subtitle && (
-          <motion.p
-            variants={staggerItem}
-            className="text-lg md:text-xl text-text-secondary leading-relaxed max-w-[600px]"
-          >
+          <p className="text-lg md:text-xl text-text-secondary leading-relaxed max-w-[600px]">
             {subtitle}
-          </motion.p>
+          </p>
         )}
 
         {children && (
-          <motion.div variants={staggerItem} className="mt-8">
+          <div className="mt-8">
             {children}
-          </motion.div>
+          </div>
         )}
-      </motion.div>
+      </div>
     </section>
   );
 }
