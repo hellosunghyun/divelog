@@ -56,5 +56,5 @@ CREATE TABLE personal_stage_reflections (
 
 CREATE UNIQUE INDEX idx_reflections_stage_learner ON personal_stage_reflections(stage_id, learner_id);
 
-ALTER TABLE questions ADD COLUMN updated_at INTEGER DEFAULT (unixepoch());
+ALTER TABLE questions ADD COLUMN updated_at INTEGER DEFAULT NULL;
 ALTER TABLE questions ADD COLUMN closed_at INTEGER;

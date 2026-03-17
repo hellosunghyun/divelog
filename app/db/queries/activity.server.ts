@@ -19,6 +19,14 @@ export interface DigestItem {
   createdAt: number;
 }
 
+export interface ActivityItem {
+  type: "record" | "question" | "response" | "collaboration";
+  period: "today" | "this_week" | "last_week";
+  timestamp: number;
+  summary: string;
+  linkTo: string;
+}
+
 interface DigestQueryOptions {
   limit?: number;
   stageId?: string;
@@ -235,4 +243,46 @@ export async function getNarrativeDigest(
   return digestItems
     .sort((a, b) => b.createdAt - a.createdAt)
     .slice(0, Math.min(Math.max(limit, 5), 8));
+}
+
+function digestTypeToActivityType(
+  t: DigestItem["type"],
+): ActivityItem["type"] {
+  switch (t) {
+    case "new_record":
+      return "record";
+    case "new_question":
+      return "question";
+    case "new_response":
+    case "new_self_answer":
+      return "response";
+    case "new_sentence":
+      return "record";
+  }
+}
+
+function timestampToPeriod(ts: number): ActivityItem["period"] {
+  const nowSec = Math.floor(Date.now() / 1000);
+  const diffSec = nowSec - ts;
+  const oneDay = 86_400;
+  const oneWeek = 7 * oneDay;
+
+  if (diffSec < oneDay) return "today";
+  if (diffSec < oneWeek) return "this_week";
+  return "last_week";
+}
+
+export async function getRecentActivity(
+  d1: D1Database,
+  options: DigestQueryOptions = {},
+): Promise<ActivityItem[]> {
+  const digest = await getNarrativeDigest(d1, options);
+
+  return digest.map((item) => ({
+    type: digestTypeToActivityType(item.type),
+    period: timestampToPeriod(item.createdAt),
+    timestamp: item.createdAt,
+    summary: item.text,
+    linkTo: item.linkTo,
+  }));
 }
