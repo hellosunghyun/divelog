@@ -2,6 +2,7 @@ import * as Sentry from "@sentry/react-router/cloudflare";
 import { startTransition } from "react";
 import { hydrateRoot } from "react-dom/client";
 import { HydratedRouter } from "react-router/dom";
+import { onLCP, onINP, onCLS, onFCP, onTTFB } from "web-vitals";
 
 Sentry.init({
   dsn: "https://eb0588c8197661ea070258e9aca009e4@o4509761661304832.ingest.us.sentry.io/4511052944572416",
@@ -51,6 +52,27 @@ window.addEventListener("unhandledrejection", (event) => {
 // 정상 로드 시 플래그 초기화
 window.addEventListener("load", () => {
   sessionStorage.removeItem("chunk_reload");
+});
+
+// Web Vitals 수집
+onLCP((metric) => {
+  console.log("[web-vitals]", metric.name, Math.round(metric.value), metric.rating);
+});
+
+onINP((metric) => {
+  console.log("[web-vitals]", metric.name, Math.round(metric.value), metric.rating);
+});
+
+onCLS((metric) => {
+  console.log("[web-vitals]", metric.name, Math.round(metric.value * 1000), metric.rating);
+});
+
+onFCP((metric) => {
+  console.log("[web-vitals]", metric.name, Math.round(metric.value), metric.rating);
+});
+
+onTTFB((metric) => {
+  console.log("[web-vitals]", metric.name, Math.round(metric.value), metric.rating);
 });
 
 startTransition(() => {
