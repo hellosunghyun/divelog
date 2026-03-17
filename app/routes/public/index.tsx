@@ -256,7 +256,7 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
           <div>
             <span className="text-xs font-bold tracking-[0.3em] text-ocean-blue/50 mb-2 block uppercase">여정 활동</span>
             <h2 className="text-3xl md:text-4xl font-semibold tracking-tight text-deep-ocean">여정에서 일어나는 일</h2>
-            <p className="text-text-secondary mt-2 text-md font-light">지난 2주간의 활동 요약</p>
+            <p className="text-text-secondary mt-2 text-md font-normal">지난 2주간의 활동 요약</p>
           </div>
         </div>
         <div>
@@ -277,7 +277,7 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
                 <span className="text-ocean-blue font-bold text-xs tracking-[0.2em] uppercase mb-4 block">현재 구간</span>
                 <h3 className="text-3xl md:text-4xl font-semibold tracking-tight text-deep-ocean mb-6">{currentStage.name}</h3>
                 {currentStage.description && (
-                  <p className="text-text-secondary text-[17px] leading-relaxed mb-8 font-light italic">
+                  <p className="text-text-secondary text-[17px] leading-relaxed mb-8 font-normal italic">
                     &ldquo;{currentStage.description}&rdquo;
                   </p>
                 )}
@@ -368,7 +368,7 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
             <div>
               <span className="text-xs font-bold tracking-[0.3em] text-ocean-blue/50 mb-2 block uppercase">최근 장면</span>
               <h2 className="text-3xl md:text-4xl font-semibold tracking-tight text-deep-ocean">최근 장면들</h2>
-              <p className="text-text-secondary mt-2 text-md font-light">수면 아래에서 남겨진 최근 기록과 질문들</p>
+              <p className="text-text-secondary mt-2 text-md font-normal">수면 아래에서 남겨진 최근 기록과 질문들</p>
             </div>
           </div>
           {recentRecords.length > 0 ? (
@@ -407,7 +407,7 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
                           {row.title}
                         </h3>
                       </Link>
-                      <p className="text-text-secondary text-base font-light leading-relaxed mb-6 flex-grow line-clamp-4" suppressHydrationWarning>{row.snippet}</p>
+                      <p className="text-text-secondary text-base font-normal leading-relaxed mb-6 flex-grow line-clamp-4" suppressHydrationWarning>{row.snippet}</p>
                       <div className="pt-5 border-t border-border-subtle flex items-center justify-between">
                         <div className="flex items-center gap-2.5">
                           {row.author?.profilePhotoUrl ? (
