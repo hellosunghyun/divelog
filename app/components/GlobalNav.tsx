@@ -207,7 +207,7 @@ export default function GlobalNav() {
   // --- Computed URLs ---
   const loginUrl = `https://ada-kr-pos.com/login?callbackUrl=${encodeURIComponent(currentUrl)}`;
   const logoutUrl = `https://ada-kr-pos.com/api/auth/logout?callbackUrl=${encodeURIComponent(currentUrl)}`;
-  const profileEditUrl = `https://auth.ada-kr-pos.com/mypage?returnTo=${encodeURIComponent(currentUrl)}`;
+  const profileEditUrl = `https://ada-kr-pos.com/mypage?returnTo=${encodeURIComponent(currentUrl)}`;
 
   const isActive = (path: string) =>
     location.pathname === path || location.pathname.startsWith(path + "/");

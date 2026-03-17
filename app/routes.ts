@@ -55,6 +55,8 @@ export default [
   ]),
   route("api/upload", "routes/api/upload.tsx"),
   route("api/images/*", "routes/api/images.$.tsx"),
+  route("api/notifications", "routes/api/notifications.tsx"),
+  route("api/autosave", "routes/api/autosave.tsx"),
   route("api/search-records", "routes/api/search-records.tsx"),
   route("api/search-learners", "routes/api/search-learners.tsx"),
 ] satisfies RouteConfig;
