@@ -1,5 +1,5 @@
 import type { Route } from "./+types/index";
-import { Link } from "~/components/SmartLink";
+import { Link } from "~/components/content/SmartLink";
 import { sql } from "drizzle-orm";
 import type { InferSelectModel } from "drizzle-orm";
 
@@ -7,9 +7,9 @@ type Stage = InferSelectModel<typeof stages>;
 import { motion } from "~/lib/motion";
 import { staggerContainer, staggerItem } from "~/lib/motion-utils";
 import { cn } from "~/lib/cn";
-import StageStrip from "~/components/StageStrip";
-import HeroSection from "~/components/HeroSection";
-import EmptyState from "~/components/EmptyState";
+import StageStrip from "~/components/sections/StageStrip";
+import HeroSection from "~/components/sections/HeroSection";
+import EmptyState from "~/components/feedback/EmptyState";
 
 export function meta(_args: Route.MetaArgs) {
   return [

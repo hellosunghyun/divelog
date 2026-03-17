@@ -1,4 +1,4 @@
-import { Link } from "~/components/SmartLink";
+import { Link } from "~/components/content/SmartLink";
 import { cn } from "~/lib/cn";
 
 const focusRing = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2 focus-visible:ring-offset-surface-secondary";

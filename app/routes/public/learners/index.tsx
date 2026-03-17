@@ -1,8 +1,8 @@
 import type { Route } from "./+types/index";
-import LearnerCard from "~/components/LearnerCard";
-import HeroSection from "~/components/HeroSection";
-import EmptyState from "~/components/EmptyState";
-import FilterBar from "~/components/FilterBar";
+import LearnerCard from "~/components/cards/LearnerCard";
+import HeroSection from "~/components/sections/HeroSection";
+import EmptyState from "~/components/feedback/EmptyState";
+import FilterBar from "~/components/filters/FilterBar";
 import { motion } from "~/lib/motion";
 import { staggerContainer, staggerItem } from "~/lib/motion-utils";
 

@@ -1,6 +1,6 @@
 import { motion } from "~/lib/motion";
 import { fadeUp as fadeUpVariant, staggerContainer, staggerItem } from "~/lib/motion-utils";
-import { Link } from "~/components/SmartLink";
+import { Link } from "~/components/content/SmartLink";
 
 interface HeroSectionProps {
   variant: "home" | "stage" | "challenge" | "learner" | "memory";

@@ -1,7 +1,7 @@
 import { useSearchParams } from "react-router";
 import type { Route } from "./+types/guide";
-import HeroSection from "~/components/HeroSection";
-import CTABand from "~/components/CTABand";
+import HeroSection from "~/components/sections/HeroSection";
+import CTABand from "~/components/sections/CTABand";
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "가이드 — DiveLog" }];

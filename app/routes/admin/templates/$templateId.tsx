@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { data, redirect } from "react-router";
 import type { Route } from "./+types/$templateId";
-import { Link } from "~/components/SmartLink";
+import { Link } from "~/components/content/SmartLink";
 import { Button } from "~/components/ui/button";
 import { Checkbox } from "~/components/ui/checkbox";
 import { Input } from "~/components/ui/input";

@@ -1,0 +1,44 @@
+Task 1 - app/components domain folder reorganization verification
+
+Date: 2026-03-17
+
+1) Flat files removed
+- Command: ls app/components/*.tsx 2>/dev/null | wc -l
+- Result: 0 (zsh no matches + count 0)
+
+1-1) Domain folders and file sets
+- layout/: GlobalNav.tsx, Footer.tsx, NavigationFade.tsx, FloatingWriteCTA.tsx
+- cards/: SceneCard.tsx, QuestionCard.tsx, ResponseCard.tsx, SelfAnswerCard.tsx, LearnerCard.tsx, CollaborationUnitCard.tsx, HighlightedSentenceCard.tsx
+- sections/: HeroSection.tsx, CTABand.tsx, StageStrip.tsx
+- feedback/: EmptyState.tsx, ErrorState.tsx, LoadingSkeleton.tsx, AutosaveIndicator.tsx
+- filters/: FilterBar.tsx, FilterBottomSheet.tsx, SortBar.tsx
+- views/: ViewToggle.tsx, TimelineView.tsx, QuestionTimeline.tsx
+- activity/: ActivityFeed.tsx, NarrativeDigest.tsx
+- content/: ContentRenderer.tsx, SmartLink.tsx, DraftRecoveryPrompt.tsx
+
+2) Old import paths removed / new import paths applied
+- grep '"~/components/SceneCard"' in app/**/*.ts(x): 0
+- grep '"~/components/cards/SceneCard"' in app/**/*.ts(x): 10
+- grep '"~/components/SmartLink"' in app/**/*.ts(x): 0
+- grep '"~/components/content/SmartLink"' in app/**/*.ts(x): 52
+
+3) Relative import updates in moved files
+- app/components/activity/ActivityFeed.tsx: ../db/queries -> ../../db/queries
+- app/components/views/TimelineView.tsx: ../lib/date-groups -> ../../lib/date-groups
+- app/components/content/ContentRenderer.tsx: ../lib/editor-extensions -> ../../lib/editor-extensions
+- app/components/__tests__/EmptyState.test.tsx: ../EmptyState -> ../feedback/EmptyState
+
+4) Diagnostics on explicitly adjusted files
+- lsp_diagnostics: No diagnostics found (5 files)
+
+5) TypeScript baseline preserved
+- Command: pnpm typecheck 2>&1 | grep 'error TS' | wc -l
+- Result: 36
+
+6) Tests
+- Command: pnpm test
+- Result: 16 files passed, 126 tests passed
+
+7) Build (applicability verification)
+- Command: pnpm build
+- Result: completed successfully (bundle + sourcemap upload), existing warnings only

@@ -1,4 +1,4 @@
-import { Link } from "~/components/SmartLink";
+import { Link } from "~/components/content/SmartLink";
 
 interface CTABandProps {
   eyebrow?: string;

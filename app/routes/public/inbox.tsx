@@ -1,9 +1,9 @@
 import type { Route } from "./+types/inbox";
 import { eq, and, desc } from "drizzle-orm";
 import { requireAuth } from "~/lib/auth.middleware";
-import HeroSection from "~/components/HeroSection";
-import EmptyState from "~/components/EmptyState";
-import { Link } from "~/components/SmartLink";
+import HeroSection from "~/components/sections/HeroSection";
+import EmptyState from "~/components/feedback/EmptyState";
+import { Link } from "~/components/content/SmartLink";
 import { Button } from "~/components/ui/button";
 import { Form } from "react-router";
 

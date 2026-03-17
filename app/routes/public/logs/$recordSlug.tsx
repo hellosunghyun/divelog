@@ -1,15 +1,15 @@
 import { and, desc, eq } from "drizzle-orm";
-import { Link } from "~/components/SmartLink";
+import { Link } from "~/components/content/SmartLink";
 import { data, redirect, useActionData, useNavigation, useSubmit } from "react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import EmptyState from "~/components/EmptyState";
-import HighlightedSentenceCard from "~/components/HighlightedSentenceCard";
-import QuestionCard from "~/components/QuestionCard";
-import ResponseCard from "~/components/ResponseCard";
-import SelfAnswerCard from "~/components/SelfAnswerCard";
-import SceneCard from "~/components/SceneCard";
-import { ContentRenderer } from "~/components/ContentRenderer";
+import EmptyState from "~/components/feedback/EmptyState";
+import HighlightedSentenceCard from "~/components/cards/HighlightedSentenceCard";
+import QuestionCard from "~/components/cards/QuestionCard";
+import ResponseCard from "~/components/cards/ResponseCard";
+import SelfAnswerCard from "~/components/cards/SelfAnswerCard";
+import SceneCard from "~/components/cards/SceneCard";
+import { ContentRenderer } from "~/components/content/ContentRenderer";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";

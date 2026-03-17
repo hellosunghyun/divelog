@@ -1,6 +1,6 @@
 import { data, redirect } from "react-router";
 import type { Route } from "./+types/$recordId";
-import { Link } from "~/components/SmartLink";
+import { Link } from "~/components/content/SmartLink";
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";

@@ -2,12 +2,12 @@ import { useState } from "react";
 import type { Route } from "./+types/me";
 import { requireAuth } from "~/lib/auth.middleware";
 import { eq, and, desc, sql, asc, ne } from "drizzle-orm";
-import SceneCard from "~/components/SceneCard";
-import HighlightedSentenceCard from "~/components/HighlightedSentenceCard";
-import QuestionCard from "~/components/QuestionCard";
-import ResponseCard from "~/components/ResponseCard";
-import EmptyState from "~/components/EmptyState";
-import { Link } from "~/components/SmartLink";
+import SceneCard from "~/components/cards/SceneCard";
+import HighlightedSentenceCard from "~/components/cards/HighlightedSentenceCard";
+import QuestionCard from "~/components/cards/QuestionCard";
+import ResponseCard from "~/components/cards/ResponseCard";
+import EmptyState from "~/components/feedback/EmptyState";
+import { Link } from "~/components/content/SmartLink";
 import { cn } from "~/lib/cn";
 
 export function meta(_args: Route.MetaArgs) {

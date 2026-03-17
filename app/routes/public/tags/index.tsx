@@ -1,7 +1,7 @@
 import type { Route } from "./+types/index";
-import { Link } from "~/components/SmartLink";
-import EmptyState from "~/components/EmptyState";
-import HeroSection from "~/components/HeroSection";
+import { Link } from "~/components/content/SmartLink";
+import EmptyState from "~/components/feedback/EmptyState";
+import HeroSection from "~/components/sections/HeroSection";
 
 export function meta() {
   return [

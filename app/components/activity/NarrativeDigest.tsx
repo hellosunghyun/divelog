@@ -1,4 +1,4 @@
-import { Link } from "~/components/SmartLink";
+import { Link } from "~/components/content/SmartLink";
 
 import type { DigestItem } from "~/db/queries/activity.server";
 

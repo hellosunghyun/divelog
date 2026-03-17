@@ -1,12 +1,12 @@
 import type { Route } from "./+types/search";
 import { Form, useSearchParams, useNavigation } from "react-router";
 import { like, or, desc, eq, and, sql } from "drizzle-orm";
-import SceneCard from "~/components/SceneCard";
-import LearnerCard from "~/components/LearnerCard";
-import HeroSection from "~/components/HeroSection";
-import EmptyState from "~/components/EmptyState";
-import HighlightedSentenceCard from "~/components/HighlightedSentenceCard";
-import LoadingSkeleton from "~/components/LoadingSkeleton";
+import SceneCard from "~/components/cards/SceneCard";
+import LearnerCard from "~/components/cards/LearnerCard";
+import HeroSection from "~/components/sections/HeroSection";
+import EmptyState from "~/components/feedback/EmptyState";
+import HighlightedSentenceCard from "~/components/cards/HighlightedSentenceCard";
+import LoadingSkeleton from "~/components/feedback/LoadingSkeleton";
 import { normalizeContentFormat } from "~/lib/editor-extensions";
 import { motion } from "~/lib/motion";
 import { staggerContainer, staggerItem } from "~/lib/motion-utils";

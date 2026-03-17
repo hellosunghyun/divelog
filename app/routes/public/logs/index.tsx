@@ -1,12 +1,12 @@
 import type { Route } from "./+types/index";
 import { useSearchParams, useNavigate } from "react-router";
 import { eq, and, desc, sql, ne, count } from "drizzle-orm";
-import SceneCard from "~/components/SceneCard";
-import FilterBar from "~/components/FilterBar";
-import SortBar from "~/components/SortBar";
-import ViewToggle from "~/components/ViewToggle";
-import TimelineView from "~/components/TimelineView";
-import EmptyState from "~/components/EmptyState";
+import SceneCard from "~/components/cards/SceneCard";
+import FilterBar from "~/components/filters/FilterBar";
+import SortBar from "~/components/filters/SortBar";
+import ViewToggle from "~/components/views/ViewToggle";
+import TimelineView from "~/components/views/TimelineView";
+import EmptyState from "~/components/feedback/EmptyState";
 import { Button } from "~/components/ui/button";
 import { normalizeContentFormat } from "~/lib/editor-extensions";
 import { motion } from "~/lib/motion";

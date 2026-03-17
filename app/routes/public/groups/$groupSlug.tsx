@@ -1,11 +1,11 @@
 import { data } from "react-router";
 import type { Route } from "./+types/$groupSlug";
-import { Link } from "~/components/SmartLink";
+import { Link } from "~/components/content/SmartLink";
 import { eq, and, desc, sql } from "drizzle-orm";
-import SceneCard from "~/components/SceneCard";
-import LearnerCard from "~/components/LearnerCard";
-import HeroSection from "~/components/HeroSection";
-import EmptyState from "~/components/EmptyState";
+import SceneCard from "~/components/cards/SceneCard";
+import LearnerCard from "~/components/cards/LearnerCard";
+import HeroSection from "~/components/sections/HeroSection";
+import EmptyState from "~/components/feedback/EmptyState";
 
 export async function loader({ params, request, context }: Route.LoaderArgs) {
   const { db } = await import("~/db/client.server");

@@ -2,7 +2,7 @@
 import "@testing-library/jest-dom";
 import { describe, it, expect } from "vitest";
 import { render, screen } from "~/lib/test-utils";
-import EmptyState from "../EmptyState";
+import EmptyState from "../feedback/EmptyState";
 
 describe("EmptyState", () => {
   it("renders with default generic message", () => {

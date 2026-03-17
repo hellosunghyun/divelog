@@ -1,5 +1,5 @@
 import { useRouteLoaderData, useLocation, useNavigate, useFetcher } from "react-router";
-import { Link } from "~/components/SmartLink";
+import { Link } from "~/components/content/SmartLink";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { useState, useEffect, useRef } from "react";

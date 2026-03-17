@@ -1,7 +1,7 @@
 import type { Route } from "./+types/settings";
 import { requireAuth } from "~/lib/auth.middleware";
 import { eq } from "drizzle-orm";
-import HeroSection from "~/components/HeroSection";
+import HeroSection from "~/components/sections/HeroSection";
 import { Button } from "~/components/ui/button";
 import { Checkbox } from "~/components/ui/checkbox";
 import { Label } from "~/components/ui/label";

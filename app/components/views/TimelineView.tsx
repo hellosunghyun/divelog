@@ -1,5 +1,5 @@
-import { Link } from "~/components/SmartLink";
-import { groupRecordsByDate } from "../lib/date-groups";
+import { Link } from "~/components/content/SmartLink";
+import { groupRecordsByDate } from "../../lib/date-groups";
 import { cn } from "~/lib/cn";
 
 interface TimelineRecord {

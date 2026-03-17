@@ -1,4 +1,4 @@
-import { Link } from "~/components/SmartLink";
+import { Link } from "~/components/content/SmartLink";
 import { FileText, Article } from "@phosphor-icons/react";
 import type { Route } from "./+types/index";
 import { requireVerified } from "~/lib/auth.middleware";

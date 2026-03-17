@@ -1,7 +1,7 @@
 import type { Route } from "./+types/index";
-import { Link } from "~/components/SmartLink";
+import { Link } from "~/components/content/SmartLink";
 import { asc, eq, desc } from "drizzle-orm";
-import EmptyState from "~/components/EmptyState";
+import EmptyState from "~/components/feedback/EmptyState";
 import {
   Table,
   TableBody,

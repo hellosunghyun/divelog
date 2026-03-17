@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { Link } from "~/components/SmartLink";
+import { Link } from "~/components/content/SmartLink";
 import { data, redirect, useActionData, useNavigation } from "react-router";
 import { useState } from "react";
 

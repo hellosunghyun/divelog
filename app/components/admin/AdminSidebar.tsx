@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "~/components/SmartLink";
+import { Link } from "~/components/content/SmartLink";
 import { useLocation } from "react-router";
 import {
   House,

@@ -1,4 +1,4 @@
-import { Link } from "~/components/SmartLink";
+import { Link } from "~/components/content/SmartLink";
 import { cn } from "~/lib/cn";
 import { motion } from "~/lib/motion";
 import { fadeUp } from "~/lib/motion-utils";

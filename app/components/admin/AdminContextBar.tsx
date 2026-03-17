@@ -1,5 +1,5 @@
 import { useLocation } from "react-router";
-import { Link } from "~/components/SmartLink";
+import { Link } from "~/components/content/SmartLink";
 import { CaretRight } from "@phosphor-icons/react";
 
 interface BreadcrumbItem {

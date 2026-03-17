@@ -1,13 +1,13 @@
 import { data } from "react-router";
 import type { Route } from "./+types/$stageSlug";
-import { Link } from "~/components/SmartLink";
+import { Link } from "~/components/content/SmartLink";
 import { eq, and, desc, sql } from "drizzle-orm";
-import HeroSection from "~/components/HeroSection";
-import SceneCard from "~/components/SceneCard";
-import QuestionCard from "~/components/QuestionCard";
-import CollaborationUnitCard from "~/components/CollaborationUnitCard";
-import EmptyState from "~/components/EmptyState";
-import StageStrip from "~/components/StageStrip";
+import HeroSection from "~/components/sections/HeroSection";
+import SceneCard from "~/components/cards/SceneCard";
+import QuestionCard from "~/components/cards/QuestionCard";
+import CollaborationUnitCard from "~/components/cards/CollaborationUnitCard";
+import EmptyState from "~/components/feedback/EmptyState";
+import StageStrip from "~/components/sections/StageStrip";
 
 const cache = new Map<string, unknown>();
 

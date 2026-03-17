@@ -1,12 +1,12 @@
 import { data } from "react-router";
 import type { Route } from "./+types/$learnerSlug";
-import { Link } from "~/components/SmartLink";
+import { Link } from "~/components/content/SmartLink";
 import { eq, and, desc, sql, ne } from "drizzle-orm";
-import SceneCard from "~/components/SceneCard";
-import QuestionCard from "~/components/QuestionCard";
-import HighlightedSentenceCard from "~/components/HighlightedSentenceCard";
-import CollaborationUnitCard from "~/components/CollaborationUnitCard";
-import EmptyState from "~/components/EmptyState";
+import SceneCard from "~/components/cards/SceneCard";
+import QuestionCard from "~/components/cards/QuestionCard";
+import HighlightedSentenceCard from "~/components/cards/HighlightedSentenceCard";
+import CollaborationUnitCard from "~/components/cards/CollaborationUnitCard";
+import EmptyState from "~/components/feedback/EmptyState";
 import { motion } from "~/lib/motion";
 import { staggerContainer, staggerItem, fadeUp } from "~/lib/motion-utils";
 import { cn } from "~/lib/cn";

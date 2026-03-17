@@ -1,12 +1,12 @@
 import { data } from "react-router";
 import type { Route } from "./+types/$challengeSlug";
-import { Link } from "~/components/SmartLink";
+import { Link } from "~/components/content/SmartLink";
 import { eq, and, desc, sql } from "drizzle-orm";
-import SceneCard from "~/components/SceneCard";
-import CollaborationUnitCard from "~/components/CollaborationUnitCard";
-import QuestionCard from "~/components/QuestionCard";
-import HeroSection from "~/components/HeroSection";
-import EmptyState from "~/components/EmptyState";
+import SceneCard from "~/components/cards/SceneCard";
+import CollaborationUnitCard from "~/components/cards/CollaborationUnitCard";
+import QuestionCard from "~/components/cards/QuestionCard";
+import HeroSection from "~/components/sections/HeroSection";
+import EmptyState from "~/components/feedback/EmptyState";
 import { motion } from "~/lib/motion";
 import { staggerContainer, staggerItem } from "~/lib/motion-utils";
 import { cn } from "~/lib/cn";

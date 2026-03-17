@@ -1,10 +1,10 @@
 import type { Route } from "./+types/$tagSlug";
-import { Link } from "~/components/SmartLink";
+import { Link } from "~/components/content/SmartLink";
 import { data } from "react-router";
 import { normalizeContentFormat } from "~/lib/editor-extensions";
-import SceneCard from "~/components/SceneCard";
-import EmptyState from "~/components/EmptyState";
-import HeroSection from "~/components/HeroSection";
+import SceneCard from "~/components/cards/SceneCard";
+import EmptyState from "~/components/feedback/EmptyState";
+import HeroSection from "~/components/sections/HeroSection";
 
 export function meta({ data: loaderData }: Route.MetaArgs) {
   if (!loaderData?.tag) {

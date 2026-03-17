@@ -1,6 +1,6 @@
 import { data, redirect } from "react-router";
 import type { Route } from "./+types/$learnerId";
-import { Link } from "~/components/SmartLink";
+import { Link } from "~/components/content/SmartLink";
 import { eq, desc } from "drizzle-orm";
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";

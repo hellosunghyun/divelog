@@ -1,6 +1,6 @@
 import type { Route } from "./+types/index";
 import { eq, desc } from "drizzle-orm";
-import { Link } from "~/components/SmartLink";
+import { Link } from "~/components/content/SmartLink";
 
 export function meta(_: Route.MetaArgs) { return [{ title: "Admin 대시보드" }]; }
 

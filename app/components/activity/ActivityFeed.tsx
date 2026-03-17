@@ -1,4 +1,4 @@
-import type { ActivityItem } from "../db/queries/activity.server";
+import type { ActivityItem } from "../../db/queries/activity.server";
 import { cn } from "~/lib/cn";
 
 interface ActivityFeedProps {

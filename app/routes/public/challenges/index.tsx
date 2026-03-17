@@ -1,8 +1,8 @@
 import type { Route } from "./+types/index";
-import { Link } from "~/components/SmartLink";
+import { Link } from "~/components/content/SmartLink";
 import { asc } from "drizzle-orm";
-import HeroSection from "~/components/HeroSection";
-import EmptyState from "~/components/EmptyState";
+import HeroSection from "~/components/sections/HeroSection";
+import EmptyState from "~/components/feedback/EmptyState";
 import { motion } from "~/lib/motion";
 import { staggerContainer, staggerItem } from "~/lib/motion-utils";
 import { cn } from "~/lib/cn";
