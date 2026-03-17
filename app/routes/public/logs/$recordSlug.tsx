@@ -792,10 +792,15 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
                 <label htmlFor="response-visibility" className="text-sm font-medium text-text-secondary mb-2 block">
                   공개 범위
                 </label>
-                <select id="response-visibility" name="visibility" defaultValue="cohort" className="w-full rounded-lg border border-border bg-surface px-4 py-3 text-base text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2">
-                  <option value="cohort">코호트 공개</option>
-                  <option value="public">전체 공개</option>
-                </select>
+                <Select name="visibility" defaultValue="cohort">
+                  <SelectTrigger id="response-visibility" className="w-full bg-surface">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="cohort">코호트 공개</SelectItem>
+                    <SelectItem value="public">전체 공개</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               {recordQuestions.length > 0 ? (
