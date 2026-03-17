@@ -1,15 +1,18 @@
+import { useState } from "react";
 import type { Route } from "./+types/me";
 import { requireAuth } from "~/lib/auth.middleware";
 import { db } from "~/db/client.server";
 import { records, sentences, questions, learnerProfiles, stages } from "~/db/schema.server";
 import { eq, and, desc, sql, asc, ne } from "drizzle-orm";
+import { getResponsesByAuthor } from "~/db/queries/responses.server";
 import SceneCard from "~/components/SceneCard";
 import HighlightedSentenceCard from "~/components/HighlightedSentenceCard";
 import QuestionCard from "~/components/QuestionCard";
+import ResponseCard from "~/components/ResponseCard";
 import EmptyState from "~/components/EmptyState";
-import HeroSection from "~/components/HeroSection";
 import { Link } from "~/components/SmartLink";
 import { createLogger } from "~/lib/logger.server";
+import { cn } from "~/lib/cn";
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "내 공간 — DiveLog" }];
@@ -53,7 +56,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
         and(eq(records.authorId, auth.user.id), eq(questions.isOpen, true))
       )
       .orderBy(desc(questions.createdAt))
-      .limit(5),
+      .limit(20),
     database
       .select({ question: questions, recordSlug: records.slug, recordTitle: records.title })
       .from(questions)
@@ -65,7 +68,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
           sql`NOT EXISTS (SELECT 1 FROM self_answers WHERE self_answers.question_id = ${questions.id})`
         )
       )
-      .limit(5),
+      .limit(20),
     database
       .select()
       .from(stages)
@@ -90,6 +93,8 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     .where(eq(learnerProfiles.userId, auth.user.id))
     .limit(1);
 
+  const myResponses = await getResponsesByAuthor(context.cloudflare.env.DB, auth.user.id);
+
   const recordsByStage: Record<string, typeof myRecordsWithStage> = {};
   for (const row of myRecordsWithStage) {
     const stageId = row.stageId ?? "no-stage";
@@ -106,95 +111,120 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     mySentences,
     myQuestions,
     unansweredQuestions,
+    myResponses,
     stages: allStages,
     recordsByStage,
   };
 }
 
 export default function MySpacePage({ loaderData }: Route.ComponentProps) {
-  const { learner, drafts, mySentences, myQuestions, unansweredQuestions, stages, recordsByStage } = loaderData;
+  const { learner, drafts, mySentences, myQuestions, unansweredQuestions, myResponses, stages, recordsByStage } = loaderData;
+  const [activeTab, setActiveTab] = useState<"records" | "questions" | "responses">("records");
 
   return (
     <div>
-      <HeroSection
-        variant="learner"
-        title={learner?.displayName ?? "내 공간"}
-        subtitle={learner?.bio ?? undefined}
-      />
-
-      <div className="max-w-content mx-auto py-16 px-6 md:py-24">
-        <section className="mb-16">
-          <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-8">
-            나의 여정
-          </h2>
-          <div className="flex flex-col gap-6">
-            {(recordsByStage["no-stage"]?.length ?? 0) > 0 && (
-              <div
-                className="rounded-2xl border p-6"
-                style={{
-                  backgroundColor: "var(--color-surface-secondary)",
-                  borderColor: "var(--color-border)",
-                  borderLeftWidth: "4px",
-                }}
-              >
-                <div className="flex items-center gap-3 mb-4">
-                  <h3 className="text-lg font-semibold text-text-primary tracking-tight">
-                    구간 미지정
-                  </h3>
-                </div>
-                <div className="flex flex-col gap-3">
-                  {recordsByStage["no-stage"].slice(0, 5).map(({ record }) => (
-                    <Link
-                      key={record.id}
-                      to={`/logs/${record.slug}`}
-                      className="block p-4 rounded-xl bg-surface border border-border-subtle hover:border-border transition-colors no-underline"
-                    >
-                      <h4 className="text-base font-medium text-text-primary mb-1">
-                        {record.title}
-                      </h4>
-                      <p className="text-sm text-text-secondary line-clamp-2">
-                        {record.contentText?.substring(0, 100) ?? record.content.substring(0, 100)}
-                      </p>
-                    </Link>
-                  ))}
-                  {recordsByStage["no-stage"].length > 5 && (
-                    <p className="text-sm text-text-tertiary mt-2">
-                      외 {recordsByStage["no-stage"].length - 5}개의 기록
-                    </p>
-                  )}
-                </div>
+      <div className="bg-surface border-b border-border">
+        <div className="max-w-content mx-auto px-6 py-12 flex flex-col items-center text-center">
+          <div className="w-20 h-20 rounded-full overflow-hidden bg-surface-secondary border border-border mb-4">
+            {learner?.profilePhotoUrl ? (
+              <img src={learner.profilePhotoUrl} alt={learner.displayName} className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-text-tertiary text-2xl font-medium">
+                {(learner?.displayName || "U").charAt(0).toUpperCase()}
               </div>
             )}
-            {stages.map((stage) => {
-              const stageRecords = recordsByStage[stage.id] ?? [];
-              const toneStyle = getStageToneStyle(stage.type);
-              
-              return (
-                <div
-                  key={stage.id}
-                  className="rounded-2xl border p-6"
-                  style={{
-                    backgroundColor: toneStyle.bg,
-                    borderColor: toneStyle.border,
-                    borderLeftWidth: "4px",
-                  }}
-                >
-                  <div className="flex items-center gap-3 mb-4">
-                    <h3 className="text-lg font-semibold text-text-primary tracking-tight">
-                      {stage.name}
-                    </h3>
-                    <span className="text-caption text-text-tertiary">
-                      {toneStyle.label} · {stageRecords.length}개의 기록
-                    </span>
-                  </div>
-                  
-                  {stageRecords.length === 0 ? (
-                    <p className="text-sm text-text-tertiary">
-                      아직 이 구간에 기록이 없습니다. 무엇이든 남겨보세요.
-                    </p>
-                  ) : (
+          </div>
+          <h1 className="text-3xl font-semibold text-text-primary tracking-tight mb-2">
+            {learner?.displayName ?? "내 공간"}
+          </h1>
+          {learner?.bio && (
+            <p className="text-base text-text-secondary max-w-[600px] mb-4">
+              {learner.bio}
+            </p>
+          )}
+          <div className="flex gap-2 items-center">
+            {learner?.cohort && (
+              <span className="inline-flex items-center rounded-full bg-surface-secondary px-3 py-1 text-sm font-medium text-text-secondary border border-border">
+                {learner.cohort}
+              </span>
+            )}
+            <Link to="/settings" className="inline-flex items-center rounded-full bg-surface-secondary px-3 py-1 text-sm font-medium text-text-secondary border border-border hover:bg-border/50 transition-colors no-underline">
+              설정
+            </Link>
+          </div>
+        </div>
+        
+        <div className="max-w-content mx-auto px-6">
+          <div className="flex gap-8 border-b border-transparent">
+            <button
+              onClick={() => setActiveTab("records")}
+              className={cn(
+                "pb-4 text-base font-medium transition-colors relative",
+                activeTab === "records" ? "text-ocean-blue" : "text-text-secondary hover:text-text-primary"
+              )}
+            >
+              내 기록
+              {activeTab === "records" && (
+                <span className="absolute bottom-0 left-0 w-full h-0.5 bg-ocean-blue" />
+              )}
+            </button>
+            <button
+              onClick={() => setActiveTab("questions")}
+              className={cn(
+                "pb-4 text-base font-medium transition-colors relative",
+                activeTab === "questions" ? "text-ocean-blue" : "text-text-secondary hover:text-text-primary"
+              )}
+            >
+              내 질문
+              {activeTab === "questions" && (
+                <span className="absolute bottom-0 left-0 w-full h-0.5 bg-ocean-blue" />
+              )}
+            </button>
+            <button
+              onClick={() => setActiveTab("responses")}
+              className={cn(
+                "pb-4 text-base font-medium transition-colors relative",
+                activeTab === "responses" ? "text-ocean-blue" : "text-text-secondary hover:text-text-primary"
+              )}
+            >
+              내 응답
+              {activeTab === "responses" && (
+                <span className="absolute bottom-0 left-0 w-full h-0.5 bg-ocean-blue" />
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-content mx-auto py-12 px-6 md:py-16">
+        {activeTab === "records" && (
+          <div className="space-y-16">
+            <section>
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-xl font-semibold text-text-primary tracking-tight">
+                  나의 여정
+                </h2>
+                <Link to="/write" className="text-sm font-medium text-ocean-blue hover:text-ocean-blue/80 transition-colors no-underline">
+                  + 새 기록
+                </Link>
+              </div>
+              <div className="flex flex-col gap-6">
+                {(recordsByStage["no-stage"]?.length ?? 0) > 0 && (
+                  <div
+                    className="rounded-2xl border p-6"
+                    style={{
+                      backgroundColor: "var(--color-surface-secondary)",
+                      borderColor: "var(--color-border)",
+                      borderLeftWidth: "4px",
+                    }}
+                  >
+                    <div className="flex items-center gap-3 mb-4">
+                      <h3 className="text-lg font-semibold text-text-primary tracking-tight">
+                        구간 미지정
+                      </h3>
+                    </div>
                     <div className="flex flex-col gap-3">
-                      {stageRecords.slice(0, 3).map(({ record }) => (
+                      {recordsByStage["no-stage"].map(({ record }) => (
                         <Link
                           key={record.id}
                           to={`/logs/${record.slug}`}
@@ -208,117 +238,183 @@ export default function MySpacePage({ loaderData }: Route.ComponentProps) {
                           </p>
                         </Link>
                       ))}
-                      {stageRecords.length > 3 && (
-                        <p className="text-sm text-text-tertiary mt-2">
-                          외 {stageRecords.length - 3}개의 기록
-                        </p>
-                      )}
                     </div>
-                  )}
+                  </div>
+                )}
+                {stages.map((stage) => {
+                  const stageRecords = recordsByStage[stage.id] ?? [];
+                  if (stageRecords.length === 0) return null;
+                  
+                  const toneStyle = getStageToneStyle(stage.type);
+                  
+                  return (
+                    <div
+                      key={stage.id}
+                      className="rounded-2xl border p-6"
+                      style={{
+                        backgroundColor: toneStyle.bg,
+                        borderColor: toneStyle.border,
+                        borderLeftWidth: "4px",
+                      }}
+                    >
+                      <div className="flex items-center gap-3 mb-4">
+                        <h3 className="text-lg font-semibold text-text-primary tracking-tight">
+                          {stage.name}
+                        </h3>
+                        <span className="text-caption text-text-tertiary">
+                          {toneStyle.label}
+                        </span>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {stageRecords.map(({ record }) => (
+                          <div key={record.id} className="relative">
+                            <SceneCard
+                              record={{
+                                slug: record.slug,
+                                title: record.title,
+                                content: record.content,
+                                format: record.format as "note" | "article",
+                                type: record.type as "personal" | "challenge" | "collaboration",
+                                rhythm: record.rhythm ?? undefined,
+                                createdAt: record.createdAt,
+                              }}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+                {Object.keys(recordsByStage).length === 0 && (
+                  <EmptyState variant="records" message="아직 작성한 기록이 없습니다. 첫 번째 기록을 남겨보세요." />
+                )}
+              </div>
+            </section>
+
+            {drafts.length > 0 && (
+              <section>
+                <div className="flex items-center justify-between mb-8">
+                  <h2 className="text-xl font-semibold text-text-primary tracking-tight">
+                    임시저장
+                  </h2>
                 </div>
-              );
-            })}
-          </div>
-        </section>
-
-        <section className="mb-12">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-xl font-semibold text-text-primary tracking-tight">
-              임시저장
-            </h2>
-            <Link to="/write" className="text-sm text-ocean-blue hover:text-ocean-blue transition-colors no-underline">
-              + 새 기록
-            </Link>
-          </div>
-          {drafts.length === 0 ? (
-            <EmptyState variant="records" message="임시저장된 기록이 없습니다. 완성되지 않은 생각도 기록해보세요." />
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {drafts.map(({ record }) => (
-                <div key={record.id} className="relative">
-                  <SceneCard
-                    record={{
-                      slug: record.slug,
-                      title: record.title,
-                      content: record.content,
-                      format: record.format as "note" | "article",
-                      type: record.type as "personal" | "challenge" | "collaboration",
-                      rhythm: record.rhythm ?? undefined,
-                      createdAt: record.createdAt,
-                    }}
-                  />
-                  <Link
-                    to={`/logs/${record.slug}/edit`}
-                    className="absolute top-4 right-4 text-caption px-2.5 py-1 rounded-full bg-ocean-blue/10 text-ocean-blue font-medium no-underline hover:bg-ocean-blue/20 transition-colors"
-                  >
-                    이어 쓰기
-                  </Link>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                  {drafts.map(({ record }) => (
+                    <div key={record.id} className="relative group">
+                      <SceneCard
+                        record={{
+                          slug: record.slug,
+                          title: record.title,
+                          content: record.content,
+                          format: record.format as "note" | "article",
+                          type: record.type as "personal" | "challenge" | "collaboration",
+                          rhythm: record.rhythm ?? undefined,
+                          createdAt: record.createdAt,
+                        }}
+                      />
+                      <div className="absolute inset-0 bg-surface/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-2xl">
+                        <Link
+                          to={`/logs/${record.slug}/edit`}
+                          className="px-4 py-2 rounded-full bg-ocean-blue text-white font-medium no-underline shadow-sm hover:bg-deep-ocean transition-colors"
+                        >
+                          이어 쓰기
+                        </Link>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          )}
-        </section>
+              </section>
+            )}
 
-        <section className="mb-12">
-          <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-8">
-            저장한 문장들
-          </h2>
-          {mySentences.length === 0 ? (
-            <EmptyState variant="generic" message="저장한 문장이 없습니다." />
-          ) : (
-            <div className="flex flex-col gap-4">
-              {mySentences.map(({ sentence }) => (
-                <HighlightedSentenceCard key={sentence.id} sentence={sentence} />
-              ))}
-            </div>
-          )}
-        </section>
+            {mySentences.length > 0 && (
+              <section>
+                <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-8">
+                  저장한 문장들
+                </h2>
+                <div className="flex flex-col gap-4">
+                  {mySentences.map(({ sentence }) => (
+                    <HighlightedSentenceCard key={sentence.id} sentence={sentence} />
+                  ))}
+                </div>
+              </section>
+            )}
+          </div>
+        )}
 
-        <section className="mb-12">
-          <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-8">
-            내 질문들
-          </h2>
-          {myQuestions.length === 0 ? (
-            <EmptyState variant="questions" />
-          ) : (
-            <div className="flex flex-col gap-5">
-              {myQuestions.map(({ question, recordSlug, recordTitle }) => (
-                <QuestionCard
-                  key={question.id}
-                  question={question}
-                  record={
-                    recordSlug && recordTitle
-                      ? { slug: recordSlug, title: recordTitle }
-                      : undefined
-                  }
-                />
-              ))}
-            </div>
-          )}
-        </section>
+        {activeTab === "questions" && (
+          <div className="space-y-16">
+            <section>
+              <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-8">
+                미답변 질문들
+              </h2>
+              {unansweredQuestions.length === 0 ? (
+                <EmptyState variant="questions" message="아직 답하지 않은 질문이 없습니다. 기록에 남겨둔 질문들은 나중에 언제든 스스로 답해볼 수 있습니다." />
+              ) : (
+                <div className="flex flex-col gap-5">
+                  {unansweredQuestions.map(({ question, recordSlug, recordTitle }) => (
+                    <QuestionCard
+                      key={question.id}
+                      question={question}
+                      record={
+                        recordSlug && recordTitle
+                          ? { slug: recordSlug, title: recordTitle }
+                          : undefined
+                      }
+                    />
+                  ))}
+                </div>
+              )}
+            </section>
 
-        <section>
-          <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-8">
-            미답변 질문들
-          </h2>
-          {unansweredQuestions.length === 0 ? (
-            <EmptyState variant="questions" message="아직 답하지 않은 질문이 없습니다. 기록에 질문을 남기면 나중에 스스로 답해볼 수 있습니다." />
-          ) : (
-            <div className="flex flex-col gap-5">
-              {unansweredQuestions.map(({ question, recordSlug, recordTitle }) => (
-                <QuestionCard
-                  key={question.id}
-                  question={question}
-                  record={
-                    recordSlug && recordTitle
-                      ? { slug: recordSlug, title: recordTitle }
-                      : undefined
-                  }
-                />
-              ))}
-            </div>
-          )}
-        </section>
+            <section>
+              <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-8">
+                내 질문들
+              </h2>
+              {myQuestions.length === 0 ? (
+                <EmptyState variant="questions" message="아직 남긴 질문이 없습니다." />
+              ) : (
+                <div className="flex flex-col gap-5">
+                  {myQuestions.map(({ question, recordSlug, recordTitle }) => (
+                    <QuestionCard
+                      key={question.id}
+                      question={question}
+                      record={
+                        recordSlug && recordTitle
+                          ? { slug: recordSlug, title: recordTitle }
+                          : undefined
+                      }
+                    />
+                  ))}
+                </div>
+              )}
+            </section>
+          </div>
+        )}
+
+        {activeTab === "responses" && (
+          <div className="space-y-16">
+            <section>
+              <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-8">
+                내가 남긴 응답들
+              </h2>
+              {myResponses.length === 0 ? (
+                <EmptyState variant="generic" message="아직 남긴 응답이 없습니다. 다른 Learner의 기록에 공명이나 질문을 남겨보세요." />
+              ) : (
+                <div className="flex flex-col gap-5">
+                  {myResponses.map((response) => (
+                    <div key={response.id} className="relative group">
+                      <ResponseCard
+                        response={response}
+                        author={learner ? { displayName: learner.displayName, slug: learner.slug } : undefined}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -530,7 +530,8 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
   }, [hideSentenceButton, showSentenceButton]);
 
   return (
-    <div className="max-w-reading mx-auto py-16 px-6 md:py-24">
+    <div className="max-w-[1200px] mx-auto px-6 py-16 md:py-24 flex flex-col lg:flex-row gap-12 lg:gap-24 relative">
+      <div className="flex-1 max-w-[720px] mx-auto lg:mx-0 w-full min-w-0">
       {record.visibility === "draft" && (
         <div className="mb-6 rounded-xl border border-warning/30 bg-warning/5 px-5 py-4">
           <p className="text-base font-medium text-warning">임시저장 상태입니다</p>
@@ -562,52 +563,51 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
         </ol>
       </nav>
 
-      <header className="mb-10">
-        <div className="flex gap-2 mb-4 flex-wrap">
-          <span className="text-caption px-2 py-0.5 rounded-full bg-border text-text-secondary">
+      <header className="mb-12">
+        <div className="flex gap-2 mb-5 flex-wrap">
+          {stage && (
+            <Link to={`/journey/${stage.slug}`} className="text-caption px-3 py-1 rounded-full bg-mist-blue/30 text-ocean-blue font-medium no-underline hover:bg-mist-blue transition-colors">
+              {stage.name}
+            </Link>
+          )}
+          <span className="text-caption px-3 py-1 rounded-full border border-border bg-surface text-text-secondary">
             {record.format === "note" ? "노트" : "글"}
           </span>
-          <span className="text-caption px-2 py-0.5 rounded-full bg-border text-text-secondary">
+          <span className="text-caption px-3 py-1 rounded-full border border-border bg-surface text-text-secondary">
             {record.type === "personal" ? "개인" : record.type === "challenge" ? "챌린지" : "협업"}
           </span>
           {record.visibility === "draft" && (
-            <span className="text-caption px-2 py-0.5 rounded-full bg-warning/10 text-warning font-medium">
+            <span className="text-caption px-3 py-1 rounded-full bg-warning/10 text-warning font-medium">
               임시저장
             </span>
           )}
         </div>
 
-        <h1 className="text-3xl font-semibold text-text-primary leading-tight tracking-tight mb-4">
+        <h1 
+          className="text-4xl md:text-5xl font-semibold text-text-primary leading-[1.15] mb-6"
+          style={{ letterSpacing: 'var(--tracking-tighter, -0.04em)' }}
+        >
           {record.title}
         </h1>
 
-        <div className="flex items-center gap-4 flex-wrap">
+        <div className="flex items-center gap-3 flex-wrap">
           {author?.slug ? (
-            <Link to={`/learners/${author.slug}`} className="text-sm text-text-secondary no-underline hover:text-ocean-blue transition-colors">
+            <Link to={`/learners/${author.slug}`} className="inline-flex items-center text-sm font-medium text-text-primary bg-surface-secondary px-3 py-1.5 rounded-full hover:bg-mist-blue hover:text-ocean-blue transition-colors no-underline">
               {author.displayName ?? "작성자"}
             </Link>
           ) : (
-            <p className="text-sm text-text-secondary">{author?.displayName ?? "작성자"}</p>
+            <span className="inline-flex items-center text-sm font-medium text-text-primary bg-surface-secondary px-3 py-1.5 rounded-full">
+              {author?.displayName ?? "작성자"}
+            </span>
           )}
-
-          {recordTags.length > 0 && (
-            <div className="flex gap-2 flex-wrap">
-              {recordTags.map((tag) => (
-                <Link
-                  key={tag.id}
-                  to={`/tags/${tag.slug}`}
-                  className="text-caption px-2 py-0.5 rounded-full border border-border bg-surface text-text-secondary no-underline transition-all duration-normal hover:border-reef-cyan/40 hover:bg-mist-blue/20 hover:text-ocean-blue"
-                >
-                  {tag.name}
-                </Link>
-              ))}
-            </div>
-          )}
+          <time className="text-sm text-text-tertiary">
+            {new Date(record.createdAt * 1000).toLocaleDateString("ko-KR")}
+          </time>
 
           {isRecordAuthor && (
             <Link
               to={`/logs/${record.slug}/edit`}
-              className="inline-flex items-center rounded-full border border-border px-3 py-1.5 text-caption font-medium text-text-secondary no-underline transition-colors hover:bg-surface-secondary hover:text-text-primary"
+              className="inline-flex items-center ml-auto rounded-full border border-border px-3 py-1.5 text-xs font-medium text-text-secondary no-underline transition-colors hover:bg-surface-secondary hover:text-text-primary"
             >
               수정
             </Link>
@@ -872,9 +872,16 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
           응답 {recordResponses.length}개
         </h2>
         {recordResponses.length > 0 ? (
-          <div className="flex flex-col gap-5">
-            {recordResponses.map(({ response, author: responseAuthor }) => (
-              <ResponseCard key={response.id} response={response} author={responseAuthor ?? undefined} isSelfAnswer={response.type === "self_answer"} />
+          <div className="relative border-l-2 border-mist-blue pl-6 py-2 flex flex-col gap-8">
+            {recordResponses.map(({ response, author: responseAuthor }, i) => (
+              <div 
+                key={response.id} 
+                className="animate-in fade-in slide-in-from-bottom-4 relative"
+                style={{ animationDelay: `${i * 100}ms`, animationFillMode: "both" }}
+              >
+                <div className="absolute -left-[31px] top-6 w-3 h-3 rounded-full border-2 border-surface bg-reef-cyan shadow-sm z-10" />
+                <ResponseCard response={response} author={responseAuthor ?? undefined} isSelfAnswer={response.type === "self_answer"} />
+              </div>
             ))}
           </div>
         ) : (
@@ -882,62 +889,9 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
         )}
       </section>
 
-      <section className="mb-12">
-        <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-8">
-          연결된 기록
-        </h2>
-        {linkedRecords.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {linkedRecords.map((linkedRecord) => (
-              <div key={linkedRecord.record.id} className="relative">
-                <SceneCard
-                  record={linkedRecord.record}
-                  contentSnippet={linkedRecord.contentSnippet}
-                  author={linkedRecord.author?.displayName ? {
-                    displayName: linkedRecord.author.displayName,
-                    slug: linkedRecord.author.slug ?? "",
-                  } : undefined}
-                />
-                <span className="absolute top-4 right-4 text-caption px-2 py-0.5 rounded-full bg-mist-blue text-ocean-blue">
-                  {linkedRecord.direction === "outgoing" ? "참조" : "역참조"}
-                </span>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="flex flex-col items-center text-center py-12 px-4 gap-4">
-            <p className="text-base text-text-secondary leading-body">아직 연결된 기록이 없습니다.</p>
-            {isRecordAuthor && (
-              <Link
-                to={`/write`}
-                className="mt-2 px-5 py-2.5 rounded-full bg-ocean-blue text-white text-sm font-medium hover:bg-deep-ocean transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2 no-underline"
-              >
-                이어서 기록하기
-              </Link>
-            )}
-          </div>
-        )}
-      </section>
+      
 
-      {incomingLinks.length > 0 && (
-        <section className="mb-12">
-          <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-6">
-            이 글을 참조한 기록
-          </h2>
-          <div className="flex flex-col gap-3">
-            {incomingLinks.map((link) => (
-              <Link
-                key={link.linkId}
-                to={`/logs/${link.sourceSlug}`}
-                className="block p-4 rounded-xl bg-surface-secondary border border-border hover:border-ocean-blue/30 transition-colors no-underline"
-              >
-                <p className="text-base font-medium text-text-primary">{link.sourceTitle ?? "기록"}</p>
-                <p className="text-sm text-text-tertiary mt-1">{link.sourceAuthorName}</p>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
+      
 
       <section>
         <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-8">
@@ -953,6 +907,65 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
           <EmptyState variant="generic" message="아직 저장된 문장이 없습니다." />
         )}
       </section>
+      </div>
+
+      {/* 사이드바 영역 */}
+      <aside className="w-full lg:w-[320px] shrink-0 space-y-10 lg:sticky lg:top-24 self-start">
+        {recordTags.length > 0 && (
+          <div>
+            <h3 className="text-sm font-medium text-text-secondary mb-4 uppercase tracking-wider">태그</h3>
+            <div className="flex flex-wrap gap-2">
+              {recordTags.map(tag => (
+                <Link key={tag.id} to={`/tags/${tag.slug}`}
+                  className="rounded-full px-3 py-1.5 text-xs font-medium bg-surface border border-border text-text-secondary hover:bg-mist-blue hover:text-ocean-blue hover:border-reef-cyan/30 transition-all duration-normal no-underline">
+                  #{tag.name}
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {linkedRecords.length > 0 && (
+          <div>
+            <h3 className="text-sm font-medium text-text-secondary mb-4 uppercase tracking-wider">연결된 기록</h3>
+            <div className="flex flex-col gap-3">
+              {linkedRecords.map((linkedRecord) => (
+                <Link key={linkedRecord.record.id} to={`/logs/${linkedRecord.record.slug}`} className="group block rounded-xl border border-border bg-surface p-4 hover:border-ocean-blue/30 transition-colors no-underline">
+                  <span className="text-[11px] font-medium px-2 py-0.5 rounded-sm bg-mist-blue/30 text-ocean-blue mb-2 inline-block">
+                    {linkedRecord.direction === "outgoing" ? "참조함" : "참조됨"}
+                  </span>
+                  <p className="text-sm font-medium text-text-primary line-clamp-2 group-hover:text-ocean-blue transition-colors">
+                    {linkedRecord.record.title}
+                  </p>
+                  {linkedRecord.author?.displayName && (
+                    <p className="text-xs text-text-tertiary mt-1.5">
+                      {linkedRecord.author.displayName}
+                    </p>
+                  )}
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {incomingLinks.length > 0 && (
+          <div>
+            <h3 className="text-sm font-medium text-text-secondary mb-4 uppercase tracking-wider">이 글을 참조한 기록</h3>
+            <div className="flex flex-col gap-3">
+              {incomingLinks.map((link) => (
+                <Link
+                  key={link.linkId}
+                  to={`/logs/${link.sourceSlug}`}
+                  className="group block p-4 rounded-xl bg-surface-secondary border border-transparent hover:border-border transition-colors no-underline"
+                >
+                  <p className="text-sm font-medium text-text-primary line-clamp-2 group-hover:text-ocean-blue transition-colors">{link.sourceTitle ?? "기록"}</p>
+                  <p className="text-xs text-text-tertiary mt-1.5">{link.sourceAuthorName}</p>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+      </aside>
     </div>
   );
 }
