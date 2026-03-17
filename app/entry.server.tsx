@@ -44,10 +44,16 @@ export const handleError = (
   error: unknown,
   { request }: { request: Request },
 ) => {
-  if (!request.signal.aborted) {
-    Sentry.captureException(error);
-    console.error(error);
-  }
+  if (request.signal.aborted) return;
+  const url = new URL(request.url);
+  Sentry.captureException(error, {
+    contexts: {
+      request: {
+        method: request.method,
+        url: url.pathname + url.search,
+      },
+    },
+  });
 };
 
 export default Sentry.wrapSentryHandleRequest(handleRequest);

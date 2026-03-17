@@ -1,6 +1,7 @@
 import type { AppLoadContext } from "react-router";
 import { and, eq } from "drizzle-orm";
 import { redirect } from "react-router";
+import * as Sentry from "@sentry/react-router/cloudflare";
 
 import { db } from "../../db/client.server";
 import { userRoles } from "../../db/schema.server";
@@ -26,6 +27,7 @@ export async function getOptionalUser(request: Request, context: AppLoadContext)
     const auth = await getAuth(request, context.cloudflare.env.ADAKRPOS_API_KEY);
     return auth.isAuthenticated ? auth : null;
   } catch (error) {
+    Sentry.captureException(error, { tags: { type: "auth_optional" } });
     logger.warn("auth_optional_error", {
       error: error instanceof Error ? error.message : String(error),
     });

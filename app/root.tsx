@@ -50,6 +50,10 @@ export default function App() {
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
+  if (error instanceof Error) {
+    Sentry.captureException(error);
+  }
+
   let message = "오류가 발생했습니다";
   let details = "예상치 못한 오류가 발생했습니다.";
   let stack: string | undefined;
@@ -60,15 +64,11 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
       error.status === 404
         ? "요청하신 페이지를 찾을 수 없습니다."
         : error.statusText || "예상치 못한 오류가 발생했습니다.";
-  } else if (error && error instanceof Error) {
-    Sentry.captureException(error);
+  } else if (error instanceof Error) {
+    details = error.message;
     if (import.meta.env.DEV) {
-      details = error.message;
       stack = error.stack;
     }
-  } else {
-    message = "오류";
-    details = "예상치 못한 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
   }
 
   return (

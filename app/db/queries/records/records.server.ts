@@ -1,4 +1,5 @@
 import { and, desc, eq, like, or, sql } from "drizzle-orm";
+import * as Sentry from "@sentry/react-router/cloudflare";
 
 import type { CreateRecordInput, RecordFilterInput } from "../../../lib/auth/validation";
 import { nanoid } from "../../../lib/utils/utils.server";
@@ -137,7 +138,7 @@ export async function createRecord(d1: D1Database, authorId: string, data: Creat
       afterState: recordData,
     });
   } catch (err) {
-    console.error("[audit] createRecord audit log failed:", err);
+    Sentry.captureException(err, { tags: { type: "audit_log" } });
   }
 
   return { id, slug };
