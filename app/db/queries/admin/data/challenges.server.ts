@@ -1,7 +1,7 @@
 import { desc, eq } from "drizzle-orm";
 
-import { db } from "../../client.server";
-import { challenges } from "../../schema.server";
+import { db } from "../../../client.server";
+import { challenges } from "../../../schema.server";
 
 export async function adminGetChallenges(d1: D1Database) {
   return db(d1).select().from(challenges).orderBy(desc(challenges.createdAt));

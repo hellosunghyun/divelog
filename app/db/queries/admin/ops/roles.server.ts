@@ -1,7 +1,7 @@
 import { and, desc, eq } from "drizzle-orm";
 
-import { db } from "../../client.server";
-import { userRoles } from "../../schema.server";
+import { db } from "../../../client.server";
+import { userRoles } from "../../../schema.server";
 import { ADMIN_ROLES, type AdminRole } from "./roles";
 import { nanoid } from "~/lib/utils/utils.server";
 

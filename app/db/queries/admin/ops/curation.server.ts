@@ -1,7 +1,7 @@
 import { desc, eq } from "drizzle-orm";
 
-import { db } from "../../client.server";
-import { curationSlots } from "../../schema.server";
+import { db } from "../../../client.server";
+import { curationSlots } from "../../../schema.server";
 
 export async function adminGetCurationSlots(d1: D1Database) {
   return db(d1).select().from(curationSlots).orderBy(desc(curationSlots.updatedAt));

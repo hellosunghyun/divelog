@@ -1,0 +1,41 @@
+Task 5 - admin query modules sub-group reorganization
+Date: 2026-03-17
+
+[Structure]
+- admin root ts/server.ts files: app/db/queries/admin/index.server.ts
+- data count: 6
+- ops count: 6
+- insights count: 2
+
+[Expected placement]
+data/
+- learners.server.ts
+- records.server.ts
+- stages.server.ts
+- challenges.server.ts
+- memories.server.ts
+- collaboration.server.ts
+
+ops/
+- curation.server.ts
+- dialogue.server.ts
+- settings.server.ts
+- templates.server.ts
+- roles.server.ts
+- roles.ts
+
+insights/
+- analytics.server.ts
+- audit.server.ts
+
+[Path updates]
+- app/db/queries/admin/index.server.ts re-exports updated to data/ops/insights paths
+- app/routes/admin/learners/$learnerId.tsx updated:
+  - ~/db/queries/admin/roles -> ~/db/queries/admin/ops/roles
+  - ~/db/queries/admin/roles.server -> ~/db/queries/admin/ops/roles.server
+
+[Verification]
+- pnpm typecheck | grep 'error TS' | wc -l => 36
+- pnpm test => 126 passed
+- pnpm build => success
+- LSP diagnostics on all changed files => clean

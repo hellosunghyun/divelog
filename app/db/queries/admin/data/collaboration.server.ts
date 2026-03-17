@@ -1,7 +1,7 @@
 import { desc, eq } from "drizzle-orm";
 
-import { db } from "../../client.server";
-import { collaborationUnits } from "../../schema.server";
+import { db } from "../../../client.server";
+import { collaborationUnits } from "../../../schema.server";
 
 export async function adminGetCollaborationUnits(d1: D1Database) {
   return db(d1).select().from(collaborationUnits).orderBy(desc(collaborationUnits.createdAt));

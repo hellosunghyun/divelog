@@ -1,7 +1,7 @@
 import { desc, eq } from "drizzle-orm";
 
-import { db } from "../../client.server";
-import { templates } from "../../schema.server";
+import { db } from "../../../client.server";
+import { templates } from "../../../schema.server";
 
 export async function adminGetTemplates(d1: D1Database) {
   return db(d1).select().from(templates).orderBy(desc(templates.updatedAt));

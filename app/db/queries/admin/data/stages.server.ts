@@ -1,7 +1,7 @@
 import { asc, eq } from "drizzle-orm";
 
-import { db } from "../../client.server";
-import { stages } from "../../schema.server";
+import { db } from "../../../client.server";
+import { stages } from "../../../schema.server";
 
 export async function adminGetAllStages(d1: D1Database) {
   return db(d1).select().from(stages).orderBy(asc(stages.order));

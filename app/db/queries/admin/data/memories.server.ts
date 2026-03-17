@@ -1,7 +1,7 @@
 import { desc, eq } from "drizzle-orm";
 
-import { db } from "../../client.server";
-import { collectiveMemories } from "../../schema.server";
+import { db } from "../../../client.server";
+import { collectiveMemories } from "../../../schema.server";
 
 export async function adminGetMemories(d1: D1Database) {
   return db(d1).select().from(collectiveMemories).orderBy(desc(collectiveMemories.updatedAt));

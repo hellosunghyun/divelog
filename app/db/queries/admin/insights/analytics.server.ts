@@ -1,7 +1,7 @@
 import { desc, eq } from "drizzle-orm";
 
-import { db } from "../../client.server";
-import { auditLogs } from "../../schema.server";
+import { db } from "../../../client.server";
+import { auditLogs } from "../../../schema.server";
 
 export async function adminGetAnalytics(d1: D1Database) {
   return db(d1).select().from(auditLogs).orderBy(desc(auditLogs.createdAt));

@@ -1,7 +1,7 @@
 import { desc, eq } from "drizzle-orm";
 
-import { db } from "../../client.server";
-import { settings } from "../../schema.server";
+import { db } from "../../../client.server";
+import { settings } from "../../../schema.server";
 
 export async function adminGetSettings(d1: D1Database) {
   return db(d1).select().from(settings).orderBy(desc(settings.updatedAt));
