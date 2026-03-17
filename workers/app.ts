@@ -65,7 +65,7 @@ export default {
       userAgent: request.headers.get("user-agent") ?? undefined,
     });
 
-    try {
+    const handleRequest = async () => {
       const response = await wrapRequestHandler(
         {
           options: {
@@ -88,6 +88,37 @@ export default {
         durationMs: Date.now() - startMs,
       });
       return withHtmlCacheHeaders(response, request);
+    };
+
+    if (request.method === "GET" && url.pathname === "/__manifest") {
+      const cache = (caches as CacheStorage & { default: Cache }).default;
+      const cacheKey = request;
+      const cachedResponse = await cache.match(cacheKey);
+
+      if (cachedResponse) {
+        return cachedResponse;
+      }
+
+      const response = await handleRequest();
+      if (response.ok && !response.headers.has("set-cookie")) {
+        const headers = new Headers(response.headers);
+        headers.set("Cache-Control", "public, s-maxage=31536000, immutable");
+
+        const responseToCache = new Response(response.body, {
+          status: response.status,
+          statusText: response.statusText,
+          headers,
+        });
+
+        ctx.waitUntil(cache.put(cacheKey, responseToCache.clone()));
+        return responseToCache;
+      }
+
+      return response;
+    }
+
+    try {
+      return await handleRequest();
     } catch (thrown: unknown) {
       if (thrown instanceof Response) {
         logger.info("request_response_throw", {
