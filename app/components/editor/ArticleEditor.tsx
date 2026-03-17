@@ -27,8 +27,10 @@ import { ToggleBlock } from "./ToggleExtension";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   TextB, TextItalic, TextUnderline, TextStrikethrough, Code, Link, Image, ListNumbers, Quotes,
-  TextH, Minus, Table, Trash,
+  TextH, Minus, Table, Trash, X,
   ArrowCounterClockwise, ArrowClockwise, TextAlignLeft, TextAlignCenter,
+  ArrowLineLeft, ArrowLineRight, ArrowLineUp, ArrowLineDown,
+  ArrowsInSimple, ArrowsOutSimple,
 } from "@phosphor-icons/react";
 
 import { createSlashCommandExtension } from "./SlashCommandMenu";
@@ -463,16 +465,16 @@ export function ArticleEditor({
 
       {editor && editor.isActive("table") && (
         <div className="table-edit-toolbar">
-           <BubbleBtn onClick={() => editor.chain().focus().addColumnBefore().run()} isActive={false} label="왼쪽에 열 추가" title="왼쪽에 열 추가"><Minus size={16} weight="light" /></BubbleBtn>
-           <BubbleBtn onClick={() => editor.chain().focus().addColumnAfter().run()} isActive={false} label="오른쪽에 열 추가" title="오른쪽에 열 추가"><Minus size={16} weight="light" /></BubbleBtn>
-           <BubbleBtn onClick={() => editor.chain().focus().addRowBefore().run()} isActive={false} label="위에 행 추가" title="위에 행 추가"><Minus size={16} weight="light" /></BubbleBtn>
-           <BubbleBtn onClick={() => editor.chain().focus().addRowAfter().run()} isActive={false} label="아래에 행 추가" title="아래에 행 추가"><Minus size={16} weight="light" /></BubbleBtn>
+           <BubbleBtn onClick={() => editor.chain().focus().addColumnBefore().run()} isActive={false} label="왼쪽에 열 추가" title="왼쪽에 열 추가"><ArrowLineLeft size={16} weight="light" /></BubbleBtn>
+           <BubbleBtn onClick={() => editor.chain().focus().addColumnAfter().run()} isActive={false} label="오른쪽에 열 추가" title="오른쪽에 열 추가"><ArrowLineRight size={16} weight="light" /></BubbleBtn>
+           <BubbleBtn onClick={() => editor.chain().focus().addRowBefore().run()} isActive={false} label="위에 행 추가" title="위에 행 추가"><ArrowLineUp size={16} weight="light" /></BubbleBtn>
+           <BubbleBtn onClick={() => editor.chain().focus().addRowAfter().run()} isActive={false} label="아래에 행 추가" title="아래에 행 추가"><ArrowLineDown size={16} weight="light" /></BubbleBtn>
            <span className="bubble-sep" />
-           <BubbleBtn onClick={() => editor.chain().focus().deleteColumn().run()} isActive={false} label="열 삭제" title="열 삭제"><Minus size={16} weight="light" /></BubbleBtn>
-           <BubbleBtn onClick={() => editor.chain().focus().deleteRow().run()} isActive={false} label="행 삭제" title="행 삭제"><Minus size={16} weight="light" /></BubbleBtn>
+           <BubbleBtn onClick={() => editor.chain().focus().deleteColumn().run()} isActive={false} label="열 삭제" title="열 삭제"><X size={16} weight="light" /></BubbleBtn>
+           <BubbleBtn onClick={() => editor.chain().focus().deleteRow().run()} isActive={false} label="행 삭제" title="행 삭제"><X size={16} weight="light" /></BubbleBtn>
            <span className="bubble-sep" />
-           <BubbleBtn onClick={() => editor.chain().focus().mergeCells().run()} isActive={false} label="셀 병합" title="셀 병합"><Minus size={16} weight="light" /></BubbleBtn>
-           <BubbleBtn onClick={() => editor.chain().focus().splitCell().run()} isActive={false} label="셀 분할" title="셀 분할"><Minus size={16} weight="light" /></BubbleBtn>
+           <BubbleBtn onClick={() => editor.chain().focus().mergeCells().run()} isActive={false} label="셀 병합" title="셀 병합"><ArrowsInSimple size={16} weight="light" /></BubbleBtn>
+           <BubbleBtn onClick={() => editor.chain().focus().splitCell().run()} isActive={false} label="셀 분할" title="셀 분할"><ArrowsOutSimple size={16} weight="light" /></BubbleBtn>
            <span className="bubble-sep" />
            <BubbleBtn onClick={() => editor.chain().focus().deleteTable().run()} isActive={false} label="표 삭제" title="표 삭제"><Trash size={16} weight="light" /></BubbleBtn>
         </div>

@@ -181,25 +181,27 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
     <div className="min-h-screen bg-background">
       <div className="mx-auto px-6 py-16 max-w-[720px]">
         <Form method="post" className="flex flex-col gap-6">
-          <div className="flex items-center justify-between">
-            <Link to="/write" className="text-sm text-text-tertiary no-underline hover:text-text-secondary">
+          <div className="flex flex-col gap-4">
+            <Link to="/write" className="text-sm text-text-tertiary no-underline hover:text-text-secondary w-fit">
               ← 돌아가기
             </Link>
-            <div className="flex items-center gap-3">
-              <span className="text-lg font-semibold text-text-primary">글쓰기</span>
-              <Link
-                to="/write"
-                className="inline-flex items-center justify-center rounded-md border border-border px-4 py-2 text-sm font-medium text-text-secondary no-underline transition-colors hover:bg-surface-secondary"
-              >
-                취소
-              </Link>
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="h-auto rounded-md px-4 py-2 text-sm font-medium"
-              >
-                {isSubmitting ? "저장 중..." : "저장"}
-              </Button>
+            <div className="flex items-center justify-between">
+              <h1 className="text-lg font-semibold text-text-primary m-0">글쓰기</h1>
+              <div className="flex items-center gap-3">
+                <Link
+                  to="/write"
+                  className="inline-flex items-center justify-center rounded-md border border-border px-4 py-2 text-sm font-medium text-text-secondary no-underline transition-colors hover:bg-surface-secondary"
+                >
+                  취소
+                </Link>
+                <Button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="h-auto rounded-md px-4 py-2 text-sm font-medium"
+                >
+                  {isSubmitting ? "저장 중..." : "저장"}
+                </Button>
+              </div>
             </div>
           </div>
 
