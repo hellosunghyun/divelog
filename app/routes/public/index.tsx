@@ -18,7 +18,7 @@ export function meta(_args: Route.MetaArgs) {
 export async function loader({ request, context }: Route.LoaderArgs) {
   const { db } = await import("~/db/client.server");
   const { stages, records, questions, sentences, learnerProfiles } = await import("~/db/schema.server");
-  const { getRecentActivity } = await import("~/db/queries/activity.server");
+  const { getNarrativeDigest } = await import("~/db/queries/activity.server");
   const { createLogger } = await import("~/lib/logger.server");
 
   const logger = createLogger(request, context.cloudflare.env).child({ route: "home" });
@@ -99,7 +99,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const currentStage = currentStageResult[0] ?? null;
   const learnerCount = learnerCountResult[0]?.total ?? 0;
 
-  const recentActivity = await getRecentActivity(context.cloudflare.env.DB, { limit: 8 });
+  const recentActivity = await getNarrativeDigest(context.cloudflare.env.DB, { limit: 8 });
 
   // Pre-compute plain text snippets on server to avoid client importing server-only modules
   const { getPlainText } = await import("~/lib/content.server");
