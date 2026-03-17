@@ -30,7 +30,15 @@ export async function action({ params, request, context }: Route.ActionArgs) {
 
   const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.templates.$templateId" });
   const f = await request.formData();
-  logger.info("action_start", { intent: "update_template" });
+  const intent = f.get("intent") as string;
+  logger.info("action_start", { intent });
+
+  if (intent === "delete") {
+    await db(context.cloudflare.env.DB).delete(templates).where(eq(templates.id, params.templateId));
+    logger.info("admin_delete_template", { templateId: params.templateId });
+    throw redirect("/admin/templates");
+  }
+
   await db(context.cloudflare.env.DB).update(templates).set({ name: f.get("name") as string, description: (f.get("description") as string) || null, promptBody: (f.get("promptBody") as string) || null, context: (f.get("ctx") as string) || null, form: (f.get("form") as string) || null, rhythm: (f.get("rhythm") as string) || null, active: f.get("active") === "on", updatedAt: Math.floor(Date.now() / 1000) }).where(eq(templates.id, params.templateId));
   logger.info("admin_update_template", { templateId: params.templateId });
   throw redirect("/admin/templates");
@@ -118,6 +126,24 @@ export default function AdminTemplateEditPage({ loaderData }: Route.ComponentPro
           <Link to="/admin/templates" className="px-5 py-2 rounded-md border border-admin-border text-admin-text-secondary text-sm hover:bg-admin-bg transition-colors">취소</Link>
         </div>
       </form>
+      <div className="mt-8 max-w-[700px] border border-error/30 rounded-md p-6 bg-error/5">
+        <h3 className="text-sm font-semibold text-error mb-2">위험 영역</h3>
+        <p className="text-sm text-admin-text-secondary mb-4">이 템플릿을 삭제하면 되돌릴 수 없습니다.</p>
+        <form method="post">
+          <input type="hidden" name="intent" value="delete" />
+          <button
+            type="submit"
+            className="rounded-md bg-error px-4 py-2 text-sm font-medium text-white hover:opacity-90 transition-colors"
+            onClick={(e) => {
+              if (!confirm("정말로 이 템플릿을 삭제하시겠습니까?")) {
+                e.preventDefault();
+              }
+            }}
+          >
+            템플릿 삭제
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

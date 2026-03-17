@@ -71,7 +71,14 @@ export async function action({ params, request, context }: Route.ActionArgs) {
 
   const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.records.$recordId" });
   const f = await request.formData();
-  logger.info("action_start", { intent: "moderate_record" });
+  const intent = f.get("intent") as string;
+  logger.info("action_start", { intent });
+
+  if (intent === "delete") {
+    await db(context.cloudflare.env.DB).delete(records).where(eq(records.id, params.recordId));
+    logger.info("admin_delete_record", { recordId: params.recordId });
+    throw redirect("/admin/records");
+  }
 
   const moderationStatus = f.get("moderationStatus") as string;
   const moderationNote = (f.get("note") as string) || null;
@@ -279,6 +286,25 @@ export default function AdminRecordDetailPage({ loaderData }: Route.ComponentPro
             >
               /logs/{record.slug} ↗
             </Link>
+          </div>
+
+          <div className="border border-error/30 rounded-lg p-5 bg-error/5">
+            <h3 className="text-sm font-semibold text-error mb-2">위험 영역</h3>
+            <p className="text-sm text-admin-text-secondary mb-4">이 기록을 삭제하면 관련된 질문, 응답, 문장도 함께 삭제됩니다. 되돌릴 수 없습니다.</p>
+            <form method="post">
+              <input type="hidden" name="intent" value="delete" />
+              <button
+                type="submit"
+                className="w-full h-9 rounded-md bg-error text-white text-sm font-medium hover:opacity-90 transition-colors"
+                onClick={(e) => {
+                  if (!confirm("정말로 이 기록을 삭제하시겠습니까? 관련된 질문, 응답, 문장도 모두 삭제됩니다.")) {
+                    e.preventDefault();
+                  }
+                }}
+              >
+                기록 삭제
+              </button>
+            </form>
           </div>
         </div>
       </div>

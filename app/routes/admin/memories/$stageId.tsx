@@ -26,7 +26,15 @@ export async function action({ params, request, context }: Route.ActionArgs) {
 
   const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.memories.$stageId" });
   const f = await request.formData();
-  logger.info("action_start", { intent: "update_memory" });
+  const intent = f.get("intent") as string;
+  logger.info("action_start", { intent });
+
+  if (intent === "delete") {
+    await db(context.cloudflare.env.DB).delete(collectiveMemories).where(eq(collectiveMemories.id, params.stageId));
+    logger.info("admin_delete_memory", { stageId: params.stageId });
+    throw redirect("/admin/memories");
+  }
+
   await db(context.cloudflare.env.DB).update(collectiveMemories).set({ summary: (f.get("summary") as string) || null, carryForwardQuestion: (f.get("carryForwardQuestion") as string) || null, status: f.get("status") as string, updatedAt: Math.floor(Date.now() / 1000) }).where(eq(collectiveMemories.id, params.stageId));
   logger.info("admin_update_memory", { stageId: params.stageId });
   throw redirect("/admin/memories");
@@ -66,6 +74,24 @@ export default function AdminMemoryEditPage({ loaderData }: Route.ComponentProps
           <Link to="/admin/memories" className="px-5 py-2 rounded-sm border border-admin-border text-admin-text-secondary text-sm hover:bg-admin-bg">취소</Link>
         </div>
       </form>
+      <div className="mt-8 max-w-2xl border border-error/30 rounded-md p-6 bg-error/5">
+        <h3 className="text-sm font-semibold text-error mb-2">위험 영역</h3>
+        <p className="text-sm text-admin-text-secondary mb-4">이 Memory를 삭제하면 관련된 질문, 문장, 기록 연결도 함께 삭제됩니다.</p>
+        <form method="post">
+          <input type="hidden" name="intent" value="delete" />
+          <button
+            type="submit"
+            className="rounded-sm bg-error px-4 py-2 text-sm font-medium text-white hover:opacity-90 transition-colors"
+            onClick={(e) => {
+              if (!confirm("정말로 이 Memory를 삭제하시겠습니까? 관련 데이터도 함께 삭제됩니다.")) {
+                e.preventDefault();
+              }
+            }}
+          >
+            Memory 삭제
+          </button>
+        </form>
+      </div>
     </div>
   );
 }
