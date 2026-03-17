@@ -1,22 +1,36 @@
 import type { Route } from "./+types/audit";
-import { db } from "~/db/client.server";
-import { createLogger } from "~/lib/logger.server";
-import { auditLogs } from "~/db/schema.server";
 import { eq, desc } from "drizzle-orm";
-import { Badge } from "~/components/ui/badge";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "~/components/ui/table";
+  adminTableClass,
+  adminThClass,
+  adminTdClass,
+  adminTrClass,
+  adminCardClass,
+  adminCardHeaderClass,
+  adminCardBodyClass,
+  adminBadgeBase,
+  adminBadgeDefault,
+  adminBadgeSuccess,
+  adminBadgeWarning,
+  adminBadgeError,
+  adminBadgeInfo,
+  adminEmptyStateClass,
+  adminEmptyIconClass,
+  adminEmptyTitleClass,
+  adminEmptyDescClass,
+} from "~/components/admin/admin-patterns";
 
 type AuditLog = typeof auditLogs.$inferSelect;
 
-export function meta(_: Route.MetaArgs) { return [{ title: "감사 로그" }]; }
+export function meta(_: Route.MetaArgs) {
+  return [{ title: "감사 로그" }];
+}
+
 export async function loader({ request, context }: Route.LoaderArgs) {
+  const { db } = await import("~/db/client.server");
+  const { createLogger } = await import("~/lib/logger.server");
+  const { auditLogs } = await import("~/db/schema.server");
+
   const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.audit" });
   logger.info("loader_start");
   const url = new URL(request.url);
@@ -26,57 +40,148 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const logs = targetType ? await base.where(eq(auditLogs.targetType, targetType)) : await base;
   return { logs, targetType };
 }
+
+const TARGET_TYPES = ["record", "stage", "learner", "response", "challenge", "collaboration", "memory"];
+
+const ACTION_STYLES: Record<string, { label: string; badge: string }> = {
+  create: { label: "생성", badge: adminBadgeSuccess },
+  update: { label: "수정", badge: adminBadgeInfo },
+  delete: { label: "삭제", badge: adminBadgeError },
+  publish: { label: "발행", badge: adminBadgeSuccess },
+  unpublish: { label: "발행취소", badge: adminBadgeWarning },
+  flag: { label: "신고", badge: adminBadgeError },
+  unflag: { label: "신고해제", badge: adminBadgeSuccess },
+};
+
+const TARGET_LABELS: Record<string, string> = {
+  record: "기록",
+  stage: "Stage",
+  learner: "러너",
+  response: "응답",
+  challenge: "챌린지",
+  collaboration: "협업",
+  memory: "메모리",
+};
+
 export default function AdminAuditPage({ loaderData }: Route.ComponentProps) {
   const { logs, targetType } = loaderData;
-  const TARGET_TYPES = ["record", "stage", "learner", "response", "challenge", "collaboration", "memory"];
+
+  const getActionBadge = (action: string) => {
+    const style = ACTION_STYLES[action];
+    if (style) {
+      return { label: style.label, badgeClass: style.badge };
+    }
+    return { label: action, badgeClass: adminBadgeDefault };
+  };
+
   return (
     <div>
-      <div className="flex items-center gap-4 mb-6">
+      <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-semibold text-admin-text">감사 로그</h2>
-        <div className="flex gap-1.5 flex-wrap">
-          <a href="/admin/audit" className={`text-caption px-2 py-0.5 rounded-full no-underline ${!targetType ? "bg-admin-accent text-white" : "bg-admin-bg text-admin-text border border-admin-border"} hover:opacity-80 transition-opacity`}>전체</a>
-          {TARGET_TYPES.map((t) => (
-            <a key={t} href={`?type=${t}`} className={`text-caption px-2 py-0.5 rounded-full no-underline ${targetType === t ? "bg-admin-accent text-white" : "bg-admin-bg text-admin-text border border-admin-border"} hover:opacity-80 transition-opacity`}>{t}</a>
-          ))}
-        </div>
+        <p className="text-meta text-admin-text-secondary tabular-nums">
+          최근 100개
+        </p>
       </div>
-      <Table>
-        <TableHeader className="bg-admin-bg">
-          <TableRow className="border-admin-border hover:bg-admin-bg">
-            {["행위자", "대상 유형", "대상 ID", "액션", "시각"].map((header) => (
-              <TableHead
-                key={header}
-                className="h-auto px-4 py-3 text-caption font-semibold text-admin-text-secondary uppercase tracking-wide"
-              >
-                {header}
-              </TableHead>
-            ))}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {logs.map((log: AuditLog) => (
-            <TableRow key={log.id} className="border-admin-border hover:bg-admin-bg/50">
-              <TableCell className="px-4 py-3 font-mono text-caption text-admin-text-secondary">
-                {log.actorId.substring(0, 12)}
-              </TableCell>
-              <TableCell className="px-4 py-3 text-meta text-admin-text">
-                <Badge variant="outline" className="text-admin-text">
-                  {log.targetType}
-                </Badge>
-              </TableCell>
-              <TableCell className="px-4 py-3 font-mono text-caption text-admin-text-secondary">
-                {log.targetId.substring(0, 12)}
-              </TableCell>
-              <TableCell className="px-4 py-3 text-meta text-admin-text">
-                <Badge variant="secondary">{log.action}</Badge>
-              </TableCell>
-              <TableCell className="px-4 py-3 text-caption text-admin-text-secondary">
-                {new Date((log.createdAt ?? 0) * 1000).toLocaleString("ko-KR")}
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+
+      <div className="flex items-center gap-2 mb-6 flex-wrap">
+        <a
+          href="/admin/audit"
+          className={`text-caption px-3 py-1.5 rounded-lg no-underline transition-colors ${
+            !targetType
+              ? "bg-admin-accent text-white"
+              : "bg-admin-surface text-admin-text border border-admin-border hover:bg-admin-bg"
+          }`}
+        >
+          전체
+        </a>
+        {TARGET_TYPES.map((t) => (
+          <a
+            key={t}
+            href={`?type=${t}`}
+            className={`text-caption px-3 py-1.5 rounded-lg no-underline transition-colors ${
+              targetType === t
+                ? "bg-admin-accent text-white"
+                : "bg-admin-surface text-admin-text border border-admin-border hover:bg-admin-bg"
+            }`}
+          >
+            {TARGET_LABELS[t] ?? t}
+          </a>
+        ))}
+      </div>
+
+      {logs.length === 0 ? (
+        <div className={adminCardClass}>
+          <div className={adminEmptyStateClass}>
+            <svg className={adminEmptyIconClass} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <p className={adminEmptyTitleClass}>로그가 없습니다</p>
+            <p className={adminEmptyDescClass}>
+              {targetType ? "다른 유형을 선택해보세요" : "시스템 활동이 기록되면 여기에 표시됩니다"}
+            </p>
+          </div>
+        </div>
+      ) : (
+        <div className={adminCardClass}>
+          <table className={adminTableClass}>
+            <thead>
+              <tr>
+                {["시각", "행위자", "대상 유형", "대상 ID", "액션", "상세"].map((header) => (
+                  <th key={header} className={adminThClass}>
+                    {header}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {logs.map((log: AuditLog) => {
+                const { label: actionLabel, badgeClass } = getActionBadge(log.action);
+                return (
+                  <tr key={log.id} className={adminTrClass}>
+                    <td className={`${adminTdClass} text-admin-text-secondary tabular-nums whitespace-nowrap`}>
+                      {new Date((log.createdAt ?? 0) * 1000).toLocaleString("ko-KR", {
+                        month: "short",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </td>
+                    <td className={adminTdClass}>
+                      <span className="font-mono text-caption text-admin-text-secondary">
+                        {log.actorId.substring(0, 12)}…
+                      </span>
+                    </td>
+                    <td className={adminTdClass}>
+                      <span className={`${adminBadgeBase} ${adminBadgeDefault}`}>
+                        {TARGET_LABELS[log.targetType] ?? log.targetType}
+                      </span>
+                    </td>
+                    <td className={adminTdClass}>
+                      <span className="font-mono text-caption text-admin-text-secondary">
+                        {log.targetId.substring(0, 12)}…
+                      </span>
+                    </td>
+                    <td className={adminTdClass}>
+                      <span className={`${adminBadgeBase} ${badgeClass}`}>
+                        {actionLabel}
+                      </span>
+                    </td>
+                    <td className={`${adminTdClass} max-w-[200px]`}>
+                      {log.details ? (
+                        <span className="text-caption text-admin-text-secondary truncate block">
+                          {typeof log.details === "string" ? log.details : JSON.stringify(log.details)}
+                        </span>
+                      ) : (
+                        <span className="text-admin-text-tertiary">-</span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,7 +1,5 @@
 import type { Route } from "./+types/index";
 import { useSearchParams, useNavigate } from "react-router";
-import { db } from "~/db/client.server";
-import { records, stages, learnerProfiles } from "~/db/schema.server";
 import { eq, and, desc, sql, ne, count } from "drizzle-orm";
 import SceneCard from "~/components/SceneCard";
 import FilterBar from "~/components/FilterBar";
@@ -10,9 +8,7 @@ import ViewToggle from "~/components/ViewToggle";
 import TimelineView from "~/components/TimelineView";
 import EmptyState from "~/components/EmptyState";
 import { Button } from "~/components/ui/button";
-import { getPlainText } from "~/lib/content.server";
 import { normalizeContentFormat } from "~/lib/editor-extensions";
-import { createLogger } from "~/lib/logger.server";
 import { motion } from "~/lib/motion";
 import { staggerContainer, staggerItem } from "~/lib/motion-utils";
 
@@ -24,6 +20,11 @@ export function meta({ data: loaderData }: Route.MetaArgs) {
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {
+  const { db } = await import("~/db/client.server");
+  const { records, stages, learnerProfiles } = await import("~/db/schema.server");
+  const { getPlainText } = await import("~/lib/content.server");
+  const { createLogger } = await import("~/lib/logger.server");
+
   const logger = createLogger(request, context.cloudflare.env).child({ route: "logs" });
   logger.info("loader_start");
   const url = new URL(request.url);
@@ -200,6 +201,7 @@ export default function LogsPage({ loaderData }: Route.ComponentProps) {
       </div>
 
       <div className="max-w-content mx-auto px-6 pb-12 md:pb-16">
+        <h2 className="sr-only">기록 목록</h2>
         <div className="mb-6 flex gap-1 border-b border-border">
           {tabs.map((tab) => (
             <Button
@@ -238,7 +240,7 @@ export default function LogsPage({ loaderData }: Route.ComponentProps) {
               animate="visible"
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
             >
-              {filteredRecords.map((record) => (
+              {filteredRecords.map((record: typeof filteredRecords[number]) => (
                 <motion.div key={record.id} variants={staggerItem}>
                   <SceneCard
                     record={{

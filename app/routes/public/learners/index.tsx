@@ -3,8 +3,6 @@ import LearnerCard from "~/components/LearnerCard";
 import HeroSection from "~/components/HeroSection";
 import EmptyState from "~/components/EmptyState";
 import FilterBar from "~/components/FilterBar";
-import { getLearnersWithActivity, getDistinctCohorts } from "~/db/queries/learners.server";
-import { createLogger } from "~/lib/logger.server";
 import { motion } from "~/lib/motion";
 import { staggerContainer, staggerItem } from "~/lib/motion-utils";
 
@@ -13,6 +11,9 @@ export function meta(_args: Route.MetaArgs) {
 }
 
 export async function loader({ context, request }: Route.LoaderArgs) {
+  const { getLearnersWithActivity, getDistinctCohorts } = await import("~/db/queries/learners.server");
+  const { createLogger } = await import("~/lib/logger.server");
+
   const logger = createLogger(request, context.cloudflare.env).child({ route: "learners" });
   logger.info("loader_start");
   const url = new URL(request.url);
@@ -36,7 +37,7 @@ export default function LearnersPage({ loaderData }: Route.ComponentProps) {
           {
             key: "cohort",
             label: "Cohort",
-            values: cohorts.map((cohort) => ({ value: cohort, label: cohort })),
+            values: cohorts.map((cohort: typeof cohorts[number]) => ({ value: cohort, label: cohort })),
           },
         ]
       : [];
@@ -49,6 +50,7 @@ export default function LearnersPage({ loaderData }: Route.ComponentProps) {
         subtitle="탐구하는 사람들을 만나보세요"
       />
       <div className="max-w-content mx-auto py-16 px-6">
+        <h2 className="sr-only">러너 목록</h2>
         {filterOptions.length > 0 && (
           <div className="mb-10">
             <FilterBar filters={filterOptions} />
@@ -71,7 +73,7 @@ export default function LearnersPage({ loaderData }: Route.ComponentProps) {
             animate="visible"
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
           >
-            {learners.map((learner) => (
+            {learners.map((learner: typeof learners[number]) => (
               <motion.div key={learner.userId} variants={staggerItem}>
                 <LearnerCard
                   learner={{

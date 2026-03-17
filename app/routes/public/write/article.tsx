@@ -15,15 +15,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { db } from "~/db/client.server";
-import { learnerProfiles, notifications, records, stages, templates } from "~/db/schema.server";
 import { useUnsavedWarning } from "~/hooks/useUnsavedWarning";
 import { requireVerified } from "~/lib/auth.middleware";
-import { getPlainText } from "~/lib/content.server";
-import { syncMentionsForRecord } from "~/db/queries/mentions.server";
-import { syncRecordLinksForRecord } from "~/db/queries/recordLinks.server";
-import { extractUserMentions, extractRecordRefs } from "~/lib/extract-references.server";
-import { nanoid } from "~/lib/utils.server";
 import { createArticleSchema } from "~/lib/validation";
 
 const NO_STAGE_VALUE = "__none__";
@@ -34,6 +27,14 @@ export function meta(_args: Route.MetaArgs) {
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {
+  const { db } = await import("~/db/client.server");
+  const { learnerProfiles, notifications, records, stages, templates } = await import("~/db/schema.server");
+  const { getPlainText } = await import("~/lib/content.server");
+  const { syncMentionsForRecord } = await import("~/db/queries/mentions.server");
+  const { syncRecordLinksForRecord } = await import("~/db/queries/recordLinks.server");
+  const { extractUserMentions, extractRecordRefs } = await import("~/lib/extract-references.server");
+  const { nanoid } = await import("~/lib/utils.server");
+
   const auth = await requireVerified(request, context);
 
   const database = db(context.cloudflare.env.DB);
@@ -57,6 +58,14 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
+  const { db } = await import("~/db/client.server");
+  const { learnerProfiles, notifications, records, stages, templates } = await import("~/db/schema.server");
+  const { getPlainText } = await import("~/lib/content.server");
+  const { syncMentionsForRecord } = await import("~/db/queries/mentions.server");
+  const { syncRecordLinksForRecord } = await import("~/db/queries/recordLinks.server");
+  const { extractUserMentions, extractRecordRefs } = await import("~/lib/extract-references.server");
+  const { nanoid } = await import("~/lib/utils.server");
+
   const auth = await requireVerified(request, context);
 
   const formData = await request.formData();

@@ -47,7 +47,7 @@ export default function Footer() {
 
           <div className="flex flex-col sm:flex-row gap-8 sm:gap-12 md:gap-16">
             <nav aria-label="푸터 내비게이션">
-              <h3 className="text-xs font-semibold text-text-tertiary uppercase tracking-wider mb-4">
+              <h3 className="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-4">
                 탐색
               </h3>
               <ul className="flex flex-col gap-3">
@@ -68,7 +68,7 @@ export default function Footer() {
             </nav>
 
             <nav aria-label="법적 고지">
-              <h3 className="text-xs font-semibold text-text-tertiary uppercase tracking-wider mb-4">
+              <h3 className="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-4">
                 법적 고지
               </h3>
               <ul className="flex flex-col gap-3">
@@ -91,7 +91,7 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-border mt-12 pt-8">
-          <p className="text-xs text-text-tertiary">
+          <p className="text-xs text-text-secondary">
             © {currentYear} DiveLog. All rights reserved.
           </p>
         </div>

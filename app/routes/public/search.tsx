@@ -1,7 +1,5 @@
 import type { Route } from "./+types/search";
 import { Form, useSearchParams, useNavigation } from "react-router";
-import { db } from "~/db/client.server";
-import { records, questions, learnerProfiles, sentences } from "~/db/schema.server";
 import { like, or, desc, eq, and, sql } from "drizzle-orm";
 import SceneCard from "~/components/SceneCard";
 import LearnerCard from "~/components/LearnerCard";
@@ -9,9 +7,7 @@ import HeroSection from "~/components/HeroSection";
 import EmptyState from "~/components/EmptyState";
 import HighlightedSentenceCard from "~/components/HighlightedSentenceCard";
 import LoadingSkeleton from "~/components/LoadingSkeleton";
-import { getPlainText } from "~/lib/content.server";
 import { normalizeContentFormat } from "~/lib/editor-extensions";
-import { createLogger } from "~/lib/logger.server";
 import { motion } from "~/lib/motion";
 import { staggerContainer, staggerItem } from "~/lib/motion-utils";
 
@@ -20,6 +16,11 @@ export function meta(_args: Route.MetaArgs) {
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {
+  const { db } = await import("~/db/client.server");
+  const { records, questions, learnerProfiles, sentences } = await import("~/db/schema.server");
+  const { getPlainText } = await import("~/lib/content.server");
+  const { createLogger } = await import("~/lib/logger.server");
+
   const logger = createLogger(request, context.cloudflare.env).child({ route: "search" });
   logger.info("loader_start");
   const url = new URL(request.url);
@@ -146,7 +147,11 @@ export default function SearchPage({ loaderData }: Route.ComponentProps) {
       <div className="max-w-content mx-auto py-12 px-6">
         <Form className="mb-10">
           <div className="relative max-w-2xl mx-auto">
+            <label htmlFor="search-query" className="sr-only">
+              검색어
+            </label>
             <input
+              id="search-query"
               name="q"
               type="search"
               defaultValue={q}
@@ -163,9 +168,13 @@ export default function SearchPage({ loaderData }: Route.ComponentProps) {
         </Form>
 
         {isSearching ? (
+          <>
+            <h2 className="sr-only">검색 결과</h2>
           <LoadingSkeleton variant="card" count={3} />
+          </>
         ) : !q ? (
           <div className="max-w-2xl mx-auto">
+            <h2 className="sr-only">검색 결과</h2>
             <EmptyState
               variant="search"
               message="검색어를 입력해서 기록, 질문, 러너를 찾아보세요."
@@ -173,6 +182,7 @@ export default function SearchPage({ loaderData }: Route.ComponentProps) {
           </div>
         ) : total === 0 ? (
           <div className="max-w-2xl mx-auto">
+            <h2 className="sr-only">검색 결과</h2>
             <EmptyState variant="search" message={`"${q}"에 대한 결과가 없습니다.`} />
           </div>
         ) : (
@@ -205,11 +215,11 @@ export default function SearchPage({ loaderData }: Route.ComponentProps) {
                   variants={staggerItem}
                   className="mb-10"
                 >
-                  <h3 className="text-lg font-semibold text-text-primary tracking-tight mb-6">
+                  <h2 className="text-lg font-semibold text-text-primary tracking-tight mb-6">
                     기록
-                  </h3>
+                  </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                    {results.records.map((item) => (
+                    {results.records.map((item: typeof results.records[number]) => (
                       <motion.div
                         key={item.record.id}
                         variants={staggerItem}
@@ -239,11 +249,11 @@ export default function SearchPage({ loaderData }: Route.ComponentProps) {
                   variants={staggerItem}
                   className="mb-10"
                 >
-                  <h3 className="text-lg font-semibold text-text-primary tracking-tight mb-6">
+                  <h2 className="text-lg font-semibold text-text-primary tracking-tight mb-6">
                     러너
-                  </h3>
+                  </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                    {results.learners.map((learner) => (
+                    {results.learners.map((learner: typeof results.learners[number]) => (
                       <motion.div
                         key={learner.userId}
                         variants={staggerItem}
@@ -260,11 +270,11 @@ export default function SearchPage({ loaderData }: Route.ComponentProps) {
                   variants={staggerItem}
                   className="mb-10"
                 >
-                  <h3 className="text-lg font-semibold text-text-primary tracking-tight mb-6">
+                  <h2 className="text-lg font-semibold text-text-primary tracking-tight mb-6">
                     질문
-                  </h3>
+                  </h2>
                   <div className="flex flex-col gap-4 max-w-2xl">
-                    {results.questions.map((questionItem) => (
+                    {results.questions.map((questionItem: typeof results.questions[number]) => (
                       <motion.div
                         key={questionItem.question.id}
                         variants={staggerItem}
@@ -282,11 +292,11 @@ export default function SearchPage({ loaderData }: Route.ComponentProps) {
                   variants={staggerItem}
                   className="mb-10"
                 >
-                  <h3 className="text-lg font-semibold text-text-primary tracking-tight mb-6">
+                  <h2 className="text-lg font-semibold text-text-primary tracking-tight mb-6">
                     문장
-                  </h3>
+                  </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    {results.sentences.map((sentenceItem) => (
+                    {results.sentences.map((sentenceItem: typeof results.sentences[number]) => (
                       <motion.div
                         key={sentenceItem.sentence.id}
                         variants={staggerItem}

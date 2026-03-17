@@ -1,22 +1,36 @@
 import { redirect } from "react-router";
 import type { Route } from "./+types/settings";
-import { Button } from "~/components/ui/button";
-import { Checkbox } from "~/components/ui/checkbox";
-import { Label } from "~/components/ui/label";
-import { db } from "~/db/client.server";
-import { createLogger } from "~/lib/logger.server";
-import { settings } from "~/db/schema.server";
 import { eq } from "drizzle-orm";
+import {
+  adminCardClass,
+  adminCardHeaderClass,
+  adminCardBodyClass,
+  adminCardFooterClass,
+  adminBtnPrimary,
+  adminHelperClass,
+} from "~/components/admin/admin-patterns";
 
 type SettingRow = typeof settings.$inferSelect;
 
-export function meta(_: Route.MetaArgs) { return [{ title: "시스템 설정" }]; }
+export function meta(_: Route.MetaArgs) {
+  return [{ title: "시스템 설정" }];
+}
+
 export async function loader({ request, context }: Route.LoaderArgs) {
+  const { db } = await import("~/db/client.server");
+  const { createLogger } = await import("~/lib/logger.server");
+  const { settings } = await import("~/db/schema.server");
+
   const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.settings" });
   logger.info("loader_start");
   return { settings: await db(context.cloudflare.env.DB).select().from(settings) };
 }
+
 export async function action({ request, context }: Route.ActionArgs) {
+  const { db } = await import("~/db/client.server");
+  const { createLogger } = await import("~/lib/logger.server");
+  const { settings } = await import("~/db/schema.server");
+
   const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.settings" });
   const f = await request.formData();
   logger.info("action_start", { intent: "update_settings" });
@@ -32,32 +46,110 @@ export async function action({ request, context }: Route.ActionArgs) {
   logger.info("admin_update_settings", { changedKeys });
   throw redirect("/admin/settings");
 }
+
 export default function AdminSettingsPage({ loaderData }: Route.ComponentProps) {
   const { settings: allSettings } = loaderData;
   const getVal = (key: string) => allSettings.find((s: SettingRow) => s.key === key)?.value === "true";
-  const BOOL_SETTINGS = [
-    { key: "home_show_scenes", label: "홈 — 최근 기록 표시" },
-    { key: "home_show_questions", label: "홈 — 열린 질문 표시" },
-    { key: "home_show_sentences", label: "홈 — 문장 표시" },
-    { key: "home_show_learners", label: "홈 — 러너 스포트라이트" },
-    { key: "search_enabled", label: "검색 활성화" },
+
+  const SETTING_GROUPS = [
+    {
+      title: "홈 화면",
+      description: "홈 화면에 표시할 섹션을 선택하세요",
+      settings: [
+        { key: "home_show_scenes", label: "최근 기록", helper: "홈 화면에 최근 기록을 표시합니다" },
+        { key: "home_show_questions", label: "열린 질문", helper: "홈 화면에 열린 질문을 표시합니다" },
+        { key: "home_show_sentences", label: "문장", helper: "홈 화면에 하이라이트 문장을 표시합니다" },
+        { key: "home_show_learners", label: "러너 스포트라이트", helper: "홈 화면에 러너 프로필을 표시합니다" },
+      ],
+    },
+    {
+      title: "기능",
+      description: "사이트 전체 기능 설정",
+      settings: [
+        { key: "search_enabled", label: "검색 활성화", helper: "사이트 내 검색 기능을 활성화합니다" },
+      ],
+    },
   ];
+
   return (
     <div>
       <h2 className="text-xl font-semibold text-admin-text mb-6">시스템 설정</h2>
-      <form method="post" className="max-w-[500px] bg-admin-surface rounded-md p-6 border border-admin-border flex flex-col gap-4">
-        {BOOL_SETTINGS.map((s) => (
-          <div key={s.key}>
-            <div className="flex items-center gap-3">
-              <Checkbox id={s.key} name={s.key} defaultChecked={getVal(s.key)} className="border-admin-border data-[state=checked]:border-admin-accent data-[state=checked]:bg-admin-accent" />
-              <Label htmlFor={s.key} className="cursor-pointer text-sm font-normal text-admin-text">{s.label}</Label>
+
+      <form method="post" className="space-y-6 max-w-2xl">
+        {SETTING_GROUPS.map((group) => (
+          <div key={group.title} className={adminCardClass}>
+            <div className={adminCardHeaderClass}>
+              <div>
+                <h3 className="text-sm font-semibold text-admin-text">{group.title}</h3>
+                <p className="text-caption text-admin-text-secondary mt-0.5">{group.description}</p>
+              </div>
+            </div>
+            <div className={adminCardBodyClass}>
+              <div className="space-y-4">
+                {group.settings.map((s) => (
+                  <label
+                    key={s.key}
+                    htmlFor={s.key}
+                    className="flex items-start gap-3 cursor-pointer group"
+                  >
+                    <div className="relative flex items-center justify-center mt-0.5">
+                      <input
+                        type="checkbox"
+                        id={s.key}
+                        name={s.key}
+                        defaultChecked={getVal(s.key)}
+                        className="peer sr-only"
+                      />
+                      <div className="w-10 h-6 bg-admin-bg border border-admin-border rounded-full peer-checked:bg-admin-accent peer-checked:border-admin-accent transition-colors" />
+                      <div className="absolute left-0.5 top-0.5 w-5 h-5 bg-white rounded-full shadow-sm peer-checked:translate-x-4 transition-transform" />
+                    </div>
+                    <div className="flex-1">
+                      <span className="text-sm font-medium text-admin-text group-hover:text-admin-accent transition-colors">
+                        {s.label}
+                      </span>
+                      <p className={adminHelperClass}>{s.helper}</p>
+                    </div>
+                  </label>
+                ))}
+              </div>
             </div>
           </div>
         ))}
-        <div className="pt-2 border-t border-admin-border">
-          <Button type="submit" className="rounded-md bg-admin-accent px-5 py-2 text-sm font-medium text-white hover:opacity-90">저장</Button>
+
+        <div className={adminCardClass}>
+          <div className={adminCardFooterClass}>
+            <button type="submit" className={adminBtnPrimary}>
+              설정 저장
+            </button>
+          </div>
         </div>
       </form>
+
+      <div className={`${adminCardClass} mt-8 max-w-2xl`}>
+        <div className={adminCardHeaderClass}>
+          <h3 className="text-sm font-semibold text-admin-text">시스템 정보</h3>
+        </div>
+        <div className={adminCardBodyClass}>
+          <div className="space-y-3">
+            <div className="flex justify-between py-2 border-b border-admin-border">
+              <span className="text-caption text-admin-text-secondary">버전</span>
+              <span className="text-caption font-mono text-admin-text">1.0.0</span>
+            </div>
+            <div className="flex justify-between py-2 border-b border-admin-border">
+              <span className="text-caption text-admin-text-secondary">프레임워크</span>
+              <span className="text-caption text-admin-text">React Router 7</span>
+            </div>
+            <div className="flex justify-between py-2 border-b border-admin-border">
+              <span className="text-caption text-admin-text-secondary">데이터베이스</span>
+              <span className="text-caption text-admin-text">Cloudflare D1</span>
+            </div>
+            <div className="flex justify-between py-2">
+              <span className="text-caption text-admin-text-secondary">호스팅</span>
+              <span className="text-caption text-admin-text">Cloudflare Pages</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

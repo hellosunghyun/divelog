@@ -83,8 +83,8 @@
   --color-border: #E3E8EF;
   --color-border-subtle: #EEF1F6;
   --color-text-primary: #1D1D1F;
-  --color-text-secondary: #6E6E73;
-  --color-text-tertiary: #8C8C91;
+  --color-text-secondary: #4E5865;
+  --color-text-tertiary: #5B6470;
 
   --color-deep-ocean: #0B2447;
   --color-ocean-blue: #146C94;
@@ -93,13 +93,13 @@
   --color-mist-blue-deep: #D6EBF5;
 
   /* Stage Tone Mapping (design.md 7.3) */
-  --color-prelude: #4A8DA8;
+  --color-prelude: #2F6C84;
   --color-prelude-bg: #EAF4FA;
-  --color-bridge: #1A9EB4;
+  --color-bridge: #0C6E82;
   --color-bridge-bg: #E0F4F8;
   --color-challenge: #0B2447;
   --color-challenge-bg: #E3EAF3;
-  --color-epilogue: #7E8E9E;
+  --color-epilogue: #5B6673;
   --color-epilogue-bg: #EFF2F6;
 
   /* Semantic */

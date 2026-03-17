@@ -61,6 +61,7 @@ export default function ViewToggle({ currentView }: ViewToggleProps) {
             key={option.value}
             type="button"
             onClick={() => handleViewChange(option.value)}
+            aria-label={option.label}
             aria-pressed={isActive}
             className={cn(
               "rounded-full px-3 py-1.5 text-sm font-medium transition-premium",
@@ -70,7 +71,6 @@ export default function ViewToggle({ currentView }: ViewToggleProps) {
                 ? "bg-surface shadow-tinted-sm text-text-primary"
                 : "text-text-secondary hover:text-text-primary"
             )}
-            title={option.label}
           >
             <span className="sr-only">{option.label}</span>
             {option.icon}

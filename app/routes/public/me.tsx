@@ -1,17 +1,13 @@
 import { useState } from "react";
 import type { Route } from "./+types/me";
 import { requireAuth } from "~/lib/auth.middleware";
-import { db } from "~/db/client.server";
-import { records, sentences, questions, learnerProfiles, stages } from "~/db/schema.server";
 import { eq, and, desc, sql, asc, ne } from "drizzle-orm";
-import { getResponsesByAuthor } from "~/db/queries/responses.server";
 import SceneCard from "~/components/SceneCard";
 import HighlightedSentenceCard from "~/components/HighlightedSentenceCard";
 import QuestionCard from "~/components/QuestionCard";
 import ResponseCard from "~/components/ResponseCard";
 import EmptyState from "~/components/EmptyState";
 import { Link } from "~/components/SmartLink";
-import { createLogger } from "~/lib/logger.server";
 import { cn } from "~/lib/cn";
 
 export function meta(_args: Route.MetaArgs) {
@@ -30,6 +26,11 @@ function getStageToneStyle(stageType: string) {
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {
+  const { db } = await import("~/db/client.server");
+  const { records, sentences, questions, learnerProfiles, stages } = await import("~/db/schema.server");
+  const { getResponsesByAuthor } = await import("~/db/queries/responses.server");
+  const { createLogger } = await import("~/lib/logger.server");
+
   const logger = createLogger(request, context.cloudflare.env).child({ route: "me" });
   logger.info("loader_start");
   const auth = await requireAuth(request, context);

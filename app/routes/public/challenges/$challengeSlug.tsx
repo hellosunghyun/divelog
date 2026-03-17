@@ -1,20 +1,21 @@
 import { data } from "react-router";
 import type { Route } from "./+types/$challengeSlug";
 import { Link } from "~/components/SmartLink";
-import { db } from "~/db/client.server";
-import { challenges, records, collaborationUnits, learnerProfiles, stages, challengeStages } from "~/db/schema.server";
 import { eq, and, desc, sql } from "drizzle-orm";
 import SceneCard from "~/components/SceneCard";
 import CollaborationUnitCard from "~/components/CollaborationUnitCard";
 import QuestionCard from "~/components/QuestionCard";
 import HeroSection from "~/components/HeroSection";
 import EmptyState from "~/components/EmptyState";
-import { createLogger } from "~/lib/logger.server";
 import { motion } from "~/lib/motion";
 import { staggerContainer, staggerItem } from "~/lib/motion-utils";
 import { cn } from "~/lib/cn";
 
 export async function loader({ params, request, context }: Route.LoaderArgs) {
+  const { db } = await import("~/db/client.server");
+  const { challenges, records, collaborationUnits, learnerProfiles, stages, challengeStages } = await import("~/db/schema.server");
+  const { createLogger } = await import("~/lib/logger.server");
+
   const { challengeSlug } = params;
   const logger = createLogger(request, context.cloudflare.env).child({ route: "challenge_detail" });
   logger.info("loader_start");

@@ -1,7 +1,5 @@
 import type { Route } from "./+types/index";
 import { Link } from "~/components/SmartLink";
-import { db } from "~/db/client.server";
-import { stages } from "~/db/schema.server";
 import { sql } from "drizzle-orm";
 import type { InferSelectModel } from "drizzle-orm";
 
@@ -12,7 +10,6 @@ import { cn } from "~/lib/cn";
 import StageStrip from "~/components/StageStrip";
 import HeroSection from "~/components/HeroSection";
 import EmptyState from "~/components/EmptyState";
-import { createLogger } from "~/lib/logger.server";
 
 export function meta(_args: Route.MetaArgs) {
   return [
@@ -22,6 +19,10 @@ export function meta(_args: Route.MetaArgs) {
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {
+  const { db } = await import("~/db/client.server");
+  const { stages } = await import("~/db/schema.server");
+  const { createLogger } = await import("~/lib/logger.server");
+
   const logger = createLogger(request, context.cloudflare.env).child({ route: "journey" });
   logger.info("loader_start");
   const database = db(context.cloudflare.env.DB);
@@ -80,7 +81,7 @@ export default function JourneyPage({ loaderData }: Route.ComponentProps) {
             animate="visible"
             className="flex flex-col gap-5"
           >
-            {allStages.map((stage, index: number) => {
+            {allStages.map((stage: Stage, index: number) => {
               const accentColor = STAGE_ACCENTS[stage.type] ?? "var(--color-ocean-blue)";
               const isCurrent = stage.isCurrent;
 
@@ -91,8 +92,7 @@ export default function JourneyPage({ loaderData }: Route.ComponentProps) {
                     className={cn(
                       "group block no-underline",
                       "ring-1 ring-border p-1.5 md:p-2 rounded-2xl",
-                      "hover:shadow-tinted-md transition-premium",
-                      stage.status === "upcoming" && "opacity-60"
+                      "hover:shadow-tinted-md transition-premium"
                     )}
                   >
                     <div

@@ -1,14 +1,10 @@
 import type { Route } from "./+types/index";
 import { Link } from "~/components/SmartLink";
-import { db } from "~/db/client.server";
-import { stages, records, questions, sentences, learnerProfiles } from "~/db/schema.server";
 import { eq, desc, and, sql, count } from "drizzle-orm";
 import { motion } from "~/lib/motion";
 import { staggerContainer, staggerItem, fadeUp } from "~/lib/motion-utils";
 import HeroSection from "~/components/HeroSection";
 import ActivityFeed from "~/components/ActivityFeed";
-import { getRecentActivity } from "~/db/queries/activity.server";
-import { createLogger } from "~/lib/logger.server";
 
 export function meta(_args: Route.MetaArgs) {
   return [
@@ -20,6 +16,11 @@ export function meta(_args: Route.MetaArgs) {
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {
+  const { db } = await import("~/db/client.server");
+  const { stages, records, questions, sentences, learnerProfiles } = await import("~/db/schema.server");
+  const { getRecentActivity } = await import("~/db/queries/activity.server");
+  const { createLogger } = await import("~/lib/logger.server");
+
   const logger = createLogger(request, context.cloudflare.env).child({ route: "home" });
   logger.info("loader_start");
   const database = db(context.cloudflare.env.DB);
@@ -283,7 +284,7 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
                     <div className="flex -space-x-3">
                       {spotlightLearners.slice(0, 2).map((l: typeof spotlightLearners[number]) => (
                         l.profilePhotoUrl ? (
-                          <img key={l.userId} src={l.profilePhotoUrl} alt="" className="w-9 h-9 rounded-full border-2 border-white object-cover" />
+                          <img key={l.userId} src={l.profilePhotoUrl} alt={`${l.displayName}의 프로필 사진`} className="w-9 h-9 rounded-full border-2 border-white object-cover" />
                         ) : (
                           <div key={l.userId} className="w-9 h-9 rounded-full border-2 border-white bg-mist-blue flex items-center justify-center text-xs font-bold text-ocean-blue">
                             {l.displayName[0]}

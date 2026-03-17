@@ -1,15 +1,12 @@
 import { data } from "react-router";
 import type { Route } from "./+types/$learnerSlug";
 import { Link } from "~/components/SmartLink";
-import { db } from "~/db/client.server";
-import { learnerProfiles, records, questions, sentences, stages, collaborationUnits, collaborationMembers } from "~/db/schema.server";
 import { eq, and, desc, sql, ne } from "drizzle-orm";
 import SceneCard from "~/components/SceneCard";
 import QuestionCard from "~/components/QuestionCard";
 import HighlightedSentenceCard from "~/components/HighlightedSentenceCard";
 import CollaborationUnitCard from "~/components/CollaborationUnitCard";
 import EmptyState from "~/components/EmptyState";
-import { createLogger } from "~/lib/logger.server";
 import { motion } from "~/lib/motion";
 import { staggerContainer, staggerItem, fadeUp } from "~/lib/motion-utils";
 import { cn } from "~/lib/cn";
@@ -20,6 +17,10 @@ const cache = new Map<string, unknown>();
 type TabKey = "records" | "questions";
 
 export async function loader({ params, request, context }: Route.LoaderArgs) {
+  const { db } = await import("~/db/client.server");
+  const { learnerProfiles, records, questions, sentences, stages, collaborationUnits, collaborationMembers } = await import("~/db/schema.server");
+  const { createLogger } = await import("~/lib/logger.server");
+
   const { learnerSlug } = params;
   const logger = createLogger(request, context.cloudflare.env).child({ route: "learner_detail" });
   logger.info("loader_start");

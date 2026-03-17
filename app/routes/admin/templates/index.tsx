@@ -1,8 +1,5 @@
 import type { Route } from "./+types/index";
 import { Link } from "~/components/SmartLink";
-import { db } from "~/db/client.server";
-import { createLogger } from "~/lib/logger.server";
-import { templates } from "~/db/schema.server";
 import { asc } from "drizzle-orm";
 import EmptyState from "~/components/EmptyState";
 import { Badge } from "~/components/ui/badge";
@@ -17,6 +14,10 @@ import {
 
 export function meta(_: Route.MetaArgs) { return [{ title: "템플릿" }]; }
 export async function loader({ request, context }: Route.LoaderArgs) {
+  const { db } = await import("~/db/client.server");
+  const { createLogger } = await import("~/lib/logger.server");
+  const { templates } = await import("~/db/schema.server");
+
   const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.templates" });
   logger.info("loader_start");
   return { templates: await db(context.cloudflare.env.DB).select().from(templates).orderBy(asc(templates.name)) };

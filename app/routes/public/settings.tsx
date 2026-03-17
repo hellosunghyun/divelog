@@ -1,8 +1,5 @@
 import type { Route } from "./+types/settings";
 import { requireAuth } from "~/lib/auth.middleware";
-import { createLogger } from "~/lib/logger.server";
-import { db } from "~/db/client.server";
-import { learnerProfiles } from "~/db/schema.server";
 import { eq } from "drizzle-orm";
 import HeroSection from "~/components/HeroSection";
 import { Button } from "~/components/ui/button";
@@ -14,6 +11,10 @@ export function meta(_args: Route.MetaArgs) {
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {
+  const { createLogger } = await import("~/lib/logger.server");
+  const { db } = await import("~/db/client.server");
+  const { learnerProfiles } = await import("~/db/schema.server");
+
   const logger = createLogger(request, context.cloudflare.env).child({ route: "settings" });
   logger.info("loader_start");
   const auth = await requireAuth(request, context);
@@ -29,6 +30,10 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
+  const { createLogger } = await import("~/lib/logger.server");
+  const { db } = await import("~/db/client.server");
+  const { learnerProfiles } = await import("~/db/schema.server");
+
   const logger = createLogger(request, context.cloudflare.env).child({ route: "settings" });
   const auth = await requireAuth(request, context);
   const formData = await request.formData();

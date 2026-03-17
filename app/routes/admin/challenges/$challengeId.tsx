@@ -6,12 +6,13 @@ import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
 import { Textarea } from "~/components/ui/textarea";
-import { db } from "~/db/client.server";
-import { createLogger } from "~/lib/logger.server";
-import { challenges } from "~/db/schema.server";
 import { eq } from "drizzle-orm";
 
 export async function loader({ params, request, context }: Route.LoaderArgs) {
+  const { db } = await import("~/db/client.server");
+  const { createLogger } = await import("~/lib/logger.server");
+  const { challenges } = await import("~/db/schema.server");
+
   const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.challenges.$challengeId" });
   logger.info("loader_start");
   const ch = await db(context.cloudflare.env.DB).select().from(challenges).where(eq(challenges.id, params.challengeId)).limit(1);
@@ -19,6 +20,10 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
   return { challenge: ch[0] };
 }
 export async function action({ params, request, context }: Route.ActionArgs) {
+  const { db } = await import("~/db/client.server");
+  const { createLogger } = await import("~/lib/logger.server");
+  const { challenges } = await import("~/db/schema.server");
+
   const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.challenges.$challengeId" });
   const f = await request.formData();
   logger.info("action_start", { intent: "update_challenge" });

@@ -21,18 +21,8 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { Textarea } from "~/components/ui/textarea";
-import { db } from "~/db/client.server";
-import { saveSentence } from "~/db/queries/sentences.server";
-import { learnerProfiles, questions, records, responses, sentences, stages } from "~/db/schema.server";
-import { createSelfAnswer, getSelfAnswersByRecord } from "~/db/queries/selfAnswers.server";
-import { getLinkedRecords } from "~/db/queries/records.server";
-import { getIncomingLinks } from "~/db/queries/recordLinks.server";
-import { getTagsByRecord } from "~/db/queries/tags.server";
 import { requireVerified } from "~/lib/auth.middleware";
-import { getPlainText, renderContentToHtml } from "~/lib/content.server";
 import { normalizeContentFormat } from "~/lib/editor-extensions";
-import { createLogger } from "~/lib/logger.server";
-import { nanoid } from "~/lib/utils.server";
 import { createResponseSchema, saveSentenceSchema } from "~/lib/validation";
 import { getOptionalUser } from "~/lib/auth.middleware";
 
@@ -55,6 +45,17 @@ export async function clientAction({ params, serverAction }: Route.ClientActionA
 }
 
 export async function loader({ params, context, request }: Route.LoaderArgs) {
+  const { db } = await import("~/db/client.server");
+  const { saveSentence } = await import("~/db/queries/sentences.server");
+  const { learnerProfiles, questions, records, responses, sentences, stages } = await import("~/db/schema.server");
+  const { createSelfAnswer, getSelfAnswersByRecord } = await import("~/db/queries/selfAnswers.server");
+  const { getLinkedRecords } = await import("~/db/queries/records.server");
+  const { getIncomingLinks } = await import("~/db/queries/recordLinks.server");
+  const { getTagsByRecord } = await import("~/db/queries/tags.server");
+  const { getPlainText, renderContentToHtml } = await import("~/lib/content.server");
+  const { createLogger } = await import("~/lib/logger.server");
+  const { nanoid } = await import("~/lib/utils.server");
+
   const { recordSlug } = params;
   const logger = createLogger(request, context.cloudflare.env).child({ route: "logs_detail" });
   logger.info("loader_start");
@@ -174,6 +175,17 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
+  const { db } = await import("~/db/client.server");
+  const { saveSentence } = await import("~/db/queries/sentences.server");
+  const { learnerProfiles, questions, records, responses, sentences, stages } = await import("~/db/schema.server");
+  const { createSelfAnswer, getSelfAnswersByRecord } = await import("~/db/queries/selfAnswers.server");
+  const { getLinkedRecords } = await import("~/db/queries/records.server");
+  const { getIncomingLinks } = await import("~/db/queries/recordLinks.server");
+  const { getTagsByRecord } = await import("~/db/queries/tags.server");
+  const { getPlainText, renderContentToHtml } = await import("~/lib/content.server");
+  const { createLogger } = await import("~/lib/logger.server");
+  const { nanoid } = await import("~/lib/utils.server");
+
   const logger = createLogger(request, context.cloudflare.env).child({ route: "logs_detail" });
   const auth = await requireVerified(request, context);
   const formData = await request.formData();

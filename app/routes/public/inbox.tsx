@@ -1,9 +1,6 @@
 import type { Route } from "./+types/inbox";
-import { db } from "~/db/client.server";
-import { notifications } from "~/db/schema.server";
 import { eq, and, desc } from "drizzle-orm";
 import { requireAuth } from "~/lib/auth.middleware";
-import { createLogger } from "~/lib/logger.server";
 import HeroSection from "~/components/HeroSection";
 import EmptyState from "~/components/EmptyState";
 import { Link } from "~/components/SmartLink";
@@ -15,6 +12,10 @@ export function meta(_args: Route.MetaArgs) {
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {
+  const { db } = await import("~/db/client.server");
+  const { notifications } = await import("~/db/schema.server");
+  const { createLogger } = await import("~/lib/logger.server");
+
   const logger = createLogger(request, context.cloudflare.env).child({ route: "inbox" });
   logger.info("loader_start");
   const auth = await requireAuth(request, context);
@@ -36,6 +37,10 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
+  const { db } = await import("~/db/client.server");
+  const { notifications } = await import("~/db/schema.server");
+  const { createLogger } = await import("~/lib/logger.server");
+
   const logger = createLogger(request, context.cloudflare.env).child({ route: "inbox" });
   const auth = await requireAuth(request, context);
   const formData = await request.formData();

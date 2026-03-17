@@ -1,8 +1,5 @@
 import type { Route } from "./+types/index";
 import { Link } from "~/components/SmartLink";
-import { db } from "~/db/client.server";
-import { createLogger } from "~/lib/logger.server";
-import { stages } from "~/db/schema.server";
 import { sql } from "drizzle-orm";
 import EmptyState from "~/components/EmptyState";
 import {
@@ -22,6 +19,10 @@ function formatDate(timestamp: number | null): string {
 
 export function meta(_: Route.MetaArgs) { return [{ title: "Stage 관리" }]; }
 export async function loader({ request, context }: Route.LoaderArgs) {
+  const { db } = await import("~/db/client.server");
+  const { createLogger } = await import("~/lib/logger.server");
+  const { stages } = await import("~/db/schema.server");
+
   const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.stages" });
   logger.info("loader_start");
   return { stages: await db(context.cloudflare.env.DB).select().from(stages).orderBy(sql`"order" ASC`) };

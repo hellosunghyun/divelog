@@ -1,8 +1,6 @@
 import { data } from "react-router";
 import type { Route } from "./+types/$stageSlug";
 import { Link } from "~/components/SmartLink";
-import { db } from "~/db/client.server";
-import { stages, records, questions, collaborationUnits, learnerProfiles, collectiveMemories } from "~/db/schema.server";
 import { eq, and, desc, sql } from "drizzle-orm";
 import HeroSection from "~/components/HeroSection";
 import SceneCard from "~/components/SceneCard";
@@ -10,11 +8,14 @@ import QuestionCard from "~/components/QuestionCard";
 import CollaborationUnitCard from "~/components/CollaborationUnitCard";
 import EmptyState from "~/components/EmptyState";
 import StageStrip from "~/components/StageStrip";
-import { createLogger } from "~/lib/logger.server";
 
 const cache = new Map<string, unknown>();
 
 export async function loader({ params, request, context }: Route.LoaderArgs) {
+  const { db } = await import("~/db/client.server");
+  const { stages, records, questions, collaborationUnits, learnerProfiles, collectiveMemories } = await import("~/db/schema.server");
+  const { createLogger } = await import("~/lib/logger.server");
+
   const { stageSlug } = params;
   const logger = createLogger(request, context.cloudflare.env).child({ route: "journey_stage_detail" });
   logger.info("loader_start");

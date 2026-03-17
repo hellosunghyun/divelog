@@ -1,8 +1,5 @@
 import { redirect } from "react-router";
 import type { Route } from "./+types/curation";
-import { db } from "~/db/client.server";
-import { createLogger } from "~/lib/logger.server";
-import { curationSlots } from "~/db/schema.server";
 import { desc, eq } from "drizzle-orm";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
@@ -27,11 +24,19 @@ type CurationSlot = typeof curationSlots.$inferSelect;
 
 export function meta(_: Route.MetaArgs) { return [{ title: "큐레이션" }]; }
 export async function loader({ request, context }: Route.LoaderArgs) {
+  const { db } = await import("~/db/client.server");
+  const { createLogger } = await import("~/lib/logger.server");
+  const { curationSlots } = await import("~/db/schema.server");
+
   const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.curation" });
   logger.info("loader_start");
   return { slots: await db(context.cloudflare.env.DB).select().from(curationSlots).orderBy(desc(curationSlots.position)) };
 }
 export async function action({ request, context }: Route.ActionArgs) {
+  const { db } = await import("~/db/client.server");
+  const { createLogger } = await import("~/lib/logger.server");
+  const { curationSlots } = await import("~/db/schema.server");
+
   const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.curation" });
   const f = await request.formData();
   const intent = f.get("intent");

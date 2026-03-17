@@ -1,13 +1,10 @@
 import type { Route } from "./+types/$tagSlug";
 import { Link } from "~/components/SmartLink";
 import { data } from "react-router";
-import { getTagBySlug, getRecordsByTag } from "~/db/queries/tags.server";
-import { getPlainText } from "~/lib/content.server";
 import { normalizeContentFormat } from "~/lib/editor-extensions";
 import SceneCard from "~/components/SceneCard";
 import EmptyState from "~/components/EmptyState";
 import HeroSection from "~/components/HeroSection";
-import { createLogger } from "~/lib/logger.server";
 
 export function meta({ data: loaderData }: Route.MetaArgs) {
   if (!loaderData?.tag) {
@@ -21,6 +18,10 @@ export function meta({ data: loaderData }: Route.MetaArgs) {
 }
 
 export async function loader({ params, request, context }: Route.LoaderArgs) {
+  const { getTagBySlug, getRecordsByTag } = await import("~/db/queries/tags.server");
+  const { getPlainText } = await import("~/lib/content.server");
+  const { createLogger } = await import("~/lib/logger.server");
+
   const { tagSlug } = params;
   const logger = createLogger(request, context.cloudflare.env).child({ route: "tag_detail" });
   logger.info("loader_start");

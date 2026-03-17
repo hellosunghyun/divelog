@@ -41,6 +41,7 @@ export default function SortBar({ options = DEFAULT_SORT_OPTIONS }: SortBarProps
         }}
       >
         <SelectTrigger
+          aria-label="정렬 방식"
           className={cn(
             "h-9 min-w-36 rounded-lg border-border bg-surface px-3 py-2 text-sm shadow-none",
             "transition-premium active:scale-[0.98]",

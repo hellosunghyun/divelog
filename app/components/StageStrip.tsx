@@ -75,11 +75,10 @@ export default function StageStrip({ stages, currentStageSlug }: StageStripProps
         } else if (isPast || stage.status === "completed") {
           stateClasses = cn(
             "bg-surface-secondary/70",
-            "text-text-tertiary",
+            "text-text-secondary",
             "border border-border-subtle",
-            "opacity-60",
             "font-normal",
-            "hover:opacity-80 hover:bg-surface-secondary"
+            "hover:bg-surface-secondary hover:text-text-primary"
           );
         } else if (isFuture || stage.status === "upcoming") {
           stateClasses = cn(
