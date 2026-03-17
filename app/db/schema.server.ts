@@ -117,6 +117,8 @@ export const records = sqliteTable("records", {
   moderationStatus: text("moderation_status").notNull().default("clean"),
   moderationNote: text("moderation_note"),
   cohort: text("cohort"),
+  recordedAt: integer("recorded_at"),
+  recordedEndAt: integer("recorded_end_at"),
   createdAt: integer("created_at").notNull().default(now()),
   updatedAt: integer("updated_at").notNull().default(now()),
 });

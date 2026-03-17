@@ -43,6 +43,13 @@
       "when": 1773763200000,
       "tag": "0005_ux_reflection_overhaul",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1773849600000,
+      "tag": "0006_add_recorded_at_to_records",
+      "breakpoints": true
     }
   ]
 }
