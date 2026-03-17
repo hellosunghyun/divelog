@@ -416,7 +416,7 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
                           {row.title}
                         </h3>
                       </Link>
-                      <p className="text-text-secondary text-base font-light leading-relaxed mb-6 flex-grow line-clamp-4">{row.snippet}</p>
+                      <p className="text-text-secondary text-base font-light leading-relaxed mb-6 flex-grow line-clamp-4" suppressHydrationWarning>{row.snippet}</p>
                       <div className="pt-5 border-t border-border-subtle flex items-center justify-between">
                         <div className="flex items-center gap-2.5">
                           {row.author?.profilePhotoUrl ? (
