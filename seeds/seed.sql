@@ -34,18 +34,18 @@ INSERT INTO stages (
   start_date, end_date, is_current, hero_content, cohort, created_at, updated_at
 ) VALUES
   ('stage-prelude', 'Prelude', 'prelude', 'prelude', 'completed', '무엇을 깊이 들여다보고 싶은지 천천히 알아가는 시기입니다. 아직 문장이 흐릿해도 괜찮습니다.', 'prelude', 1, 1773014400, 1773360000, 0, '완성된 답보다 오래 붙들고 싶은 질문을 찾아봅니다.', 'cohort-2026', 1773014400, 1773014400),
-  ('stage-challenge-1', 'Challenge 1', 'challenge-1', 'challenge', 'active', 'CBL을 통해 기본 역량을 쌓고 탐구의 기초를 다지는 시기입니다.', 'challenge', 2, 1773446400, 1775692800, 1, 'Learn basic skills with CBL', 'cohort-2026', 1773446400, 1773446400),
-  ('stage-bridge-1', 'Bridge 1', 'bridge-1', 'bridge', 'upcoming', '첫 도전을 지나 더 또렷한 질문으로 건너가는 시기입니다.', 'bridge', 3, 1775779200, 1776902400, 0, '지금까지의 기록을 돌아보며 다음 탐구를 준비합니다.', 'cohort-2026', 1775779200, 1775779200),
-  ('stage-challenge-2', 'Challenge 2', 'challenge-2', 'challenge', 'upcoming', '나의 기술을 한 단계 더 발전시키는 시기입니다.', 'challenge', 4, 1776988800, 1780617600, 0, 'Improve my skills', 'cohort-2026', 1776988800, 1776988800),
-  ('stage-bridge-2', 'Bridge 2', 'bridge-2', 'bridge', 'upcoming', '도전에서 얻은 감각을 정리하고 다음 구간을 준비하는 시기입니다.', 'bridge', 5, 1780704000, 1781222400, 0, '이전 기록을 다시 읽으며 다음 질문을 남깁니다.', 'cohort-2026', 1780704000, 1780704000),
-  ('stage-challenge-3', 'Challenge 3', 'challenge-3', 'challenge', 'upcoming', 'Apple 기술을 탐구하며 더 깊은 질문을 던지는 시기입니다.', 'challenge', 6, 1781308800, 1784160000, 0, 'Apple Technology', 'cohort-2026', 1781308800, 1781308800),
-  ('stage-bridge-3', 'Bridge 3', 'bridge-3', 'bridge', 'upcoming', '기술 탐구를 되돌아보며 사용자 경험으로 시선을 넓히는 시기입니다.', 'bridge', 7, 1784246400, 1784851200, 0, '기술과 사용자의 접점을 생각합니다.', 'cohort-2026', 1784246400, 1784246400),
-  ('stage-challenge-4', 'Challenge 4', 'challenge-4', 'challenge', 'upcoming', '사용자 경험을 이해하고 공감의 시선을 기르는 시기입니다.', 'challenge', 8, 1784937600, 1785283200, 0, 'Understanding User Experience', 'cohort-2026', 1784937600, 1784937600),
-  ('stage-bridge-4', 'Bridge 4', 'bridge-4', 'bridge', 'upcoming', 'UX 탐구를 정리하고 AI 시대의 질문으로 전환하는 시기입니다.', 'bridge', 9, 1785369600, 1787097600, 0, '경험을 정리하며 다음 탐구를 설계합니다.', 'cohort-2026', 1785369600, 1785369600),
-  ('stage-challenge-5', 'Challenge 5', 'challenge-5', 'challenge', 'upcoming', 'AI 시대를 준비하며 새로운 가능성을 탐색하는 시기입니다.', 'challenge', 10, 1787184000, 1787702400, 0, 'Preparing for AI era', 'cohort-2026', 1787184000, 1787184000),
-  ('stage-bridge-5', 'Bridge 5', 'bridge-5', 'bridge', 'upcoming', 'AI 탐구를 마무리하고 최종 도전을 준비하는 시기입니다.', 'bridge', 11, 1787788800, 1788134400, 0, '지금까지의 여정을 하나로 엮어봅니다.', 'cohort-2026', 1787788800, 1787788800),
-  ('stage-challenge-6', 'Challenge 6', 'challenge-6', 'challenge', 'upcoming', '아홉 달의 모든 배움을 모아 최종 도전에 임하는 시기입니다.', 'challenge', 12, 1788220800, 1792627200, 0, 'Final Challenge', 'cohort-2026', 1788220800, 1788220800),
-  ('stage-epilogue', 'Epilogue', 'epilogue', 'epilogue', 'upcoming', '아홉 달의 흐름을 돌아보며 다음 여정을 상상하는 시기입니다.', 'epilogue', 13, 1792713600, 1794182400, 0, '지나온 기록을 엮어 나만의 결을 발견합니다.', 'cohort-2026', 1792713600, 1792713600);
+  ('stage-challenge-1', 'Challenge 1', 'challenge-1', 'challenge', 'active', 'CBL을 통해 기본 역량을 쌓고 탐구의 기초를 다지는 시기입니다.', 'challenge', 2, 1773619200, 1775174400, 1, 'Learn basic skills with CBL', 'cohort-2026', 1773619200, 1773619200),
+  ('stage-bridge-1', 'Bridge 1', 'bridge-1', 'bridge', 'upcoming', '첫 도전을 지나 더 또렷한 질문으로 건너가는 시기입니다.', 'bridge', 3, 1775433600, 1775779200, 0, '지금까지의 기록을 돌아보며 다음 탐구를 준비합니다.', 'cohort-2026', 1775433600, 1775433600),
+  ('stage-challenge-2', 'Challenge 2', 'challenge-2', 'challenge', 'upcoming', '나의 기술을 한 단계 더 발전시키는 시기입니다.', 'challenge', 4, 1776038400, 1776988800, 0, 'Improve my skills', 'cohort-2026', 1776038400, 1776038400),
+  ('stage-bridge-2', 'Bridge 2', 'bridge-2', 'bridge', 'upcoming', '도전에서 얻은 감각을 정리하고 다음 구간을 준비하는 시기입니다.', 'bridge', 5, 1777248000, 1777593600, 0, '이전 기록을 다시 읽으며 다음 질문을 남깁니다.', 'cohort-2026', 1777248000, 1777248000),
+  ('stage-challenge-3', 'Challenge 3', 'challenge-3', 'challenge', 'upcoming', 'Apple 기술을 탐구하며 더 깊은 질문을 던지는 시기입니다.', 'challenge', 6, 1777852800, 1781136000, 0, 'Apple Technology', 'cohort-2026', 1777852800, 1777852800),
+  ('stage-bridge-3', 'Bridge 3', 'bridge-3', 'bridge', 'upcoming', '기술 탐구를 되돌아보며 사용자 경험으로 시선을 넓히는 시기입니다.', 'bridge', 7, 1781481600, 1781827200, 0, '기술과 사용자의 접점을 생각합니다.', 'cohort-2026', 1781481600, 1781481600),
+  ('stage-challenge-4', 'Challenge 4', 'challenge-4', 'challenge', 'upcoming', '사용자 경험을 이해하고 공감의 시선을 기르는 시기입니다.', 'challenge', 8, 1782086400, 1784851200, 0, 'Understanding User Experience', 'cohort-2026', 1782086400, 1782086400),
+  ('stage-bridge-4', 'Bridge 4', 'bridge-4', 'bridge', 'upcoming', 'UX 탐구를 정리하고 AI 시대의 질문으로 전환하는 시기입니다.', 'bridge', 9, 1785110400, 1785456000, 0, '경험을 정리하며 다음 탐구를 설계합니다.', 'cohort-2026', 1785110400, 1785110400),
+  ('stage-challenge-5', 'Challenge 5', 'challenge-5', 'challenge', 'upcoming', 'AI 시대를 준비하며 새로운 가능성을 탐색하는 시기입니다.', 'challenge', 10, 1785715200, 1787270400, 0, 'Preparing for AI era', 'cohort-2026', 1785715200, 1785715200),
+  ('stage-bridge-5', 'Bridge 5', 'bridge-5', 'bridge', 'upcoming', 'AI 탐구를 마무리하고 최종 도전을 준비하는 시기입니다.', 'bridge', 11, 1787529600, 1787875200, 0, '지금까지의 여정을 하나로 엮어봅니다.', 'cohort-2026', 1787529600, 1787529600),
+  ('stage-challenge-6', 'Challenge 6', 'challenge-6', 'challenge', 'upcoming', '아홉 달의 모든 배움을 모아 최종 도전에 임하는 시기입니다.', 'challenge', 12, 1788134400, 1795132800, 0, 'Final Challenge', 'cohort-2026', 1788134400, 1788134400),
+  ('stage-epilogue', 'Epilogue', 'epilogue', 'epilogue', 'upcoming', '아홉 달의 흐름을 돌아보며 다음 여정을 상상하는 시기입니다.', 'epilogue', 13, 1795392000, 1796688000, 0, '지나온 기록을 엮어 나만의 결을 발견합니다.', 'cohort-2026', 1795392000, 1795392000);
 
 INSERT INTO learner_profiles (
   user_id,
