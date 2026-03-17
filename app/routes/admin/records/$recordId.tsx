@@ -6,7 +6,9 @@ import { Label } from "~/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
 import { Textarea } from "~/components/ui/textarea";
 import { Badge } from "~/components/ui/badge";
+import { RevisionTimeline } from "~/components/revision/RevisionTimeline";
 import { normalizeContentFormat } from "~/lib/content/editor-extensions";
+import { getRevisionsByRecord } from "~/db/queries/records/revisions.server";
 import { eq, desc } from "drizzle-orm";
 
 export async function loader({ params, request, context }: Route.LoaderArgs) {
@@ -45,6 +47,9 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
 
   const plainTextPreview = getPlainText(record[0].content, normalizeContentFormat(record[0].format));
 
+  const revisions = await getRevisionsByRecord(context.cloudflare.env.DB, record[0].id);
+  const revisionCount = revisions.length;
+
   return {
     record: record[0],
     author: author[0] ?? null,
@@ -53,6 +58,8 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
     questions: relatedQuestions,
     responses: relatedResponses,
     plainTextPreview,
+    revisions,
+    revisionCount,
   };
 }
 
@@ -102,7 +109,7 @@ const getModerationBadgeVariant = (
 };
 
 export default function AdminRecordDetailPage({ loaderData }: Route.ComponentProps) {
-  const { record, author, stage, challenge, questions, responses, plainTextPreview } = loaderData;
+  const { record, author, stage, challenge, questions, responses, plainTextPreview, revisions, revisionCount } = loaderData;
 
   return (
     <div>
@@ -160,6 +167,19 @@ export default function AdminRecordDetailPage({ loaderData }: Route.ComponentPro
               </p>
             </div>
           </div>
+
+          {revisionCount > 0 && (
+            <section className="bg-admin-surface rounded-lg p-5 border border-admin-border">
+              <h3 className="text-base font-semibold text-admin-text mb-3">
+                수정 이력 ({revisionCount}건)
+              </h3>
+              <RevisionTimeline
+                revisions={revisions}
+                currentRecord={record as Record<string, unknown>}
+                currentTags={[]}
+              />
+            </section>
+          )}
 
           {questions.length > 0 && (
             <div className="bg-admin-surface rounded-lg p-5 border border-admin-border">

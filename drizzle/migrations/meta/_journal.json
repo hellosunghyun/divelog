@@ -50,6 +50,13 @@
       "when": 1773849600000,
       "tag": "0006_add_recorded_at_to_records",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1741000000000,
+      "tag": "0007_add_record_revisions",
+      "breakpoints": true
     }
   ]
 }

@@ -286,6 +286,21 @@ export const auditLogs = sqliteTable("audit_logs", {
   createdAt: integer("created_at").notNull().default(now()),
 });
 
+export const recordRevisions = sqliteTable("record_revisions", {
+  id: text("id").primaryKey(),
+  recordId: text("record_id")
+    .notNull()
+    .references(() => records.id, { onDelete: "cascade" }),
+  authorId: text("author_id")
+    .notNull()
+    .references(() => learnerProfiles.userId),
+  revisionNumber: integer("revision_number").notNull(),
+  snapshot: text("snapshot").notNull(),
+  changedFields: text("changed_fields").notNull(),
+  tagsSnapshot: text("tags_snapshot"),
+  createdAt: integer("created_at").notNull().default(now()),
+});
+
 export const settings = sqliteTable("settings", {
   id: text("id").primaryKey(),
   key: text("key").notNull().unique(),

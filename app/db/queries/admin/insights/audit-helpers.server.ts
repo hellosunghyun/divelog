@@ -4,31 +4,27 @@ import { auditLogs } from "~/db/schema.server";
 
 export interface AuditLogParams {
   actorId: string;
-  targetType: string; // "record" | "response" | "question" | "stage" | ...
+  targetType: string;
   targetId: string;
-  action: string; // "create" | "update" | "delete" | "publish" | ...
+  action: string;
   beforeState?: Record<string, unknown> | null;
   afterState?: Record<string, unknown> | null;
 }
 
-export async function createAuditLog(d1: D1Database, params: AuditLogParams): Promise<string> {
-  const database = db(d1);
-  const id = nanoid();
-  const now = Math.floor(Date.now() / 1000);
-
-  const beforeStateStr = params.beforeState ? JSON.stringify(params.beforeState) : null;
-  const afterStateStr = params.afterState ? JSON.stringify(params.afterState) : null;
-
-  await database.insert(auditLogs).values({
-    id,
-    actorId: params.actorId,
-    targetType: params.targetType,
-    targetId: params.targetId,
-    action: params.action,
-    beforeState: beforeStateStr,
-    afterState: afterStateStr,
-    createdAt: now,
-  });
-
-  return id;
+export async function createAuditLog(d1: D1Database, params: AuditLogParams): Promise<void> {
+  try {
+    const database = db(d1);
+    await database.insert(auditLogs).values({
+      id: nanoid(),
+      actorId: params.actorId,
+      targetType: params.targetType,
+      targetId: params.targetId,
+      action: params.action,
+      beforeState: params.beforeState != null ? JSON.stringify(params.beforeState) : null,
+      afterState: params.afterState != null ? JSON.stringify(params.afterState) : null,
+      createdAt: Math.floor(Date.now() / 1000),
+    });
+  } catch (err) {
+    console.error("[audit] Failed to create audit log:", err);
+  }
 }

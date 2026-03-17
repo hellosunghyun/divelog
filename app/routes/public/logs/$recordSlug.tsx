@@ -10,6 +10,8 @@ import ResponseCard from "~/components/cards/ResponseCard";
 import SelfAnswerCard from "~/components/cards/SelfAnswerCard";
 import SceneCard from "~/components/cards/SceneCard";
 import { ContentRenderer } from "~/components/content/ContentRenderer";
+import { EditedIndicator } from "~/components/ui/EditedIndicator";
+import { RevisionTimeline } from "~/components/revision/RevisionTimeline";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
@@ -47,11 +49,12 @@ export async function clientAction({ params, serverAction }: Route.ClientActionA
 export async function loader({ params, context, request }: Route.LoaderArgs) {
   const { db } = await import("~/db/client.server");
   const { saveSentence } = await import("~/db/queries/records/sentences.server");
-  const { learnerProfiles, questions, records, responses, sentences, stages } = await import("~/db/schema.server");
+  const { learnerProfiles, questions, records, responses, sentences, stages, userRoles } = await import("~/db/schema.server");
   const { createSelfAnswer, getSelfAnswersByRecord } = await import("~/db/queries/dialogue/selfAnswers.server");
   const { getLinkedRecords } = await import("~/db/queries/records/records.server");
   const { getIncomingLinks } = await import("~/db/queries/records/recordLinks.server");
   const { getTagsByRecord } = await import("~/db/queries/records/tags.server");
+  const { getRevisionsByRecord } = await import("~/db/queries/records/revisions.server");
   const { getPlainText, renderContentToHtml } = await import("~/lib/content/content.server");
   const { createLogger } = await import("~/lib/infra/logger.server");
   const { nanoid } = await import("~/lib/utils/utils.server");
@@ -144,6 +147,23 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
   const selfAnswersData = await getSelfAnswersByRecord(context.cloudflare.env.DB, recordData.record.id);
   const recordTags = await getTagsByRecord(context.cloudflare.env.DB, recordData.record.id);
 
+  // Check if current user is author or admin to show revisions
+  let isAdmin = false;
+  if (optionalAuth?.isAuthenticated) {
+    const adminRole = await database
+      .select()
+      .from(userRoles)
+      .where(and(eq(userRoles.userId, optionalAuth.user.id), eq(userRoles.role, "admin")))
+      .limit(1);
+    isAdmin = adminRole.length > 0;
+  }
+  const isAuthorOrAdmin = isAuthor || isAdmin;
+
+  // Fetch revisions only if user is author or admin
+  const revisions = isAuthorOrAdmin
+    ? await getRevisionsByRecord(context.cloudflare.env.DB, recordData.record.id)
+    : [];
+
   let incomingLinks: Awaited<ReturnType<typeof getIncomingLinks>> = [];
   try {
     incomingLinks = await getIncomingLinks(context.cloudflare.env.DB, recordData.record.id);
@@ -171,6 +191,8 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
     currentUserId,
     contentHtml,
     plainTextContent,
+    revisions,
+    isAuthorOrAdmin,
   };
 }
 
@@ -390,7 +412,7 @@ function isSelectionInsideElement(selection: Selection, element: HTMLElement | n
 }
 
 export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
-  const { record, author, stage, questions: recordQuestions, responses: recordResponses, sentences: recordSentences, linkedRecords, incomingLinks, selfAnswers, tags: recordTags, currentUserId, contentHtml } = loaderData;
+  const { record, author, stage, questions: recordQuestions, responses: recordResponses, sentences: recordSentences, linkedRecords, incomingLinks, selfAnswers, tags: recordTags, currentUserId, contentHtml, revisions, isAuthorOrAdmin } = loaderData;
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const submit = useSubmit();
@@ -615,6 +637,7 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
           <time className="text-sm text-text-tertiary">
             {new Date(record.createdAt * 1000).toLocaleDateString("ko-KR")}
           </time>
+          <EditedIndicator createdAt={record.createdAt} updatedAt={record.updatedAt} className="ml-1" />
 
           {isRecordAuthor && (
             <Link
@@ -659,6 +682,23 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
           </div>
         ) : null}
       </section>
+
+      {isAuthorOrAdmin && revisions.length > 0 && (
+        <section className="mb-12 border-t border-[var(--color-border)] pt-8">
+          <details>
+            <summary className="text-lg font-semibold text-[var(--color-text-primary)] cursor-pointer select-none">
+              수정 이력 ({revisions.length}건)
+            </summary>
+            <div className="mt-6">
+              <RevisionTimeline
+                revisions={revisions}
+                currentRecord={record as Record<string, unknown>}
+                currentTags={recordTags}
+              />
+            </div>
+          </details>
+        </section>
+      )}
 
       <section className="mb-12">
         <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-8">

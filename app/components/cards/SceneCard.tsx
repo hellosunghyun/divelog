@@ -1,4 +1,5 @@
 import { Link } from "~/components/content/SmartLink";
+import { EditedIndicator } from "~/components/ui/EditedIndicator";
 import { motion } from "~/lib/motion/motion";
 import { fadeUp } from "~/lib/motion/motion-utils";
 import { cn } from "~/lib/utils/cn";
@@ -12,6 +13,7 @@ interface SceneCardProps {
     type: string;
     rhythm?: string;
     createdAt: number;
+    updatedAt?: number;
   };
   contentSnippet?: string;
   author?: {
@@ -110,19 +112,24 @@ export default function SceneCard({
         </p>
 
         <div className="flex items-center justify-between mt-2 border-t border-border-subtle pt-4">
-          {author && (
-            author.slug ? (
-              <Link
-                to={`/learners/${author.slug}`}
-                prefetch="viewport"
-                className="text-meta text-text-secondary no-underline hover:text-ocean-blue transition-colors"
-              >
-                {author.displayName}
-              </Link>
-            ) : (
-              <span className="text-meta text-text-secondary">{author.displayName}</span>
-            )
-          )}
+          <div className="flex flex-col gap-1">
+            {author && (
+              author.slug ? (
+                <Link
+                  to={`/learners/${author.slug}`}
+                  prefetch="viewport"
+                  className="text-meta text-text-secondary no-underline hover:text-ocean-blue transition-colors"
+                >
+                  {author.displayName}
+                </Link>
+              ) : (
+                <span className="text-meta text-text-secondary">{author.displayName}</span>
+              )
+            )}
+            {record.updatedAt && (
+              <EditedIndicator createdAt={record.createdAt} updatedAt={record.updatedAt} />
+            )}
+          </div>
 
           <div className={cn("flex gap-2", author && "ml-auto")}>
             {hasQuestions && (
