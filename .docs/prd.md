@@ -5,7 +5,7 @@
 ## 문서 목적
 
 이 문서는 `divelog.page`를 실제로 설계·디자인·개발·운영하기 위한 **완성형 제품 요구사항 문서**다.
-목표는 ADA Learner의 아홉 달을 단순 게시글 집합이 아니라 **여정으로 읽히는 반성적 아카이브**로 구현하는 것이다.
+목표는 Apple Developer Academy @ POSTECH Learner의 아홉 달을 단순 게시글 집합이 아니라 **여정으로 읽히는 반성적 아카이브**로 구현하는 것이다.
 
 이 문서는 다음을 정의한다.
 
@@ -22,7 +22,7 @@
 
 ## 제품 정의
 
-`divelog.page`는 ADA Learner가 아홉 달의 경험을 **자기 서사로 해석하고**, 코호트가 그 시간을 **공동 기억으로 남기도록 돕는 Journey-first reflective archive**다.
+`divelog.page`는 Apple Developer Academy @ POSTECH Learner가 아홉 달의 경험을 **자기 서사로 해석하고**, 코호트가 그 시간을 **공동 기억으로 남기도록 돕는 Journey-first reflective archive**다.
 
 이 제품은 블로그가 아니다.
 SNS도 아니고, 포트폴리오 전시판도 아니며, 일반적인 팀 위키도 아니다.
@@ -39,7 +39,7 @@ SNS도 아니고, 포트폴리오 전시판도 아니며, 일반적인 팀 위�
 
 ## 배경과 전략적 근거
 
-ADA 공식 소개는 프로그램을 `Pathway`라는 언어로 설명한다. Pathway는 “정답을 따라가는 길”이 아니라, Learner가 자신의 속도로 강점을 발견하고 탐색과 실행을 통해 방향을 만들어 가는 **개인화된 성장 여정**이다. 공식 페이지는 아카데미 프로그램이 **아홉 달 동안의 몰입형 실전 앱 개발 경험**이며, `challenge by challenge`로 전문성이 자라고, Apple의 Challenge Based Learning 위에서 팀 구성, 실제 문제 발견, 조사, 해결책 구축을 Learner가 직접 이끈다고 설명한다. 또한 커리큘럼은 매년 learner needs와 mentor expertise를 반영해 다시 구성된다고 밝힌다. 이 제품은 이 공식 구조와 언어를 그대로 반영해야 한다. ([Apple Developer Academy @ POSTECH][1])
+Apple Developer Academy @ POSTECH 공식 소개는 프로그램을 `Pathway`라는 언어로 설명한다. Pathway는 “정답을 따라가는 길”이 아니라, Learner가 자신의 속도로 강점을 발견하고 탐색과 실행을 통해 방향을 만들어 가는 **개인화된 성장 여정**이다. 공식 페이지는 아카데미 프로그램이 **아홉 달 동안의 몰입형 실전 앱 개발 경험**이며, `challenge by challenge`로 전문성이 자라고, Apple의 Challenge Based Learning 위에서 팀 구성, 실제 문제 발견, 조사, 해결책 구축을 Learner가 직접 이끈다고 설명한다. 또한 커리큘럼은 매년 learner needs와 mentor expertise를 반영해 다시 구성된다고 밝힌다. 이 제품은 이 공식 구조와 언어를 그대로 반영해야 한다. ([Apple Developer Academy @ POSTECH][1])
 
 Apple HIG는 인터페이스 설계에서 **명확한 레이아웃**, **가독성 있는 타이포그래피**, **능력과 사용 방식에 관계없이 접근 가능한 경험**, **배경과 전경을 분리하는 material**, **단순하고 plain한 언어**를 강조한다. 따라서 `divelog.page`도 해저 테마를 과장해 전면에 두기보다, 기록을 읽기 쉬운 구조와 여백, 깊이감, 접근성 중심의 UI로 풀어야 한다. ([Apple Developer][2])
 
@@ -49,7 +49,7 @@ Apple HIG는 인터페이스 설계에서 **명확한 레이아웃**, **가독�
 
 ## 해결하려는 문제
 
-ADA 안에서는 실제로 많은 학습과 변화가 일어나지만, 그것이 충분히 남지 않는다.
+Apple Developer Academy @ POSTECH 안에서는 실제로 많은 학습과 변화가 일어나지만, 그것이 충분히 남지 않는다.
 
 Learner는 기록의 중요성을 알고 있지만, 보통 “완성된 긴 글”을 써야 한다는 부담 때문에 시작을 미루게 된다.
 기록이 날짜 중심으로 설계되면 실제 경험의 리듬과 어긋난다.
@@ -857,6 +857,6 @@ Stage와 Challenge, Learner, Collective Memory가 각각 독립된 정보 구조
 
 ## 최종 제품 문장
 
-`divelog.page`는 ADA Learner의 아홉 달을 결과물 중심의 게시판이 아니라, **질문과 전환, 협업과 회고가 함께 남는 Journey-first reflective archive**로 설계한다.
+`divelog.page`는 Apple Developer Academy @ POSTECH Learner의 아홉 달을 결과물 중심의 게시판이 아니라, **질문과 전환, 협업과 회고가 함께 남는 Journey-first reflective archive**로 설계한다.
 이 플랫폼은 기록을 많이 남기게 만드는 곳이 아니라, Learner가 자기 경험을 자기 서사로 이해하고, 코호트가 그 시간을 공동기억으로 남기게 만드는 곳이어야 한다.
 그리고 그 기록 위에는 평가가 아닌 **Dialogue Layer**가 조용히 올라가야 한다.

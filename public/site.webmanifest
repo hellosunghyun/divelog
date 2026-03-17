@@ -1,7 +1,7 @@
 {
   "name": "DiveLog",
   "short_name": "DiveLog",
-  "description": "ADA Learner의 여정을 기록하는 공간",
+  "description": "Apple Developer Academy @ POSTECH Learner의 여정을 기록하는 공간",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#F6F8FB",

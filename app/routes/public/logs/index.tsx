@@ -15,7 +15,7 @@ import { staggerContainer, staggerItem } from "~/lib/motion-utils";
 export function meta({ data: loaderData }: Route.MetaArgs) {
   return [
     { title: "기록 — DiveLog" },
-     { name: "description", content: loaderData?.metaDescription ?? "ADA 러너들의 기록 모음" },
+     { name: "description", content: loaderData?.metaDescription ?? "Apple Developer Academy @ POSTECH 러너들의 기록 모음" },
   ];
 }
 
@@ -112,7 +112,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     : null;
   const metaDescription = firstRecordPlainText
     ? firstRecordPlainText.substring(0, 150) + (firstRecordPlainText.length > 150 ? "…" : "")
-    : "ADA 러너들의 기록 모음";
+    : "Apple Developer Academy @ POSTECH 러너들의 기록 모음";
 
   logger.info("loader_end");
   return {

@@ -12,7 +12,7 @@
 ---
 
 ## 제품 정의
-`divelog.page`는 ADA Learner의 아홉 달을 게시글 목록이 아니라 **Journey-first reflective archive**로 구현하는 웹 애플리케이션이다.
+`divelog.page`는 Apple Developer Academy @ POSTECH Learner의 아홉 달을 게시글 목록이 아니라 **Journey-first reflective archive**로 구현하는 웹 애플리케이션이다.
 
 핵심 구조는 다음과 같다.
 

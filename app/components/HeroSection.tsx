@@ -57,7 +57,7 @@ export default function HeroSection({
           <div className="md:col-span-3 space-y-5 md:space-y-6">
             <motion.div variants={staggerItem}>
               <span className="inline-flex items-center rounded-full px-3 py-1 text-xs uppercase tracking-wide font-medium bg-white/10 text-white/80 backdrop-blur-sm border border-white/20">
-                {badge ?? "ADA Learner 9개월의 여정"}
+                {badge ?? "Apple Developer Academy @ POSTECH Learner 9개월의 여정"}
               </span>
             </motion.div>
 
@@ -105,7 +105,7 @@ export default function HeroSection({
               <img
                 src="/icon.svg"
                 alt=""
-                className="w-full h-full object-cover drop-shadow-lg"
+                className="w-full h-full object-cover drop-shadow-lg scale-[1.2]"
               />
             </div>
           </motion.div>

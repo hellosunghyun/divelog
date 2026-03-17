@@ -797,6 +797,6 @@ Stage 종료 후 생성되는 공동 기억 페이지다.
 
 # 최종 제품 문장
 
-`divelog.page`는 ADA Learner의 아홉 달을 결과물 중심의 게시판이 아니라, **질문과 전환, 협업과 회고가 함께 남는 Journey-first reflective archive**로 설계한다.
+`divelog.page`는 Apple Developer Academy @ POSTECH Learner의 아홉 달을 결과물 중심의 게시판이 아니라, **질문과 전환, 협업과 회고가 함께 남는 Journey-first reflective archive**로 설계한다.
 이 제품은 Learner가 자기 경험을 자기 서사로 이해하고, 코호트가 그 시간을 공동기억으로 남기게 만드는 공간이어야 한다.
 그리고 그 기록 위에는 평가가 아닌 **Dialogue Layer**가 조용히 올라가야 한다.

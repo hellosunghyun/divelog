@@ -1,6 +1,6 @@
 # Divelog
 
-ADA Learner의 아홉 달을 기록하는 **Journey-first reflective archive** 웹 애플리케이션.
+Apple Developer Academy @ POSTECH Learner의 아홉 달을 기록하는 **Journey-first reflective archive** 웹 애플리케이션.
 
 최신 피드가 아니라 여정의 구조가 먼저 보이고, 댓글 대신 Dialogue Layer(공명 / 질문 / 연결 / 제안 / 자기답변)를 사용한다.
 

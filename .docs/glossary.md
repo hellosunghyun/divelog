@@ -3,7 +3,7 @@
 ## 제품 정체성
 
 ### divelog.page
-ADA Learner의 아홉 달을 기록 저장소가 아니라 **Journey-first reflective archive**로 다루는 플랫폼이다.  
+Apple Developer Academy @ POSTECH Learner의 아홉 달을 기록 저장소가 아니라 **Journey-first reflective archive**로 다루는 플랫폼이다.  
 개인 기록, 챌린지 기록, 질문, 응답, 공동 기억을 하나의 흐름 안에서 읽게 만드는 것이 목적이다.
 
 ### Journey-first

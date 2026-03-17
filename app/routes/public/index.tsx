@@ -8,10 +8,10 @@ import ActivityFeed from "~/components/ActivityFeed";
 
 export function meta(_args: Route.MetaArgs) {
   return [
-    { title: "DiveLog — ADA 러너 여정 아카이브" },
-     { name: "description", content: "ADA 러너의 아홉 달을 기록하는 여정 중심 아카이브" },
+    { title: "DiveLog — Apple Developer Academy @ POSTECH 러너 여정 아카이브" },
+     { name: "description", content: "Apple Developer Academy @ POSTECH 러너의 아홉 달을 기록하는 여정 중심 아카이브" },
      { property: "og:title", content: "DiveLog" },
-     { property: "og:description", content: "ADA 러너의 아홉 달을 기록하는 여정 중심 아카이브" },
+     { property: "og:description", content: "Apple Developer Academy @ POSTECH 러너의 아홉 달을 기록하는 여정 중심 아카이브" },
   ];
 }
 

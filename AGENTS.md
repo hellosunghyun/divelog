@@ -8,7 +8,7 @@
 
 ## 제품 개요
 
-ADA Learner의 아홉 달을 **Journey-first reflective archive**로 구현하는 웹 애플리케이션. 최신 피드가 아니라 여정의 구조가 먼저 보이고, 댓글 대신 Dialogue Layer(공명/질문/연결/제안/자기답변)를 사용한다. 좋아요·추천·인기순·랭킹은 **절대 만들지 않는다**.
+Apple Developer Academy @ POSTECH Learner의 아홉 달을 **Journey-first reflective archive**로 구현하는 웹 애플리케이션. 최신 피드가 아니라 여정의 구조가 먼저 보이고, 댓글 대신 Dialogue Layer(공명/질문/연결/제안/자기답변)를 사용한다. 좋아요·추천·인기순·랭킹은 **절대 만들지 않는다**.
 
 ---
 
