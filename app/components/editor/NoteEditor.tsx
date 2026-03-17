@@ -17,8 +17,8 @@ interface NoteEditorProps {
 }
 
 const DEFAULT_MAX_LENGTH = 50000;
-const MIN_HEIGHT_REM = 6;
-const MAX_HEIGHT_VH = 60;
+const MIN_HEIGHT_REM = 16;
+const MAX_HEIGHT_VH = 70;
 
 export function NoteEditor({
   name,

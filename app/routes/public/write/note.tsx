@@ -181,19 +181,32 @@ export default function WriteNotePage({ loaderData }: Route.ComponentProps) {
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto py-16 px-6 max-w-[720px]">
-        <div className="mb-8 flex items-center gap-3">
-          <Link
-            to="/write"
-            className="text-sm text-text-tertiary no-underline hover:text-text-secondary"
-          >
-            ← 돌아가기
-          </Link>
-        </div>
-
-        <h1 className="mb-1 text-2xl font-semibold text-text-primary">짧은 메모</h1>
-        <p className="mb-8 text-base text-text-secondary">떠오르는 생각을 빠르게 남기세요.</p>
-
         <Form method="post" className="flex flex-col gap-5">
+          <div className="flex items-center justify-between">
+            <Link
+              to="/write"
+              className="text-sm text-text-tertiary no-underline hover:text-text-secondary"
+            >
+              ← 돌아가기
+            </Link>
+            <div className="flex items-center gap-3">
+              <span className="text-lg font-semibold text-text-primary">짧은 메모</span>
+              <Link
+                to="/write"
+                className="inline-flex items-center justify-center rounded-md border border-border px-4 py-2 text-sm font-medium text-text-secondary no-underline transition-colors hover:bg-surface-secondary"
+              >
+                취소
+              </Link>
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="h-auto rounded-md px-4 py-2 text-sm font-medium"
+              >
+                {isSubmitting ? "저장 중..." : "저장"}
+              </Button>
+            </div>
+          </div>
+
           <div className="flex flex-wrap items-center gap-4">
             <div>
               <Label
@@ -254,22 +267,6 @@ export default function WriteNotePage({ loaderData }: Route.ComponentProps) {
               error={contentError}
               htmlProps={{ required: true }}
             />
-          </div>
-
-          <div className="flex gap-3 pt-2">
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              className="h-auto rounded-md px-6 py-3 text-base font-medium"
-            >
-              {isSubmitting ? "저장 중..." : "저장"}
-            </Button>
-            <Link
-              to="/write"
-              className="inline-flex items-center justify-center rounded-md border border-border px-6 py-3 text-base font-medium text-text-secondary no-underline transition-colors hover:bg-surface-secondary"
-            >
-              취소
-            </Link>
           </div>
         </Form>
       </div>

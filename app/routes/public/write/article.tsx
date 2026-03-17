@@ -20,7 +20,6 @@ import { requireVerified } from "~/lib/auth.middleware";
 import { createArticleSchema } from "~/lib/validation";
 
 const NO_STAGE_VALUE = "__none__";
-const NO_TEMPLATE_VALUE = "__none__";
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "글쓰기 — DiveLog" }];
@@ -28,7 +27,7 @@ export function meta(_args: Route.MetaArgs) {
 
 export async function loader({ request, context }: Route.LoaderArgs) {
   const { db } = await import("~/db/client.server");
-  const { learnerProfiles, notifications, records, stages, templates } = await import("~/db/schema.server");
+  const { learnerProfiles, notifications, records, stages } = await import("~/db/schema.server");
   const { getPlainText } = await import("~/lib/content.server");
   const { syncMentionsForRecord } = await import("~/db/queries/mentions.server");
   const { syncRecordLinksForRecord } = await import("~/db/queries/recordLinks.server");
@@ -38,10 +37,9 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const auth = await requireVerified(request, context);
 
   const database = db(context.cloudflare.env.DB);
-  const [currentStageResult, allStages, activeTemplates, learnerResult] = await database.batch([
+  const [currentStageResult, allStages, learnerResult] = await database.batch([
     database.select().from(stages).where(eq(stages.isCurrent, true)).limit(1),
     database.select({ id: stages.id, name: stages.name, isCurrent: stages.isCurrent }).from(stages).orderBy(stages.order),
-    database.select().from(templates).where(eq(templates.active, true)),
     database.select().from(learnerProfiles).where(eq(learnerProfiles.userId, auth.user.id)).limit(1),
   ]);
   const learner = learnerResult[0] ?? null;
@@ -49,7 +47,6 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   return {
     currentStage: currentStageResult[0] ?? null,
     stages: allStages,
-    templates: activeTemplates,
     learnerDefaults: {
       defaultVisibility: learner?.defaultVisibility ?? "cohort",
       defaultResponsePreference: learner?.defaultResponsePreference ?? "open",
@@ -59,7 +56,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 
 export async function action({ request, context }: Route.ActionArgs) {
   const { db } = await import("~/db/client.server");
-  const { learnerProfiles, notifications, records, stages, templates } = await import("~/db/schema.server");
+  const { learnerProfiles, notifications, records, stages } = await import("~/db/schema.server");
   const { getPlainText } = await import("~/lib/content.server");
   const { syncMentionsForRecord } = await import("~/db/queries/mentions.server");
   const { syncRecordLinksForRecord } = await import("~/db/queries/recordLinks.server");
@@ -167,11 +164,10 @@ export async function action({ request, context }: Route.ActionArgs) {
 }
 
 export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
-  const { currentStage, stages: availableStages, templates: availableTemplates, learnerDefaults } = loaderData;
+  const { currentStage, stages: availableStages, learnerDefaults } = loaderData;
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const [stageValue, setStageValue] = useState(currentStage?.id ?? NO_STAGE_VALUE);
-  const [templateValue, setTemplateValue] = useState(NO_TEMPLATE_VALUE);
   const [title, setTitle] = useState("");
   const [articleContent, setArticleContent] = useState("");
   const isSubmitting = navigation.state === "submitting";
@@ -184,16 +180,29 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto px-6 py-16 max-w-[720px]">
-        <div className="mb-8 flex items-center gap-3">
-          <Link to="/write" className="text-sm text-text-tertiary no-underline hover:text-text-secondary">
-            ← 돌아가기
-          </Link>
-        </div>
-
-        <h1 className="mb-1 text-2xl font-semibold text-text-primary">글쓰기</h1>
-        <p className="mb-8 text-base text-text-secondary">여유롭게 탐구의 기록을 남기세요.</p>
-
         <Form method="post" className="flex flex-col gap-6">
+          <div className="flex items-center justify-between">
+            <Link to="/write" className="text-sm text-text-tertiary no-underline hover:text-text-secondary">
+              ← 돌아가기
+            </Link>
+            <div className="flex items-center gap-3">
+              <span className="text-lg font-semibold text-text-primary">글쓰기</span>
+              <Link
+                to="/write"
+                className="inline-flex items-center justify-center rounded-md border border-border px-4 py-2 text-sm font-medium text-text-secondary no-underline transition-colors hover:bg-surface-secondary"
+              >
+                취소
+              </Link>
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="h-auto rounded-md px-4 py-2 text-sm font-medium"
+              >
+                {isSubmitting ? "저장 중..." : "저장"}
+              </Button>
+            </div>
+          </div>
+
           <div className="flex flex-wrap items-center gap-4">
             <div>
               <Label
@@ -274,44 +283,6 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
               placeholder="여기에 글을 쓰세요. `/`를 입력하면 블록을 추가할 수 있습니다."
             />
             {contentError ? <p className="mt-1 text-meta text-error">{contentError}</p> : null}
-          </div>
-
-          {availableTemplates.length > 0 && (
-            <div>
-              <Label htmlFor="templateId" className="mb-2 block text-meta font-medium text-text-secondary">
-                템플릿 (선택)
-              </Label>
-              <input type="hidden" name="templateId" value={templateValue === NO_TEMPLATE_VALUE ? "" : templateValue} />
-              <Select value={templateValue} onValueChange={setTemplateValue}>
-                <SelectTrigger id="templateId" className="w-full bg-surface">
-                  <SelectValue placeholder="템플릿 없이 시작" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={NO_TEMPLATE_VALUE}>템플릿 없이 시작</SelectItem>
-                  {availableTemplates.map((tmpl) => (
-                    <SelectItem key={tmpl.id} value={tmpl.id}>
-                      {tmpl.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-
-          <div className="flex gap-3 border-t border-border pt-4">
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              className="h-auto rounded-md px-6 py-3 text-base font-medium"
-            >
-              {isSubmitting ? "저장 중..." : "저장"}
-            </Button>
-            <Link
-              to="/write"
-              className="inline-flex items-center justify-center rounded-md border border-border px-6 py-3 text-base font-medium text-text-secondary no-underline transition-colors hover:bg-surface-secondary"
-            >
-              취소
-            </Link>
           </div>
         </Form>
       </div>
