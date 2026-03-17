@@ -144,7 +144,7 @@ const FORMAT_LABELS: Record<string, string> = {
 const TYPE_LABELS: Record<string, string> = {
   personal: "개인",
   challenge: "챌린지",
-  collaboration: "협업",
+  // [COLLAB_DISABLED] collaboration: "협업",
 };
 
 export default function HomePage({ loaderData }: Route.ComponentProps) {

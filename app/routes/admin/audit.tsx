@@ -107,7 +107,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   return { logs: logsWithDiff, targetType };
 }
 
-const TARGET_TYPES = ["record", "stage", "learner", "response", "challenge", "collaboration", "memory"];
+const TARGET_TYPES = ["record", "stage", "learner", "response", "challenge", /* [COLLAB_DISABLED] "collaboration", */ "memory"];
 
 const ACTION_STYLES: Record<string, { label: string; badge: string }> = {
   create: { label: "생성", badge: adminBadgeSuccess },
@@ -125,7 +125,7 @@ const TARGET_LABELS: Record<string, string> = {
   learner: "러너",
   response: "응답",
   challenge: "챌린지",
-  collaboration: "협업",
+  // [COLLAB_DISABLED] collaboration: "협업",
   memory: "메모리",
 };
 
