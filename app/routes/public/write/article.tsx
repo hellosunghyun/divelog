@@ -18,8 +18,28 @@ import {
 import { useUnsavedWarning } from "~/hooks/useUnsavedWarning";
 import { requireVerified } from "~/lib/auth/auth.middleware";
 import { createArticleSchema } from "~/lib/auth/validation";
+import { cn } from "~/lib/utils/cn";
 
 const NO_STAGE_VALUE = "__none__";
+
+const RHYTHM_OPTIONS = [
+  { value: "free", label: "자유" },
+  { value: "moment", label: "순간" },
+  { value: "sprint", label: "스프린트" },
+  { value: "weekly", label: "주간" },
+  { value: "monthly", label: "월간" },
+  { value: "stage", label: "구간" },
+  { value: "reflection", label: "회고" },
+] as const;
+
+type DateMode = "none" | "single" | "range";
+
+function parseDateToUnix(dateStr: string | undefined): number | null {
+  if (!dateStr) return null;
+  const date = new Date(`${dateStr}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return null;
+  return Math.floor(date.getTime() / 1000);
+}
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "글쓰기 — DiveLog" }];
@@ -79,16 +99,25 @@ export async function action({ request, context }: Route.ActionArgs) {
     contentText = content;
   }
 
+  const recordedAtRaw = formData.get("recordedAt");
+  const recordedEndAtRaw = formData.get("recordedEndAt");
+
   const parsed = createArticleSchema.safeParse({
     title: formData.get("title"),
     content,
+    rhythm: formData.get("rhythm") || "free",
     visibility: formData.get("visibility") || "cohort",
     stageId: formData.get("stageId") || undefined,
+    recordedAt: typeof recordedAtRaw === "string" && recordedAtRaw ? recordedAtRaw : undefined,
+    recordedEndAt: typeof recordedEndAtRaw === "string" && recordedEndAtRaw ? recordedEndAtRaw : undefined,
   });
 
   if (!parsed.success) {
     return { errors: parsed.error.flatten().fieldErrors };
   }
+
+  const recordedAt = parseDateToUnix(parsed.data.recordedAt);
+  const recordedEndAt = parseDateToUnix(parsed.data.recordedEndAt);
 
   const database = db(context.cloudflare.env.DB);
   const id = nanoid();
@@ -110,12 +139,14 @@ export async function action({ request, context }: Route.ActionArgs) {
     contentText,
     format: "article",
     type: "personal",
-    rhythm: "free",
+    rhythm: parsed.data.rhythm,
     visibility: parsed.data.visibility,
     responsePreference,
     stageId: parsed.data.stageId ?? null,
     challengeId: null,
     collaborationUnitId: null,
+    recordedAt,
+    recordedEndAt,
     createdAt: now,
     updatedAt: now,
   });
@@ -170,12 +201,26 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
   const [stageValue, setStageValue] = useState(currentStage?.id ?? NO_STAGE_VALUE);
   const [title, setTitle] = useState("");
   const [articleContent, setArticleContent] = useState("");
+  const [rhythm, setRhythm] = useState("free");
+  const [dateMode, setDateMode] = useState<DateMode>("none");
+  const [recordedAt, setRecordedAt] = useState("");
+  const [recordedEndAt, setRecordedEndAt] = useState("");
   const isSubmitting = navigation.state === "submitting";
   const errors = actionData?.errors;
   const titleError = errors && "title" in errors ? errors.title?.[0] : undefined;
   const contentError = errors && "content" in errors ? errors.content?.[0] : undefined;
 
   useUnsavedWarning(title.length > 0 || articleContent.length > 0);
+
+  function handleDateModeChange(newMode: DateMode) {
+    setDateMode(newMode);
+    if (newMode === "none") {
+      setRecordedAt("");
+      setRecordedEndAt("");
+    } else if (newMode === "single") {
+      setRecordedEndAt("");
+    }
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -257,6 +302,97 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
           </div>
 
           <div>
+            <Label className="mb-2 block text-meta font-medium text-text-secondary">
+              기록 리듬
+            </Label>
+            <input type="hidden" name="rhythm" value={rhythm} />
+            <div className="flex flex-wrap gap-2">
+              {RHYTHM_OPTIONS.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  aria-pressed={rhythm === option.value}
+                  onClick={() => setRhythm(option.value)}
+                  className={cn(
+                    "rounded-full px-3.5 py-1.5 text-sm font-medium border transition-all duration-[var(--duration-fast)]",
+                    "hover:bg-surface-secondary active:scale-[0.98]",
+                    "focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2 focus-visible:outline-none",
+                    rhythm === option.value
+                      ? "bg-mist-blue text-ocean-blue border-ocean-blue/30"
+                      : "bg-surface text-text-secondary border-border",
+                  )}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <Label className="mb-2 block text-meta font-medium text-text-secondary">
+              기록 날짜
+            </Label>
+            <div className="flex flex-col gap-3">
+              <div className="flex gap-2">
+                {([
+                  { mode: "none" as const, label: "지정 안 함" },
+                  { mode: "single" as const, label: "특정일" },
+                  { mode: "range" as const, label: "기간" },
+                ]).map((option) => (
+                  <button
+                    key={option.mode}
+                    type="button"
+                    aria-pressed={dateMode === option.mode}
+                    onClick={() => handleDateModeChange(option.mode)}
+                    className={cn(
+                      "rounded-full px-3.5 py-1.5 text-sm font-medium border transition-all duration-[var(--duration-fast)]",
+                      "hover:bg-surface-secondary active:scale-[0.98]",
+                      "focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2 focus-visible:outline-none",
+                      dateMode === option.mode
+                        ? "bg-mist-blue text-ocean-blue border-ocean-blue/30"
+                        : "bg-surface text-text-secondary border-border",
+                    )}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+
+              {dateMode !== "none" && (
+                <div className="flex flex-wrap items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    {dateMode === "range" && (
+                      <span className="text-sm text-text-tertiary">시작</span>
+                    )}
+                    <Input
+                      type="date"
+                      name="recordedAt"
+                      value={recordedAt}
+                      onChange={(e) => setRecordedAt(e.target.value)}
+                      className="w-auto bg-surface focus-visible:ring-offset-1"
+                      aria-label={dateMode === "range" ? "시작 날짜" : "기록 날짜"}
+                    />
+                  </div>
+                  {dateMode === "range" && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-text-tertiary">끝</span>
+                      <Input
+                        type="date"
+                        name="recordedEndAt"
+                        value={recordedEndAt}
+                        onChange={(e) => setRecordedEndAt(e.target.value)}
+                        min={recordedAt || undefined}
+                        className="w-auto bg-surface focus-visible:ring-offset-1"
+                        aria-label="종료 날짜"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div>
             <Label htmlFor="title" className="mb-2 block text-meta font-medium text-text-secondary">
               제목 <span className="text-error">*</span>
             </Label>
@@ -281,7 +417,7 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
             <ArticleEditor
               name="content"
               content={articleContent}
-              onChange={setArticleContent}
+              onChange={(_json, text) => setArticleContent(text)}
               placeholder="여기에 글을 쓰세요. `/`를 입력하면 블록을 추가할 수 있습니다."
             />
             {contentError ? <p className="mt-1 text-meta text-error">{contentError}</p> : null}
