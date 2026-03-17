@@ -1,7 +1,7 @@
 import { and, desc, eq, like, or, sql } from "drizzle-orm";
 
 import type { CreateRecordInput, RecordFilterInput } from "../../../lib/auth/validation";
-import { compareRecordStates, computeTagDiff } from "../../../lib/utils/record-diff";
+import { compareRecordStates, computeTagDiff, hasActualChanges } from "../../../lib/utils/record-diff";
 import { nanoid } from "../../../lib/utils/utils.server";
 import { createAuditLog } from "../admin/insights/audit-helpers.server";
 import { createRevision, getLatestRevisionNumber } from "./revisions.server";
@@ -177,7 +177,7 @@ export async function updateRecord(
   const fieldChanges = compareRecordStates(currentRecordForDiff, nextRecordState);
   const tagDiff = computeTagDiff(options?.oldTags ?? [], options?.newTags ?? []);
   const hasTagChanges = tagDiff.added.length > 0 || tagDiff.removed.length > 0;
-  const hasChanges = fieldChanges.length > 0 || hasTagChanges;
+  const hasChanges = hasActualChanges(currentRecordForDiff, nextRecordState) || hasTagChanges;
 
   if (!hasChanges) {
     return { updated: false, revisionCreated: false };
