@@ -20,6 +20,7 @@ import {
   adminEmptyDescClass,
 } from "~/components/admin/admin-patterns";
 import { auditLogs } from "~/db/schema.server";
+import { compareRecordStates, formatFieldChange } from "~/lib/utils/record-diff.server";
 
 type AuditLog = typeof auditLogs.$inferSelect;
 
@@ -169,22 +170,96 @@ export default function AdminAuditPage({ loaderData }: Route.ComponentProps) {
                     </td>
                     <td className={`${adminTdClass} max-w-[200px]`}>
                       {log.beforeState || log.afterState ? (
-                        <span className="text-xs text-[var(--color-text-secondary)]">
-                          {log.action === "create" ? "생성됨" :
-                           log.action === "delete" ? "삭제됨" :
-                           `${(() => {
-                             try {
-                               const before = log.beforeState ? JSON.parse(log.beforeState) : {};
-                               const after = log.afterState ? JSON.parse(log.afterState) : {};
-                               const changed = Object.keys({ ...before, ...after }).filter(
-                                 k => JSON.stringify(before[k]) !== JSON.stringify(after[k])
-                               );
-                               return changed.length > 0 ? `${changed.length}개 필드 변경` : "변경 없음";
-                             } catch {
-                               return "상세 정보 있음";
-                             }
-                           })()}`}
-                        </span>
+                        log.targetType === "record" ? (
+                          // Enhanced record diff display
+                          (() => {
+                            try {
+                              const before = log.beforeState ? JSON.parse(log.beforeState) : {};
+                              const after = log.afterState ? JSON.parse(log.afterState) : {};
+
+                              if (log.action === "create") {
+                                return (
+                                  <span className="text-xs text-[var(--color-text-secondary)]">
+                                    기록이 생성되었습니다
+                                  </span>
+                                );
+                              }
+
+                              if (log.action === "delete") {
+                                return (
+                                  <span className="text-xs text-[var(--color-text-secondary)]">
+                                    기록이 삭제되었습니다
+                                  </span>
+                                );
+                              }
+
+                              const changes = compareRecordStates(before, after);
+
+                              if (changes.length === 0) {
+                                return (
+                                  <span className="text-xs text-[var(--color-text-secondary)]">
+                                    변경 없음
+                                  </span>
+                                );
+                              }
+
+                              // Collapsed state: show field names
+                              const fieldNames = changes
+                                .map((c) => {
+                                  const formatted = formatFieldChange(c.field, c.oldValue, c.newValue);
+                                  return formatted.label;
+                                })
+                                .join(", ");
+
+                              return (
+                                <details className="cursor-pointer">
+                                  <summary className="text-xs text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] select-none">
+                                    {fieldNames}
+                                  </summary>
+                                  <div className="mt-2 p-2 bg-[var(--color-surface-secondary)] rounded text-xs space-y-1">
+                                    {changes.map((change) => {
+                                      const formatted = formatFieldChange(
+                                        change.field,
+                                        change.oldValue,
+                                        change.newValue
+                                      );
+                                      return (
+                                        <div
+                                          key={change.field}
+                                          className="text-[var(--color-text-secondary)]"
+                                        >
+                                          <strong>{formatted.label}:</strong> {formatted.summary}
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </details>
+                              );
+                            } catch {
+                              return (
+                                <span className="text-xs text-[var(--color-text-secondary)]">
+                                  상세 정보 있음
+                                </span>
+                              );
+                            }
+                          })()
+                        ) : (
+                          // Non-record types: keep existing behavior
+                          <span className="text-xs text-[var(--color-text-secondary)]">
+                            {(() => {
+                              try {
+                                const before = log.beforeState ? JSON.parse(log.beforeState) : {};
+                                const after = log.afterState ? JSON.parse(log.afterState) : {};
+                                const changed = Object.keys({ ...before, ...after }).filter(
+                                  k => JSON.stringify(before[k]) !== JSON.stringify(after[k])
+                                );
+                                return changed.length > 0 ? `${changed.length}개 필드 변경` : "변경 없음";
+                              } catch {
+                                return "상세 정보 있음";
+                              }
+                            })()}
+                          </span>
+                        )
                       ) : (
                         <span className="text-[var(--color-text-tertiary)]">—</span>
                       )}
