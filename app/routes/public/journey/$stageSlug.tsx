@@ -32,7 +32,7 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
   const allStages = await getStages(context.cloudflare.env.DB);
   
   // existing function: getRecords supports { stage: stage.id }
-  const stageRecords = await getRecords(context.cloudflare.env.DB, { stage: stage.id });
+  const stageRecords = await getRecords(context.cloudflare.env.DB, { stage: stage.id, page: 1 });
   
   // For questions, collaboration, and collectiveMemory, use existing queries or keep batch for ones without explicit functions
   const [stageQuestions, stageCollaborations, collectiveMemoryResult] = await database.batch([
