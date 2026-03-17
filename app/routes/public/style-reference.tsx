@@ -27,15 +27,6 @@ import {
 
 const SHADOW_ICON = Drop;
 
-const fadeUp = {
-  hidden: { opacity: 0, y: 12 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.4, ease: [0.32, 0.72, 0, 1] },
-  },
-};
-
 const fadeIn = {
   hidden: { opacity: 0 },
   visible: {
@@ -44,32 +35,9 @@ const fadeIn = {
   },
 };
 
-const staggerContainer = {
-  hidden: {},
-  visible: {
-    transition: {
-      staggerChildren: 0.05,
-      delayChildren: 0.1,
-    },
-  },
-};
-
-const staggerItem = {
-  hidden: { opacity: 0, y: 8 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.35, ease: [0.32, 0.72, 0, 1] },
-  },
-};
-
 const hoverScale = {
   whileHover: { scale: 1.02 },
   transition: { duration: 0.15, ease: [0.32, 0.72, 0, 1] },
-};
-
-const tapScale = {
-  whileTap: { scale: 0.98 },
 };
 
 function shouldReduceMotion(): boolean {
@@ -365,7 +333,7 @@ function ShadowDemo({ name, cssValue }: { name: string; cssValue: string }) {
 function StageToneCard({
   stage,
   color,
-  bgColor
+  bgColor,
   description,
 }: {
   stage: string;
@@ -421,7 +389,7 @@ function StickyNav() {
             </a>
           ))}
         </div>
-      )}
+      </div>
     </nav>
   );
 }

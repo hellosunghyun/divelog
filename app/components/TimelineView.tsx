@@ -1,5 +1,6 @@
 import { Link } from "~/components/SmartLink";
 import { groupRecordsByDate } from "../lib/date-groups";
+import { cn } from "~/lib/cn";
 
 interface TimelineRecord {
   id: string;
@@ -43,34 +44,46 @@ export default function TimelineView({ records }: TimelineViewProps) {
             {group.label}
           </h3>
 
-          <ol className="ml-2 border-l-2 border-border pl-6 space-y-3">
-            {group.records.map((record) => (
-              <li key={record.id} className="relative">
-                <span
-                  className="absolute -left-[29px] top-[18px] block h-2 w-2 rounded-full bg-reef-cyan"
-                  aria-hidden="true"
-                />
+          <div className="relative ml-4 pl-6">
+            <div
+              className="absolute left-0 top-0 bottom-0 w-px bg-gradient-to-b from-ocean-blue/50 via-border to-transparent"
+              aria-hidden="true"
+            />
 
-                <Link
-                  to={`/logs/${record.slug}`}
-                  className="block rounded-xl border border-border bg-surface px-4 py-3 no-underline transition-colors duration-normal hover:border-mist-blue-deep hover:bg-surface-secondary/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
-                >
-                  <p className="text-base font-semibold text-text-primary leading-title tracking-tight m-0">
-                    {record.title}
-                  </p>
-                  <p className="mt-1 text-sm text-text-secondary leading-body m-0">
-                    {record.contentSnippet}
-                  </p>
+            <ol className="space-y-3">
+              {group.records.map((record) => (
+                <li key={record.id} className="relative">
+                  <span
+                    className="absolute -left-6 top-[18px] w-3 h-3 rounded-full bg-ocean-blue ring-2 ring-surface shadow-tinted-sm"
+                    aria-hidden="true"
+                  />
 
-                  <p className="mt-2 text-sm text-text-tertiary leading-small m-0">
-                    <span>{record.author?.displayName ?? "이름 없는 러너"}</span>
-                    <span className="mx-2" aria-hidden="true">·</span>
-                    <span>{formatRelativeTime(record.createdAt)}</span>
-                  </p>
-                </Link>
-              </li>
-            ))}
-          </ol>
+                  <Link
+                    to={`/logs/${record.slug}`}
+                    className={cn(
+                      "block rounded-xl border border-border bg-surface px-4 py-3 no-underline",
+                      "transition-all duration-normal",
+                      "hover:border-mist-blue-deep hover:bg-surface-secondary/60 hover:shadow-tinted-sm",
+                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
+                    )}
+                  >
+                    <p className="text-base font-semibold text-text-primary leading-title tracking-tight m-0">
+                      {record.title}
+                    </p>
+                    <p className="mt-1 text-sm text-text-secondary leading-body m-0">
+                      {record.contentSnippet}
+                    </p>
+
+                    <p className="mt-2 text-sm text-text-tertiary leading-small m-0">
+                      <span>{record.author?.displayName ?? "이름 없는 러너"}</span>
+                      <span className="mx-2" aria-hidden="true">·</span>
+                      <span>{formatRelativeTime(record.createdAt)}</span>
+                    </p>
+                  </Link>
+                </li>
+              ))}
+            </ol>
+          </div>
         </section>
       ))}
     </div>
