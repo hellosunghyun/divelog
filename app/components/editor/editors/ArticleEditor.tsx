@@ -4,7 +4,7 @@ import { CodeBlockLowlight } from "@tiptap/extension-code-block-lowlight";
 import { Color } from "@tiptap/extension-color";
 import { Highlight } from "@tiptap/extension-highlight";
 import { TextStyle } from "@tiptap/extension-text-style";
-import { ResizableImage } from "./ResizableImage";
+import { ResizableImage } from "../extensions/ResizableImage";
 import { Link as TiptapLink } from "@tiptap/extension-link";
 import { Placeholder } from "@tiptap/extension-placeholder";
 import { Subscript } from "@tiptap/extension-subscript";
@@ -20,10 +20,10 @@ import { Extension, EditorContent, useEditor, type Editor } from "@tiptap/react"
 import { BubbleMenu } from "@tiptap/react/menus";
 import { StarterKit } from "@tiptap/starter-kit";
 import { common, createLowlight } from "lowlight";
-import { Callout } from "./CalloutExtension";
-import { createInlineTagExtension } from "./TagExtension";
-import { TocExtension } from "./TocExtension";
-import { ToggleBlock } from "./ToggleExtension";
+import { Callout } from "../extensions/CalloutExtension";
+import { createInlineTagExtension } from "../extensions/TagExtension";
+import { TocExtension } from "../extensions/TocExtension";
+import { ToggleBlock } from "../extensions/ToggleExtension";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   TextB, TextItalic, TextUnderline, TextStrikethrough, Code, Link, Image, ListNumbers, Quotes,
@@ -34,8 +34,8 @@ import {
 } from "@phosphor-icons/react";
 
 import { createSlashCommandExtension } from "./SlashCommandMenu";
-import { createUserMentionExtension } from "./MentionExtension";
-import { createRecordRefExtension } from "./RecordRefExtension";
+import { createUserMentionExtension } from "../extensions/MentionExtension";
+import { createRecordRefExtension } from "../extensions/RecordRefExtension";
 import {
   Select,
   SelectContent,
@@ -237,7 +237,7 @@ export function ArticleEditor({
   const [isFocused, setIsFocused] = useState(false);
 
   const uploadImage = useCallback(async (file: File): Promise<string> => {
-    const { compressImage } = await import("../../lib/content/compress-image");
+    const { compressImage } = await import("../../../lib/content/compress-image");
     const compressed = await compressImage(file);
 
     const formData = new FormData();

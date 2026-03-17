@@ -4,7 +4,7 @@ import { Link } from "~/components/content/SmartLink";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import type { Route } from "./+types/note";
 
-import { NoteEditor } from "~/components/editor/NoteEditor";
+import { NoteEditor } from "~/components/editor/editors/NoteEditor";
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
 import {

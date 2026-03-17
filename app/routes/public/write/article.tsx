@@ -4,7 +4,7 @@ import { Link } from "~/components/content/SmartLink";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import type { Route } from "./+types/article";
 
-import { ArticleEditor } from "~/components/editor/ArticleEditor";
+import { ArticleEditor } from "~/components/editor/editors/ArticleEditor";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";

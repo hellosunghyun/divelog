@@ -5,8 +5,8 @@ import { useState } from "react";
 
 import type { Route } from "./+types/$recordSlug.edit";
 
-import { ArticleEditor } from "~/components/editor/ArticleEditor";
-import NoteEditor from "~/components/editor/NoteEditor";
+import { ArticleEditor } from "~/components/editor/editors/ArticleEditor";
+import NoteEditor from "~/components/editor/editors/NoteEditor";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
