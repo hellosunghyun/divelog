@@ -1,0 +1,31 @@
+## Task 11 Integration Evidence
+
+### 변경 파일
+- app/routes/public/logs/index.tsx
+
+### 3-way 뷰 전환 코드 스니펫
+```tsx
+const recordsContent =
+  filteredRecords.length === 0 ? (
+    <EmptyState variant="records" message="조건에 맞는 기록이 없습니다." />
+  ) : currentView === "calendar" ? (
+    <CalendarView records={...} month={filters.month} />
+  ) : currentView === "timeline" ? (
+    <TimelineView records={...} stages={...} />
+  ) : (
+    <motion.div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">...</motion.div>
+  );
+```
+
+### 검증 결과
+- parseViewParam 기본값: `timeline` 확인
+- `/logs?view=calendar`: CalendarView 렌더 분기 추가
+- `/logs?view=timeline`: TimelineView(레코드+스테이지) 분기 유지
+- `/logs?view=grid`: 기존 그리드 분기 유지
+- 필터(stage/format/type/rhythm): loader `conditions` 공통 적용 확인
+
+### 명령 실행 결과
+- `pnpm typecheck`: 실패 (기존 pre-existing 타입 에러 유지, 신규 에러 없음)
+  - 주요 위치: `app/components/admin/AdminSidebar.tsx`, `app/routes/admin/*`, `app/db/queries/dialogue/*`, `app/routes/api/__tests__/autosave.test.ts`
+- `pnpm test`: 성공 (18 files, 141 passed)
+- `pnpm build`: 성공 (React Router build + worker patch 완료)

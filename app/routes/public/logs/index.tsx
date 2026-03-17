@@ -6,6 +6,7 @@ import FilterBar from "~/components/filters/FilterBar";
 import SortBar from "~/components/filters/SortBar";
 import ViewToggle, { type RecordView } from "~/components/views/ViewToggle";
 import TimelineView from "~/components/views/TimelineView";
+import CalendarView from "~/components/views/CalendarView";
 import EmptyState from "~/components/feedback/EmptyState";
 import { Button } from "~/components/ui/button";
 import { normalizeContentFormat } from "~/lib/content/editor-extensions";
@@ -241,6 +242,73 @@ export default function LogsPage({ loaderData }: Route.ComponentProps) {
     ...FILTER_OPTIONS,
   ];
 
+  const recordsContent =
+    filteredRecords.length === 0 ? (
+      <EmptyState variant="records" message="조건에 맞는 기록이 없습니다." />
+    ) : currentView === "calendar" ? (
+      <CalendarView
+        records={filteredRecords.map((record) => ({
+          ...record,
+          format: record.format as "note" | "article",
+          contentSnippet: record.contentSnippet ?? undefined,
+        }))}
+        month={filters.month}
+      />
+    ) : currentView === "timeline" ? (
+      <TimelineView
+        records={filteredRecords.map((record) => ({
+          ...record,
+          format: record.format as "note" | "article",
+          stageType:
+            (record.stage?.type as "prelude" | "bridge" | "challenge" | "epilogue" | null) ?? null,
+        }))}
+        stages={allStages.map((stage) => ({
+          ...stage,
+          type: stage.type as "prelude" | "bridge" | "challenge" | "epilogue",
+        }))}
+      />
+    ) : (
+      <motion.div
+        variants={staggerContainer}
+        initial="hidden"
+        animate="visible"
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+      >
+        {filteredRecords.map((record: typeof filteredRecords[number]) => (
+          <motion.div key={record.id} variants={staggerItem}>
+            <SceneCard
+              record={{
+                slug: record.slug,
+                title: record.title,
+                content: record.content,
+                format: record.format as "note" | "article",
+                type: record.type as "personal" | "challenge" | "collaboration",
+                rhythm: record.rhythm ?? undefined,
+                createdAt: record.createdAt,
+              }}
+              contentSnippet={record.contentSnippet}
+              author={
+                record.author?.displayName
+                  ? {
+                      displayName: record.author.displayName,
+                      slug: record.author.slug ?? "",
+                    }
+                  : undefined
+              }
+              stage={
+                record.stage?.name
+                  ? {
+                      name: record.stage.name,
+                      type: record.stage.type ?? "",
+                    }
+                  : undefined
+              }
+            />
+          </motion.div>
+        ))}
+      </motion.div>
+    );
+
   return (
     <div>
       <div className="max-w-content mx-auto px-6 pt-12 pb-8 md:pt-16 md:pb-12">
@@ -286,63 +354,7 @@ export default function LogsPage({ loaderData }: Route.ComponentProps) {
           </div>
         </div>
 
-        {filteredRecords.length === 0 ? (
-          <EmptyState variant="records" message="조건에 맞는 기록이 없습니다." />
-        ) : (
-          currentView !== "grid" ? (
-            <TimelineView
-              records={filteredRecords.map((record) => ({
-                ...record,
-                format: record.format as "note" | "article",
-                stageType: record.stage?.type as "prelude" | "bridge" | "challenge" | "epilogue" | null ?? null,
-              }))}
-              stages={allStages.map((stage) => ({
-                ...stage,
-                type: stage.type as "prelude" | "bridge" | "challenge" | "epilogue",
-              }))}
-            />
-          ) : (
-            <motion.div
-              variants={staggerContainer}
-              initial="hidden"
-              animate="visible"
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-            >
-              {filteredRecords.map((record: typeof filteredRecords[number]) => (
-                <motion.div key={record.id} variants={staggerItem}>
-                  <SceneCard
-                    record={{
-                      slug: record.slug,
-                      title: record.title,
-                      content: record.content,
-                      format: record.format as "note" | "article",
-                      type: record.type as "personal" | "challenge" | "collaboration",
-                      rhythm: record.rhythm ?? undefined,
-                      createdAt: record.createdAt,
-                    }}
-                    contentSnippet={record.contentSnippet}
-                    author={
-                      record.author?.displayName
-                        ? {
-                            displayName: record.author.displayName,
-                            slug: record.author.slug ?? "",
-                          }
-                        : undefined
-                    }
-                    stage={
-                      record.stage?.name
-                        ? {
-                            name: record.stage.name,
-                            type: record.stage.type ?? "",
-                          }
-                        : undefined
-                    }
-                  />
-                </motion.div>
-              ))}
-            </motion.div>
-          )
-        )}
+        {recordsContent}
 
         {currentView === "grid" && totalPages > 1 && (
           <div className="mt-12 flex justify-center items-center gap-2">
