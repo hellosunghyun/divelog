@@ -1,16 +1,57 @@
 import type { Route } from "./+types/index";
 import { useSearchParams, useNavigate } from "react-router";
-import { eq, and, desc, sql, ne, count } from "drizzle-orm";
+import { eq, and, asc, desc, gte, lt, ne, count } from "drizzle-orm";
 import SceneCard from "~/components/cards/SceneCard";
 import FilterBar from "~/components/filters/FilterBar";
 import SortBar from "~/components/filters/SortBar";
-import ViewToggle from "~/components/views/ViewToggle";
+import ViewToggle, { type RecordView } from "~/components/views/ViewToggle";
 import TimelineView from "~/components/views/TimelineView";
+import CalendarView from "~/components/views/CalendarView";
 import EmptyState from "~/components/feedback/EmptyState";
 import { Button } from "~/components/ui/button";
 import { normalizeContentFormat } from "~/lib/content/editor-extensions";
 import { motion } from "~/lib/motion/motion";
 import { staggerContainer, staggerItem } from "~/lib/motion/motion-utils";
+
+type LogSort = "recent" | "oldest" | "stage";
+
+function getDefaultMonthValue(referenceDate = new Date()): string {
+  const year = referenceDate.getFullYear();
+  const month = String(referenceDate.getMonth() + 1).padStart(2, "0");
+
+  return `${year}-${month}`;
+}
+
+function parseViewParam(value: string | null): RecordView {
+  if (value === "grid" || value === "timeline" || value === "calendar") {
+    return value;
+  }
+
+  return "timeline";
+}
+
+function parseSortParam(value: string | null): LogSort {
+  if (value === "oldest" || value === "stage") {
+    return value;
+  }
+
+  return "recent";
+}
+
+function parseMonthParam(value: string | null) {
+  const fallback = getDefaultMonthValue();
+  const normalizedValue = /^\d{4}-(0[1-9]|1[0-2])$/.test(value ?? "") ? value ?? fallback : fallback;
+  const [year, month] = normalizedValue.split("-").map(Number);
+  const monthIndex = month - 1;
+  const startDate = new Date(year, monthIndex, 1);
+  const endDate = new Date(year, monthIndex + 1, 1);
+
+  return {
+    value: normalizedValue,
+    startTimestamp: Math.floor(startDate.getTime() / 1000),
+    endTimestamp: Math.floor(endDate.getTime() / 1000),
+  };
+}
 
 export function meta({ data: loaderData }: Route.MetaArgs) {
   return [
@@ -32,8 +73,11 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const format = url.searchParams.get("format") ?? undefined;
   const type = url.searchParams.get("type") ?? undefined;
   const rhythm = url.searchParams.get("rhythm") ?? undefined;
-  const sort = url.searchParams.get("sort") ?? "recent";
-  const page = Math.max(1, Number(url.searchParams.get("page") ?? "1"));
+  const sort = parseSortParam(url.searchParams.get("sort"));
+  const view = parseViewParam(url.searchParams.get("view"));
+  const month = parseMonthParam(url.searchParams.get("month"));
+  const shouldLoadAllRecords = view === "timeline" || view === "calendar";
+  const page = shouldLoadAllRecords ? 1 : Math.max(1, Number(url.searchParams.get("page") ?? "1"));
 
   const database = db(context.cloudflare.env.DB);
 
@@ -48,11 +92,20 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   if (rhythm && ["moment", "sprint", "weekly", "monthly", "stage", "reflection", "free"].includes(rhythm)) {
     conditions.push(eq(records.rhythm, rhythm));
   }
+  if (view === "calendar") {
+    conditions.push(gte(records.createdAt, month.startTimestamp));
+    conditions.push(lt(records.createdAt, month.endTimestamp));
+  }
 
-  const pageSize = 20;
+  const pageSize = shouldLoadAllRecords ? 200 : 20;
   const offset = (page - 1) * pageSize;
 
-  const orderBy = sort === "oldest" ? records.createdAt : desc(records.createdAt);
+  const orderBy =
+    sort === "stage"
+      ? [asc(stages.order), desc(records.createdAt)]
+      : sort === "oldest"
+        ? [asc(records.createdAt)]
+        : [desc(records.createdAt)];
 
   const [filteredRecords, allStages, totalCountResult] = await Promise.all([
     database
@@ -75,19 +128,20 @@ export async function loader({ request, context }: Route.LoaderArgs) {
         stage: {
           name: stages.name,
           type: stages.type,
+          order: stages.order,
         },
       })
       .from(records)
       .leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
       .leftJoin(stages, eq(records.stageId, stages.id))
       .where(and(...conditions))
-      .orderBy(orderBy)
+      .orderBy(...orderBy)
       .limit(pageSize)
       .offset(offset),
     database
-      .select({ id: stages.id, name: stages.name })
+      .select({ id: stages.id, name: stages.name, type: stages.type, order: stages.order })
       .from(stages)
-      .orderBy(sql`"order" ASC`),
+      .orderBy(asc(stages.order)),
     database
       .select({ count: count() })
       .from(records)
@@ -95,7 +149,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   ]);
 
   const totalCount = totalCountResult[0]?.count ?? 0;
-  const totalPages = Math.ceil(totalCount / pageSize);
+  const totalPages = shouldLoadAllRecords ? 1 : Math.ceil(totalCount / pageSize);
 
   const recordsWithSnippets = filteredRecords.map((record) => {
     const plainTextContent = getPlainText(record.content, normalizeContentFormat(record.format));
@@ -120,7 +174,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     allStages,
     page,
     totalPages,
-    filters: { stageId, format, type, rhythm, sort },
+    filters: { stageId, format, type, rhythm, sort, view, month: month.value },
     metaDescription,
   };
 }
@@ -151,12 +205,11 @@ const FILTER_OPTIONS = [
 ];
 
 export default function LogsPage({ loaderData }: Route.ComponentProps) {
-  const { records: filteredRecords, allStages, page, totalPages } = loaderData;
+  const { records: filteredRecords, allStages, page, totalPages, filters } = loaderData;
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  const viewParam = searchParams.get("view");
-  const currentView = viewParam === "timeline" ? "timeline" : "grid";
+  const currentView = filters.view;
   const activeFormat = searchParams.get("format") ?? "";
 
   const tabs = [
@@ -188,6 +241,73 @@ export default function LogsPage({ loaderData }: Route.ComponentProps) {
     { key: "stage", label: "Stage", values: stageFilterOptions },
     ...FILTER_OPTIONS,
   ];
+
+  const recordsContent =
+    filteredRecords.length === 0 ? (
+      <EmptyState variant="records" message="조건에 맞는 기록이 없습니다." />
+    ) : currentView === "calendar" ? (
+      <CalendarView
+        records={filteredRecords.map((record) => ({
+          ...record,
+          format: record.format as "note" | "article",
+          contentSnippet: record.contentSnippet ?? undefined,
+        }))}
+        month={filters.month}
+      />
+    ) : currentView === "timeline" ? (
+      <TimelineView
+        records={filteredRecords.map((record) => ({
+          ...record,
+          format: record.format as "note" | "article",
+          stageType:
+            (record.stage?.type as "prelude" | "bridge" | "challenge" | "epilogue" | null) ?? null,
+        }))}
+        stages={allStages.map((stage) => ({
+          ...stage,
+          type: stage.type as "prelude" | "bridge" | "challenge" | "epilogue",
+        }))}
+      />
+    ) : (
+      <motion.div
+        variants={staggerContainer}
+        initial="hidden"
+        animate="visible"
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+      >
+        {filteredRecords.map((record: typeof filteredRecords[number]) => (
+          <motion.div key={record.id} variants={staggerItem}>
+            <SceneCard
+              record={{
+                slug: record.slug,
+                title: record.title,
+                content: record.content,
+                format: record.format as "note" | "article",
+                type: record.type as "personal" | "challenge" | "collaboration",
+                rhythm: record.rhythm ?? undefined,
+                createdAt: record.createdAt,
+              }}
+              contentSnippet={record.contentSnippet}
+              author={
+                record.author?.displayName
+                  ? {
+                      displayName: record.author.displayName,
+                      slug: record.author.slug ?? "",
+                    }
+                  : undefined
+              }
+              stage={
+                record.stage?.name
+                  ? {
+                      name: record.stage.name,
+                      type: record.stage.type ?? "",
+                    }
+                  : undefined
+              }
+            />
+          </motion.div>
+        ))}
+      </motion.div>
+    );
 
   return (
     <div>
@@ -223,60 +343,20 @@ export default function LogsPage({ loaderData }: Route.ComponentProps) {
         <div className="mb-8 flex flex-wrap gap-4 items-center justify-between">
           <FilterBar filters={allFilters} />
           <div className="flex items-center gap-3">
-            <SortBar />
+            <SortBar
+              options={[
+                { value: "recent", label: "최근 기록" },
+                { value: "oldest", label: "오래된 기록" },
+                { value: "stage", label: "기간순" },
+              ]}
+            />
             <ViewToggle currentView={currentView} />
           </div>
         </div>
 
-        {filteredRecords.length === 0 ? (
-          <EmptyState variant="records" message="조건에 맞는 기록이 없습니다." />
-        ) : (
-          currentView === "timeline" ? (
-            <TimelineView records={filteredRecords} />
-          ) : (
-            <motion.div
-              variants={staggerContainer}
-              initial="hidden"
-              animate="visible"
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-            >
-              {filteredRecords.map((record: typeof filteredRecords[number]) => (
-                <motion.div key={record.id} variants={staggerItem}>
-                  <SceneCard
-                    record={{
-                      slug: record.slug,
-                      title: record.title,
-                      content: record.content,
-                      format: record.format as "note" | "article",
-                      type: record.type as "personal" | "challenge" | "collaboration",
-                      rhythm: record.rhythm ?? undefined,
-                      createdAt: record.createdAt,
-                    }}
-                    contentSnippet={record.contentSnippet}
-                    author={
-                      record.author?.displayName
-                        ? {
-                            displayName: record.author.displayName,
-                            slug: record.author.slug ?? "",
-                          }
-                        : undefined
-                    }
-                    stage={
-                      record.stage?.name
-                        ? {
-                            name: record.stage.name,
-                            type: record.stage.type ?? "",
-                          }
-                        : undefined
-                    }
-                  />
-                </motion.div>
-              ))}
-            </motion.div>
-          )
-        )}
+        {recordsContent}
 
-        {totalPages > 1 && (
+        {currentView === "grid" && totalPages > 1 && (
           <div className="mt-12 flex justify-center items-center gap-2">
             <button
               type="button"

@@ -1,0 +1,22 @@
+getRecords sort options (grep "stage" in records.server.ts)
+- app/db/queries/records/records.server.ts:46 -> filters.sort === "stage"
+- app/db/queries/records/records.server.ts:47 -> ? [asc(stages.order), desc(records.createdAt)]
+- app/db/queries/records/records.server.ts:63 -> .leftJoin(stages, eq(records.stageId, stages.id))
+
+loader view 분기 (grep "timeline\|calendar" in index.tsx)
+- app/routes/public/logs/index.tsx:25 -> grid/timeline/calendar 허용, 기본값 timeline
+- app/routes/public/logs/index.tsx:77 -> const month = parseMonthParam(url.searchParams.get("month"));
+- app/routes/public/logs/index.tsx:78 -> const shouldLoadAllRecords = view === "timeline" || view === "calendar";
+- app/routes/public/logs/index.tsx:94 -> if (view === "calendar") {
+- app/routes/public/logs/index.tsx:99 -> const pageSize = shouldLoadAllRecords ? 200 : 20;
+- app/routes/public/logs/index.tsx:176 -> filters: { stageId, format, type, rhythm, sort, view, month: month.value }
+- app/routes/public/logs/index.tsx:282 -> { value: "stage", label: "기간순" }
+
+pnpm typecheck 신규 에러 없음
+- 실행: `pnpm typecheck`
+- 결과: 실패했지만 변경 파일 관련 신규 에러는 없었고, LSP diagnostics는 `app/routes/public/logs/index.tsx`, `app/db/queries/records/records.server.ts`, `app/lib/auth/validation.ts` 모두 clean
+- 기존 에러 예시: `app/components/admin/AdminSidebar.tsx`, `app/db/queries/dialogue/*.server.ts`, `app/routes/admin/*.tsx`, `app/routes/api/__tests__/autosave.test.ts`
+
+pnpm build
+- 실행: `pnpm build`
+- 결과: React Router/Vite 빌드는 완료되었고 마지막 sourcemap 업로드 단계에서 Sentry auth token 경고가 출력됨

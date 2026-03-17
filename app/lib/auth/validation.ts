@@ -187,6 +187,7 @@ export const recordFilterSchema = z.object({
   rhythm: z.enum(["moment", "sprint", "weekly", "monthly", "stage", "reflection", "free"]).optional(),
   visibility: z.enum(["draft", "cohort", "public"]).optional(),
   cohort: z.string().optional(),
+  sort: z.enum(["recent", "oldest", "stage"]).optional(),
   page: z.coerce.number().int().positive().default(1),
 });
 

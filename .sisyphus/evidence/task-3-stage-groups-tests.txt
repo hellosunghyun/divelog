@@ -1,0 +1,16 @@
+> pnpm test -- stage-groups --reporter=verbose
+
+> divelog@ test /Users/hellosunghyun/Documents/Github/divelog-timeline
+> vitest run -- stage-groups --reporter=verbose
+
+RUN v4.1.0 /Users/hellosunghyun/Documents/Github/divelog-timeline
+
+Test Files  18 passed (18)
+Tests       141 passed (141)
+Start at    17:37:59
+Duration    6.43s (transform 1.18s, setup 4.85s, import 7.67s, tests 526ms, environment 23.96s)
+
+추가 확인:
+- `lsp_diagnostics` for `app/lib/utils/stage-groups.ts`: clean
+- `lsp_diagnostics` for `app/lib/utils/__tests__/stage-groups.test.ts`: clean
+- `pnpm typecheck`: failed by pre-existing unrelated repository errors
