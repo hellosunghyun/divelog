@@ -7,7 +7,7 @@ import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
 import { Textarea } from "~/components/ui/textarea";
-import { eq } from "drizzle-orm";
+import { eq, count } from "drizzle-orm";
 
 export async function loader({ params, request, context }: Route.LoaderArgs) {
   const { db } = await import("~/db/client.server");
@@ -27,20 +27,39 @@ export async function action({ params, request, context }: Route.ActionArgs) {
 
   const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.stages.$stageId" });
   const f = await request.formData();
-  logger.info("action_start", { intent: "update_stage" });
+  const intent = f.get("intent") as string;
+  logger.info("action_start", { intent });
+
+  if (intent === "delete") {
+    const { records } = await import("~/db/schema.server");
+    const [result] = await db(context.cloudflare.env.DB).select({ cnt: count() }).from(records).where(eq(records.stageId, params.stageId));
+    if (result.cnt > 0) {
+      return data({ error: `이 Stage에 연결된 기록이 ${result.cnt}개 있어 삭제할 수 없습니다. 먼저 기록의 Stage를 변경하세요.` }, { status: 400 });
+    }
+    await db(context.cloudflare.env.DB).delete(stages).where(eq(stages.id, params.stageId));
+    logger.info("admin_delete_stage", { stageId: params.stageId });
+    throw redirect("/admin/stages");
+  }
+
   await db(context.cloudflare.env.DB).update(stages).set({ name: f.get("name") as string, description: (f.get("description") as string) || null, status: f.get("status") as string, isCurrent: f.get("isCurrent") === "on", updatedAt: Math.floor(Date.now() / 1000) }).where(eq(stages.id, params.stageId));
   logger.info("admin_update_stage", { stageId: params.stageId });
   throw redirect("/admin/stages");
 }
 export function meta(_: Route.MetaArgs) { return [{ title: "Stage 편집" }]; }
-export default function AdminStageEditPage({ loaderData }: Route.ComponentProps) {
+export default function AdminStageEditPage({ loaderData, actionData }: Route.ComponentProps) {
   const { stage } = loaderData;
+  const error = (actionData as { error?: string } | undefined)?.error;
   return (
     <div>
       <div className="flex gap-4 items-center mb-6">
         <Link to="/admin/stages" className="text-[13px] text-admin-text-secondary hover:text-admin-text">← Stage 목록</Link>
         <h2 className="text-xl font-semibold text-admin-text">Stage 편집</h2>
       </div>
+      {error && (
+        <div className="mb-4 max-w-xl p-3 bg-error/10 border border-error/20 rounded-md text-error text-sm">
+          {error}
+        </div>
+      )}
       <form method="post" className="flex flex-col gap-4 max-w-xl bg-admin-surface rounded-md p-6 border border-admin-border">
         <div>
           <Label htmlFor="name" className="mb-1.5 block text-xs text-admin-text-secondary">이름</Label>
@@ -95,6 +114,24 @@ export default function AdminStageEditPage({ loaderData }: Route.ComponentProps)
           <Link to="/admin/stages" className="px-5 py-2 rounded-sm border border-admin-border text-admin-text-secondary text-sm hover:bg-admin-bg">취소</Link>
         </div>
       </form>
+      <div className="mt-8 max-w-xl border border-error/30 rounded-md p-6 bg-error/5">
+        <h3 className="text-sm font-semibold text-error mb-2">위험 영역</h3>
+        <p className="text-sm text-admin-text-secondary mb-4">이 Stage를 삭제하면 되돌릴 수 없습니다. 연결된 기록이 있으면 삭제할 수 없습니다.</p>
+        <form method="post">
+          <input type="hidden" name="intent" value="delete" />
+          <button
+            type="submit"
+            className="rounded-sm bg-error px-4 py-2 text-sm font-medium text-white hover:opacity-90 transition-colors"
+            onClick={(e) => {
+              if (!confirm("정말로 이 Stage를 삭제하시겠습니까?")) {
+                e.preventDefault();
+              }
+            }}
+          >
+            Stage 삭제
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

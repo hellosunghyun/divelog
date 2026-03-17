@@ -61,7 +61,14 @@ export async function action({ params, request, context }: Route.ActionArgs) {
 
   const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.dialogue.$responseId" });
   const f = await request.formData();
-  logger.info("action_start", { intent: "moderate_response" });
+  const intent = f.get("intent") as string;
+  logger.info("action_start", { intent });
+
+  if (intent === "delete") {
+    await db(context.cloudflare.env.DB).delete(responses).where(eq(responses.id, params.responseId));
+    logger.info("admin_delete_response", { responseId: params.responseId });
+    throw redirect("/admin/dialogue");
+  }
 
   const moderationStatus = f.get("moderationStatus") as string;
 
@@ -221,6 +228,25 @@ export default function AdminDialogueDetailPage({ loaderData }: Route.ComponentP
               </Button>
             </div>
           </form>
+
+          <div className="border border-error/30 rounded-lg p-5 bg-error/5">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-error mb-3">위험 영역</h3>
+            <p className="text-sm text-admin-text-secondary mb-4">이 응답을 삭제하면 되돌릴 수 없습니다.</p>
+            <form method="post">
+              <input type="hidden" name="intent" value="delete" />
+              <button
+                type="submit"
+                className="w-full h-9 rounded-md bg-error text-white text-sm font-medium hover:opacity-90 transition-colors"
+                onClick={(e) => {
+                  if (!confirm("정말로 이 응답을 삭제하시겠습니까?")) {
+                    e.preventDefault();
+                  }
+                }}
+              >
+                응답 삭제
+              </button>
+            </form>
+          </div>
         </div>
       </div>
     </div>
