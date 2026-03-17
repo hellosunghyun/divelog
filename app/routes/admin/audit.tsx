@@ -19,6 +19,7 @@ import {
   adminEmptyTitleClass,
   adminEmptyDescClass,
 } from "~/components/admin/admin-patterns";
+import { auditLogs } from "~/db/schema.server";
 
 type AuditLog = typeof auditLogs.$inferSelect;
 
@@ -112,7 +113,7 @@ export default function AdminAuditPage({ loaderData }: Route.ComponentProps) {
       {logs.length === 0 ? (
         <div className={adminCardClass}>
           <div className={adminEmptyStateClass}>
-            <svg className={adminEmptyIconClass} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className={adminEmptyIconClass} fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
             <p className={adminEmptyTitleClass}>로그가 없습니다</p>
@@ -167,12 +168,25 @@ export default function AdminAuditPage({ loaderData }: Route.ComponentProps) {
                       </span>
                     </td>
                     <td className={`${adminTdClass} max-w-[200px]`}>
-                      {log.details ? (
-                        <span className="text-caption text-admin-text-secondary truncate block">
-                          {typeof log.details === "string" ? log.details : JSON.stringify(log.details)}
+                      {log.beforeState || log.afterState ? (
+                        <span className="text-xs text-[var(--color-text-secondary)]">
+                          {log.action === "create" ? "생성됨" :
+                           log.action === "delete" ? "삭제됨" :
+                           `${(() => {
+                             try {
+                               const before = log.beforeState ? JSON.parse(log.beforeState) : {};
+                               const after = log.afterState ? JSON.parse(log.afterState) : {};
+                               const changed = Object.keys({ ...before, ...after }).filter(
+                                 k => JSON.stringify(before[k]) !== JSON.stringify(after[k])
+                               );
+                               return changed.length > 0 ? `${changed.length}개 필드 변경` : "변경 없음";
+                             } catch {
+                               return "상세 정보 있음";
+                             }
+                           })()}`}
                         </span>
                       ) : (
-                        <span className="text-admin-text-tertiary">-</span>
+                        <span className="text-[var(--color-text-tertiary)]">—</span>
                       )}
                     </td>
                   </tr>
