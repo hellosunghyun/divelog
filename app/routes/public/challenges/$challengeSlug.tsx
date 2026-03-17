@@ -7,15 +7,14 @@ import SceneCard from "~/components/cards/SceneCard";
 import QuestionCard from "~/components/cards/QuestionCard";
 import HeroSection from "~/components/sections/HeroSection";
 import EmptyState from "~/components/feedback/EmptyState";
+import { db } from "~/db/client.server";
+import { challengeStages, challenges, learnerProfiles, records, stages } from "~/db/schema.server";
+import { createLogger } from "~/lib/infra/logger.server";
 import { motion } from "~/lib/motion/motion";
 import { staggerContainer, staggerItem } from "~/lib/motion/motion-utils";
 import { cn } from "~/lib/utils/cn";
 
 export async function loader({ params, request, context }: Route.LoaderArgs) {
-  const { db } = await import("~/db/client.server");
-  const { challenges, records, learnerProfiles, stages, challengeStages } = await import("~/db/schema.server");
-  const { createLogger } = await import("~/lib/infra/logger.server");
-
   const { challengeSlug } = params;
   const logger = createLogger(request, context.cloudflare.env).child({ route: "challenge_detail" });
   logger.info("loader_start");

@@ -10,7 +10,11 @@ import TimelineView from "~/components/views/TimelineView";
 import CalendarView from "~/components/views/CalendarView";
 import EmptyState from "~/components/feedback/EmptyState";
 import { Button } from "~/components/ui/button";
+import { db } from "~/db/client.server";
+import { learnerProfiles, records, stages } from "~/db/schema.server";
+import { getPlainText } from "~/lib/content/content.server";
 import { normalizeContentFormat } from "~/lib/content/editor-extensions";
+import { createLogger } from "~/lib/infra/logger.server";
 import { useReadState } from "~/hooks/useReadState";
 
 type LogSort = "recent" | "oldest" | "stage";
@@ -61,11 +65,6 @@ export function meta({ data: loaderData }: Route.MetaArgs) {
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {
-  const { db } = await import("~/db/client.server");
-  const { records, stages, learnerProfiles } = await import("~/db/schema.server");
-  const { getPlainText } = await import("~/lib/content/content.server");
-  const { createLogger } = await import("~/lib/infra/logger.server");
-
   const logger = createLogger(request, context.cloudflare.env).child({ route: "logs" });
   logger.info("loader_start");
   const url = new URL(request.url);

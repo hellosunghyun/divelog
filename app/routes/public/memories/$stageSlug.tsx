@@ -6,12 +6,20 @@ import HeroSection from "~/components/sections/HeroSection";
 import QuestionCard from "~/components/cards/QuestionCard";
 import HighlightedSentenceCard from "~/components/cards/HighlightedSentenceCard";
 import SceneCard from "~/components/cards/SceneCard";
+import { db } from "~/db/client.server";
+import {
+  collectiveMemories,
+  stages,
+  memoryQuestions,
+  memoryRecords,
+  memorySentences,
+  questions,
+  records,
+  sentences,
+} from "~/db/schema.server";
+import { createLogger } from "~/lib/infra/logger.server";
 
 export async function loader({ params, request, context }: Route.LoaderArgs) {
-  const { db } = await import("~/db/client.server");
-  const { collectiveMemories, stages, memoryQuestions, memoryRecords, memorySentences, questions, records, sentences } = await import("~/db/schema.server");
-  const { createLogger } = await import("~/lib/infra/logger.server");
-
   const { stageSlug } = params;
   const logger = createLogger(request, context.cloudflare.env).child({ route: "memory_detail" });
   logger.info("loader_start");

@@ -7,7 +7,11 @@ import HeroSection from "~/components/sections/HeroSection";
 import EmptyState from "~/components/feedback/EmptyState";
 import HighlightedSentenceCard from "~/components/cards/HighlightedSentenceCard";
 import LoadingSkeleton from "~/components/feedback/LoadingSkeleton";
+import { db } from "~/db/client.server";
+import { learnerProfiles, questions, records, sentences } from "~/db/schema.server";
+import { getPlainText } from "~/lib/content/content.server";
 import { normalizeContentFormat } from "~/lib/content/editor-extensions";
+import { createLogger } from "~/lib/infra/logger.server";
 import { motion } from "~/lib/motion/motion";
 import { staggerContainer, staggerItem } from "~/lib/motion/motion-utils";
 
@@ -16,11 +20,6 @@ export function meta(_args: Route.MetaArgs) {
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {
-  const { db } = await import("~/db/client.server");
-  const { records, questions, learnerProfiles, sentences } = await import("~/db/schema.server");
-  const { getPlainText } = await import("~/lib/content/content.server");
-  const { createLogger } = await import("~/lib/infra/logger.server");
-
   const logger = createLogger(request, context.cloudflare.env).child({ route: "search" });
   logger.info("loader_start");
   const url = new URL(request.url);

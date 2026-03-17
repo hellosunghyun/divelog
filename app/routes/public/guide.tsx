@@ -2,14 +2,13 @@ import { useSearchParams } from "react-router";
 import type { Route } from "./+types/guide";
 import HeroSection from "~/components/sections/HeroSection";
 import CTABand from "~/components/sections/CTABand";
+import { createLogger } from "~/lib/infra/logger.server";
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "가이드 — DiveLog" }];
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {
-  const { createLogger } = await import("~/lib/infra/logger.server");
-
   const logger = createLogger(request, context.cloudflare.env).child({ route: "guide" });
   logger.info("loader_start");
   logger.info("loader_end");

@@ -3,6 +3,9 @@ import { Link } from "~/components/content/SmartLink";
 import { asc } from "drizzle-orm";
 import HeroSection from "~/components/sections/HeroSection";
 import EmptyState from "~/components/feedback/EmptyState";
+import { db } from "~/db/client.server";
+import { challenges } from "~/db/schema.server";
+import { createLogger } from "~/lib/infra/logger.server";
 import { motion } from "~/lib/motion/motion";
 import { staggerContainer, staggerItem } from "~/lib/motion/motion-utils";
 import { cn } from "~/lib/utils/cn";
@@ -12,10 +15,6 @@ export function meta(_args: Route.MetaArgs) {
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {
-  const { db } = await import("~/db/client.server");
-  const { challenges } = await import("~/db/schema.server");
-  const { createLogger } = await import("~/lib/infra/logger.server");
-
   const logger = createLogger(request, context.cloudflare.env).child({ route: "challenges" });
   logger.info("loader_start");
   const database = db(context.cloudflare.env.DB);

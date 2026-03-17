@@ -3,6 +3,11 @@ import LearnerCard from "~/components/cards/LearnerCard";
 import HeroSection from "~/components/sections/HeroSection";
 import EmptyState from "~/components/feedback/EmptyState";
 import FilterBar from "~/components/filters/FilterBar";
+import {
+  getDistinctCohorts,
+  getLearnersWithActivity,
+} from "~/db/queries/learners/learners.server";
+import { createLogger } from "~/lib/infra/logger.server";
 import { motion } from "~/lib/motion/motion";
 import { staggerContainer, staggerItem } from "~/lib/motion/motion-utils";
 
@@ -11,9 +16,6 @@ export function meta(_args: Route.MetaArgs) {
 }
 
 export async function loader({ context, request }: Route.LoaderArgs) {
-  const { getLearnersWithActivity, getDistinctCohorts } = await import("~/db/queries/learners/learners.server");
-  const { createLogger } = await import("~/lib/infra/logger.server");
-
   const logger = createLogger(request, context.cloudflare.env).child({ route: "learners" });
   logger.info("loader_start");
   const url = new URL(request.url);

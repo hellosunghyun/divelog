@@ -1,7 +1,5 @@
-import { data } from "react-router";
 import type { Route } from "./+types/$stageSlug";
 import { Link } from "~/components/content/SmartLink";
-import { eq, and, desc, sql } from "drizzle-orm";
 import HeroSection from "~/components/sections/HeroSection";
 import SceneCard from "~/components/cards/SceneCard";
 import QuestionCard from "~/components/cards/QuestionCard";
@@ -9,64 +7,15 @@ import QuestionCard from "~/components/cards/QuestionCard";
 import EmptyState from "~/components/feedback/EmptyState";
 import StageStrip from "~/components/sections/StageStrip";
 
+export { loader } from "./$stageSlug.server";
+
+type LoaderData = Awaited<ReturnType<typeof import("./$stageSlug.server").loader>>;
+
 const cache = new Map<string, unknown>();
 
-export async function loader({ params, request, context }: Route.LoaderArgs) {
-  const { db } = await import("~/db/client.server");
-  const { stages, records, questions, learnerProfiles, collectiveMemories } = await import("~/db/schema.server");
-  const { createLogger } = await import("~/lib/infra/logger.server");
-
-  const { stageSlug } = params;
-  const logger = createLogger(request, context.cloudflare.env).child({ route: "journey_stage_detail" });
-  logger.info("loader_start");
-  const database = db(context.cloudflare.env.DB);
-
-  const { getStageBySlug, getStages } = await import("~/db/queries/journey/stages.server");
-  const { getRecords } = await import("~/db/queries/records/records.server");
-  
-  const stage = await getStageBySlug(context.cloudflare.env.DB, stageSlug || "");
-  if (!stage) {
-    logger.info("not_found", { slug: stageSlug });
-    throw data("Stage를 찾을 수 없습니다", { status: 404 });
-  }
-
-  const allStages = await getStages(context.cloudflare.env.DB);
-  
-  // existing function: getRecords supports { stage: stage.id }
-  const stageRecords = await getRecords(context.cloudflare.env.DB, { stage: stage.id, page: 1 });
-  
-  const [stageQuestions, collectiveMemoryResult] = await database.batch([
-    database
-      .select({
-        question: questions,
-        recordSlug: records.slug,
-        recordTitle: records.title,
-      })
-      .from(questions)
-      .leftJoin(records, eq(questions.recordId, records.id))
-      .where(and(eq(records.stageId, stage.id), eq(questions.isOpen, true), sql`${records.visibility} IN ('cohort', 'public')`))
-      .orderBy(desc(questions.createdAt))
-      .limit(5),
-    // [COLLAB_DISABLED] collaboration query removed
-    database
-      .select()
-      .from(collectiveMemories)
-      .where(and(eq(collectiveMemories.stageId, stage.id), eq(collectiveMemories.status, "published")))
-      .limit(1),
-  ]);
-  const stageCollaborations: never[] = [];
-  const collectiveMemory = collectiveMemoryResult[0] ?? null;
-
-  logger.info("loader_end");
-  return { stage, allStages, stageRecords, stageQuestions, stageCollaborations, collectiveMemory };
-}
-
-export async function clientLoader({ params, serverLoader }: {
-  params: { stageSlug?: string };
-  serverLoader: () => Promise<unknown>;
-}) {
+export async function clientLoader({ params, serverLoader }: Route.ClientLoaderArgs) {
   const key = params.stageSlug ?? "";
-  if (cache.has(key)) return cache.get(key);
+  if (cache.has(key)) return cache.get(key) as LoaderData;
   const data = await serverLoader();
   cache.set(key, data);
   return data;
@@ -76,7 +25,7 @@ export function meta({ data: loaderData }: Route.MetaArgs) {
   if (!loaderData) {
     return [{ title: "Stage — DiveLog" }];
   }
-  const typedData = loaderData as Awaited<ReturnType<typeof loader>>;
+  const typedData = loaderData as LoaderData;
   return [
     { title: `${typedData.stage.name} — DiveLog` },
     {
@@ -87,7 +36,7 @@ export function meta({ data: loaderData }: Route.MetaArgs) {
 }
 
 export default function StageDetailPage({ loaderData }: Route.ComponentProps) {
-  const { stage, allStages, stageRecords, stageQuestions, stageCollaborations, collectiveMemory } = loaderData as Awaited<ReturnType<typeof loader>>;
+  const { stage, allStages, stageRecords, stageQuestions, stageCollaborations, collectiveMemory } = loaderData as LoaderData;
 
   return (
     <div>
