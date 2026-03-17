@@ -142,7 +142,7 @@ export default function LearnerDetailPage({ loaderData }: Route.ComponentProps) 
 
   return (
     <div className="min-h-screen">
-      <section className="bg-gradient-to-b from-mist-blue/60 via-mist-blue/30 to-bg py-12 md:py-16">
+      <section className="bg-gradient-to-b from-mist-blue/60 via-mist-blue/30 to-bg -mt-15 sm:-mt-16 pt-[6.75rem] sm:pt-28 md:pt-32 pb-12 md:pb-16">
         <motion.div
           variants={staggerContainer}
           initial="hidden"
