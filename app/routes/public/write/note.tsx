@@ -170,98 +170,100 @@ export default function WriteNotePage({ loaderData }: Route.ComponentProps) {
   useUnsavedWarning(noteContent.length > 0);
 
   return (
-    <div className="mx-auto py-12 px-4 md:py-20" style={{ maxWidth: 640 }}>
-      <div className="mb-8 flex items-center gap-3">
-        <Link
-          to="/write"
-          className="text-sm text-text-tertiary no-underline hover:text-text-secondary"
-        >
-          ← 돌아가기
-        </Link>
-      </div>
-
-      <h1 className="mb-1 text-2xl font-semibold text-text-primary">짧은 메모</h1>
-      <p className="mb-8 text-base text-text-secondary">떠오르는 생각을 빠르게 남기세요.</p>
-
-      <form method="post" className="flex flex-col gap-5">
-        <div className="flex flex-wrap items-center gap-4">
-          <div>
-            <Label
-              htmlFor="visibility"
-              className="mb-1.5 block text-meta font-medium text-text-secondary"
-            >
-              공개 범위
-            </Label>
-            <Select name="visibility" defaultValue={learnerDefaults.defaultVisibility}>
-              <SelectTrigger id="visibility" className="w-auto min-w-36 bg-surface">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="cohort">코호트 공개</SelectItem>
-                <SelectItem value="public">전체 공개</SelectItem>
-                <SelectItem value="draft">임시저장</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div>
-            <Label
-              htmlFor="stageId"
-              className="mb-1.5 block text-meta font-medium text-text-secondary"
-            >
-              구간
-            </Label>
-            <input type="hidden" name="stageId" value={stageValue === NO_STAGE_VALUE ? "" : stageValue} />
-            <Select value={stageValue} onValueChange={setStageValue}>
-              <SelectTrigger id="stageId" className="w-auto min-w-40 bg-surface">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={NO_STAGE_VALUE}>구간 미지정</SelectItem>
-                {availableStages.map((stage) => (
-                  <SelectItem key={stage.id} value={stage.id}>
-                    {stage.name}
-                    {stage.isCurrent ? " (현재)" : ""}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <input
-            type="hidden"
-            name="responsePreference"
-            defaultValue={learnerDefaults.defaultResponsePreference}
-          />
-        </div>
-
-        <div>
-          <NoteEditor
-            name="content"
-            defaultValue={noteContent}
-            onChange={setNoteContent}
-            placeholder="무엇이 남았는지부터 적어도 좋습니다..."
-            error={contentError}
-            htmlProps={{ required: true }}
-          />
-        </div>
-
-        <div className="flex gap-3 pt-2">
-          <Button
-            type="submit"
-            disabled={isSubmitting}
-            className="rounded-md px-6 py-3 text-base font-medium"
-          >
-            {isSubmitting ? "저장 중..." : "저장"}
-          </Button>
+    <div className="min-h-screen bg-background">
+      <div className="mx-auto py-16 px-6 max-w-[720px]">
+        <div className="mb-8 flex items-center gap-3">
           <Link
             to="/write"
-            className="inline-flex items-center justify-center rounded-md border border-border px-6 py-3 text-base font-medium text-text-secondary no-underline transition-colors hover:bg-surface-secondary"
+            className="text-sm text-text-tertiary no-underline hover:text-text-secondary"
           >
-            취소
+            ← 돌아가기
           </Link>
         </div>
-      </form>
+
+        <h1 className="mb-1 text-2xl font-semibold text-text-primary">짧은 메모</h1>
+        <p className="mb-8 text-base text-text-secondary">떠오르는 생각을 빠르게 남기세요.</p>
+
+        <form method="post" className="flex flex-col gap-5">
+          <div className="flex flex-wrap items-center gap-4">
+            <div>
+              <Label
+                htmlFor="visibility"
+                className="mb-1.5 block text-meta font-medium text-text-secondary"
+              >
+                공개 범위
+              </Label>
+              <Select name="visibility" defaultValue={learnerDefaults.defaultVisibility}>
+                <SelectTrigger id="visibility" className="w-auto min-w-36 bg-surface">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="cohort">코호트 공개</SelectItem>
+                  <SelectItem value="public">전체 공개</SelectItem>
+                  <SelectItem value="draft">임시저장</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label
+                htmlFor="stageId"
+                className="mb-1.5 block text-meta font-medium text-text-secondary"
+              >
+                구간
+              </Label>
+              <input type="hidden" name="stageId" value={stageValue === NO_STAGE_VALUE ? "" : stageValue} />
+              <Select value={stageValue} onValueChange={setStageValue}>
+                <SelectTrigger id="stageId" className="w-auto min-w-40 bg-surface">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={NO_STAGE_VALUE}>구간 미지정</SelectItem>
+                  {availableStages.map((stage) => (
+                    <SelectItem key={stage.id} value={stage.id}>
+                      {stage.name}
+                      {stage.isCurrent ? " (현재)" : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <input
+              type="hidden"
+              name="responsePreference"
+              defaultValue={learnerDefaults.defaultResponsePreference}
+            />
+          </div>
+
+          <div>
+            <NoteEditor
+              name="content"
+              defaultValue={noteContent}
+              onChange={setNoteContent}
+              placeholder="무엇이 남았는지부터 적어도 좋습니다..."
+              error={contentError}
+              htmlProps={{ required: true }}
+            />
+          </div>
+
+          <div className="flex gap-3 pt-2">
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="rounded-md px-6 py-3 text-base font-medium"
+            >
+              {isSubmitting ? "저장 중..." : "저장"}
+            </Button>
+            <Link
+              to="/write"
+              className="inline-flex items-center justify-center rounded-md border border-border px-6 py-3 text-base font-medium text-text-secondary no-underline transition-colors hover:bg-surface-secondary"
+            >
+              취소
+            </Link>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
