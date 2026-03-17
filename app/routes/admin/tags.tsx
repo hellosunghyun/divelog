@@ -7,7 +7,6 @@ import {
   adminTdClass,
   adminTrClass,
   adminLabelClass,
-  adminInputClass,
   adminBtnPrimary,
   adminBtnDanger,
   adminBtnSm,
@@ -21,6 +20,7 @@ import {
   adminEmptyTitleClass,
   adminEmptyDescClass,
 } from "~/components/admin/admin-patterns";
+import { Input } from "~/components/ui/input";
 
 export function meta(_: Route.MetaArgs) {
   return [{ title: "태그 관리" }];
@@ -193,12 +193,11 @@ export default function AdminTagsPage({ loaderData, actionData }: Route.Componen
               <label htmlFor="name" className={adminLabelClass}>
                 이름 <span className="text-error">*</span>
               </label>
-              <input
-                type="text"
+              <Input
                 id="name"
                 name="name"
                 required
-                className={`${adminInputClass} w-40`}
+                className="w-40"
                 placeholder="태그 이름"
                 onInput={(e) => {
                   const slugInput = document.getElementById("slug") as HTMLInputElement;
@@ -213,12 +212,11 @@ export default function AdminTagsPage({ loaderData, actionData }: Route.Componen
               <label htmlFor="slug" className={adminLabelClass}>
                 슬러그 <span className="text-error">*</span>
               </label>
-              <input
-                type="text"
+              <Input
                 id="slug"
                 name="slug"
                 required
-                className={`${adminInputClass} w-40 font-mono`}
+                className="w-40 font-mono"
                 placeholder="tag-slug"
                 onChange={(e) => {
                   e.currentTarget.dataset.manual = "true";
@@ -230,11 +228,10 @@ export default function AdminTagsPage({ loaderData, actionData }: Route.Componen
               <label htmlFor="description" className={adminLabelClass}>
                 설명
               </label>
-              <input
-                type="text"
+              <Input
                 id="description"
                 name="description"
-                className={`${adminInputClass} w-56`}
+                className="w-56"
                 placeholder="태그 설명"
               />
             </div>
