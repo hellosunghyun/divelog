@@ -4,7 +4,7 @@ import {
   computeTagDiff,
   formatFieldChange,
   hasActualChanges,
-} from "../../../lib/utils/record-diff.server";
+} from "../../../lib/utils/record-diff";
 
 describe("record-diff utilities", () => {
   describe("compareRecordStates", () => {

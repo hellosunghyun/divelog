@@ -1,4 +1,4 @@
-import { formatFieldChange, computeTagDiff } from "~/lib/utils/record-diff.server";
+import { formatFieldChange, computeTagDiff } from "~/lib/utils/record-diff";
 
 interface RevisionDiffViewProps {
   changedFields: string[];

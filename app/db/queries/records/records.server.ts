@@ -1,7 +1,7 @@
 import { and, desc, eq, like, or, sql } from "drizzle-orm";
 
 import type { CreateRecordInput, RecordFilterInput } from "../../../lib/auth/validation";
-import { compareRecordStates, computeTagDiff } from "../../../lib/utils/record-diff.server";
+import { compareRecordStates, computeTagDiff } from "../../../lib/utils/record-diff";
 import { nanoid } from "../../../lib/utils/utils.server";
 import { createAuditLog } from "../admin/insights/audit-helpers.server";
 import { createRevision, getLatestRevisionNumber } from "./revisions.server";

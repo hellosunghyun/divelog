@@ -17,6 +17,7 @@ import {
   adminEmptyTitleClass,
   adminEmptyDescClass,
 } from "~/components/admin/admin-patterns";
+import { compareRecordStates, formatFieldChange } from "~/lib/utils/record-diff";
 
 type AuditDiffDetail = {
   label: string;
@@ -31,7 +32,6 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const { db } = await import("~/db/client.server");
   const { createLogger } = await import("~/lib/infra/logger.server");
   const { auditLogs } = await import("~/db/schema.server");
-  const { compareRecordStates, formatFieldChange } = await import("~/lib/utils/record-diff.server");
 
   const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.audit" });
   logger.info("loader_start");

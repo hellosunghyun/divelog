@@ -1,0 +1,30 @@
+Task: fix record-diff module suffix for client compatibility
+Date: 2026-03-17
+
+Changes:
+- Added: app/lib/utils/record-diff.ts (same content as previous server-suffixed module)
+- Deleted: app/lib/utils/record-diff.server.ts
+- Updated imports from `record-diff.server` to `record-diff` in:
+  - app/components/revision/RevisionDiffView.tsx
+  - app/routes/admin/audit.tsx
+  - app/db/queries/__tests__/record-diff.test.ts
+  - app/db/queries/records/records.server.ts
+
+Verification:
+1) Build command run:
+   npx react-router build 2>&1 | grep -E "error|Error|ERROR|built|✓" | head -20
+
+   Output excerpt:
+   - ✓ 5951 modules transformed.
+   - ✓ built in 1m 9s
+   - ✓ 6087 modules transformed.
+   - ✓ 1 asset copied from React Router server build to client assets.
+   - ✓ built in 43.82s
+   - error: Auth token is required for this request. Please run `sentry-cli login` and try again!
+
+2) Test command run:
+   pnpm test
+
+   Output excerpt:
+   - Test Files: 20 passed
+   - Tests: 156 passed
