@@ -1,13 +1,22 @@
 import { eq, sql } from "drizzle-orm";
+import { format } from "date-fns";
+import { ko } from "date-fns/locale";
 import { useState } from "react";
 import { Link } from "~/components/content/SmartLink";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
+import type { DateRange } from "react-day-picker";
 import type { Route } from "./+types/article";
 
 import { ArticleEditor } from "~/components/editor/editors/ArticleEditor";
 import { Button } from "~/components/ui/button";
+import { Calendar } from "~/components/ui/calendar";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "~/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -33,6 +42,14 @@ const RHYTHM_OPTIONS = [
 ] as const;
 
 type DateMode = "none" | "single" | "range";
+
+function CalendarIcon() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 shrink-0" aria-hidden="true">
+      <path d="M8 2v4" /><path d="M16 2v4" /><rect width="18" height="18" x="3" y="4" rx="2" /><path d="M3 10h18" />
+    </svg>
+  );
+}
 
 function parseDateToUnix(dateStr: string | undefined): number | null {
   if (!dateStr) return null;
@@ -212,8 +229,8 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
   const [articleContent, setArticleContent] = useState("");
   const [rhythm, setRhythm] = useState("free");
   const [dateMode, setDateMode] = useState<DateMode>("none");
-  const [recordedAt, setRecordedAt] = useState("");
-  const [recordedEndAt, setRecordedEndAt] = useState("");
+  const [singleDate, setSingleDate] = useState<Date | undefined>(undefined);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const isSubmitting = navigation.state === "submitting";
   const errors = actionData?.errors;
   const titleError = errors && "title" in errors ? errors.title?.[0] : undefined;
@@ -224,12 +241,23 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
   function handleDateModeChange(newMode: DateMode) {
     setDateMode(newMode);
     if (newMode === "none") {
-      setRecordedAt("");
-      setRecordedEndAt("");
+      setSingleDate(undefined);
+      setDateRange(undefined);
     } else if (newMode === "single") {
-      setRecordedEndAt("");
+      setDateRange(undefined);
+    } else {
+      setSingleDate(undefined);
     }
   }
+
+  const recordedAtValue = dateMode === "single" && singleDate
+    ? format(singleDate, "yyyy-MM-dd")
+    : dateMode === "range" && dateRange?.from
+      ? format(dateRange.from, "yyyy-MM-dd")
+      : "";
+  const recordedEndAtValue = dateMode === "range" && dateRange?.to
+    ? format(dateRange.to, "yyyy-MM-dd")
+    : "";
 
   return (
     <div className="min-h-screen bg-background">
@@ -367,35 +395,75 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
                 ))}
               </div>
 
-              {dateMode !== "none" && (
-                <div className="flex flex-wrap items-center gap-3">
-                  <div className="flex items-center gap-2">
-                    {dateMode === "range" && (
-                      <span className="text-sm text-text-tertiary">시작</span>
-                    )}
-                    <Input
-                      type="date"
-                      name="recordedAt"
-                      value={recordedAt}
-                      onChange={(e) => setRecordedAt(e.target.value)}
-                      className="w-auto bg-surface focus-visible:ring-offset-1"
-                      aria-label={dateMode === "range" ? "시작 날짜" : "기록 날짜"}
-                    />
-                  </div>
-                  {dateMode === "range" && (
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-text-tertiary">끝</span>
-                      <Input
-                        type="date"
-                        name="recordedEndAt"
-                        value={recordedEndAt}
-                        onChange={(e) => setRecordedEndAt(e.target.value)}
-                        min={recordedAt || undefined}
-                        className="w-auto bg-surface focus-visible:ring-offset-1"
-                        aria-label="종료 날짜"
+              {dateMode === "single" && (
+                <div>
+                  <input type="hidden" name="recordedAt" value={recordedAtValue} />
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className={cn(
+                          "w-[240px] justify-start text-left font-normal",
+                          !singleDate && "text-text-tertiary",
+                        )}
+                      >
+                        <CalendarIcon />
+                        {singleDate ? format(singleDate, "yyyy년 M월 d일", { locale: ko }) : "날짜를 선택하세요"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={singleDate}
+                        onSelect={setSingleDate}
+                        initialFocus
                       />
-                    </div>
-                  )}
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              )}
+
+              {dateMode === "range" && (
+                <div>
+                  <input type="hidden" name="recordedAt" value={recordedAtValue} />
+                  <input type="hidden" name="recordedEndAt" value={recordedEndAtValue} />
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className={cn(
+                          "w-[300px] justify-start text-left font-normal",
+                          !dateRange?.from && "text-text-tertiary",
+                        )}
+                      >
+                        <CalendarIcon />
+                        {dateRange?.from ? (
+                          dateRange.to ? (
+                            <>
+                              {format(dateRange.from, "yyyy년 M월 d일", { locale: ko })}
+                              {" — "}
+                              {format(dateRange.to, "yyyy년 M월 d일", { locale: ko })}
+                            </>
+                          ) : (
+                            format(dateRange.from, "yyyy년 M월 d일", { locale: ko })
+                          )
+                        ) : (
+                          "기간을 선택하세요"
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="range"
+                        selected={dateRange}
+                        onSelect={setDateRange}
+                        numberOfMonths={2}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
               )}
             </div>

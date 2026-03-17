@@ -438,6 +438,7 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
   const isRecordAuthor = currentUserId === record.authorId;
   const recordFormat = normalizeContentFormat(record.format);
   const isArticleRecord = recordFormat === "article";
+  const hasSidebarContent = recordTags.length > 0 || linkedRecords.length > 0 || incomingLinks.length > 0;
 
   const selfAnswersByQuestion = new Map<string, typeof selfAnswers>();
   for (const sa of selfAnswers) {
@@ -570,7 +571,7 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
   }, [hideSentenceButton, showSentenceButton]);
 
   return (
-    <div className="max-w-reading lg:max-w-content mx-auto px-6 py-16 md:py-24 lg:grid lg:grid-cols-[minmax(0,720px)_280px] lg:gap-12 lg:justify-center relative">
+    <div className={`mx-auto px-6 py-16 md:py-24 relative ${hasSidebarContent ? 'max-w-content lg:grid lg:grid-cols-[minmax(0,720px)_280px] lg:gap-12 lg:justify-center' : 'max-w-reading'}`}>
       <div className="min-w-0">
       {record.visibility === "draft" && (
         <div className="mb-6 rounded-xl border border-warning/30 bg-warning/5 px-5 py-4">
@@ -987,6 +988,7 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
       </div>
 
       {/* 사이드바 영역 */}
+      {hasSidebarContent && (
       <aside className="space-y-10 lg:sticky lg:top-24 self-start">
         {recordTags.length > 0 && (
           <div>
@@ -1043,6 +1045,7 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
           </div>
         )}
       </aside>
+      )}
     </div>
   );
 }

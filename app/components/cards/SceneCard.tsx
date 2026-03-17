@@ -52,6 +52,21 @@ const stageToneClasses: Record<string, string> = {
   epilogue: "bg-surface-secondary text-text-secondary border border-border",
 };
 
+function extractPlainTextFromJson(content: string): string | null {
+  try {
+    const parsed = JSON.parse(content);
+    if (parsed?.type !== "doc") return null;
+    const extract = (node: { type?: string; text?: string; content?: unknown[] }): string => {
+      if (node.type === "text") return node.text ?? "";
+      if (!Array.isArray(node.content)) return "";
+      return node.content.map((child) => extract(child as typeof node)).join("");
+    };
+    return extract(parsed).replace(/\s+/g, " ").trim();
+  } catch {
+    return null;
+  }
+}
+
 export default function SceneCard({
   record,
   contentSnippet,
@@ -62,9 +77,11 @@ export default function SceneCard({
   hasLinkedRecord,
   isRead,
 }: SceneCardProps) {
-  const snippet =
-    contentSnippet ??
-    (record.content.substring(0, 120) + (record.content.length > 120 ? "…" : ""));
+  let snippet = contentSnippet;
+  if (!snippet) {
+    const text = (record.format === "article" ? extractPlainTextFromJson(record.content) : null) ?? record.content;
+    snippet = text.substring(0, 120) + (text.length > 120 ? "…" : "");
+  }
 
   const stageType = stage?.type?.toLowerCase() ?? "epilogue";
   const stageBadgeClass = stageToneClasses[stageType] ?? stageToneClasses.epilogue;
