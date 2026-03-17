@@ -25,7 +25,8 @@ window.addEventListener("error", (event) => {
   if (
     (msg.includes("Failed to fetch dynamically imported module") ||
       msg.includes("Importing a module script failed") ||
-      msg.includes("error loading dynamically imported module")) &&
+      msg.includes("error loading dynamically imported module") ||
+      msg.includes("Load failed")) &&
     !sessionStorage.getItem("chunk_reload")
   ) {
     sessionStorage.setItem("chunk_reload", "1");
@@ -38,7 +39,8 @@ window.addEventListener("unhandledrejection", (event) => {
   if (
     (msg.includes("Failed to fetch dynamically imported module") ||
       msg.includes("Importing a module script failed") ||
-      msg.includes("error loading dynamically imported module")) &&
+      msg.includes("error loading dynamically imported module") ||
+      msg.includes("Load failed")) &&
     !sessionStorage.getItem("chunk_reload")
   ) {
     sessionStorage.setItem("chunk_reload", "1");

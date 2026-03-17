@@ -52,6 +52,13 @@ export default {
     const url = new URL(request.url);
     const startMs = Date.now();
 
+    // 배포 간 청크 불일치: 구 /assets/* 요청이 worker까지 도달하면 404 반환
+    // (Cloudflare Pages가 현재 빌드에 없는 파일은 worker로 전달)
+    if (url.pathname.startsWith("/assets/")) {
+      logger.info("stale_asset_request", { path: url.pathname });
+      return new Response("Not Found", { status: 404 });
+    }
+
     logger.info("request_start", {
       method: request.method,
       path: url.pathname,

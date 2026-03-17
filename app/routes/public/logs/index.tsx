@@ -1,4 +1,5 @@
 import type { Route } from "./+types/index";
+import { useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router";
 import { eq, and, asc, desc, gte, lt, sql, count } from "drizzle-orm";
 import SceneCard from "~/components/cards/SceneCard";
@@ -223,9 +224,10 @@ export default function LogsPage({ loaderData }: Route.ComponentProps) {
 
   const currentView = filters.view;
   const activeFormat = searchParams.get("format") ?? "";
-  const articleRecordIds = filteredRecords
-    .filter((r) => r.format === "article")
-    .map((r) => r.id);
+  const articleRecordIds = useMemo(
+    () => filteredRecords.filter((r) => r.format === "article").map((r) => r.id),
+    [filteredRecords],
+  );
   const { isRead } = useReadState(articleRecordIds);
 
   const tabs = [
