@@ -3,6 +3,8 @@ import { Link } from "~/components/SmartLink";
 import { db } from "~/db/client.server";
 import { stages, records, questions, sentences, learnerProfiles } from "~/db/schema.server";
 import { eq, desc, and, sql, count } from "drizzle-orm";
+import { motion } from "~/lib/motion";
+import { staggerContainer, staggerItem, fadeUp } from "~/lib/motion-utils";
 import HeroSection from "~/components/HeroSection";
 import ActivityFeed from "~/components/ActivityFeed";
 import { getRecentActivity } from "~/db/queries/activity.server";
@@ -166,14 +168,24 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
       </HeroSection>
 
       {allStages.length > 0 && (
-        <section className="bg-bg pt-8 pb-12" data-testid="journey-timeline-section">
-          <div className="max-w-canvas mx-auto px-6">
-            <div className="bg-white/60 backdrop-blur-xl rounded-[32px] p-8 border border-white/80 shadow-sm relative overflow-hidden">
+        <motion.section
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+          className="bg-bg pt-8 pb-12 md:py-16"
+          data-testid="journey-timeline-section"
+        >
+          <div className="max-w-[1200px] mx-auto px-6">
+            <motion.div
+              variants={staggerItem}
+              className="bg-white/60 backdrop-blur-xl rounded-[32px] p-8 border border-white/80 shadow-sm relative overflow-hidden"
+            >
               <div className="absolute top-0 left-0 w-1.5 h-full bg-ocean-blue/10" aria-hidden="true" />
               <div className="flex flex-col lg:flex-row items-center gap-10">
                 <div className="lg:w-1/4">
                   <span className="text-xs font-bold uppercase tracking-[0.2em] text-ocean-blue/60 block mb-1">코호트 여정</span>
-                  <h2 className="text-xl font-bold text-deep-ocean mb-3">아홉 달의 여정</h2>
+                  <h2 className="text-3xl md:text-4xl font-semibold tracking-tight text-deep-ocean mb-3">아홉 달의 여정</h2>
                   {currentStage && (
                     <div className="bg-ocean-blue/5 border border-ocean-blue/10 rounded-2xl p-4">
                       <div className="flex items-center gap-2 mb-2">
@@ -190,60 +202,77 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
                 <div className="lg:w-3/4 w-full py-8 px-4 overflow-x-auto">
                   <div className="flex items-start justify-between gap-4 min-w-max relative">
                     <div className="absolute h-0.5 bg-border top-[7px] pointer-events-none" style={{ left: "1rem", right: "2rem" }} aria-hidden="true" />
-                    {allStages.map((stage, index) => {
+                    {allStages.map((stage: typeof allStages[number], _index: number) => {
                       const isCurrent = stage.isCurrent || stage.slug === currentStage?.slug;
                       const isPast = currentStage && stage.order < currentStage.order;
                       return (
-                        <Link
-                          key={stage.id}
-                          to={`/journey/${stage.slug}`}
-                          className="flex flex-col items-center gap-2 z-10 no-underline group"
-                        >
-                          <div
-                            className={`w-4 h-4 rounded-full transition-all ${
-                              isCurrent
-                                ? "bg-ocean-blue ring-4 ring-ocean-blue/20"
-                                : isPast
-                                ? "bg-border"
-                                : "bg-surface-secondary border-2 border-border"
-                            } group-hover:scale-110`}
-                            role="img"
-                            aria-label={`${stage.name}${isCurrent ? " (현재)" : ""}`}
-                          />
-                          <span className={`text-xs font-medium whitespace-nowrap ${
-                            isCurrent ? "text-ocean-blue font-bold" : "text-text-tertiary"
-                          }`}>
-                            {stage.name}
-                          </span>
-                        </Link>
+                        <motion.div key={stage.id} variants={staggerItem}>
+                          <Link
+                            to={`/journey/${stage.slug}`}
+                            className="flex flex-col items-center gap-2 z-10 no-underline group"
+                          >
+                            <div
+                              className={`w-4 h-4 rounded-full transition-all ${
+                                isCurrent
+                                  ? "bg-ocean-blue ring-4 ring-ocean-blue/20"
+                                  : isPast
+                                  ? "bg-border"
+                                  : "bg-surface-secondary border-2 border-border"
+                              } group-hover:scale-110`}
+                              role="img"
+                              aria-label={`${stage.name}${isCurrent ? " (현재)" : ""}`}
+                            />
+                            <span className={`text-xs font-medium whitespace-nowrap ${
+                              isCurrent ? "text-ocean-blue font-bold" : "text-text-tertiary"
+                            }`}>
+                              {stage.name}
+                            </span>
+                          </Link>
+                        </motion.div>
                       );
                     })}
                   </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
           </div>
-        </section>
+        </motion.section>
       )}
 
-      <section className="max-w-canvas mx-auto px-6 py-16" data-testid="activity-section">
-        <div className="flex items-end justify-between mb-8">
+      <motion.section
+        variants={staggerContainer}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-100px" }}
+        className="max-w-[1200px] mx-auto px-6 py-16 md:py-24"
+        data-testid="activity-section"
+      >
+        <motion.div variants={staggerItem} className="flex items-end justify-between mb-8">
           <div>
             <span className="text-xs font-bold tracking-[0.3em] text-ocean-blue/50 mb-2 block uppercase">여정 활동</span>
-            <h2 className="text-3xl font-bold text-deep-ocean">여정에서 일어나는 일</h2>
+            <h2 className="text-3xl md:text-4xl font-semibold tracking-tight text-deep-ocean">여정에서 일어나는 일</h2>
             <p className="text-text-secondary mt-2 text-md font-light">지난 2주간의 활동 요약</p>
           </div>
-        </div>
-        <ActivityFeed activities={recentActivity} />
-      </section>
+        </motion.div>
+        <motion.div variants={staggerItem}>
+          <ActivityFeed activities={recentActivity} />
+        </motion.div>
+      </motion.section>
 
       {currentStage && (
-        <section className="max-w-canvas mx-auto px-6 py-16" data-testid="questions-section">
+        <motion.section
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+          className="max-w-[1200px] mx-auto px-6 py-16 md:py-24"
+          data-testid="questions-section"
+        >
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
-            <div className="lg:col-span-4 lg:sticky lg:top-24">
+            <motion.div variants={staggerItem} className="lg:col-span-4 lg:sticky lg:top-24">
               <div className="quiet-depth-card p-10 rounded-[40px]">
                 <span className="text-ocean-blue font-bold text-xs tracking-[0.2em] uppercase mb-4 block">현재 구간</span>
-                <h3 className="text-3xl font-bold text-deep-ocean mb-6">{currentStage.name}</h3>
+                <h3 className="text-3xl md:text-4xl font-semibold tracking-tight text-deep-ocean mb-6">{currentStage.name}</h3>
                 {currentStage.description && (
                   <p className="text-text-secondary text-[17px] leading-relaxed mb-8 font-light italic">
                     &ldquo;{currentStage.description}&rdquo;
@@ -252,7 +281,7 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
                 {learnerCount > 0 && (
                   <div className="flex items-center gap-4 pt-8 border-t border-border-subtle">
                     <div className="flex -space-x-3">
-                      {spotlightLearners.slice(0, 2).map((l) => (
+                      {spotlightLearners.slice(0, 2).map((l: typeof spotlightLearners[number]) => (
                         l.profilePhotoUrl ? (
                           <img key={l.userId} src={l.profilePhotoUrl} alt="" className="w-9 h-9 rounded-full border-2 border-white object-cover" />
                         ) : (
@@ -274,20 +303,21 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
                   <p className="text-xs text-text-tertiary leading-relaxed">지금은 개인 다이빙 중심입니다. 협업이 시작되면 이곳에 함께 나타납니다.</p>
                 </div>
               </div>
-            </div>
+            </motion.div>
             <div className="lg:col-span-8">
-              <div className="flex items-center justify-between mb-8">
-                <h2 className="text-3xl font-bold flex items-center gap-3 text-deep-ocean">
+              <motion.div variants={staggerItem} className="flex items-center justify-between mb-8">
+                <h2 className="text-3xl md:text-4xl font-semibold tracking-tight flex items-center gap-3 text-deep-ocean">
                     <svg className="w-7 h-7 text-ocean-blue" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
                     이번 구간의 열린 질문들
                   </h2>
                 <Link to="/journey" className="text-ocean-blue font-bold hover:underline text-[13px] no-underline">모두 보기</Link>
-              </div>
+              </motion.div>
               {openQuestions.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {openQuestions.map((row, idx) => (
-                    <article
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {openQuestions.map((row: typeof openQuestions[number], idx: number) => (
+                    <motion.article
                       key={row.questionId}
+                      variants={staggerItem}
                       className="quiet-depth-card p-5 rounded-2xl group cursor-pointer hover:border-ocean-blue/30"
                     >
                       <span className="text-xs font-bold text-ocean-blue tracking-widest mb-2 block">질문 {String(idx + 1).padStart(2, "0")}</span>
@@ -305,11 +335,11 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
                         응답하기
                       </Link>
                     </div>
-                  </article>
+                  </motion.article>
                 ))}
                 </div>
               ) : (
-                <article className="quiet-depth-card p-8 rounded-3xl">
+                <motion.article variants={staggerItem} className="quiet-depth-card p-8 rounded-3xl">
                   <p className="text-base text-text-secondary mb-6">이 구간의 첫 질문을 남겨보세요.</p>
                   <Link
                     to="/write"
@@ -317,32 +347,40 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
                   >
                     질문 남기기
                   </Link>
-                </article>
+                </motion.article>
               )}
             </div>
           </div>
-        </section>
+        </motion.section>
       )}
 
-      <section className="bg-surface-secondary/50 py-24 border-y border-border-subtle" data-testid="records-section">
-        <div className="max-w-canvas mx-auto px-6">
-          <div className="flex items-end justify-between mb-12">
+      <motion.section
+        variants={staggerContainer}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-100px" }}
+        className="bg-surface-secondary/50 py-16 md:py-24 border-y border-border-subtle"
+        data-testid="records-section"
+      >
+        <div className="max-w-[1200px] mx-auto px-6">
+          <motion.div variants={staggerItem} className="flex items-end justify-between mb-12">
             <div>
               <span className="text-xs font-bold tracking-[0.3em] text-ocean-blue/50 mb-2 block uppercase">최근 장면</span>
-              <h2 className="text-3xl font-bold text-deep-ocean">최근 장면들</h2>
+              <h2 className="text-3xl md:text-4xl font-semibold tracking-tight text-deep-ocean">최근 장면들</h2>
               <p className="text-text-secondary mt-2 text-md font-light">수면 아래에서 남겨진 최근 기록과 질문들</p>
             </div>
-          </div>
+          </motion.div>
           {recentRecords.length > 0 ? (
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {recentRecords.map((row) => {
+                {recentRecords.map((row: typeof recentRecords[number]) => {
                   const snippet = (row.snippet ?? row.content.substring(0, 120)) + ((row.snippet ?? row.content).length > 120 ? "…" : "");
                   const initial = row.author?.displayName ? row.author.displayName[0] : "?";
-                  const stage = row.stageId ? allStages.find(s => s.id === row.stageId) : null;
+                  const stage = row.stageId ? allStages.find((s: typeof allStages[number]) => s.id === row.stageId) : null;
                   return (
-                    <article
+                    <motion.article
                       key={row.id}
+                      variants={staggerItem}
                       className="quiet-depth-card p-7 rounded-[28px] flex flex-col"
                     >
                       <div className="flex items-center justify-between mb-5">
@@ -391,21 +429,21 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
                           </Link>
                         </div>
                       </div>
-                    </article>
+                    </motion.article>
                   );
                 })}
               </div>
-              <div className="mt-12 text-center">
+              <motion.div variants={staggerItem} className="mt-12 text-center">
                 <Link
                   to="/logs"
                   className="bg-white border border-border px-8 py-3 rounded-full text-sm font-bold text-text-secondary hover:border-ocean-blue hover:text-ocean-blue transition-all no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
                 >
                   더 많은 기록 탐색하기
                 </Link>
-              </div>
+              </motion.div>
             </>
           ) : (
-            <div className="text-center py-12">
+            <motion.div variants={staggerItem} className="text-center py-12">
               <p className="text-text-secondary mb-6">아직 기록이 시작되지 않았습니다. 완성된 글이 아니어도 괜찮습니다.</p>
               <Link
                 to="/write"
@@ -413,19 +451,30 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
               >
                 첫 기록 남기기
               </Link>
-            </div>
+            </motion.div>
           )}
         </div>
-      </section>
+      </motion.section>
 
-      <section className="max-w-canvas mx-auto px-6 py-24" data-testid="sentence-section">
-        <div className="flex items-center justify-between mb-8">
-          <h2 className="text-3xl font-bold text-deep-ocean">남겨둔 문장</h2>
-        </div>
+      <motion.section
+        variants={staggerContainer}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-100px" }}
+        className="max-w-[1200px] mx-auto px-6 py-16 md:py-24"
+        data-testid="sentence-section"
+      >
+        <motion.div variants={staggerItem} className="flex items-center justify-between mb-8">
+          <h2 className="text-3xl md:text-4xl font-semibold tracking-tight text-deep-ocean">남겨둔 문장</h2>
+        </motion.div>
         {recentSentences.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
-            {recentSentences.map((sentence) => (
-              <article key={sentence.sentenceId} className="quiet-depth-card p-6 rounded-2xl flex flex-col">
+            {recentSentences.map((sentence: typeof recentSentences[number]) => (
+              <motion.article
+                key={sentence.sentenceId}
+                variants={staggerItem}
+                className="quiet-depth-card p-6 rounded-2xl flex flex-col"
+              >
                 <blockquote className="text-xl font-semibold leading-snug text-deep-ocean mb-4">
                   &ldquo;{sentence.sentenceContent}&rdquo;
                 </blockquote>
@@ -441,32 +490,40 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
                     원문 보기
                   </Link>
                 </div>
-              </article>
+              </motion.article>
             ))}
           </div>
         ) : (
-          <article className="quiet-depth-card p-8 rounded-3xl text-center">
+          <motion.article variants={staggerItem} className="quiet-depth-card p-8 rounded-3xl text-center">
             <p className="text-base text-text-secondary">아직 남겨둔 문장이 없습니다.</p>
-          </article>
+          </motion.article>
         )}
-      </section>
+      </motion.section>
 
-      <section className="max-w-canvas mx-auto px-6 py-24 border-t border-border-subtle" data-testid="learners-section">
-          <div className="flex items-end justify-between mb-12">
+      <motion.section
+        variants={staggerContainer}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-100px" }}
+        className="max-w-[1200px] mx-auto px-6 py-16 md:py-24 border-t border-border-subtle"
+        data-testid="learners-section"
+      >
+          <motion.div variants={staggerItem} className="flex items-end justify-between mb-12">
             <div>
               <span className="text-xs font-bold tracking-[0.3em] text-ocean-blue/50 mb-2 block uppercase">러너 스포트라이트</span>
-              <h2 className="text-3xl font-bold text-deep-ocean flex items-center gap-3">
+              <h2 className="text-3xl md:text-4xl font-semibold tracking-tight text-deep-ocean flex items-center gap-3">
                 <svg className="w-9 h-9 text-ocean-blue" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M18 21a8 8 0 0 0-16 0"/><circle cx="10" cy="8" r="5"/><path d="M22 20c0-3.37-2-6.5-4-8a5 5 0 0 0-.45-8.3"/></svg>
                 함께 잠수하는 러너들
               </h2>
             </div>
             <Link to="/learners" className="text-ocean-blue font-bold hover:underline text-[13px] no-underline">전체 러너 보기 ({learnerCount})</Link>
-          </div>
+          </motion.div>
           {spotlightLearners.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-              {spotlightLearners.map((learner) => (
-              <article
+              {spotlightLearners.map((learner: typeof spotlightLearners[number]) => (
+              <motion.article
                 key={learner.userId}
+                variants={staggerItem}
                 className="quiet-depth-card p-6 rounded-2xl flex flex-col hover:bg-white transition-all"
               >
                 <div className="mb-6 min-h-[52px]">
@@ -498,28 +555,37 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
                     <p className="text-xs text-text-tertiary font-medium uppercase tracking-wider">러너</p>
                   </div>
                 </div>
-              </article>
+              </motion.article>
               ))}
             </div>
           ) : (
-            <article className="quiet-depth-card p-8 rounded-3xl text-center">
+            <motion.article variants={staggerItem} className="quiet-depth-card p-8 rounded-3xl text-center">
               <p className="text-base text-text-secondary">아직 소개할 러너가 없습니다.</p>
-            </article>
+            </motion.article>
           )}
-      </section>
+      </motion.section>
 
-      <section className="bg-mist-blue/40 py-20 text-center" data-testid="start-cta-section">
+      <motion.section
+        variants={staggerContainer}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-100px" }}
+        className="bg-mist-blue/40 py-16 md:py-20 text-center"
+        data-testid="start-cta-section"
+      >
         <div className="max-w-2xl mx-auto px-6">
-          <h2 className="text-3xl font-bold text-deep-ocean mb-4">더 깊은 곳에서, 기록은 시작됩니다</h2>
-          <p className="text-text-secondary text-lg mb-8">완성된 글이 아니어도 괜찮습니다. 지금 떠오른 생각부터 남겨보세요.</p>
-          <Link
-            to="/write"
-            className="inline-flex items-center gap-2 bg-deep-ocean text-white px-8 py-3.5 rounded-full text-base font-semibold hover:bg-ocean-blue transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
-          >
-            기록 남기기
-          </Link>
+          <motion.h2 variants={staggerItem} className="text-3xl md:text-4xl font-semibold tracking-tight text-deep-ocean mb-4">더 깊은 곳에서, 기록은 시작됩니다</motion.h2>
+          <motion.p variants={staggerItem} className="text-text-secondary text-lg mb-8">완성된 글이 아니어도 괜찮습니다. 지금 떠오른 생각부터 남겨보세요.</motion.p>
+          <motion.div variants={staggerItem}>
+            <Link
+              to="/write"
+              className="inline-flex items-center gap-2 bg-deep-ocean text-white px-8 py-3.5 rounded-full text-base font-semibold hover:bg-ocean-blue transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
+            >
+              기록 남기기
+            </Link>
+          </motion.div>
         </div>
-      </section>
+      </motion.section>
     </div>
   );
 }
