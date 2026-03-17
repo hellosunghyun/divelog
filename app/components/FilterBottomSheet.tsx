@@ -1,4 +1,13 @@
 import { useNavigate, useSearchParams } from "react-router";
+import { Checkbox } from "~/components/ui/checkbox";
+import { Label } from "~/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
 
 interface FilterBottomSheetProps {
   isOpen: boolean;
@@ -21,6 +30,8 @@ const TYPE_OPTIONS = [
   { value: "challenge", label: "챌린지" },
   { value: "collaboration", label: "협업" },
 ];
+
+const ALL_STAGE_VALUE = "__all__";
 
 export function FilterBottomSheet({ isOpen, onClose, stages }: FilterBottomSheetProps) {
   const [searchParams] = useSearchParams();
@@ -79,19 +90,25 @@ export function FilterBottomSheet({ isOpen, onClose, stages }: FilterBottomSheet
             <label htmlFor="filter-stage-mobile" className="block text-sm font-medium text-[--color-text-secondary] mb-2">
               Stage
             </label>
-            <select
-              id="filter-stage-mobile"
-              value={currentStage}
-              onChange={(e) => updateFilter("stage", e.target.value)}
-              className="w-full text-base px-4 py-3 rounded-xl border border-[--color-border] bg-[--color-surface] text-[--color-text-primary] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--color-ocean-blue] focus-visible:ring-offset-2"
+            <Select
+              value={currentStage === "" ? ALL_STAGE_VALUE : currentStage}
+              onValueChange={(value: string) => updateFilter("stage", value === ALL_STAGE_VALUE ? "" : value)}
             >
-              <option value="">전체</option>
-              {stages.map((stage) => (
-                <option key={stage.id} value={stage.id}>
-                  {stage.name}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger
+                id="filter-stage-mobile"
+                className="w-full text-base h-auto px-4 py-3 rounded-xl border-[--color-border] bg-[--color-surface] text-[--color-text-primary]"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL_STAGE_VALUE}>전체</SelectItem>
+                {stages.map((stage) => (
+                  <SelectItem key={stage.id} value={stage.id}>
+                    {stage.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div>
@@ -161,29 +178,31 @@ export function FilterBottomSheet({ isOpen, onClose, stages }: FilterBottomSheet
           </div>
 
           <div className="flex items-center gap-3">
-            <input
+            <Checkbox
               id="filter-has-question-mobile"
-              type="checkbox"
               checked={currentHasQuestion === "true"}
-              onChange={(e) => updateFilter("hasQuestion", e.target.checked ? "true" : "")}
-              className="w-5 h-5 rounded border-[--color-border] text-[--color-ocean-blue] focus:ring-[--color-ocean-blue] focus:ring-offset-0"
+              onCheckedChange={(checked: boolean | "indeterminate") =>
+                updateFilter("hasQuestion", checked === true ? "true" : "")
+              }
+              className="h-5 w-5 border-[--color-border] data-[state=checked]:bg-[--color-ocean-blue] data-[state=checked]:border-[--color-ocean-blue]"
             />
-            <label htmlFor="filter-has-question-mobile" className="text-base text-[--color-text-primary] cursor-pointer">
+            <Label htmlFor="filter-has-question-mobile" className="text-base text-[--color-text-primary] cursor-pointer">
               질문이 있는 기록만
-            </label>
+            </Label>
           </div>
 
           <div className="flex items-center gap-3">
-            <input
+            <Checkbox
               id="filter-has-self-answer-mobile"
-              type="checkbox"
               checked={currentHasSelfAnswer === "true"}
-              onChange={(e) => updateFilter("hasSelfAnswer", e.target.checked ? "true" : "")}
-              className="w-5 h-5 rounded border-[--color-border] text-[--color-ocean-blue] focus:ring-[--color-ocean-blue] focus:ring-offset-0"
+              onCheckedChange={(checked: boolean | "indeterminate") =>
+                updateFilter("hasSelfAnswer", checked === true ? "true" : "")
+              }
+              className="h-5 w-5 border-[--color-border] data-[state=checked]:bg-[--color-ocean-blue] data-[state=checked]:border-[--color-ocean-blue]"
             />
-            <label htmlFor="filter-has-self-answer-mobile" className="text-base text-[--color-text-primary] cursor-pointer">
+            <Label htmlFor="filter-has-self-answer-mobile" className="text-base text-[--color-text-primary] cursor-pointer">
               자기답변이 있는 기록만
-            </label>
+            </Label>
           </div>
 
           <button

@@ -21,6 +21,13 @@ import {
   adminEmptyTitleClass,
   adminEmptyDescClass,
 } from "~/components/admin/admin-patterns";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
 
 export function meta(_: Route.MetaArgs) {
   return [{ title: "역할 & 권한" }];
@@ -203,39 +210,39 @@ export default function AdminRolesPage({ loaderData }: Route.ComponentProps) {
                 <label htmlFor="role-user" className={adminLabelClass}>
                   사용자 선택
                 </label>
-                <select
-                  id="role-user"
-                  value={selectedUserId}
-                  onChange={(e) => setSelectedUserId(e.target.value)}
-                  className="w-full rounded-lg border border-admin-border px-3 py-2 text-caption text-admin-text bg-admin-surface focus:outline-none focus:ring-2 focus:ring-admin-accent focus:border-transparent appearance-none cursor-pointer"
-                >
-                  <option value="__none__">선택하세요</option>
-                  {allLearners.map((learner: LearnerOption) => (
-                    <option key={learner.userId} value={learner.userId}>
-                      {learner.email
-                        ? `${learner.email} (${learner.displayName})`
-                        : `${learner.displayName} (${learner.userId.substring(0, 12)}…)`}
-                    </option>
-                  ))}
-                </select>
+                <Select value={selectedUserId} onValueChange={(value: string) => setSelectedUserId(value)}>
+                  <SelectTrigger id="role-user" className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">선택하세요</SelectItem>
+                    {allLearners.map((learner: LearnerOption) => (
+                      <SelectItem key={learner.userId} value={learner.userId}>
+                        {learner.email
+                          ? `${learner.email} (${learner.displayName})`
+                          : `${learner.displayName} (${learner.userId.substring(0, 12)}…)`}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="flex flex-col gap-1.5">
                 <label htmlFor="role-type" className={adminLabelClass}>
                   역할 선택
                 </label>
-                <select
-                  id="role-type"
-                  value={selectedRole}
-                  onChange={(e) => setSelectedRole(e.target.value)}
-                  className="w-full rounded-lg border border-admin-border px-3 py-2 text-caption text-admin-text bg-admin-surface focus:outline-none focus:ring-2 focus:ring-admin-accent focus:border-transparent appearance-none cursor-pointer"
-                >
-                  {Object.entries(ROLE_LABELS).map(([value, label]) => (
-                    <option key={value} value={value}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
+                <Select value={selectedRole} onValueChange={(value: string) => setSelectedRole(value)}>
+                  <SelectTrigger id="role-type" className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(ROLE_LABELS).map(([value, label]) => (
+                      <SelectItem key={value} value={value}>
+                        {label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="pt-2">

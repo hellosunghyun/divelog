@@ -34,6 +34,13 @@ import {
 import { createSlashCommandExtension } from "./SlashCommandMenu";
 import { createUserMentionExtension } from "./MentionExtension";
 import { createRecordRefExtension } from "./RecordRefExtension";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
 
 const lowlight = createLowlight(common);
 const MAX_CONTENT_SIZE = 100 * 1024;
@@ -473,19 +480,22 @@ export function ArticleEditor({
 
       {editor && (
         <div className="editor-toolbar">
-          <select
-            className="editor-toolbar-select"
+          <Select
             value={getCurrentBlockType(editor)}
-            onChange={(e) => applyBlockType(editor, e.target.value)}
-            aria-label="블록 타입"
+            onValueChange={(value) => applyBlockType(editor, value)}
           >
-            <option value="paragraph">본문</option>
-            <option value="heading1">제목 1</option>
-            <option value="heading2">제목 2</option>
-            <option value="heading3">제목 3</option>
-            <option value="blockquote">인용구</option>
-            <option value="codeBlock">코드 블록</option>
-          </select>
+            <SelectTrigger aria-label="블록 타입" className="h-8 w-auto text-sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="paragraph">본문</SelectItem>
+              <SelectItem value="heading1">제목 1</SelectItem>
+              <SelectItem value="heading2">제목 2</SelectItem>
+              <SelectItem value="heading3">제목 3</SelectItem>
+              <SelectItem value="blockquote">인용구</SelectItem>
+              <SelectItem value="codeBlock">코드 블록</SelectItem>
+            </SelectContent>
+          </Select>
           <span className="bubble-sep" style={{ height: 20 }} />
            <BubbleBtn onClick={() => editor.chain().focus().toggleBold().run()} isActive={editor.isActive("bold")} label="굵게" title="굵게 (⌘B)"><TextB size={16} weight="light" /></BubbleBtn>
            <BubbleBtn onClick={() => editor.chain().focus().toggleItalic().run()} isActive={editor.isActive("italic")} label="기울임" title="기울임 (⌘I)"><TextItalic size={16} weight="light" /></BubbleBtn>
