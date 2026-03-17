@@ -542,8 +542,8 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
   }, [hideSentenceButton, showSentenceButton]);
 
   return (
-    <div className="max-w-[1200px] mx-auto px-6 py-16 md:py-24 flex flex-col lg:flex-row gap-12 lg:gap-24 relative">
-      <div className="flex-1 max-w-[720px] mx-auto lg:mx-0 w-full min-w-0">
+    <div className="max-w-content mx-auto px-6 py-16 md:py-24 grid grid-cols-1 lg:grid-cols-[minmax(0,720px)_280px] gap-12 lg:gap-12 lg:justify-center relative">
+      <div className="min-w-0">
       {record.visibility === "draft" && (
         <div className="mb-6 rounded-xl border border-warning/30 bg-warning/5 px-5 py-4">
           <p className="text-base font-medium text-warning">임시저장 상태입니다</p>
@@ -927,7 +927,7 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
       </div>
 
       {/* 사이드바 영역 */}
-      <aside className="w-full lg:w-[320px] shrink-0 space-y-10 lg:sticky lg:top-24 self-start">
+      <aside className="space-y-10 lg:sticky lg:top-24 self-start">
         {recordTags.length > 0 && (
           <div>
             <h3 className="text-sm font-medium text-text-secondary mb-4 uppercase tracking-wider">태그</h3>

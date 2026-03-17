@@ -41,7 +41,7 @@ export default function HeroSection({
 
   if (isHome) {
     return (
-      <section className="relative min-h-[60vh] sm:min-h-[68vh] md:min-h-[85vh] flex items-center overflow-hidden bg-gradient-to-br from-deep-ocean via-ocean-blue/90 to-deep-ocean/80">
+      <section className="relative min-h-[60vh] sm:min-h-[68vh] md:min-h-[85vh] flex items-center overflow-hidden bg-gradient-to-br from-deep-ocean via-ocean-blue/90 to-deep-ocean/80 -mt-15 sm:-mt-16 pt-15 sm:pt-16">
         <div
           className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_50%,rgba(20,108,148,0.3),transparent_70%)] pointer-events-none"
           aria-hidden="true"
