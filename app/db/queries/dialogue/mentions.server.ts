@@ -1,7 +1,7 @@
 import { eq, and, sql } from "drizzle-orm";
 import { db } from "../../client.server";
 import { mentions, learnerProfiles } from "../../schema.server";
-import { nanoid } from "../../../lib/utils.server";
+import { nanoid } from "../../../lib/utils/utils.server";
 
 export async function syncMentionsForRecord(
   d1: D1Database,

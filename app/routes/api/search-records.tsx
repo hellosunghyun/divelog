@@ -2,8 +2,8 @@ import { sql, ne, and } from "drizzle-orm";
 import type { LoaderFunctionArgs } from "react-router";
 import { db } from "~/db/client.server";
 import { records, learnerProfiles } from "~/db/schema.server";
-import { getOptionalUser } from "~/lib/auth.middleware";
-import { createLogger } from "~/lib/logger.server";
+import { getOptionalUser } from "~/lib/auth/auth.middleware";
+import { createLogger } from "~/lib/infra/logger.server";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const logger = createLogger(request, context.cloudflare.env).child({ route: "api.search-records" });

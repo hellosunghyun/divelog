@@ -7,9 +7,9 @@ import QuestionCard from "~/components/cards/QuestionCard";
 import HighlightedSentenceCard from "~/components/cards/HighlightedSentenceCard";
 import CollaborationUnitCard from "~/components/cards/CollaborationUnitCard";
 import EmptyState from "~/components/feedback/EmptyState";
-import { motion } from "~/lib/motion";
-import { staggerContainer, staggerItem, fadeUp } from "~/lib/motion-utils";
-import { cn } from "~/lib/cn";
+import { motion } from "~/lib/motion/motion";
+import { staggerContainer, staggerItem, fadeUp } from "~/lib/motion/motion-utils";
+import { cn } from "~/lib/utils/cn";
 import { useState } from "react";
 
 const cache = new Map<string, unknown>();
@@ -19,7 +19,7 @@ type TabKey = "records" | "questions";
 export async function loader({ params, request, context }: Route.LoaderArgs) {
   const { db } = await import("~/db/client.server");
   const { learnerProfiles, records, questions, sentences, stages, collaborationUnits, collaborationMembers } = await import("~/db/schema.server");
-  const { createLogger } = await import("~/lib/logger.server");
+  const { createLogger } = await import("~/lib/infra/logger.server");
 
   const { learnerSlug } = params;
   const logger = createLogger(request, context.cloudflare.env).child({ route: "learner_detail" });

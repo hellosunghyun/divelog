@@ -14,7 +14,7 @@ const cache = new Map<string, unknown>();
 export async function loader({ params, request, context }: Route.LoaderArgs) {
   const { db } = await import("~/db/client.server");
   const { stages, records, questions, collaborationUnits, learnerProfiles, collectiveMemories } = await import("~/db/schema.server");
-  const { createLogger } = await import("~/lib/logger.server");
+  const { createLogger } = await import("~/lib/infra/logger.server");
 
   const { stageSlug } = params;
   const logger = createLogger(request, context.cloudflare.env).child({ route: "journey_stage_detail" });

@@ -18,8 +18,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { requireVerified } from "~/lib/auth.middleware";
-import { createRecordSchema } from "~/lib/validation";
+import { requireVerified } from "~/lib/auth/auth.middleware";
+import { createRecordSchema } from "~/lib/auth/validation";
 import { useUnsavedWarning } from "~/hooks/useUnsavedWarning";
 
 const NO_SELECTION_VALUE = "__none__";
@@ -35,10 +35,10 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
   const { getRecordBySlug, updateRecord } = await import("~/db/queries/records/records.server");
   const { syncRecordLinksForRecord } = await import("~/db/queries/records/recordLinks.server");
   const { getAllTags, getTagsByRecord } = await import("~/db/queries/records/tags.server");
-  const { getPlainText } = await import("~/lib/content.server");
-  const { extractRecordRefs, extractUserMentions } = await import("~/lib/extract-references.server");
-  const { createLogger } = await import("~/lib/logger.server");
-  const { cleanupRemovedImages } = await import("~/lib/r2-cleanup.server");
+  const { getPlainText } = await import("~/lib/content/content.server");
+  const { extractRecordRefs, extractUserMentions } = await import("~/lib/content/extract-references.server");
+  const { createLogger } = await import("~/lib/infra/logger.server");
+  const { cleanupRemovedImages } = await import("~/lib/infra/r2-cleanup.server");
 
   const logger = createLogger(request, context.cloudflare.env).child({ route: "logs_edit" });
   logger.info("loader_start");
@@ -86,10 +86,10 @@ export async function action({ params, request, context }: Route.ActionArgs) {
   const { getRecordBySlug, updateRecord } = await import("~/db/queries/records/records.server");
   const { syncRecordLinksForRecord } = await import("~/db/queries/records/recordLinks.server");
   const { getAllTags, getTagsByRecord } = await import("~/db/queries/records/tags.server");
-  const { getPlainText } = await import("~/lib/content.server");
-  const { extractRecordRefs, extractUserMentions } = await import("~/lib/extract-references.server");
-  const { createLogger } = await import("~/lib/logger.server");
-  const { cleanupRemovedImages } = await import("~/lib/r2-cleanup.server");
+  const { getPlainText } = await import("~/lib/content/content.server");
+  const { extractRecordRefs, extractUserMentions } = await import("~/lib/content/extract-references.server");
+  const { createLogger } = await import("~/lib/infra/logger.server");
+  const { cleanupRemovedImages } = await import("~/lib/infra/r2-cleanup.server");
 
   const logger = createLogger(request, context.cloudflare.env).child({ route: "logs_edit" });
   logger.info("action_start");

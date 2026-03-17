@@ -1,5 +1,5 @@
-import { motion } from "~/lib/motion";
-import { fadeUp as fadeUpVariant, staggerContainer, staggerItem } from "~/lib/motion-utils";
+import { motion } from "~/lib/motion/motion";
+import { fadeUp as fadeUpVariant, staggerContainer, staggerItem } from "~/lib/motion/motion-utils";
 import { Link } from "~/components/content/SmartLink";
 
 interface HeroSectionProps {

@@ -1,5 +1,5 @@
 import type { ActivityItem } from "../../db/queries/social/activity.server";
-import { cn } from "~/lib/cn";
+import { cn } from "~/lib/utils/cn";
 
 interface ActivityFeedProps {
   activities: ActivityItem[];

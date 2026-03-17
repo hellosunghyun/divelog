@@ -1,6 +1,6 @@
 import { createRequestHandler } from "react-router";
 import { wrapRequestHandler } from "@sentry/cloudflare";
-import { createLogger } from "../app/lib/logger.server";
+import { createLogger } from "../app/lib/infra/logger.server";
 
 declare module "react-router" {
   export interface AppLoadContext {

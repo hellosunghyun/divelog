@@ -20,7 +20,7 @@ import {
   CaretRight,
   List,
 } from "@phosphor-icons/react";
-import { cn } from "~/lib/cn";
+import { cn } from "~/lib/utils/cn";
 
 interface NavItem {
   label: string;

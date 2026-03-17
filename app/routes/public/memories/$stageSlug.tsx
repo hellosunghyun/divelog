@@ -10,7 +10,7 @@ import SceneCard from "~/components/cards/SceneCard";
 export async function loader({ params, request, context }: Route.LoaderArgs) {
   const { db } = await import("~/db/client.server");
   const { collectiveMemories, stages, memoryQuestions, memoryRecords, memorySentences, questions, records, sentences } = await import("~/db/schema.server");
-  const { createLogger } = await import("~/lib/logger.server");
+  const { createLogger } = await import("~/lib/infra/logger.server");
 
   const { stageSlug } = params;
   const logger = createLogger(request, context.cloudflare.env).child({ route: "memory_detail" });

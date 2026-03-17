@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createLogger, createModuleLogger } from "../logger.server";
+import { createLogger, createModuleLogger } from "../infra/logger.server";
 
 function parseLog(spy: ReturnType<typeof vi.spyOn>) {
   const firstCall = spy.mock.calls[0];

@@ -1,6 +1,6 @@
 import { and, eq, lt } from "drizzle-orm";
 
-import { nanoid } from "../../../lib/utils.server";
+import { nanoid } from "../../../lib/utils/utils.server";
 import { db } from "../../client.server";
 import { drafts } from "../../schema.server";
 

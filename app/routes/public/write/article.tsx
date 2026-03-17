@@ -16,8 +16,8 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { useUnsavedWarning } from "~/hooks/useUnsavedWarning";
-import { requireVerified } from "~/lib/auth.middleware";
-import { createArticleSchema } from "~/lib/validation";
+import { requireVerified } from "~/lib/auth/auth.middleware";
+import { createArticleSchema } from "~/lib/auth/validation";
 
 const NO_STAGE_VALUE = "__none__";
 
@@ -28,11 +28,11 @@ export function meta(_args: Route.MetaArgs) {
 export async function loader({ request, context }: Route.LoaderArgs) {
   const { db } = await import("~/db/client.server");
   const { learnerProfiles, notifications, records, stages } = await import("~/db/schema.server");
-  const { getPlainText } = await import("~/lib/content.server");
+  const { getPlainText } = await import("~/lib/content/content.server");
   const { syncMentionsForRecord } = await import("~/db/queries/dialogue/mentions.server");
   const { syncRecordLinksForRecord } = await import("~/db/queries/records/recordLinks.server");
-  const { extractUserMentions, extractRecordRefs } = await import("~/lib/extract-references.server");
-  const { nanoid } = await import("~/lib/utils.server");
+  const { extractUserMentions, extractRecordRefs } = await import("~/lib/content/extract-references.server");
+  const { nanoid } = await import("~/lib/utils/utils.server");
 
   const auth = await requireVerified(request, context);
 
@@ -57,11 +57,11 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 export async function action({ request, context }: Route.ActionArgs) {
   const { db } = await import("~/db/client.server");
   const { learnerProfiles, notifications, records, stages } = await import("~/db/schema.server");
-  const { getPlainText } = await import("~/lib/content.server");
+  const { getPlainText } = await import("~/lib/content/content.server");
   const { syncMentionsForRecord } = await import("~/db/queries/dialogue/mentions.server");
   const { syncRecordLinksForRecord } = await import("~/db/queries/records/recordLinks.server");
-  const { extractUserMentions, extractRecordRefs } = await import("~/lib/extract-references.server");
-  const { nanoid } = await import("~/lib/utils.server");
+  const { extractUserMentions, extractRecordRefs } = await import("~/lib/content/extract-references.server");
+  const { nanoid } = await import("~/lib/utils/utils.server");
 
   const auth = await requireVerified(request, context);
 

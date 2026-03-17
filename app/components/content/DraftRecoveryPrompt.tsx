@@ -1,4 +1,4 @@
-import { clearLocalDraft, type DraftData } from '~/lib/draft-storage';
+import { clearLocalDraft, type DraftData } from '~/lib/infra/draft-storage';
 
 interface DraftRecoveryPromptProps {
   draft: DraftData;

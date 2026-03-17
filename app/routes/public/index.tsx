@@ -1,8 +1,8 @@
 import type { Route } from "./+types/index";
 import { Link } from "~/components/content/SmartLink";
 import { eq, desc, and, sql, count } from "drizzle-orm";
-import { motion } from "~/lib/motion";
-import { staggerContainer, staggerItem, fadeUp } from "~/lib/motion-utils";
+import { motion } from "~/lib/motion/motion";
+import { staggerContainer, staggerItem, fadeUp } from "~/lib/motion/motion-utils";
 import HeroSection from "~/components/sections/HeroSection";
 import ActivityFeed from "~/components/activity/ActivityFeed";
 
@@ -19,7 +19,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const { db } = await import("~/db/client.server");
   const { stages, records, questions, sentences, learnerProfiles } = await import("~/db/schema.server");
   const { getRecentActivity } = await import("~/db/queries/social/activity.server");
-  const { createLogger } = await import("~/lib/logger.server");
+  const { createLogger } = await import("~/lib/infra/logger.server");
 
   const logger = createLogger(request, context.cloudflare.env).child({ route: "home" });
   logger.info("loader_start");
@@ -102,7 +102,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const recentActivity = await getRecentActivity(context.cloudflare.env.DB, { limit: 8 });
 
   // Pre-compute plain text snippets and relative times on server to avoid hydration mismatch
-  const { getPlainText } = await import("~/lib/content.server");
+  const { getPlainText } = await import("~/lib/content/content.server");
   const nowMs = Date.now();
   const recentRecordsWithSnippets = recentRecords.map(row => {
     const plainText = getPlainText(row.content ?? "", (row.format === "article" ? "article" : "note") as "note" | "article");

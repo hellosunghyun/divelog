@@ -5,7 +5,7 @@ import {
   clearLocalDraft,
   hasDraftLocal,
   type DraftData,
-} from "../draft-storage";
+} from "../infra/draft-storage";
 
 const localStorageMock = (() => {
   let store: Record<string, string> = {};

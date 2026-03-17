@@ -15,7 +15,7 @@ import { ADMIN_ROLES, type AdminRole } from "~/db/queries/admin/roles";
 
 export async function loader({ params, request, context }: Route.LoaderArgs) {
   const { db } = await import("~/db/client.server");
-  const { createLogger } = await import("~/lib/logger.server");
+  const { createLogger } = await import("~/lib/infra/logger.server");
   const { learnerProfiles, records, questions, responses, stages } = await import("~/db/schema.server");
   const { adminGetUserRoles, adminAddUserRole, adminRemoveUserRole } = await import("~/db/queries/admin/roles.server");
 
@@ -71,7 +71,7 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
 
 export async function action({ params, request, context }: Route.ActionArgs) {
   const { db } = await import("~/db/client.server");
-  const { createLogger } = await import("~/lib/logger.server");
+  const { createLogger } = await import("~/lib/infra/logger.server");
   const { learnerProfiles, records, questions, responses, stages } = await import("~/db/schema.server");
   const { adminGetUserRoles, adminAddUserRole, adminRemoveUserRole } = await import("~/db/queries/admin/roles.server");
 

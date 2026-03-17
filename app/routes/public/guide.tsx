@@ -8,7 +8,7 @@ export function meta(_args: Route.MetaArgs) {
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {
-  const { createLogger } = await import("~/lib/logger.server");
+  const { createLogger } = await import("~/lib/infra/logger.server");
 
   const logger = createLogger(request, context.cloudflare.env).child({ route: "guide" });
   logger.info("loader_start");

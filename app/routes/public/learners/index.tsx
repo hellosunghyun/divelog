@@ -3,8 +3,8 @@ import LearnerCard from "~/components/cards/LearnerCard";
 import HeroSection from "~/components/sections/HeroSection";
 import EmptyState from "~/components/feedback/EmptyState";
 import FilterBar from "~/components/filters/FilterBar";
-import { motion } from "~/lib/motion";
-import { staggerContainer, staggerItem } from "~/lib/motion-utils";
+import { motion } from "~/lib/motion/motion";
+import { staggerContainer, staggerItem } from "~/lib/motion/motion-utils";
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "러너 — DiveLog" }];
@@ -12,7 +12,7 @@ export function meta(_args: Route.MetaArgs) {
 
 export async function loader({ context, request }: Route.LoaderArgs) {
   const { getLearnersWithActivity, getDistinctCohorts } = await import("~/db/queries/learners/learners.server");
-  const { createLogger } = await import("~/lib/logger.server");
+  const { createLogger } = await import("~/lib/infra/logger.server");
 
   const logger = createLogger(request, context.cloudflare.env).child({ route: "learners" });
   logger.info("loader_start");

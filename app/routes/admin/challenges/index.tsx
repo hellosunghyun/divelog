@@ -15,7 +15,7 @@ import {
 export function meta(_: Route.MetaArgs) { return [{ title: "챌린지 관리" }]; }
 export async function loader({ request, context }: Route.LoaderArgs) {
   const { db } = await import("~/db/client.server");
-  const { createLogger } = await import("~/lib/logger.server");
+  const { createLogger } = await import("~/lib/infra/logger.server");
   const { challenges } = await import("~/db/schema.server");
 
   const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.challenges" });

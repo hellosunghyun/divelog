@@ -1,6 +1,6 @@
 import type { AuthContext } from "@adakrpos/auth";
 
-import { createLogger, createModuleLogger } from "./logger.server";
+import { createLogger, createModuleLogger } from "../infra/logger.server";
 
 const authCache = new WeakMap<Request, AuthContext>();
 const debugCache = new WeakMap<Request, string>();

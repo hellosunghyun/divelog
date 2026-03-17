@@ -1,0 +1,27 @@
+Task 3 - app/lib concern-based reorganization
+Date: 2026-03-17
+
+[Structure]
+- Root lib TS files: app/lib/test-utils.tsx
+- Folder counts:
+  - app/lib/auth: 3
+  - app/lib/content: 5
+  - app/lib/utils: 5
+  - app/lib/infra: 3
+  - app/lib/motion: 2
+
+[Import migration checks]
+- old "~/lib/cn" count: 0
+- old "~/lib/auth.server" count: 0
+- old "~/lib/motion" count: 0
+- new "~/lib/utils/cn" count: 25
+- new "~/lib/auth/auth.server" count: 5
+- new "~/lib/motion/motion" count: 21
+
+[Quality gates]
+- pnpm typecheck | grep 'error TS' | wc -l => 36
+- pnpm test => 16 files passed, 126 tests passed
+
+[Notes]
+- `test-utils.tsx` remained at `app/lib/test-utils.tsx`.
+- `app/lib/__tests__` directory was not moved; relative imports were updated.

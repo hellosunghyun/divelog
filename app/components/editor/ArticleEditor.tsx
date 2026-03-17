@@ -237,7 +237,7 @@ export function ArticleEditor({
   const [isFocused, setIsFocused] = useState(false);
 
   const uploadImage = useCallback(async (file: File): Promise<string> => {
-    const { compressImage } = await import("../../lib/compress-image");
+    const { compressImage } = await import("../../lib/content/compress-image");
     const compressed = await compressImage(file);
 
     const formData = new FormData();

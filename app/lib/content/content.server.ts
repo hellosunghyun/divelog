@@ -1,5 +1,5 @@
 import type { ContentFormat } from "./editor-extensions";
-import { createModuleLogger } from "./logger.server";
+import { createModuleLogger } from "../infra/logger.server";
 
 const logger = createModuleLogger("content.server");
 

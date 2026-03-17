@@ -6,14 +6,14 @@ import { Label } from "~/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
 import { Textarea } from "~/components/ui/textarea";
 import { Badge } from "~/components/ui/badge";
-import { normalizeContentFormat } from "~/lib/editor-extensions";
+import { normalizeContentFormat } from "~/lib/content/editor-extensions";
 import { eq, desc } from "drizzle-orm";
 
 export async function loader({ params, request, context }: Route.LoaderArgs) {
   const { db } = await import("~/db/client.server");
-  const { createLogger } = await import("~/lib/logger.server");
+  const { createLogger } = await import("~/lib/infra/logger.server");
   const { records, learnerProfiles, stages, challenges, questions, responses } = await import("~/db/schema.server");
-  const { getPlainText } = await import("~/lib/content.server");
+  const { getPlainText } = await import("~/lib/content/content.server");
 
   const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.records.$recordId" });
   logger.info("loader_start");
@@ -58,9 +58,9 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
 
 export async function action({ params, request, context }: Route.ActionArgs) {
   const { db } = await import("~/db/client.server");
-  const { createLogger } = await import("~/lib/logger.server");
+  const { createLogger } = await import("~/lib/infra/logger.server");
   const { records, learnerProfiles, stages, challenges, questions, responses } = await import("~/db/schema.server");
-  const { getPlainText } = await import("~/lib/content.server");
+  const { getPlainText } = await import("~/lib/content/content.server");
 
   const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.records.$recordId" });
   const f = await request.formData();

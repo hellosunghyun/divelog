@@ -3,7 +3,7 @@ import {
   getPlainText,
   detectContentFormat,
   renderContentToHtml,
-} from "../content.server";
+} from "../content/content.server";
 
 describe("content.server", () => {
   describe("getPlainText", () => {

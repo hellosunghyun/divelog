@@ -4,9 +4,9 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { useState, useEffect, useRef } from "react";
 import { User, Envelope, GearSix, ArrowSquareOut, SignOut } from "@phosphor-icons/react";
-import { AnimatePresence, motion } from "~/lib/motion";
-import { staggerContainer, staggerItem } from "~/lib/motion-utils";
-import { cn } from "~/lib/cn";
+import { AnimatePresence, motion } from "~/lib/motion/motion";
+import { staggerContainer, staggerItem } from "~/lib/motion/motion-utils";
+import { cn } from "~/lib/utils/cn";
 
 interface PublicLoaderData {
   isAuthenticated: boolean;

@@ -21,10 +21,10 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { Textarea } from "~/components/ui/textarea";
-import { requireVerified } from "~/lib/auth.middleware";
-import { normalizeContentFormat } from "~/lib/editor-extensions";
-import { createResponseSchema, saveSentenceSchema } from "~/lib/validation";
-import { getOptionalUser } from "~/lib/auth.middleware";
+import { requireVerified } from "~/lib/auth/auth.middleware";
+import { normalizeContentFormat } from "~/lib/content/editor-extensions";
+import { createResponseSchema, saveSentenceSchema } from "~/lib/auth/validation";
+import { getOptionalUser } from "~/lib/auth/auth.middleware";
 
 import type { Route } from "./+types/$recordSlug";
 
@@ -52,9 +52,9 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
   const { getLinkedRecords } = await import("~/db/queries/records/records.server");
   const { getIncomingLinks } = await import("~/db/queries/records/recordLinks.server");
   const { getTagsByRecord } = await import("~/db/queries/records/tags.server");
-  const { getPlainText, renderContentToHtml } = await import("~/lib/content.server");
-  const { createLogger } = await import("~/lib/logger.server");
-  const { nanoid } = await import("~/lib/utils.server");
+  const { getPlainText, renderContentToHtml } = await import("~/lib/content/content.server");
+  const { createLogger } = await import("~/lib/infra/logger.server");
+  const { nanoid } = await import("~/lib/utils/utils.server");
 
   const { recordSlug } = params;
   const logger = createLogger(request, context.cloudflare.env).child({ route: "logs_detail" });
@@ -182,9 +182,9 @@ export async function action({ request, context }: Route.ActionArgs) {
   const { getLinkedRecords } = await import("~/db/queries/records/records.server");
   const { getIncomingLinks } = await import("~/db/queries/records/recordLinks.server");
   const { getTagsByRecord } = await import("~/db/queries/records/tags.server");
-  const { getPlainText, renderContentToHtml } = await import("~/lib/content.server");
-  const { createLogger } = await import("~/lib/logger.server");
-  const { nanoid } = await import("~/lib/utils.server");
+  const { getPlainText, renderContentToHtml } = await import("~/lib/content/content.server");
+  const { createLogger } = await import("~/lib/infra/logger.server");
+  const { nanoid } = await import("~/lib/utils/utils.server");
 
   const logger = createLogger(request, context.cloudflare.env).child({ route: "logs_detail" });
   const auth = await requireVerified(request, context);

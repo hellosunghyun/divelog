@@ -1,7 +1,7 @@
 import { and, desc, eq, sql } from "drizzle-orm";
 
-import type { CreateQuestionInput } from "../../../lib/validation";
-import { nanoid } from "../../../lib/utils.server";
+import type { CreateQuestionInput } from "../../../lib/auth/validation";
+import { nanoid } from "../../../lib/utils/utils.server";
 import { db } from "../../client.server";
 import { learnerProfiles, questionCarryOvers, questions, records, responses, selfAnswers } from "../../schema.server";
 

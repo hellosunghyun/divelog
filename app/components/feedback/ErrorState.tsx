@@ -1,5 +1,5 @@
 import { WarningCircle } from "@phosphor-icons/react";
-import { cn } from "~/lib/cn";
+import { cn } from "~/lib/utils/cn";
 
 interface ErrorStateProps {
   type?: "system" | "permission" | "not_found";

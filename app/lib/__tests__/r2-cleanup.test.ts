@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { cleanupRemovedImages, extractImageKeys } from "../r2-cleanup.server";
+import { cleanupRemovedImages, extractImageKeys } from "../infra/r2-cleanup.server";
 
 describe("extractImageKeys", () => {
   it("빈 JSON에서 빈 배열 반환", () => {

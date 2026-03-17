@@ -1,7 +1,7 @@
 import { Link } from "~/components/content/SmartLink";
-import { cn } from "~/lib/cn";
-import { motion } from "~/lib/motion";
-import { fadeUp } from "~/lib/motion-utils";
+import { cn } from "~/lib/utils/cn";
+import { motion } from "~/lib/motion/motion";
+import { fadeUp } from "~/lib/motion/motion-utils";
 
 type ResponseType =
   | "resonance"

@@ -1,15 +1,15 @@
 import { Outlet, data } from "react-router";
 import type { Route } from "./+types/_public";
-import { ensureAdminByEmail } from "~/lib/auth.middleware";
+import { ensureAdminByEmail } from "~/lib/auth/auth.middleware";
 import { and, eq } from "drizzle-orm";
 import GlobalNav from "~/components/layout/GlobalNav";
 import Footer from "~/components/layout/Footer";
 import { FloatingWriteCTA } from "~/components/layout/FloatingWriteCTA";
 
 export async function loader({ request, context }: Route.LoaderArgs) {
-  const { getAuth, getAuthDebug } = await import("~/lib/auth.server");
+  const { getAuth, getAuthDebug } = await import("~/lib/auth/auth.server");
   const { getOrCreateLearnerProfile } = await import("~/db/queries/learners/learners.server");
-  const { createLogger } = await import("~/lib/logger.server");
+  const { createLogger } = await import("~/lib/infra/logger.server");
   const { db } = await import("~/db/client.server");
   const { userRoles } = await import("~/db/schema.server");
 

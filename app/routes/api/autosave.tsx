@@ -1,8 +1,8 @@
 import type { AppLoadContext } from "react-router";
 
 import { upsertDraft } from "~/db/queries/records/drafts.server";
-import { getAuth } from "~/lib/auth.server";
-import { autosaveDraftSchema } from "~/lib/validation";
+import { getAuth } from "~/lib/auth/auth.server";
+import { autosaveDraftSchema } from "~/lib/auth/validation";
 
 function readString(value: FormDataEntryValue | null): string | undefined {
   if (typeof value !== "string") {

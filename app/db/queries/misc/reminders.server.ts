@@ -1,6 +1,6 @@
 import { and, asc, eq, isNull, lte } from "drizzle-orm";
 
-import { nanoid } from "../../../lib/utils.server";
+import { nanoid } from "../../../lib/utils/utils.server";
 import { db } from "../../client.server";
 import { questionReminders } from "../../schema.server";
 

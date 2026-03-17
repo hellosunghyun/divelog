@@ -12,7 +12,7 @@ export function meta(_: Route.MetaArgs) {
 
 export async function loader({ request, context }: Route.LoaderArgs) {
   const { db } = await import("~/db/client.server");
-  const { createLogger } = await import("~/lib/logger.server");
+  const { createLogger } = await import("~/lib/infra/logger.server");
   const { records, questions, responses, learnerProfiles, stages, challenges, collaborationUnits } = await import("~/db/schema.server");
 
   const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.analytics" });

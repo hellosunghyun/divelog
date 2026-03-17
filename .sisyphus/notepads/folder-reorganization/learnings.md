@@ -7,3 +7,8 @@
 - `app/db/queries` flat 파일 21개를 6개 도메인 폴더로 이동하면, 내부 `from "../client.server"`, `from "../schema.server"`는 `../../`로 depth 보정이 필요하다.
 - `from` 구문 외에도 `await import("../schema.server")` 같은 문자열 import가 남아 TS2307을 유발하므로 추가 grep으로 잔여 경로를 확인해야 한다.
 - 대규모 경로 치환 시 `app/db/queries/admin`은 제외 대상으로 prune 처리해 Task 경계(관리자 쿼리 분리 작업)를 유지할 수 있다.
+
+## 2026-03-17 Task 3 (lib reorg)
+- `app/lib`를 concern 폴더로 재배치하면 내부 상대 import는 `auth.middleware.ts`처럼 `../../db/*` depth 보정과 `../infra/*`, `../utils/*` 교차 폴더 보정이 함께 필요하다.
+- `grep -rn 'from "\.\.' app/lib/...` 점검은 moved 파일 + `__tests__`를 동시에 확인해야 누락 없이 TS2307을 제거할 수 있다.
+- `~/lib/motion`은 `~/lib/motion/motion`으로 매핑해야 하고, `workers/app.ts`처럼 `app/` 밖의 import도 별도 점검이 필요하다.

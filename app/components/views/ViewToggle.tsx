@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { useSearchParams } from "react-router";
 
-import { cn } from "~/lib/cn";
+import { cn } from "~/lib/utils/cn";
 
 export type RecordView = "grid" | "timeline";
 

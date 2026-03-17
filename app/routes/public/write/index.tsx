@@ -1,7 +1,7 @@
 import { Link } from "~/components/content/SmartLink";
 import { FileText, Article } from "@phosphor-icons/react";
 import type { Route } from "./+types/index";
-import { requireVerified } from "~/lib/auth.middleware";
+import { requireVerified } from "~/lib/auth/auth.middleware";
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "기록하기 — DiveLog" }];

@@ -4,8 +4,8 @@ import {
   detectContentFormat,
   getPlainText,
   renderContentToHtml,
-} from "../content.server";
-import { extractImageKeys } from "../r2-cleanup.server";
+} from "../content/content.server";
+import { extractImageKeys } from "../infra/r2-cleanup.server";
 
 describe("콘텐츠 유틸리티 통합", () => {
   it("Article JSON에서 이미지 키 추출 후 plain text와 HTML도 정상", () => {

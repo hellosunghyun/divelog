@@ -1,4 +1,4 @@
-import { createModuleLogger } from "./logger.server";
+import { createModuleLogger } from "../infra/logger.server";
 
 const logger = createModuleLogger("extract-references.server");
 

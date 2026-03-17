@@ -10,7 +10,7 @@ import * as Sentry from "@sentry/react-router/cloudflare";
 
 import type { Route } from "./+types/root";
 import { NavigationFade } from "~/components/layout/NavigationFade";
-import { MotionProvider } from "~/lib/motion";
+import { MotionProvider } from "~/lib/motion/motion";
 import "./app.css";
 
 export const links: Route.LinksFunction = () => [

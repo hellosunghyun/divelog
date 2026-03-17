@@ -1,5 +1,5 @@
 import type { Route } from "./+types/images.$";
-import { createLogger } from "~/lib/logger.server";
+import { createLogger } from "~/lib/infra/logger.server";
 
 export async function loader({ params, context, request }: Route.LoaderArgs) {
   const logger = createLogger(request, context.cloudflare.env).child({ route: "api.images" });

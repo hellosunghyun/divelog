@@ -9,7 +9,7 @@ import { eq } from "drizzle-orm";
 
 export async function loader({ params, request, context }: Route.LoaderArgs) {
   const { db } = await import("~/db/client.server");
-  const { createLogger } = await import("~/lib/logger.server");
+  const { createLogger } = await import("~/lib/infra/logger.server");
   const { collaborationUnits } = await import("~/db/schema.server");
 
   const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.collaboration.$groupId" });
@@ -20,7 +20,7 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
 }
 export async function action({ params, request, context }: Route.ActionArgs) {
   const { db } = await import("~/db/client.server");
-  const { createLogger } = await import("~/lib/logger.server");
+  const { createLogger } = await import("~/lib/infra/logger.server");
   const { collaborationUnits } = await import("~/db/schema.server");
 
   const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.collaboration.$groupId" });

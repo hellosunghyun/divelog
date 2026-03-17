@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { Route } from "./+types/me";
-import { requireAuth } from "~/lib/auth.middleware";
+import { requireAuth } from "~/lib/auth/auth.middleware";
 import { eq, and, desc, sql, asc, ne } from "drizzle-orm";
 import SceneCard from "~/components/cards/SceneCard";
 import HighlightedSentenceCard from "~/components/cards/HighlightedSentenceCard";
@@ -8,7 +8,7 @@ import QuestionCard from "~/components/cards/QuestionCard";
 import ResponseCard from "~/components/cards/ResponseCard";
 import EmptyState from "~/components/feedback/EmptyState";
 import { Link } from "~/components/content/SmartLink";
-import { cn } from "~/lib/cn";
+import { cn } from "~/lib/utils/cn";
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "내 공간 — DiveLog" }];
@@ -29,7 +29,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const { db } = await import("~/db/client.server");
   const { records, sentences, questions, learnerProfiles, stages } = await import("~/db/schema.server");
   const { getResponsesByAuthor } = await import("~/db/queries/dialogue/responses.server");
-  const { createLogger } = await import("~/lib/logger.server");
+  const { createLogger } = await import("~/lib/infra/logger.server");
 
   const logger = createLogger(request, context.cloudflare.env).child({ route: "me" });
   logger.info("loader_start");

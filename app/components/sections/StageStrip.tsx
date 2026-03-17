@@ -1,5 +1,5 @@
 import { Link } from "~/components/content/SmartLink";
-import { cn } from "~/lib/cn";
+import { cn } from "~/lib/utils/cn";
 
 interface Stage {
   id: string;

@@ -1,5 +1,5 @@
 import { useLocation } from "react-router";
-import { AnimatePresence, motion } from "~/lib/motion";
+import { AnimatePresence, motion } from "~/lib/motion/motion";
 
 export function NavigationFade({ children }: { children: React.ReactNode }) {
   const location = useLocation();

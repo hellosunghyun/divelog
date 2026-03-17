@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useFetcher } from "react-router";
-import { saveDraftToLocal } from "~/lib/draft-storage";
+import { saveDraftToLocal } from "~/lib/infra/draft-storage";
 
 export type AutosaveStatus = "idle" | "saving" | "saved" | "error";
 

@@ -1,6 +1,6 @@
 import { useSearchParams } from "react-router";
 
-import { cn } from "~/lib/cn";
+import { cn } from "~/lib/utils/cn";
 
 const ALL_FILTER_VALUE = "__all__";
 

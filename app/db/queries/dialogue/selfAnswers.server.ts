@@ -1,6 +1,6 @@
 import { and, desc, eq, inArray } from "drizzle-orm";
 
-import { nanoid } from "../../../lib/utils.server";
+import { nanoid } from "../../../lib/utils/utils.server";
 import { db } from "../../client.server";
 import { learnerProfiles, questions, selfAnswers } from "../../schema.server";
 

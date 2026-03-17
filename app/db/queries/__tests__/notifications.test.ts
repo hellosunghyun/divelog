@@ -7,7 +7,7 @@ vi.mock("../../client.server", () => ({
   db: vi.fn(),
 }));
 
-vi.mock("../../../lib/utils.server", () => ({
+vi.mock("../../../lib/utils/utils.server", () => ({
   nanoid: vi.fn(() => "notification-fixed-id"),
 }));
 

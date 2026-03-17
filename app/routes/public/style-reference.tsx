@@ -1,6 +1,6 @@
-import { motion } from "~/lib/motion";
-import { fadeUp, staggerContainer, staggerItem, tapScale } from "~/lib/motion-utils";
-import { cn } from "~/lib/cn";
+import { motion } from "~/lib/motion/motion";
+import { fadeUp, staggerContainer, staggerItem, tapScale } from "~/lib/motion/motion-utils";
+import { cn } from "~/lib/utils/cn";
 import {
   Palette,
   TextAa,

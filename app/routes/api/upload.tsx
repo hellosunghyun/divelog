@@ -1,8 +1,8 @@
 import type { Route } from "./+types/upload";
 
-import { getAuth } from "~/lib/auth.server";
-import { createLogger } from "~/lib/logger.server";
-import { nanoid } from "~/lib/utils.server";
+import { getAuth } from "~/lib/auth/auth.server";
+import { createLogger } from "~/lib/infra/logger.server";
+import { nanoid } from "~/lib/utils/utils.server";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 

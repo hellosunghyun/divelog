@@ -1,7 +1,7 @@
 import { and, desc, eq, like, or, sql } from "drizzle-orm";
 
-import type { CreateRecordInput, RecordFilterInput } from "../../../lib/validation";
-import { nanoid } from "../../../lib/utils.server";
+import type { CreateRecordInput, RecordFilterInput } from "../../../lib/auth/validation";
+import { nanoid } from "../../../lib/utils/utils.server";
 import { db } from "../../client.server";
 import { learnerProfiles, records } from "../../schema.server";
 

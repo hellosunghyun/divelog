@@ -6,7 +6,7 @@ export function meta(_: Route.MetaArgs) { return [{ title: "Admin 대시보드" 
 
 export async function loader({ request, context }: Route.LoaderArgs) {
   const { db } = await import("~/db/client.server");
-  const { createLogger } = await import("~/lib/logger.server");
+  const { createLogger } = await import("~/lib/infra/logger.server");
   const { stages, records, learnerProfiles } = await import("~/db/schema.server");
 
   const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.dashboard" });

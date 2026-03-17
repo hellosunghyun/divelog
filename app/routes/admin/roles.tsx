@@ -35,7 +35,7 @@ export function meta(_: Route.MetaArgs) {
 
 export async function loader({ request, context }: Route.LoaderArgs) {
   const { db } = await import("~/db/client.server");
-  const { createLogger } = await import("~/lib/logger.server");
+  const { createLogger } = await import("~/lib/infra/logger.server");
   const { userRoles, learnerProfiles } = await import("~/db/schema.server");
 
   const logger = createLogger(request, context.cloudflare.env as { LOG_LEVEL?: string }).child({ route: "admin.roles" });
@@ -61,7 +61,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 
 export async function action({ request, context }: Route.ActionArgs) {
   const { db } = await import("~/db/client.server");
-  const { createLogger } = await import("~/lib/logger.server");
+  const { createLogger } = await import("~/lib/infra/logger.server");
   const { userRoles, learnerProfiles } = await import("~/db/schema.server");
 
   const logger = createLogger(request, context.cloudflare.env as { LOG_LEVEL?: string }).child({ route: "admin.roles" });

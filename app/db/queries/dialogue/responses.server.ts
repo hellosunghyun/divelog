@@ -1,7 +1,7 @@
 import { and, desc, eq, gte, sql } from "drizzle-orm";
 
-import type { CreateResponseInput } from "../../../lib/validation";
-import { nanoid } from "../../../lib/utils.server";
+import type { CreateResponseInput } from "../../../lib/auth/validation";
+import { nanoid } from "../../../lib/utils/utils.server";
 import { db } from "../../client.server";
 import { learnerProfiles, records, responses } from "../../schema.server";
 

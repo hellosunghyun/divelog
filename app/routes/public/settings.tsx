@@ -1,5 +1,5 @@
 import type { Route } from "./+types/settings";
-import { requireAuth } from "~/lib/auth.middleware";
+import { requireAuth } from "~/lib/auth/auth.middleware";
 import { eq } from "drizzle-orm";
 import HeroSection from "~/components/sections/HeroSection";
 import { Button } from "~/components/ui/button";
@@ -18,7 +18,7 @@ export function meta(_args: Route.MetaArgs) {
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {
-  const { createLogger } = await import("~/lib/logger.server");
+  const { createLogger } = await import("~/lib/infra/logger.server");
   const { db } = await import("~/db/client.server");
   const { learnerProfiles } = await import("~/db/schema.server");
 
@@ -37,7 +37,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
-  const { createLogger } = await import("~/lib/logger.server");
+  const { createLogger } = await import("~/lib/infra/logger.server");
   const { db } = await import("~/db/client.server");
   const { learnerProfiles } = await import("~/db/schema.server");
 

@@ -1,7 +1,7 @@
 import { render as rtlRender, type RenderOptions, type RenderResult } from "@testing-library/react";
 import type { ReactElement } from "react";
 import { MemoryRouter } from "react-router";
-import { MotionProvider } from "~/lib/motion";
+import { MotionProvider } from "~/lib/motion/motion";
 
 function AllProviders({ children }: { children: React.ReactNode }) {
   return (

@@ -1,4 +1,4 @@
-import type { ContentFormat } from "../../lib/editor-extensions";
+import type { ContentFormat } from "../../lib/content/editor-extensions";
 
 interface ContentRendererProps {
   contentHtml: string;

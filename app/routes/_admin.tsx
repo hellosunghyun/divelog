@@ -1,11 +1,11 @@
 import { Outlet } from "react-router";
 import type { Route } from "./+types/_admin";
-import { requireRole, bootstrapAdmin } from "~/lib/auth.middleware";
+import { requireRole, bootstrapAdmin } from "~/lib/auth/auth.middleware";
 import AdminSidebar from "~/components/admin/AdminSidebar";
 import AdminContextBar from "~/components/admin/AdminContextBar";
 
 export async function loader({ request, context }: Route.LoaderArgs) {
-  const { createLogger } = await import("~/lib/logger.server");
+  const { createLogger } = await import("~/lib/infra/logger.server");
 
   const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.layout" });
   logger.info("loader_start");

@@ -4,9 +4,9 @@ import { sql } from "drizzle-orm";
 import type { InferSelectModel } from "drizzle-orm";
 
 type Stage = InferSelectModel<typeof stages>;
-import { motion } from "~/lib/motion";
-import { staggerContainer, staggerItem } from "~/lib/motion-utils";
-import { cn } from "~/lib/cn";
+import { motion } from "~/lib/motion/motion";
+import { staggerContainer, staggerItem } from "~/lib/motion/motion-utils";
+import { cn } from "~/lib/utils/cn";
 import StageStrip from "~/components/sections/StageStrip";
 import HeroSection from "~/components/sections/HeroSection";
 import EmptyState from "~/components/feedback/EmptyState";
@@ -21,7 +21,7 @@ export function meta(_args: Route.MetaArgs) {
 export async function loader({ request, context }: Route.LoaderArgs) {
   const { db } = await import("~/db/client.server");
   const { stages } = await import("~/db/schema.server");
-  const { createLogger } = await import("~/lib/logger.server");
+  const { createLogger } = await import("~/lib/infra/logger.server");
 
   const logger = createLogger(request, context.cloudflare.env).child({ route: "journey" });
   logger.info("loader_start");

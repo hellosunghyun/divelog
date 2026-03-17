@@ -3,9 +3,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { action } from "../autosave";
 import { upsertDraft } from "~/db/queries/records/drafts.server";
-import { getAuth } from "~/lib/auth.server";
+import { getAuth } from "~/lib/auth/auth.server";
 
-vi.mock("~/lib/auth.server", () => ({
+vi.mock("~/lib/auth/auth.server", () => ({
   getAuth: vi.fn(),
 }));
 

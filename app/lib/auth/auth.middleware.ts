@@ -2,11 +2,11 @@ import type { AppLoadContext } from "react-router";
 import { and, eq } from "drizzle-orm";
 import { redirect } from "react-router";
 
-import { db } from "../db/client.server";
-import { userRoles } from "../db/schema.server";
-import { nanoid } from "./utils.server";
+import { db } from "../../db/client.server";
+import { userRoles } from "../../db/schema.server";
+import { nanoid } from "../utils/utils.server";
 import { getAuth } from "./auth.server";
-import { createLogger, createModuleLogger } from "./logger.server";
+import { createLogger, createModuleLogger } from "../infra/logger.server";
 
 const adminLogger = createModuleLogger("auth.middleware");
 

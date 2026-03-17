@@ -1,7 +1,7 @@
 import { eq, or, and, sql } from "drizzle-orm";
 import { db } from "../../client.server";
 import { recordLinks, records, learnerProfiles } from "../../schema.server";
-import { nanoid } from "../../../lib/utils.server";
+import { nanoid } from "../../../lib/utils/utils.server";
 
 interface CreateLinkInput {
   sourceRecordId: string;

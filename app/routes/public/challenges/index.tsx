@@ -3,9 +3,9 @@ import { Link } from "~/components/content/SmartLink";
 import { asc } from "drizzle-orm";
 import HeroSection from "~/components/sections/HeroSection";
 import EmptyState from "~/components/feedback/EmptyState";
-import { motion } from "~/lib/motion";
-import { staggerContainer, staggerItem } from "~/lib/motion-utils";
-import { cn } from "~/lib/cn";
+import { motion } from "~/lib/motion/motion";
+import { staggerContainer, staggerItem } from "~/lib/motion/motion-utils";
+import { cn } from "~/lib/utils/cn";
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "챌린지 — DiveLog" }];
@@ -14,7 +14,7 @@ export function meta(_args: Route.MetaArgs) {
 export async function loader({ request, context }: Route.LoaderArgs) {
   const { db } = await import("~/db/client.server");
   const { challenges } = await import("~/db/schema.server");
-  const { createLogger } = await import("~/lib/logger.server");
+  const { createLogger } = await import("~/lib/infra/logger.server");
 
   const logger = createLogger(request, context.cloudflare.env).child({ route: "challenges" });
   logger.info("loader_start");
