@@ -14,7 +14,6 @@ interface SortOption {
   label: string;
 }
 
-// NO 인기순/추천순/popular
 const DEFAULT_SORT_OPTIONS: SortOption[] = [
   { value: "recent", label: "최근 기록" },
   { value: "oldest", label: "오래된 기록" },
