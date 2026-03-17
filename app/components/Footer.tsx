@@ -20,8 +20,8 @@ export default function Footer() {
 
   return (
     <footer className="bg-surface-secondary border-t border-border">
-      <div className="max-w-[1200px] mx-auto px-6 py-16 md:py-24">
-        <div className="flex flex-col md:flex-row justify-between gap-10 md:gap-8">
+      <div className="max-w-[1200px] mx-auto px-6 py-12 md:py-24">
+        <div className="flex flex-col md:flex-row justify-between gap-8 md:gap-8">
           <div className="flex flex-col gap-4">
             <Link
               to="/"
@@ -40,7 +40,7 @@ export default function Footer() {
                 DiveLog
               </span>
             </Link>
-            <p className="text-sm text-text-secondary leading-relaxed max-w-xs">
+            <p className="max-w-xs text-[15px] text-text-secondary leading-relaxed">
               아홉 달의 여정을 기록하고, 질문을 남기고, 서로의 사유에 공명하는 공간
             </p>
           </div>
@@ -56,7 +56,7 @@ export default function Footer() {
                     <Link
                       to={link.to}
                       className={cn(
-                        "text-sm text-text-secondary hover:text-ocean-blue transition-colors no-underline",
+                        "text-[15px] text-text-secondary hover:text-ocean-blue transition-colors no-underline",
                         focusRing
                       )}
                     >
@@ -77,7 +77,7 @@ export default function Footer() {
                     <Link
                       to={link.to}
                       className={cn(
-                        "text-sm text-text-secondary hover:text-ocean-blue transition-colors no-underline",
+                        "text-[15px] text-text-secondary hover:text-ocean-blue transition-colors no-underline",
                         focusRing
                       )}
                     >
@@ -91,7 +91,7 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-border mt-12 pt-8">
-          <p className="text-xs text-text-secondary">
+          <p className="text-sm text-text-secondary">
             © {currentYear} DiveLog. All rights reserved.
           </p>
         </div>

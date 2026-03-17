@@ -41,7 +41,7 @@ export default function HeroSection({
 
   if (isHome) {
     return (
-      <section className="relative min-h-[85vh] flex items-center overflow-hidden bg-gradient-to-br from-deep-ocean via-ocean-blue/90 to-deep-ocean/80">
+      <section className="relative min-h-[60vh] sm:min-h-[68vh] md:min-h-[85vh] flex items-center overflow-hidden bg-gradient-to-br from-deep-ocean via-ocean-blue/90 to-deep-ocean/80">
         <div
           className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_50%,rgba(20,108,148,0.3),transparent_70%)] pointer-events-none"
           aria-hidden="true"
@@ -52,9 +52,9 @@ export default function HeroSection({
           variants={staggerContainer}
           initial="hidden"
           animate="visible"
-          className="relative z-10 max-w-content mx-auto px-6 w-full grid grid-cols-1 md:grid-cols-5 gap-8 items-center py-16"
+          className="relative z-10 max-w-content mx-auto px-6 w-full grid grid-cols-1 md:grid-cols-5 gap-8 md:gap-10 items-center py-14 sm:py-18 md:py-16"
         >
-          <div className="md:col-span-3 space-y-6">
+          <div className="md:col-span-3 space-y-5 md:space-y-6">
             <motion.div variants={staggerItem}>
               <span className="inline-flex items-center rounded-full px-3 py-1 text-xs uppercase tracking-wide font-medium bg-white/10 text-white/80 backdrop-blur-sm border border-white/20">
                 {badge ?? "ADA Learner 9개월의 여정"}
@@ -63,7 +63,7 @@ export default function HeroSection({
 
             <motion.h1
               variants={staggerItem}
-              className="text-5xl md:text-7xl font-semibold text-white leading-hero"
+              className="text-[2.75rem] sm:text-5xl md:text-7xl font-semibold text-white leading-hero"
               style={{ letterSpacing: "var(--tracking-tighter)" }}
             >
               {title}
@@ -72,17 +72,20 @@ export default function HeroSection({
             {subtitle && (
               <motion.p
                 variants={staggerItem}
-                className="text-lg text-white/70 leading-relaxed max-w-[50ch]"
+                className="text-base sm:text-lg text-white/70 leading-relaxed max-w-[50ch]"
               >
                 {subtitle}
               </motion.p>
             )}
 
-            <motion.div variants={staggerItem} className="flex gap-4 flex-wrap">
+            <motion.div
+              variants={staggerItem}
+              className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4"
+            >
               {ctaHref && ctaText && (
                 <Link
                   to={ctaHref}
-                  className="inline-flex items-center rounded-full px-6 py-3 bg-white text-deep-ocean font-medium hover:bg-mist-blue transition-premium active:scale-[0.98]"
+                  className="inline-flex items-center justify-center rounded-full px-6 py-3 bg-white text-deep-ocean font-medium hover:bg-mist-blue transition-premium active:scale-[0.98]"
                 >
                   {ctaText}
                 </Link>

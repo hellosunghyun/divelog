@@ -317,7 +317,7 @@ function SpacingDemo({ value, label }: { value: number; label: string }) {
 
 function ShadowDemo({ name, cssValue }: { name: string; cssValue: string }) {
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex min-w-0 items-center gap-4">
       <div
         className="w-20 h-20 bg-surface rounded-xl flex-shrink-0"
         style={{ boxShadow: cssValue }}
@@ -377,17 +377,21 @@ function StickyNav() {
   return (
     <nav className="sticky top-0 z-50 bg-surface/80 backdrop-blur-md border-b border-border-subtle mb-16">
       <div className="max-w-[1200px] mx-auto px-6">
-        <div className="flex items-center gap-1 py-3 overflow-x-auto scrollbar-hide">
-          {sections.map(({ id, label, icon: Icon }) => (
-            <a
-              key={id}
-              href={`#${id}`}
-              className="flex items-center gap-2 px-3 py-2 text-sm text-text-secondary hover:text-text-primary hover:bg-surface-secondary rounded-lg transition-colors whitespace-nowrap"
-            >
-              <Icon className="w-4 h-4" />
-              {label}
-            </a>
-          ))}
+        <div className="w-full max-w-full overflow-hidden">
+          <div className="overflow-x-auto scrollbar-hide">
+            <div className="flex w-max min-w-full items-center gap-1 py-3 pr-6">
+              {sections.map(({ id, label, icon: Icon }) => (
+                <a
+                  key={id}
+                  href={`#${id}`}
+                  className="flex items-center gap-2 px-3 py-2 text-sm text-text-secondary hover:text-text-primary hover:bg-surface-secondary rounded-lg transition-colors whitespace-nowrap"
+                >
+                  <Icon className="w-4 h-4" />
+                  {label}
+                </a>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </nav>

@@ -105,11 +105,11 @@ export default function GlobalNav() {
             "bg-surface/85 backdrop-blur-xl backdrop-saturate-[1.8]",
             "ring-1 ring-border/60 shadow-tinted-sm",
             "pointer-events-auto",
-            "px-5 py-2.5",
-            "flex items-center justify-between gap-4"
+            "px-3 sm:px-5 py-2 sm:py-2.5",
+            "flex items-center justify-between gap-3 sm:gap-4"
           )}
         >
-          <div className="flex items-center gap-8">
+          <div className="flex items-center gap-3 sm:gap-8 min-w-0">
             <Link
               to="/"
               className={cn("flex items-center gap-2.5 group no-underline", focusRing)}
@@ -118,9 +118,11 @@ export default function GlobalNav() {
                 src="/icon.svg"
                 alt=""
                 aria-hidden="true"
-                className="w-8 h-8 rounded-lg shadow-lg shadow-ocean-blue/20"
+                className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg shadow-lg shadow-ocean-blue/20"
               />
-              <span className="text-lg font-bold tracking-tight text-deep-ocean">DiveLog</span>
+              <span className="text-base sm:text-lg font-bold tracking-tight text-deep-ocean whitespace-nowrap">
+                DiveLog
+              </span>
             </Link>
 
             <div className="hidden lg:flex items-center gap-6">
@@ -474,7 +476,7 @@ export default function GlobalNav() {
         </nav>
       </header>
 
-      <div className="h-16" />
+      <div className="h-15 sm:h-16" />
 
       <AnimatePresence>
         {isMenuOpen && (
