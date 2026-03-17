@@ -110,10 +110,10 @@ export async function getNarrativeDigest(
   const recordWhere = stageCohort
     ? and(
         gte(records.createdAt, twoWeeksAgo),
-        sql`${records.visibility} != 'draft'`,
+        sql`${records.visibility} IN ('cohort', 'public')`,
         eq(records.cohort, stageCohort),
       )
-    : and(gte(records.createdAt, twoWeeksAgo), sql`${records.visibility} != 'draft'`);
+    : and(gte(records.createdAt, twoWeeksAgo), sql`${records.visibility} IN ('cohort', 'public')`);
 
   const [recordRows, questionRows, responseRows, selfAnswerRows, sentenceRows] = await Promise.all([
     database

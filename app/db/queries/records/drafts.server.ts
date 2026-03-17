@@ -16,7 +16,7 @@ export interface DraftInput {
   stageId?: string | null;
   challengeId?: string | null;
   rhythm?: string;
-  visibility?: "draft" | "cohort" | "public";
+  visibility?: "draft" | "private" | "cohort" | "public";
   responsePreference?: "open" | "question_only" | "closed";
 }
 

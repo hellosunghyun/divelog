@@ -1,4 +1,4 @@
-import { sql, ne, and } from "drizzle-orm";
+import { sql, and } from "drizzle-orm";
 import type { LoaderFunctionArgs } from "react-router";
 import { db } from "~/db/client.server";
 import { records, learnerProfiles } from "~/db/schema.server";
@@ -38,7 +38,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .leftJoin(learnerProfiles, sql`${records.authorId} = ${learnerProfiles.userId}`)
     .where(
       and(
-        ne(records.visibility, "draft"),
+        sql`${records.visibility} IN ('cohort', 'public')`,
         sql`(${records.title} LIKE ${pattern} OR ${records.contentText} LIKE ${pattern})`,
       ),
     )

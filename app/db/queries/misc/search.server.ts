@@ -34,7 +34,7 @@ export async function searchQuestions(
       and(
         like(questions.content, pattern),
         options.cohort ? eq(records.cohort, options.cohort) : sql`1=1`,
-        sql`${records.visibility} != 'draft'`,
+        sql`${records.visibility} IN ('cohort', 'public')`,
       ),
     )
     .orderBy(desc(questions.createdAt))
@@ -66,7 +66,7 @@ export async function searchAll(d1: D1Database, query: string, cohort?: string) 
           and(
             or(like(records.title, pattern), like(records.contentText, pattern)),
             cohort ? eq(records.cohort, cohort) : sql`1=1`,
-            sql`${records.visibility} != 'draft'`,
+            sql`${records.visibility} IN ('cohort', 'public')`,
           ),
         )
         .orderBy(desc(records.createdAt))

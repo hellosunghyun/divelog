@@ -33,7 +33,7 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
       record: records,
       author: { displayName: learnerProfiles.displayName, slug: learnerProfiles.slug, profilePhotoUrl: learnerProfiles.profilePhotoUrl },
     }).from(records).leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
-      .where(and(eq(records.challengeId, challenge.id), sql`${records.visibility} != 'draft'`))
+      .where(and(eq(records.challengeId, challenge.id), sql`${records.visibility} IN ('cohort', 'public')`))
       .orderBy(desc(records.createdAt)).limit(12),
     // [COLLAB_DISABLED] collaboration query removed
     database

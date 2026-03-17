@@ -55,7 +55,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
         .where(
           and(
             or(like(records.title, pattern), like(records.contentText, pattern)),
-            sql`${records.visibility} != 'draft'`
+            sql`${records.visibility} IN ('cohort', 'public')`
           )
         )
        .orderBy(desc(records.createdAt))
@@ -69,7 +69,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
        .where(
          and(
            like(questions.content, pattern),
-           sql`${records.visibility} != 'draft'`
+            sql`${records.visibility} IN ('cohort', 'public')`
          )
        )
        .limit(10),
@@ -87,7 +87,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
        .where(
          and(
            like(sentences.content, pattern),
-           sql`${records.visibility} != 'draft'`
+            sql`${records.visibility} IN ('cohort', 'public')`
          )
        )
        .limit(10),

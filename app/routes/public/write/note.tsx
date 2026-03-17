@@ -219,9 +219,10 @@ export default function WriteNotePage({ loaderData }: Route.ComponentProps) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="draft">임시저장</SelectItem>
+                  <SelectItem value="private">나만 보기</SelectItem>
                   <SelectItem value="cohort">코호트 공개</SelectItem>
                   <SelectItem value="public">전체 공개</SelectItem>
-                  <SelectItem value="draft">임시저장</SelectItem>
                 </SelectContent>
               </Select>
             </div>

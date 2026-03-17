@@ -43,7 +43,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
       .from(questions)
       .leftJoin(records, eq(questions.recordId, records.id))
       .leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
-      .where(and(eq(questions.isOpen, true), sql`${records.visibility} != 'draft'`))
+      .where(and(eq(questions.isOpen, true), sql`${records.visibility} IN ('cohort', 'public')`))
       .orderBy(desc(questions.createdAt))
       .limit(8),
     database.select().from(learnerProfiles).limit(4),
@@ -73,7 +73,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
       })
       .from(records)
       .leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
-      .where(sql`${records.visibility} != 'draft'`)
+      .where(sql`${records.visibility} IN ('cohort', 'public')`)
       .orderBy(desc(records.createdAt))
       .limit(9),
     database
@@ -93,7 +93,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
       .from(sentences)
       .leftJoin(learnerProfiles, eq(sentences.savedById, learnerProfiles.userId))
       .leftJoin(records, eq(sentences.recordId, records.id))
-      .where(sql`${records.visibility} != 'draft'`)
+      .where(sql`${records.visibility} IN ('cohort', 'public')`)
       .orderBy(desc(sentences.createdAt))
       .limit(4),
     getRecentActivity(context.cloudflare.env.DB, {

@@ -65,7 +65,7 @@ export async function getRecordLinksByRecord(d1: D1Database, recordId: string) {
           eq(recordLinks.sourceRecordId, recordId),
           eq(recordLinks.targetRecordId, recordId),
         ),
-        sql`${records.visibility} != 'draft'`,
+        sql`${records.visibility} IN ('cohort', 'public')`,
       ),
     );
 }
@@ -88,7 +88,7 @@ export async function getIncomingLinks(d1: D1Database, targetRecordId: string) {
     .where(
       and(
         eq(recordLinks.targetRecordId, targetRecordId),
-        sql`${records.visibility} != 'draft'`,
+        sql`${records.visibility} IN ('cohort', 'public')`,
       ),
     );
 }

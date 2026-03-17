@@ -42,7 +42,7 @@ export async function getRecords(d1: D1Database, filters: RecordFilterInput = { 
     conditions.push(eq(records.cohort, filters.cohort));
   }
 
-  conditions.push(sql`${records.visibility} != 'draft'`);
+  conditions.push(sql`${records.visibility} IN ('cohort', 'public')`);
 
   const pageSize = 20;
   const offset = (filters.page - 1) * pageSize;
@@ -90,8 +90,12 @@ export async function getRecordBySlug(d1: D1Database, slug: string, currentUserI
 
   const recordData = result[0] ?? null;
   
-  // Defense-in-depth: if record is draft and user is not author, return null
-  if (recordData && recordData.record.visibility === "draft" && currentUserId && currentUserId !== recordData.record.authorId) {
+  if (
+    recordData
+    && (recordData.record.visibility === "draft" || recordData.record.visibility === "private")
+    && currentUserId
+    && currentUserId !== recordData.record.authorId
+  ) {
     return null;
   }
 
@@ -103,7 +107,7 @@ export async function getRecordsByAuthor(d1: D1Database, authorId: string, inclu
   const conditions = [eq(records.authorId, authorId)];
 
   if (!includePrivate) {
-    conditions.push(sql`${records.visibility} != 'draft'`);
+    conditions.push(sql`${records.visibility} IN ('cohort', 'public')`);
   }
 
   return database.select().from(records).where(and(...conditions)).orderBy(desc(records.createdAt));
@@ -249,7 +253,7 @@ export async function searchRecordsByKeyword(d1: D1Database, keyword: string, co
   const pattern = `%${keyword}%`;
   const conditions = [
     or(like(records.title, pattern), like(records.contentText, pattern)),
-    sql`${records.visibility} != 'draft'`,
+    sql`${records.visibility} IN ('cohort', 'public')`,
   ];
 
   if (cohort) {
@@ -313,7 +317,7 @@ export async function getLinkedRecords(
       .where(
         and(
           eq(records.id, linkedRecordId),
-          sql`${records.visibility} != 'draft'`,
+          sql`${records.visibility} IN ('cohort', 'public')`,
         ),
       )
       .limit(1);
@@ -352,7 +356,7 @@ export async function getLinkedRecords(
     .where(
       and(
         eq(records.linkedRecordId, recordId),
-        sql`${records.visibility} != 'draft'`,
+        sql`${records.visibility} IN ('cohort', 'public')`,
       ),
     )
     .orderBy(desc(records.createdAt))
