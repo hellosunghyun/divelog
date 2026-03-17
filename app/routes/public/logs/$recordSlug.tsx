@@ -368,6 +368,40 @@ export function meta({ data: loaderData }: Route.MetaArgs) {
   ];
 }
 
+const RHYTHM_LABELS: Record<string, string> = {
+  free: "자유",
+  moment: "순간",
+  sprint: "스프린트",
+  weekly: "주간",
+  monthly: "월간",
+  stage: "구간",
+  reflection: "회고",
+};
+
+const VISIBILITY_LABELS: Record<string, string> = {
+  cohort: "코호트 공개",
+  public: "전체 공개",
+  draft: "임시저장",
+};
+
+function formatRecordDate(recordedAt: number | null, recordedEndAt: number | null): string | null {
+  if (!recordedAt) return null;
+  const startDate = new Date(recordedAt * 1000).toLocaleDateString("ko-KR", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+  if (recordedEndAt) {
+    const endDate = new Date(recordedEndAt * 1000).toLocaleDateString("ko-KR", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+    return `${startDate} — ${endDate}`;
+  }
+  return startDate;
+}
+
 const ALL_RESPONSE_TYPE_OPTIONS = [
   { value: "resonance", label: "공명 — 이 기록에서 무엇이 남았는지 말합니다" },
   { value: "question", label: "질문 — 더 듣고 싶은 지점을 엽니다" },
@@ -617,9 +651,18 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
           <span className="text-caption px-3 py-1 rounded-full border border-border bg-surface text-text-secondary">
             {record.type === "personal" ? "개인" : record.type === "challenge" ? "챌린지" : "협업"}
           </span>
-          {record.visibility === "draft" && (
+          {record.rhythm && record.rhythm !== "free" && (
+            <span className="text-caption px-3 py-1 rounded-full border border-border bg-surface text-text-secondary">
+              {RHYTHM_LABELS[record.rhythm] ?? record.rhythm}
+            </span>
+          )}
+          {record.visibility === "draft" ? (
             <span className="text-caption px-3 py-1 rounded-full bg-warning/10 text-warning font-medium">
               임시저장
+            </span>
+          ) : (
+            <span className="text-caption px-3 py-1 rounded-full border border-border bg-surface text-text-secondary">
+              {VISIBILITY_LABELS[record.visibility] ?? record.visibility}
             </span>
           )}
         </div>
@@ -645,6 +688,18 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
             {new Date(record.createdAt * 1000).toLocaleDateString("ko-KR")}
           </time>
           <EditedIndicator createdAt={record.createdAt} updatedAt={record.updatedAt} className="ml-1" />
+          {(() => {
+            const dateLabel = formatRecordDate(record.recordedAt, record.recordedEndAt);
+            if (!dateLabel) return null;
+            return (
+              <span className="inline-flex items-center gap-1.5 text-sm text-text-secondary">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0" aria-hidden="true">
+                  <path d="M8 2v4" /><path d="M16 2v4" /><rect width="18" height="18" x="3" y="4" rx="2" /><path d="M3 10h18" />
+                </svg>
+                {dateLabel}
+              </span>
+            );
+          })()}
 
           {(isArticleRecord || isRecordAuthor) && (
             <div className="ml-auto flex items-center gap-2">
