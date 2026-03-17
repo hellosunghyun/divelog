@@ -7,13 +7,13 @@ import SceneCard from "~/components/SceneCard";
 import LearnerCard from "~/components/LearnerCard";
 import HeroSection from "~/components/HeroSection";
 import EmptyState from "~/components/EmptyState";
-import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
 import HighlightedSentenceCard from "~/components/HighlightedSentenceCard";
 import LoadingSkeleton from "~/components/LoadingSkeleton";
 import { getPlainText } from "~/lib/content.server";
 import { normalizeContentFormat } from "~/lib/editor-extensions";
 import { createLogger } from "~/lib/logger.server";
+import { motion } from "~/lib/motion";
+import { staggerContainer, staggerItem } from "~/lib/motion-utils";
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "검색 — DiveLog" }];
@@ -116,6 +116,14 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   };
 }
 
+const TABS = [
+  { id: "all", label: "전체" },
+  { id: "records", label: "기록" },
+  { id: "questions", label: "질문" },
+  { id: "learners", label: "러너" },
+  { id: "sentences", label: "문장" },
+] as const;
+
 export default function SearchPage({ loaderData }: Route.ComponentProps) {
   const { q, tab, results } = loaderData;
   const [searchParams] = useSearchParams();
@@ -136,131 +144,163 @@ export default function SearchPage({ loaderData }: Route.ComponentProps) {
       />
 
       <div className="max-w-content mx-auto py-12 px-6">
-        <Form className="mb-8 flex gap-3">
-          <Input
-            name="q"
-            type="search"
-            defaultValue={q}
-            placeholder="검색어를 입력하세요..."
-            className="flex-1 rounded-lg border-border bg-surface text-text-primary shadow-none placeholder:text-text-tertiary focus-visible:border-ocean-blue focus-visible:ring-ocean-blue/20"
-          />
-          <Button
-            type="submit"
-            className="h-12 rounded-full bg-deep-ocean px-7 text-[15px] font-medium text-white shadow-sm transition-all hover:bg-ocean-blue hover:shadow-md"
-          >
-            검색
-          </Button>
+        <Form className="mb-10">
+          <div className="relative max-w-2xl mx-auto">
+            <input
+              name="q"
+              type="search"
+              defaultValue={q}
+              placeholder="기록, 질문, 학습자를 검색하세요"
+              className="w-full rounded-full px-6 py-4 text-lg bg-surface border border-border focus:outline-none focus:ring-2 focus:ring-ocean-blue focus:border-ocean-blue shadow-tinted-sm placeholder:text-text-tertiary transition-premium"
+            />
+            <button
+              type="submit"
+              className="absolute right-2 top-1/2 -translate-y-1/2 bg-deep-ocean text-white px-6 py-2.5 rounded-full text-sm font-medium hover:bg-ocean-blue transition-premium active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
+            >
+              검색
+            </button>
+          </div>
         </Form>
 
         {isSearching ? (
           <LoadingSkeleton variant="card" count={3} />
         ) : !q ? (
-           <EmptyState
-             variant="search"
-             message="검색어를 입력해서 기록, 질문, 러너를 찾아보세요."
-           />
+          <div className="max-w-2xl mx-auto">
+            <EmptyState
+              variant="search"
+              message="검색어를 입력해서 기록, 질문, 러너를 찾아보세요."
+            />
+          </div>
         ) : total === 0 ? (
-          <EmptyState variant="search" message={`"${q}"에 대한 결과가 없습니다.`} />
+          <div className="max-w-2xl mx-auto">
+            <EmptyState variant="search" message={`"${q}"에 대한 결과가 없습니다.`} />
+          </div>
         ) : (
-          <div>
-            <div className="flex gap-2 mb-8 border-b border-border pb-3">
-              {["all", "records", "questions", "learners", "sentences"].map((t) => (
-                <a
-                  key={t}
-                  href={`?q=${encodeURIComponent(q)}&tab=${t}`}
-                  className={`px-4 py-2 rounded-full text-sm no-underline transition-colors ${
-                    tab === t
-                      ? "bg-deep-ocean text-white font-medium"
-                      : "text-text-secondary hover:bg-mist-blue/30"
-                  }`}
-                >
-                  {t === "all"
-                    ? "전체"
-                    : t === "records"
-                      ? "기록"
-                      : t === "questions"
-                        ? "질문"
-                        : t === "learners"
-                           ? "러너"
-                           : "문장"}
-                </a>
-              ))}
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={staggerContainer}
+          >
+            <div className="flex justify-center mb-10">
+              <div className="inline-flex rounded-full bg-surface-secondary p-1 gap-0.5">
+                {TABS.map((t) => (
+                  <a
+                    key={t.id}
+                    href={`?q=${encodeURIComponent(q)}&tab=${t.id}`}
+                    className={`rounded-full px-4 py-2 text-sm font-medium transition-premium ${
+                      tab === t.id
+                        ? "bg-surface shadow-tinted-sm text-text-primary"
+                        : "text-text-secondary hover:text-text-primary"
+                    }`}
+                  >
+                    {t.label}
+                  </a>
+                ))}
+              </div>
             </div>
 
-            {(tab === "all" || tab === "records") && results.records.length > 0 && (
-              <section className="mb-10">
-                <h3 className="text-lg font-semibold text-text-primary tracking-tight mb-6">
-                  기록
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                  {results.records.map(({ record, author, contentSnippet }) => (
-                    <SceneCard
-                      key={record.id}
-                      record={{
-                        ...record,
-                        format: normalizeContentFormat(record.format),
-                        type:
-                          record.type === "challenge"
-                            ? "challenge"
-                            : record.type === "collaboration"
-                              ? "collaboration"
-                              : "personal",
-                      }}
-                      author={author ?? undefined}
-                      contentSnippet={contentSnippet}
-                    />
-                  ))}
-                </div>
-              </section>
-            )}
+            <div className="space-y-12">
+              {(tab === "all" || tab === "records") && results.records.length > 0 && (
+                <motion.section
+                  variants={staggerItem}
+                  className="mb-10"
+                >
+                  <h3 className="text-lg font-semibold text-text-primary tracking-tight mb-6">
+                    기록
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                    {results.records.map((item) => (
+                      <motion.div
+                        key={item.record.id}
+                        variants={staggerItem}
+                      >
+                        <SceneCard
+                          record={{
+                            ...item.record,
+                            format: normalizeContentFormat(item.record.format),
+                            type:
+                              item.record.type === "challenge"
+                                ? "challenge"
+                                : item.record.type === "collaboration"
+                                  ? "collaboration"
+                                  : "personal",
+                          }}
+                          author={item.author ?? undefined}
+                          contentSnippet={item.contentSnippet}
+                        />
+                      </motion.div>
+                    ))}
+                  </div>
+                </motion.section>
+              )}
 
-             {(tab === "all" || tab === "learners") && results.learners.length > 0 && (
-               <section className="mb-10">
-                 <h3 className="text-lg font-semibold text-text-primary tracking-tight mb-6">
-                   러너
-                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                  {results.learners.map((learner) => (
-                    <LearnerCard key={learner.userId} learner={learner} />
-                  ))}
-                </div>
-              </section>
-            )}
+              {(tab === "all" || tab === "learners") && results.learners.length > 0 && (
+                <motion.section
+                  variants={staggerItem}
+                  className="mb-10"
+                >
+                  <h3 className="text-lg font-semibold text-text-primary tracking-tight mb-6">
+                    러너
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                    {results.learners.map((learner) => (
+                      <motion.div
+                        key={learner.userId}
+                        variants={staggerItem}
+                      >
+                        <LearnerCard learner={learner} />
+                      </motion.div>
+                    ))}
+                  </div>
+                </motion.section>
+              )}
 
-             {(tab === "all" || tab === "questions") && results.questions.length > 0 && (
-               <section className="mb-10">
-                 <h3 className="text-lg font-semibold text-text-primary tracking-tight mb-6">
-                   질문
-                 </h3>
-                 <div className="flex flex-col gap-4">
-                   {results.questions.map((q2) => (
-                     <p
-                       key={q2.question.id}
-                       className="p-5 bg-surface rounded-lg border border-border text-text-primary"
-                     >
-                       {q2.question.content}
-                     </p>
-                   ))}
-                 </div>
-               </section>
-             )}
+              {(tab === "all" || tab === "questions") && results.questions.length > 0 && (
+                <motion.section
+                  variants={staggerItem}
+                  className="mb-10"
+                >
+                  <h3 className="text-lg font-semibold text-text-primary tracking-tight mb-6">
+                    질문
+                  </h3>
+                  <div className="flex flex-col gap-4 max-w-2xl">
+                    {results.questions.map((questionItem) => (
+                      <motion.div
+                        key={questionItem.question.id}
+                        variants={staggerItem}
+                        className="p-5 bg-surface rounded-2xl border border-border text-text-primary quiet-depth-card"
+                      >
+                        <p className="text-base leading-relaxed">{questionItem.question.content}</p>
+                      </motion.div>
+                    ))}
+                  </div>
+                </motion.section>
+              )}
 
-             {(tab === "all" || tab === "sentences") && results.sentences.length > 0 && (
-               <section className="mb-10">
-                 <h3 className="text-lg font-semibold text-text-primary tracking-tight mb-6">
-                   문장
-                 </h3>
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                   {results.sentences.map((s) => (
-                     <HighlightedSentenceCard
-                       key={s.sentence.id}
-                       sentence={s.sentence}
-                     />
-                   ))}
-                 </div>
-               </section>
-             )}
-           </div>
+              {(tab === "all" || tab === "sentences") && results.sentences.length > 0 && (
+                <motion.section
+                  variants={staggerItem}
+                  className="mb-10"
+                >
+                  <h3 className="text-lg font-semibold text-text-primary tracking-tight mb-6">
+                    문장
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    {results.sentences.map((sentenceItem) => (
+                      <motion.div
+                        key={sentenceItem.sentence.id}
+                        variants={staggerItem}
+                      >
+                        <HighlightedSentenceCard
+                          sentence={sentenceItem.sentence}
+                        />
+                      </motion.div>
+                    ))}
+                  </div>
+                </motion.section>
+              )}
+            </div>
+          </motion.div>
         )}
       </div>
     </div>
