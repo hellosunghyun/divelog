@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useFetcher, useRouteLoaderData } from "react-router";
 import {
   getLocalReadIds,
@@ -40,12 +40,20 @@ export function useReadState(recordIds: string[]): UseReadStateResult {
   const [readSet, setReadSet] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(false);
 
+  const syncedRef = useRef(false);
+  const loadedKeyRef = useRef<string>("");
+  const fetcherRef = useRef(fetcher);
+  fetcherRef.current = fetcher;
+  const syncFetcherRef = useRef(syncFetcher);
+  syncFetcherRef.current = syncFetcher;
+
   useEffect(() => {
-    if (!isAuthenticated || !userId) {
+    if (!isAuthenticated || !userId || syncedRef.current) {
       return;
     }
 
     if (hasSyncedThisSession()) {
+      syncedRef.current = true;
       return;
     }
 
@@ -54,10 +62,11 @@ export function useReadState(recordIds: string[]): UseReadStateResult {
 
     if (entries.length === 0) {
       markSyncedThisSession();
+      syncedRef.current = true;
       return;
     }
 
-    syncFetcher.submit(
+    syncFetcherRef.current.submit(
       {
         intent: "sync_reads",
         entries: JSON.stringify(entries),
@@ -69,28 +78,28 @@ export function useReadState(recordIds: string[]): UseReadStateResult {
     );
 
     markSyncedThisSession();
-  }, [isAuthenticated, syncFetcher, userId]);
+    syncedRef.current = true;
+  }, [isAuthenticated, userId]);
 
   useEffect(() => {
-    if (syncFetcher.data && 'success' in syncFetcher.data) {
+    if (syncFetcher.data && "success" in syncFetcher.data) {
       clearLocalReads();
     }
   }, [syncFetcher.data]);
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated || !hasRecordIds) {
       return;
     }
 
-    if (!hasRecordIds) {
-      setReadSet(new Set());
-      setIsLoading(false);
+    if (loadedKeyRef.current === recordIdsKey) {
       return;
     }
 
+    loadedKeyRef.current = recordIdsKey;
     setIsLoading(true);
-    fetcher.load(`/api/track-read?ids=${encodeURIComponent(recordIdsKey)}`);
-  }, [fetcher, hasRecordIds, isAuthenticated, recordIdsKey]);
+    fetcherRef.current.load(`/api/track-read?ids=${encodeURIComponent(recordIdsKey)}`);
+  }, [isAuthenticated, hasRecordIds, recordIdsKey]);
 
   useEffect(() => {
     if (fetcher.data?.readIds) {
@@ -109,17 +118,21 @@ export function useReadState(recordIds: string[]): UseReadStateResult {
       return;
     }
 
+    const ids = recordIdsKey ? recordIdsKey.split(",") : [];
     const localReadIds = getLocalReadIds();
-    const nextReadSet = new Set(recordIds.filter((recordId) => localReadIds.has(recordId)));
+    const filtered = ids.filter((id) => localReadIds.has(id));
 
-    setReadSet(nextReadSet);
+    setReadSet((prev) => {
+      if (prev.size === filtered.length && filtered.every((id) => prev.has(id))) {
+        return prev;
+      }
+      return new Set(filtered);
+    });
     setIsLoading(false);
-  }, [isAuthenticated, recordIds]);
+  }, [isAuthenticated, recordIdsKey]);
 
   return {
-    isRead(recordId: string) {
-      return readSet.has(recordId);
-    },
+    isRead: (recordId: string) => readSet.has(recordId),
     isLoading,
   };
 }
