@@ -18,7 +18,7 @@ export function meta(_args: Route.MetaArgs) {
 export async function loader({ request, context }: Route.LoaderArgs) {
   const { db } = await import("~/db/client.server");
   const { stages, records, questions, sentences, learnerProfiles } = await import("~/db/schema.server");
-  const { getNarrativeDigest } = await import("~/db/queries/activity.server");
+  const { getRecentActivity } = await import("~/db/queries/activity.server");
   const { createLogger } = await import("~/lib/logger.server");
 
   const logger = createLogger(request, context.cloudflare.env).child({ route: "home" });
@@ -99,23 +99,32 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const currentStage = currentStageResult[0] ?? null;
   const learnerCount = learnerCountResult[0]?.total ?? 0;
 
-  const recentActivity = await getNarrativeDigest(context.cloudflare.env.DB, { limit: 8 });
+  const recentActivity = await getRecentActivity(context.cloudflare.env.DB, { limit: 8 });
 
-  // Pre-compute plain text snippets on server to avoid client importing server-only modules
+  // Pre-compute plain text snippets and relative times on server to avoid hydration mismatch
   const { getPlainText } = await import("~/lib/content.server");
-  const recentRecordsWithSnippets = recentRecords.map(row => ({
+  const nowMs = Date.now();
+  const recentRecordsWithSnippets = recentRecords.map(row => {
+    const plainText = getPlainText(row.content ?? "", (row.format === "article" ? "article" : "note") as "note" | "article");
+    return {
+      ...row,
+      snippet: plainText.length > 120 ? plainText.substring(0, 120) + "…" : plainText,
+      relativeTime: formatRelativeTime(row.createdAt, nowMs),
+    };
+  });
+
+  const openQuestionsWithTime = openQuestions.map(row => ({
     ...row,
-    snippet: getPlainText(row.content ?? "", (row.format === "article" ? "article" : "note") as "note" | "article").substring(0, 120),
+    relativeTime: formatRelativeTime(row.questionCreatedAt, nowMs),
   }));
 
   logger.info("loader_end");
-  return { allStages, currentStage, recentRecords: recentRecordsWithSnippets, openQuestions, recentSentences, spotlightLearners, learnerCount, recentActivity };
+  return { allStages, currentStage, recentRecords: recentRecordsWithSnippets, openQuestions: openQuestionsWithTime, recentSentences, spotlightLearners, learnerCount, recentActivity };
 }
 
-function formatRelativeTime(timestamp: number | null): string {
+function formatRelativeTime(timestamp: number | null, nowMs?: number): string {
   if (!timestamp) return "";
-  const now = Date.now();
-  const diff = now - timestamp * 1000;
+  const diff = (nowMs ?? Date.now()) - timestamp * 1000;
   const minutes = Math.floor(diff / 60000);
   const hours = Math.floor(diff / 3600000);
   const days = Math.floor(diff / 86400000);
@@ -215,7 +224,7 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
                             <div
                               className={`w-4 h-4 rounded-full transition-all ${
                                 isCurrent
-                                  ? "bg-ocean-blue ring-4 ring-ocean-blue/20"
+                                  ? "bg-ocean-blue outline outline-4 outline-ocean-blue/20"
                                   : isPast
                                   ? "bg-border"
                                   : "bg-surface-secondary border-2 border-border"
@@ -327,7 +336,7 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
                     </p>
                     <div className="flex items-center justify-between mt-4">
                       <span className="text-xs text-text-tertiary font-medium">
-                        {row.authorDisplayName} • {formatRelativeTime(row.questionCreatedAt)}
+                        {row.authorDisplayName} • {row.relativeTime}
                       </span>
                       <Link
                         to={row.recordSlug ? `/logs/${row.recordSlug}` : "/logs"}
@@ -375,9 +384,8 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {recentRecords.map((row: typeof recentRecords[number]) => {
-                  const snippet = (row.snippet ?? row.content.substring(0, 120)) + ((row.snippet ?? row.content).length > 120 ? "…" : "");
-                  const initial = row.author?.displayName ? row.author.displayName[0] : "?";
-                  const stage = row.stageId ? allStages.find((s: typeof allStages[number]) => s.id === row.stageId) : null;
+                   const initial = row.author?.displayName ? row.author.displayName[0] : "?";
+                   const stage = row.stageId ? allStages.find((s: typeof allStages[number]) => s.id === row.stageId) : null;
                   return (
                     <motion.article
                       key={row.id}
@@ -401,14 +409,14 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
                             </Link>
                           )}
                         </div>
-                        <span className="text-xs text-text-tertiary font-medium">{formatRelativeTime(row.createdAt)}</span>
+                        <span className="text-xs text-text-tertiary font-medium">{row.relativeTime}</span>
                       </div>
                       <Link to={`/logs/${row.slug}`} className="no-underline group">
                         <h3 className="text-lg font-bold mb-3 leading-tight text-deep-ocean line-clamp-2 group-hover:text-ocean-blue transition-colors">
                           {row.title}
                         </h3>
                       </Link>
-                      <p className="text-text-secondary text-base font-light leading-relaxed mb-6 flex-grow line-clamp-4">{snippet}</p>
+                      <p className="text-text-secondary text-base font-light leading-relaxed mb-6 flex-grow line-clamp-4">{row.snippet}</p>
                       <div className="pt-5 border-t border-border-subtle flex items-center justify-between">
                         <div className="flex items-center gap-2.5">
                           {row.author?.profilePhotoUrl ? (

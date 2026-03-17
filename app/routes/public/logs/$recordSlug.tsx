@@ -542,7 +542,7 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
   }, [hideSentenceButton, showSentenceButton]);
 
   return (
-    <div className="max-w-content mx-auto px-6 py-16 md:py-24 grid grid-cols-1 lg:grid-cols-[minmax(0,720px)_280px] gap-12 lg:gap-12 lg:justify-center relative">
+    <div className="max-w-reading lg:max-w-content mx-auto px-6 py-16 md:py-24 lg:grid lg:grid-cols-[minmax(0,720px)_280px] lg:gap-12 lg:justify-center relative">
       <div className="min-w-0">
       {record.visibility === "draft" && (
         <div className="mb-6 rounded-xl border border-warning/30 bg-warning/5 px-5 py-4">

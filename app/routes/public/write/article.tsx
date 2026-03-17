@@ -1,7 +1,7 @@
 import { eq, sql } from "drizzle-orm";
 import { useState } from "react";
 import { Link } from "~/components/SmartLink";
-import { redirect, useActionData, useNavigation } from "react-router";
+import { Form, redirect, useActionData, useNavigation } from "react-router";
 import type { Route } from "./+types/article";
 
 import { ArticleEditor } from "~/components/editor/ArticleEditor";
@@ -193,7 +193,7 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
         <h1 className="mb-1 text-2xl font-semibold text-text-primary">글쓰기</h1>
         <p className="mb-8 text-base text-text-secondary">여유롭게 탐구의 기록을 남기세요.</p>
 
-        <form method="post" className="flex flex-col gap-6">
+        <Form method="post" className="flex flex-col gap-6">
           <div className="flex flex-wrap items-center gap-4">
             <div>
               <Label
@@ -313,7 +313,7 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
               취소
             </Link>
           </div>
-        </form>
+        </Form>
       </div>
     </div>
   );

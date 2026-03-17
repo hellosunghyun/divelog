@@ -1,7 +1,7 @@
 import { eq, sql } from "drizzle-orm";
 import { useState } from "react";
 import { Link } from "~/components/SmartLink";
-import { redirect, useActionData, useNavigation } from "react-router";
+import { Form, redirect, useActionData, useNavigation } from "react-router";
 import type { Route } from "./+types/note";
 
 import { NoteEditor } from "~/components/editor/NoteEditor";
@@ -193,7 +193,7 @@ export default function WriteNotePage({ loaderData }: Route.ComponentProps) {
         <h1 className="mb-1 text-2xl font-semibold text-text-primary">짧은 메모</h1>
         <p className="mb-8 text-base text-text-secondary">떠오르는 생각을 빠르게 남기세요.</p>
 
-        <form method="post" className="flex flex-col gap-5">
+        <Form method="post" className="flex flex-col gap-5">
           <div className="flex flex-wrap items-center gap-4">
             <div>
               <Label
@@ -271,7 +271,7 @@ export default function WriteNotePage({ loaderData }: Route.ComponentProps) {
               취소
             </Link>
           </div>
-        </form>
+        </Form>
       </div>
     </div>
   );

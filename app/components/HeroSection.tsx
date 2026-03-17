@@ -99,9 +99,15 @@ export default function HeroSection({
             className="md:col-span-2 hidden md:flex items-center justify-center"
           >
             <div
-              className="aspect-square w-full max-w-[320px] rounded-3xl bg-gradient-to-br from-reef-cyan/20 via-transparent to-ocean-blue/10 backdrop-blur-sm border border-white/10"
+              className="w-48 h-48 md:w-56 md:h-56 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 shadow-[0_8px_32px_rgba(11,36,71,0.15)] flex items-center justify-center"
               aria-hidden="true"
-            />
+            >
+              <img
+                src="/icon.svg"
+                alt=""
+                className="w-24 h-24 md:w-28 md:h-28 drop-shadow-lg"
+              />
+            </div>
           </motion.div>
         </motion.div>
 

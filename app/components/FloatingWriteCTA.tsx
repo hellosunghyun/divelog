@@ -30,7 +30,7 @@ export function FloatingWriteCTA() {
       data-testid="floating-write-cta"
       aria-label="기록 남기기"
       className={`
-        fixed z-50
+        fixed z-30
         lg:hidden
         bg-ocean-blue text-white
         rounded-full shadow-lg shadow-ocean-blue/20

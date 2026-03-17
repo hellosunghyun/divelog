@@ -101,7 +101,7 @@ export default function GlobalNav() {
         <nav
           aria-label="주요 내비게이션"
           className={cn(
-            "max-w-5xl mx-auto rounded-full",
+            "max-w-content mx-auto rounded-full",
             "bg-surface/85 backdrop-blur-xl backdrop-saturate-[1.8]",
             "ring-1 ring-border/60 shadow-tinted-sm",
             "pointer-events-auto",
