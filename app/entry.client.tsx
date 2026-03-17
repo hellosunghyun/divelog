@@ -12,11 +12,11 @@ Sentry.init({
     Sentry.replayIntegration(),
   ],
 
-  tracesSampleRate: 1.0,
+  tracesSampleRate: 0.1,
   tracePropagationTargets: [/^\//, /^https:\/\/divelog\.ada-kr-pos\.com/],
 
-  replaysSessionSampleRate: 0.1,
-  replaysOnErrorSampleRate: 1.0,
+  replaysSessionSampleRate: 0.01,
+  replaysOnErrorSampleRate: 0.5,
 });
 
 // 배포 후 구 청크 로딩 실패 시 자동 새로고침 (1회만)

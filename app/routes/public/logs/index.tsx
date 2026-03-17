@@ -10,8 +10,6 @@ import CalendarView from "~/components/views/CalendarView";
 import EmptyState from "~/components/feedback/EmptyState";
 import { Button } from "~/components/ui/button";
 import { normalizeContentFormat } from "~/lib/content/editor-extensions";
-import { motion } from "~/lib/motion/motion";
-import { staggerContainer, staggerItem } from "~/lib/motion/motion-utils";
 import { useReadState } from "~/hooks/useReadState";
 
 type LogSort = "recent" | "oldest" | "stage";
@@ -273,14 +271,9 @@ export default function LogsPage({ loaderData }: Route.ComponentProps) {
         }))}
       />
     ) : (
-      <motion.div
-        variants={staggerContainer}
-        initial="hidden"
-        animate="visible"
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-      >
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredRecords.map((record: typeof filteredRecords[number]) => (
-          <motion.div key={record.id} variants={staggerItem}>
+          <div key={record.id}>
             <SceneCard
               record={{
                 slug: record.slug,
@@ -310,9 +303,9 @@ export default function LogsPage({ loaderData }: Route.ComponentProps) {
               }
               isRead={record.format === "article" && isRead(record.id)}
             />
-          </motion.div>
+          </div>
         ))}
-      </motion.div>
+      </div>
     );
 
   return (
