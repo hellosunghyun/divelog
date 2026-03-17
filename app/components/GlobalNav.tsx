@@ -1,4 +1,4 @@
-import { useRouteLoaderData, useLocation, useNavigate } from "react-router";
+import { useRouteLoaderData, useLocation, useNavigate, useFetcher } from "react-router";
 import { Link } from "~/components/SmartLink";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -18,7 +18,53 @@ interface PublicLoaderData {
   } | null;
 }
 
+interface NotificationItem {
+  id: string;
+  type: string;
+  title: string;
+  content: string | null;
+  recordId: string | null;
+  isRead: boolean;
+  createdAt: number;
+}
+
+interface NotifData {
+  notifications: NotificationItem[];
+  unreadCount: number;
+}
+
+interface SearchData {
+  q: string;
+  results: {
+    records: Array<{
+      record: { id: string; slug: string; title: string };
+      author: { displayName: string; slug: string; profilePhotoUrl: string | null } | null;
+      contentSnippet: string;
+    }>;
+    learners: Array<{
+      userId: string;
+      slug: string;
+      displayName: string;
+      profilePhotoUrl: string | null;
+    }>;
+    questions: Array<{ question: { id: string; content: string } }>;
+    sentences: Array<{ sentence: { id: string; content: string } }>;
+  };
+}
+
 const focusRing = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2";
+
+const NOTIF_TYPE_LABEL: Record<string, string> = {
+  response: "응답",
+  question: "질문",
+  mention: "언급",
+  memory: "공동 기억",
+  system: "시스템",
+  reminder: "알림",
+  reread_reminder: "다시 읽기",
+  carry_over: "이어가기",
+  stage_closing: "Stage 마무리",
+};
 
 const navLinks = [
   { to: "/journey", label: "여정" },
@@ -28,16 +74,68 @@ const navLinks = [
   { to: "/guide", label: "가이드" },
 ];
 
+type DropdownType = "search" | "notifications" | "profile" | null;
+
+function timeAgo(unixTimestamp: number): string {
+  const now = Math.floor(Date.now() / 1000);
+  const diff = now - unixTimestamp;
+  if (diff < 60) return "방금 전";
+  if (diff < 3600) return `${Math.floor(diff / 60)}분 전`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}시간 전`;
+  if (diff < 604800) return `${Math.floor(diff / 86400)}일 전`;
+  const date = new Date(unixTimestamp * 1000);
+  return `${date.getMonth() + 1}월 ${date.getDate()}일`;
+}
+
+const dropdownMotion = {
+  initial: { opacity: 0, y: -8, scale: 0.95 },
+  animate: { opacity: 1, y: 0, scale: 1 },
+  exit: { opacity: 0, y: -8, scale: 0.95 },
+  transition: { duration: 0.2, ease: [0.32, 0.72, 0, 1] as [number, number, number, number] },
+} as const;
+
 export default function GlobalNav() {
   const data = useRouteLoaderData("routes/_public") as PublicLoaderData | undefined;
   const location = useLocation();
   const navigate = useNavigate();
+
+  // State
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState<DropdownType>(null);
   const [currentUrl, setCurrentUrl] = useState("/");
-  const searchInputRef = useRef<HTMLInputElement>(null);
-  const profileMenuRef = useRef<HTMLDivElement>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Refs
+  const mobileSearchInputRef = useRef<HTMLInputElement>(null);
+  const dropdownSearchInputRef = useRef<HTMLInputElement>(null);
+  const searchButtonRef = useRef<HTMLButtonElement>(null);
+  const searchMenuRef = useRef<HTMLDivElement>(null);
+  const notifButtonRef = useRef<HTMLButtonElement>(null);
+  const notifMenuRef = useRef<HTMLDivElement>(null);
   const profileButtonRef = useRef<HTMLButtonElement>(null);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
+  const searchTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  // Fetchers
+  const searchFetcher = useFetcher({});
+  const notifFetcher = useFetcher({});
+
+  // Derived
+  const notifData = notifFetcher.data as NotifData | undefined;
+  const unreadCount = notifData?.unreadCount ?? 0;
+  const notifications = notifData?.notifications ?? [];
+  const searchResults = searchFetcher.data as SearchData | undefined;
+  const isSearching = searchFetcher.state === "loading";
+  const hasSearchResults =
+    searchQuery.trim().length >= 2 &&
+    searchResults?.results &&
+    (searchResults.results.records.length > 0 || searchResults.results.learners.length > 0);
+
+  const isSearchOpen = openDropdown === "search";
+  const isNotifOpen = openDropdown === "notifications";
+  const isProfileMenuOpen = openDropdown === "profile";
+
+  // --- Effects ---
 
   useEffect(() => {
     setCurrentUrl(window.location.href);
@@ -45,27 +143,41 @@ export default function GlobalNav() {
 
   useEffect(() => {
     setIsMenuOpen(false);
-    setIsProfileMenuOpen(false);
+    setOpenDropdown(null);
+    setSearchQuery("");
   }, [location.pathname]);
 
+  // Load notification count on mount (authenticated only)
   useEffect(() => {
-    if (!isProfileMenuOpen) return;
+    if (data?.isAuthenticated) {
+      notifFetcher.load("/api/notifications");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data?.isAuthenticated]);
+
+  // Unified outside-click + Escape handler
+  useEffect(() => {
+    if (!openDropdown) return;
 
     function handleClickOutside(e: MouseEvent) {
-      if (
-        profileMenuRef.current &&
-        !profileMenuRef.current.contains(e.target as Node) &&
-        profileButtonRef.current &&
-        !profileButtonRef.current.contains(e.target as Node)
-      ) {
-        setIsProfileMenuOpen(false);
+      const target = e.target as Node;
+      if (openDropdown === "search") {
+        if (searchMenuRef.current?.contains(target) || searchButtonRef.current?.contains(target)) return;
+      } else if (openDropdown === "notifications") {
+        if (notifMenuRef.current?.contains(target) || notifButtonRef.current?.contains(target)) return;
+      } else if (openDropdown === "profile") {
+        if (profileMenuRef.current?.contains(target) || profileButtonRef.current?.contains(target)) return;
       }
+      setOpenDropdown(null);
     }
 
     function handleEscape(e: KeyboardEvent) {
       if (e.key === "Escape") {
-        setIsProfileMenuOpen(false);
-        profileButtonRef.current?.focus();
+        const prev = openDropdown;
+        setOpenDropdown(null);
+        if (prev === "search") searchButtonRef.current?.focus();
+        else if (prev === "notifications") notifButtonRef.current?.focus();
+        else if (prev === "profile") profileButtonRef.current?.focus();
       }
     }
 
@@ -75,8 +187,24 @@ export default function GlobalNav() {
       document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("keydown", handleEscape);
     };
-  }, [isProfileMenuOpen]);
+  }, [openDropdown]);
 
+  // Auto-focus search input when dropdown opens
+  useEffect(() => {
+    if (isSearchOpen) {
+      const timer = setTimeout(() => dropdownSearchInputRef.current?.focus(), 50);
+      return () => clearTimeout(timer);
+    }
+  }, [isSearchOpen]);
+
+  // Cleanup debounce timer
+  useEffect(() => {
+    return () => {
+      if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+    };
+  }, []);
+
+  // --- Computed URLs ---
   const loginUrl = `https://ada-kr-pos.com/login?callbackUrl=${encodeURIComponent(currentUrl)}`;
   const logoutUrl = `https://ada-kr-pos.com/api/auth/logout?callbackUrl=${encodeURIComponent(currentUrl)}`;
   const profileEditUrl = `https://auth.ada-kr-pos.com/mypage?returnTo=${encodeURIComponent(currentUrl)}`;
@@ -84,16 +212,49 @@ export default function GlobalNav() {
   const isActive = (path: string) =>
     location.pathname === path || location.pathname.startsWith(path + "/");
 
-  function handleSearchSubmit(e: React.FormEvent<HTMLFormElement>) {
+  // --- Handlers ---
+
+  function toggleDropdown(type: DropdownType) {
+    if (openDropdown === type) {
+      setOpenDropdown(null);
+    } else {
+      setOpenDropdown(type);
+      if (type === "notifications" && data?.isAuthenticated) {
+        notifFetcher.load("/api/notifications");
+      }
+    }
+  }
+
+  function handleDropdownSearchInput(value: string) {
+    setSearchQuery(value);
+    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+    if (value.trim().length >= 2) {
+      searchTimeoutRef.current = setTimeout(() => {
+        searchFetcher.load(`/search?q=${encodeURIComponent(value.trim())}`);
+      }, 300);
+    }
+  }
+
+  function handleDropdownSearchSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const q = searchInputRef.current?.value.trim();
+    const q = searchQuery.trim();
+    navigate(q ? `/search?q=${encodeURIComponent(q)}` : "/search");
+    setOpenDropdown(null);
+    setSearchQuery("");
+  }
+
+  function handleMobileSearchSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const q = mobileSearchInputRef.current?.value.trim();
     if (q) {
       navigate(`/search?q=${encodeURIComponent(q)}`);
-      if (searchInputRef.current) searchInputRef.current.value = "";
+      if (mobileSearchInputRef.current) mobileSearchInputRef.current.value = "";
     } else {
       navigate("/search");
     }
   }
+
+  // --- Render ---
 
   return (
     <>
@@ -109,6 +270,7 @@ export default function GlobalNav() {
             "flex items-center justify-between gap-3 sm:gap-4"
           )}
         >
+          {/* Logo + Nav Links */}
           <div className="flex items-center gap-3 sm:gap-8 min-w-0">
             <Link
               to="/"
@@ -144,58 +306,341 @@ export default function GlobalNav() {
             </div>
           </div>
 
+          {/* Right section — desktop */}
           <div className="hidden lg:flex items-center gap-1.5">
-            <Link
-              to="/search"
-              className={cn(
-                "p-2 rounded-lg text-text-tertiary hover:text-ocean-blue hover:bg-mist-blue/50 transition-colors no-underline",
-                focusRing
-              )}
-              aria-label="검색"
-            >
-              <svg
-                className="w-[18px] h-[18px]"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
+            {/* ═══ SEARCH DROPDOWN ═══ */}
+            <div className="relative">
+              <button
+                ref={searchButtonRef}
+                type="button"
+                onClick={() => toggleDropdown("search")}
+                className={cn(
+                  "p-2 rounded-lg transition-colors",
+                  focusRing,
+                  isSearchOpen
+                    ? "text-ocean-blue bg-mist-blue/50"
+                    : "text-text-tertiary hover:text-ocean-blue hover:bg-mist-blue/50"
+                )}
+                aria-label="검색"
+                aria-expanded={isSearchOpen}
+                aria-haspopup="true"
               >
-                <circle cx="11" cy="11" r="8" />
-                <path d="m21 21-4.3-4.3" />
-              </svg>
-            </Link>
+                <svg
+                  className="w-[18px] h-[18px]"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <circle cx="11" cy="11" r="8" />
+                  <path d="m21 21-4.3-4.3" />
+                </svg>
+              </button>
+
+              <AnimatePresence>
+                {isSearchOpen && (
+                  <motion.div
+                    ref={searchMenuRef}
+                    {...dropdownMotion}
+                    className="absolute right-0 top-full mt-2 w-80 rounded-xl border border-border bg-surface shadow-lg z-50 overflow-hidden"
+                    role="dialog"
+                    aria-label="빠른 검색"
+                  >
+                    {/* Search input */}
+                    <form onSubmit={handleDropdownSearchSubmit} className="p-3 border-b border-border">
+                      <div className="relative">
+                        <svg
+                          className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-tertiary pointer-events-none"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          aria-hidden="true"
+                        >
+                          <circle cx="11" cy="11" r="8" />
+                          <path d="m21 21-4.3-4.3" />
+                        </svg>
+                        <input
+                          ref={dropdownSearchInputRef}
+                          type="text"
+                          value={searchQuery}
+                          onChange={(e) => handleDropdownSearchInput(e.target.value)}
+                          placeholder="기록, 러너 검색..."
+                          className={cn(
+                            "w-full h-9 rounded-lg border border-border bg-surface-secondary/50 pl-9 pr-3 text-sm",
+                            "placeholder:text-text-tertiary",
+                            focusRing
+                          )}
+                          aria-label="검색어 입력"
+                        />
+                      </div>
+                    </form>
+
+                    {/* Search results */}
+                    <div className="max-h-72 overflow-y-auto">
+                      {isSearching && (
+                        <div className="px-4 py-6 text-center text-meta text-text-tertiary">
+                          검색 중...
+                        </div>
+                      )}
+
+                      {!isSearching && searchQuery.trim().length < 2 && (
+                        <div className="px-4 py-6 text-center text-meta text-text-tertiary">
+                          두 글자 이상 입력하세요
+                        </div>
+                      )}
+
+                      {!isSearching && searchQuery.trim().length >= 2 && !hasSearchResults && searchResults && (
+                        <div className="px-4 py-6 text-center text-meta text-text-tertiary">
+                          검색 결과가 없습니다
+                        </div>
+                      )}
+
+                      {!isSearching && hasSearchResults && searchResults && (
+                        <>
+                          {searchResults.results.records.length > 0 && (
+                            <div className="py-1.5">
+                              <p className="px-4 py-1.5 text-caption font-medium text-text-tertiary uppercase tracking-wider">
+                                기록
+                              </p>
+                              {searchResults.results.records.slice(0, 3).map((item) => (
+                                <Link
+                                  key={item.record.id}
+                                  to={`/logs/${item.record.slug}`}
+                                  className={cn(
+                                    "flex flex-col gap-0.5 px-4 py-2.5 text-sm hover:bg-surface-secondary transition-colors no-underline",
+                                    focusRing
+                                  )}
+                                  onClick={() => setOpenDropdown(null)}
+                                >
+                                  <span className="text-text-primary font-medium truncate">
+                                    {item.record.title}
+                                  </span>
+                                  {item.author && (
+                                    <span className="text-caption text-text-tertiary">
+                                      {item.author.displayName}
+                                    </span>
+                                  )}
+                                </Link>
+                              ))}
+                            </div>
+                          )}
+
+                          {searchResults.results.learners.length > 0 && (
+                            <div className="py-1.5 border-t border-border">
+                              <p className="px-4 py-1.5 text-caption font-medium text-text-tertiary uppercase tracking-wider">
+                                러너
+                              </p>
+                              {searchResults.results.learners.slice(0, 3).map((learner) => (
+                                <Link
+                                  key={learner.userId}
+                                  to={`/learners/${learner.slug}`}
+                                  className={cn(
+                                    "flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-surface-secondary transition-colors no-underline",
+                                    focusRing
+                                  )}
+                                  onClick={() => setOpenDropdown(null)}
+                                >
+                                  {learner.profilePhotoUrl ? (
+                                    <img
+                                      src={learner.profilePhotoUrl}
+                                      alt=""
+                                      className="w-6 h-6 rounded-full object-cover"
+                                    />
+                                  ) : (
+                                    <div className="w-6 h-6 rounded-full bg-mist-blue flex items-center justify-center text-[10px] font-semibold text-ocean-blue">
+                                      {learner.displayName?.[0] ?? "?"}
+                                    </div>
+                                  )}
+                                  <span className="text-text-primary">{learner.displayName}</span>
+                                </Link>
+                              ))}
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+
+                    {/* Footer: 상세히 보기 */}
+                    <div className="border-t border-border">
+                      <Link
+                        to={searchQuery.trim() ? `/search?q=${encodeURIComponent(searchQuery.trim())}` : "/search"}
+                        className={cn(
+                          "flex items-center justify-between px-4 py-3 text-sm text-ocean-blue hover:bg-mist-blue/30 transition-colors no-underline",
+                          focusRing
+                        )}
+                        onClick={() => setOpenDropdown(null)}
+                      >
+                        <span>검색 페이지에서 상세히 보기</span>
+                        <svg
+                          className="w-4 h-4"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          aria-hidden="true"
+                        >
+                          <path d="M5 12h14" />
+                          <path d="m12 5 7 7-7 7" />
+                        </svg>
+                      </Link>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
 
             {data?.isAuthenticated ? (
               <>
-                <Link
-                  to="/inbox"
-                  className={cn(
-                    "p-2 rounded-lg transition-colors no-underline",
-                    focusRing,
-                    isActive("/inbox")
-                      ? "text-ocean-blue bg-mist-blue/50"
-                      : "text-text-tertiary hover:text-ocean-blue hover:bg-mist-blue/50"
-                  )}
-                  aria-label="인박스"
-                >
-                  <svg
-                    className="w-[18px] h-[18px]"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
+                {/* ═══ NOTIFICATION DROPDOWN ═══ */}
+                <div className="relative">
+                  <button
+                    ref={notifButtonRef}
+                    type="button"
+                    onClick={() => toggleDropdown("notifications")}
+                    className={cn(
+                      "p-2 rounded-lg transition-colors relative",
+                      focusRing,
+                      isNotifOpen || isActive("/inbox")
+                        ? "text-ocean-blue bg-mist-blue/50"
+                        : "text-text-tertiary hover:text-ocean-blue hover:bg-mist-blue/50"
+                    )}
+                    aria-label={`알림${unreadCount > 0 ? ` (읽지 않은 알림 ${unreadCount}개)` : ""}`}
+                    aria-expanded={isNotifOpen}
+                    aria-haspopup="true"
                   >
-                    <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
-                    <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
-                  </svg>
-                </Link>
+                    <svg
+                      className="w-[18px] h-[18px]"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+                      <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+                    </svg>
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-ocean-blue text-white text-[10px] font-bold flex items-center justify-center leading-none">
+                        {unreadCount > 9 ? "9+" : unreadCount}
+                      </span>
+                    )}
+                  </button>
 
+                  <AnimatePresence>
+                    {isNotifOpen && (
+                      <motion.div
+                        ref={notifMenuRef}
+                        {...dropdownMotion}
+                        className="absolute right-0 top-full mt-2 w-80 rounded-xl border border-border bg-surface shadow-lg z-50 overflow-hidden"
+                        role="dialog"
+                        aria-label="알림"
+                      >
+                        {/* Header */}
+                        <div className="px-4 py-3 border-b border-border flex items-center justify-between">
+                          <h3 className="text-sm font-semibold text-text-primary">알림</h3>
+                          {unreadCount > 0 && (
+                            <span className="text-caption text-ocean-blue font-medium">
+                              읽지 않음 {unreadCount}개
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Notification list */}
+                        <div className="max-h-80 overflow-y-auto">
+                          {notifFetcher.state === "loading" && notifications.length === 0 && (
+                            <div className="px-4 py-8 text-center text-meta text-text-tertiary">
+                              불러오는 중...
+                            </div>
+                          )}
+
+                          {notifFetcher.state !== "loading" && notifications.length === 0 && (
+                            <div className="px-4 py-8 text-center text-meta text-text-tertiary">
+                              아직 알림이 없습니다
+                            </div>
+                          )}
+
+                          {notifications.length > 0 && (
+                            <div className="py-1">
+                              {notifications.map((notif) => (
+                                <Link
+                                  key={notif.id}
+                                  to={notif.recordId ? `/logs/${notif.recordId}` : "/inbox"}
+                                  className={cn(
+                                    "flex items-start gap-3 px-4 py-3 transition-colors no-underline",
+                                    focusRing,
+                                    notif.isRead
+                                      ? "hover:bg-surface-secondary"
+                                      : "bg-mist-blue/30 hover:bg-mist-blue/50"
+                                  )}
+                                  onClick={() => setOpenDropdown(null)}
+                                >
+                                  {!notif.isRead && (
+                                    <span className="w-2 h-2 rounded-full bg-ocean-blue mt-1.5 shrink-0" />
+                                  )}
+                                  <div className={cn("flex-1 min-w-0", notif.isRead && "ml-5")}>
+                                    <div className="flex items-center gap-2 mb-0.5">
+                                      <span className="text-caption text-ocean-blue font-medium">
+                                        {NOTIF_TYPE_LABEL[notif.type] ?? notif.type}
+                                      </span>
+                                      <span className="text-caption text-text-tertiary">
+                                        {timeAgo(notif.createdAt)}
+                                      </span>
+                                    </div>
+                                    <p className="text-sm text-text-primary truncate">{notif.title}</p>
+                                    {notif.content && (
+                                      <p className="text-caption text-text-secondary truncate mt-0.5">
+                                        {notif.content}
+                                      </p>
+                                    )}
+                                  </div>
+                                </Link>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Footer: 상세히 보기 */}
+                        <div className="border-t border-border">
+                          <Link
+                            to="/inbox"
+                            className={cn(
+                              "flex items-center justify-between px-4 py-3 text-sm text-ocean-blue hover:bg-mist-blue/30 transition-colors no-underline",
+                              focusRing
+                            )}
+                            onClick={() => setOpenDropdown(null)}
+                          >
+                            <span>인박스에서 모두 보기</span>
+                            <svg
+                              className="w-4 h-4"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              aria-hidden="true"
+                            >
+                              <path d="M5 12h14" />
+                              <path d="m12 5 7 7-7 7" />
+                            </svg>
+                          </Link>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                {/* Write buttons */}
                 <Link
                   to="/write/note"
                   prefetch="render"
@@ -232,13 +677,14 @@ export default function GlobalNav() {
                   글쓰기
                 </Link>
 
+                {/* ═══ PROFILE DROPDOWN ═══ */}
                 <div className="relative self-center">
                   <Button
                     ref={profileButtonRef}
                     type="button"
                     variant="ghost"
                     size="icon"
-                    onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                    onClick={() => toggleDropdown("profile")}
                     className={cn(
                       "ml-1 flex items-center justify-center rounded-full transition-all",
                       focusRing,
@@ -267,10 +713,7 @@ export default function GlobalNav() {
                     {isProfileMenuOpen && (
                       <motion.div
                         ref={profileMenuRef}
-                        initial={{ opacity: 0, y: -8, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: -8, scale: 0.95 }}
-                        transition={{ duration: 0.2, ease: [0.32, 0.72, 0, 1] }}
+                        {...dropdownMotion}
                         className="absolute right-0 top-full mt-2 w-60 rounded-xl border border-border bg-surface shadow-lg z-50 overflow-hidden"
                         role="menu"
                         aria-label="프로필 메뉴"
@@ -453,6 +896,7 @@ export default function GlobalNav() {
             )}
           </div>
 
+          {/* Mobile hamburger */}
           <Button
             type="button"
             variant="ghost"
@@ -478,6 +922,7 @@ export default function GlobalNav() {
 
       <div className="h-15 sm:h-16" />
 
+      {/* ═══ MOBILE MENU ═══ */}
       <AnimatePresence>
         {isMenuOpen && (
           <motion.div
@@ -488,7 +933,7 @@ export default function GlobalNav() {
             className="lg:hidden fixed inset-0 z-40 backdrop-blur-2xl bg-surface/95 flex flex-col pt-20 px-6 overflow-y-auto"
             aria-label="메인 메뉴"
           >
-            <form onSubmit={handleSearchSubmit} className="relative mb-6">
+            <form onSubmit={handleMobileSearchSubmit} className="relative mb-6">
               <svg
                 className="absolute left-3 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-text-tertiary pointer-events-none"
                 viewBox="0 0 24 24"
@@ -503,7 +948,7 @@ export default function GlobalNav() {
                 <path d="m21 21-4.3-4.3" />
               </svg>
               <Input
-                ref={searchInputRef}
+                ref={mobileSearchInputRef}
                 type="text"
                 placeholder="기록, 질문, 러너 검색..."
                 aria-label="검색"
