@@ -26,11 +26,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import { TagSelector } from "~/components/TagSelector";
 import { db } from "~/db/client.server";
 import { syncMentionsForRecord } from "~/db/queries/dialogue/mentions.server";
 import { markAsRead } from "~/db/queries/records/recordReads.server";
 import { syncRecordLinksForRecord } from "~/db/queries/records/recordLinks.server";
-import { learnerProfiles, notifications, records, stages } from "~/db/schema.server";
+import { getAllTags } from "~/db/queries/records/tags.server";
+import { learnerProfiles, notifications, records, recordTags, stages } from "~/db/schema.server";
 import { useUnsavedWarning } from "~/hooks/useUnsavedWarning";
 import { requireVerified } from "~/lib/auth/auth.middleware";
 import { createArticleSchema } from "~/lib/auth/validation";
@@ -85,10 +87,12 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     database.select().from(learnerProfiles).where(eq(learnerProfiles.userId, auth.user.id)).limit(1),
   ]);
   const learner = learnerResult[0] ?? null;
+  const allTags = await getAllTags(context.cloudflare.env.DB);
 
   return {
     currentStage: currentStageResult[0] ?? null,
     stages: allStages,
+    tags: allTags,
     learnerDefaults: {
       defaultVisibility: learner?.defaultVisibility ?? "public",
       defaultResponsePreference: learner?.defaultResponsePreference ?? "open",
@@ -205,6 +209,18 @@ export async function action({ request, context }: Route.ActionArgs) {
     await syncRecordLinksForRecord(context.cloudflare.env.DB, id, recordRefs);
   }
 
+  // Handle tags
+  const tagIds = formData.getAll("tagIds") as string[];
+  if (tagIds.length > 0) {
+    for (const tagId of tagIds) {
+      await database.insert(recordTags).values({
+        recordId: id,
+        tagId,
+        createdAt: now,
+      });
+    }
+  }
+
   if (parsed.data.visibility !== "draft") {
     try {
       await markAsRead(context.cloudflare.env.DB, auth.user.id, id);
@@ -217,7 +233,7 @@ export async function action({ request, context }: Route.ActionArgs) {
 }
 
 export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
-  const { currentStage, stages: availableStages, learnerDefaults } = loaderData;
+  const { currentStage, stages: availableStages, tags, learnerDefaults } = loaderData;
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const [stageValue, setStageValue] = useState(currentStage?.id ?? NO_STAGE_VALUE);
@@ -227,6 +243,7 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
   const [dateMode, setDateMode] = useState<DateMode>("none");
   const [singleDate, setSingleDate] = useState<Date | undefined>(undefined);
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+  const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
   const isSubmitting = navigation.state === "submitting";
   const errors = actionData?.errors;
   const titleError = errors && "title" in errors ? errors.title?.[0] : undefined;
@@ -484,22 +501,33 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
             {titleError ? <p className="mt-1 text-meta text-error">{titleError}</p> : null}
           </div>
 
-          <div>
-            <p className="mb-2 block text-meta font-medium text-text-secondary">
-              내용 <span className="text-error">*</span>
-            </p>
-            <Suspense fallback={<div className="animate-pulse bg-surface-secondary rounded-lg h-64" />}>
-              <ArticleEditor
-                name="content"
-                content={articleContent}
-                onChange={(_json, text) => setArticleContent(text)}
-                placeholder="여기에 글을 쓰세요. `/`를 입력하면 블록을 추가할 수 있습니다."
-              />
-            </Suspense>
-            {contentError ? <p className="mt-1 text-meta text-error">{contentError}</p> : null}
-          </div>
-        </Form>
-      </div>
-    </div>
-  );
-}
+           <div>
+             <p className="mb-2 block text-meta font-medium text-text-secondary">
+               내용 <span className="text-error">*</span>
+             </p>
+             <Suspense fallback={<div className="animate-pulse bg-surface-secondary rounded-lg h-64" />}>
+               <ArticleEditor
+                 name="content"
+                 content={articleContent}
+                 onChange={(_json, text) => setArticleContent(text)}
+                 placeholder="여기에 글을 쓰세요. `/`를 입력하면 블록을 추가할 수 있습니다."
+               />
+             </Suspense>
+             {contentError ? <p className="mt-1 text-meta text-error">{contentError}</p> : null}
+           </div>
+
+           <details className="mt-6">
+             <summary className="cursor-pointer text-sm font-medium text-text-secondary">부가 정보</summary>
+             <div className="mt-4">
+               <TagSelector
+                 tags={tags}
+                 selectedTagIds={Array.from(selectedTags)}
+                 onChange={(newIds) => setSelectedTags(new Set(newIds))}
+               />
+             </div>
+           </details>
+         </Form>
+       </div>
+     </div>
+   );
+ }

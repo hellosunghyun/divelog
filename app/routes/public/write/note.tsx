@@ -14,9 +14,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import { TagSelector } from "~/components/TagSelector";
 import { db } from "~/db/client.server";
 import { syncMentionsForRecord } from "~/db/queries/dialogue/mentions.server";
-import { learnerProfiles, notifications, records, stages } from "~/db/schema.server";
+import { getAllTags } from "~/db/queries/records/tags.server";
+import { learnerProfiles, notifications, records, recordTags, stages } from "~/db/schema.server";
 import { useUnsavedWarning } from "~/hooks/useUnsavedWarning";
 import { requireVerified } from "~/lib/auth/auth.middleware";
 import { createNoteSchema } from "~/lib/auth/validation";
@@ -45,10 +47,12 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   ]);
 
   const learner = learnerResult[0] ?? null;
+  const allTags = await getAllTags(context.cloudflare.env.DB);
 
   return {
     currentStage: currentStageResult[0] ?? null,
     stages: allStages,
+    tags: allTags,
     learnerDefaults: {
       defaultVisibility: learner?.defaultVisibility ?? "public",
       defaultResponsePreference: learner?.defaultResponsePreference ?? "open",
@@ -155,15 +159,28 @@ export async function action({ request, context }: Route.ActionArgs) {
     }
   }
 
+  // Handle tags
+  const tagIds = formData.getAll("tagIds") as string[];
+  if (tagIds.length > 0) {
+    for (const tagId of tagIds) {
+      await database.insert(recordTags).values({
+        recordId: id,
+        tagId,
+        createdAt: now,
+      });
+    }
+  }
+
   throw redirect(`/logs/${slug}`);
 }
 
 export default function WriteNotePage({ loaderData }: Route.ComponentProps) {
-  const { currentStage, stages: availableStages, learnerDefaults } = loaderData;
+  const { currentStage, stages: availableStages, tags, learnerDefaults } = loaderData;
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const [noteContent, setNoteContent] = useState("");
   const [stageValue, setStageValue] = useState(currentStage?.id ?? NO_STAGE_VALUE);
+  const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
   const isSubmitting = navigation.state === "submitting";
   const contentError = actionData?.errors?.content?.[0];
 
@@ -259,6 +276,17 @@ export default function WriteNotePage({ loaderData }: Route.ComponentProps) {
               htmlProps={{ required: true }}
             />
           </div>
+
+          <details className="mt-6">
+            <summary className="cursor-pointer text-sm font-medium text-text-secondary">부가 정보</summary>
+            <div className="mt-4">
+              <TagSelector
+                tags={tags}
+                selectedTagIds={Array.from(selectedTags)}
+                onChange={(newIds) => setSelectedTags(new Set(newIds))}
+              />
+            </div>
+          </details>
         </Form>
       </div>
     </div>
