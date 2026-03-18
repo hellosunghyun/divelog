@@ -29,9 +29,9 @@ export function createInlineTagExtension() {
     suggestion: {
       char: "#",
       pluginKey: tagPluginKey,
-      allow: ({ editor, state }: { editor: any; state: any }) => {
+      allow: ({ state }: { editor: any; state: any }) => {
         const parent = state.selection.$from.parent;
-        return !editor.view.composing && parent.isTextblock && !parent.type.spec.code;
+        return parent.isTextblock && !parent.type.spec.code;
       },
       items: ({ query }: { query: string }) => filterTags(query),
       command: ({ editor, range, props }: { editor: any; range: any; props: any }) => {
@@ -89,7 +89,7 @@ export function createInlineTagExtension() {
           onUpdate: (props: SuggestionProps<TagItem>) => { selectedIndex = 0; currentProps = props; update(); position(); },
           onKeyDown: ({ event, view }: { event: KeyboardEvent; view: any }) => {
             if (!currentProps || !popup || currentProps.items.length === 0) return false;
-            if (event.isComposing || event.keyCode === 229) { exitSuggestion(view, tagPluginKey); return false; }
+            if (event.isComposing || event.keyCode === 229) { return false; }
             if (event.key === "ArrowUp") { event.preventDefault(); selectedIndex = (selectedIndex + currentProps.items.length - 1) % currentProps.items.length; update(); return true; }
             if (event.key === "ArrowDown") { event.preventDefault(); selectedIndex = (selectedIndex + 1) % currentProps.items.length; update(); return true; }
             if (event.key === "Enter") { event.preventDefault(); const item = currentProps.items[selectedIndex]; if (item) currentProps.command(item); return true; }

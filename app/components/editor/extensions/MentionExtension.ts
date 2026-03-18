@@ -132,9 +132,9 @@ export function createUserMentionExtension() {
     suggestion: {
       char: "@",
       pluginKey: mentionPluginKey,
-      allow: ({ editor, state }: { editor: any; state: any }) => {
+      allow: ({ state }: { editor: any; state: any }) => {
         const parent = state.selection.$from.parent;
-        return !editor.view.composing && parent.isTextblock && !parent.type.spec.code;
+        return parent.isTextblock && !parent.type.spec.code;
       },
       items: async ({ query }: { query: string }) => fetchLearners(query),
       command: ({ editor, range, props }: { editor: any; range: any; props: any }) => {
@@ -192,7 +192,6 @@ export function createUserMentionExtension() {
           onKeyDown: ({ event, view }: { event: KeyboardEvent; view: any }) => {
             if (!currentProps || !popup || currentProps.items.length === 0) return false;
             if (event.isComposing || event.keyCode === 229) {
-              exitSuggestion(view, mentionPluginKey);
               return false;
             }
             if (event.key === "ArrowUp") {

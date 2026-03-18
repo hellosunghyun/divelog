@@ -116,9 +116,9 @@ export function createRecordRefExtension() {
       pluginKey: recordRefPluginKey,
       allowedPrefixes: null,
       allowSpaces: true,
-      allow: ({ editor, state }: { editor: any; state: any }) => {
+      allow: ({ state }: { editor: any; state: any }) => {
         const parent = state.selection.$from.parent;
-        return !editor.view.composing && parent.isTextblock && !parent.type.spec.code;
+        return parent.isTextblock && !parent.type.spec.code;
       },
       items: async ({ query }: { query: string }) => fetchRecords(query),
       command: ({ editor, range, props }: { editor: any; range: any; props: any }) => {
@@ -175,7 +175,6 @@ export function createRecordRefExtension() {
           onKeyDown: ({ event, view }: { event: KeyboardEvent; view: any }) => {
             if (!currentProps || !popup || currentProps.items.length === 0) return false;
             if (event.isComposing || event.keyCode === 229) {
-              exitSuggestion(view, recordRefPluginKey);
               return false;
             }
             if (event.key === "ArrowUp") {
