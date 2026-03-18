@@ -150,9 +150,9 @@ export default function MemoryPage({ loaderData }: Route.ComponentProps) {
               대표 기록들
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {memRecords.map(({ record }) =>
-                record ? <SceneCard key={record.id} record={record} /> : null
-              )}
+               {memRecords.map(({ record }) =>
+                 record ? <SceneCard key={record.id} record={{ ...record, recordedAt: record.recordedAt ?? undefined }} /> : null
+               )}
             </div>
           </section>
         )}

@@ -324,6 +324,7 @@ export default function MySpacePage({ loaderData }: Route.ComponentProps) {
                                 type: record.type as "personal" | "challenge" | "collaboration",
                                 rhythm: record.rhythm ?? undefined,
                                 createdAt: record.createdAt,
+                                recordedAt: record.recordedAt ?? undefined,
                               }}
                             />
                           </div>
@@ -372,18 +373,19 @@ export default function MySpacePage({ loaderData }: Route.ComponentProps) {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                       {draftRecords.map(({ record }) => (
                         <div key={record.id} className="relative group">
-                          <SceneCard
-                            record={{
-                              slug: record.slug,
-                              title: record.title,
-                              content: record.content,
-                              format: record.format as "note" | "article",
-                              type: record.type as "personal" | "challenge" | "collaboration",
-                              rhythm: record.rhythm ?? undefined,
-                              createdAt: record.createdAt,
-                            }}
-                          />
-                          <div className="absolute inset-0 bg-surface/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-2xl">
+                           <SceneCard
+                             record={{
+                               slug: record.slug,
+                               title: record.title,
+                               content: record.content,
+                               format: record.format as "note" | "article",
+                               type: record.type as "personal" | "challenge" | "collaboration",
+                               rhythm: record.rhythm ?? undefined,
+                               createdAt: record.createdAt,
+                               recordedAt: record.recordedAt ?? undefined,
+                             }}
+                           />
+                           <div className="absolute inset-0 bg-surface/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-2xl">
                             <Link
                               to={`/logs/${record.slug}/edit`}
                               className="px-4 py-2 rounded-full bg-ocean-blue text-white font-medium no-underline shadow-sm hover:bg-deep-ocean transition-colors"
@@ -500,19 +502,19 @@ export default function MySpacePage({ loaderData }: Route.ComponentProps) {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                   {mySavedRecords.map((saved) => (
                     <SceneCard
-                      key={saved.record.id}
-                      record={{
-                        slug: saved.record.slug,
-                        title: saved.record.title,
-                        content: saved.record.content,
-                        format: saved.record.format as "note" | "article",
-                        type: saved.record.type as "personal" | "challenge" | "collaboration",
-                        rhythm: saved.record.rhythm ?? undefined,
-                        createdAt: saved.record.createdAt,
-                      }}
-                      author={saved.author ? { displayName: saved.author.displayName, slug: saved.author.slug } : undefined}
-                      stage={saved.stage ? { name: saved.stage.name, type: saved.stage.type } : undefined}
-                    />
+                       key={saved.record.id}
+                       record={{
+                         slug: saved.record.slug,
+                         title: saved.record.title,
+                         content: saved.record.content,
+                         format: saved.record.format as "note" | "article",
+                         type: saved.record.type as "personal" | "challenge" | "collaboration",
+                         rhythm: saved.record.rhythm ?? undefined,
+                         createdAt: saved.record.createdAt,
+                         recordedAt: saved.record.recordedAt ?? undefined,
+                       }}
+                       author={saved.author ? { displayName: saved.author.displayName, slug: saved.author.slug } : undefined}
+                     />
                   ))}
                 </div>
               )}

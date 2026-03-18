@@ -6,7 +6,6 @@ type CompactTimelineCardProps = {
   title: string;
   contentSnippet?: string | null;
   format: "note" | "article";
-  stageType?: "prelude" | "bridge" | "challenge" | "epilogue" | null;
   createdAt: number;
   isRead?: boolean;
   className?: string;

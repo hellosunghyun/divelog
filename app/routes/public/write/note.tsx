@@ -16,7 +16,7 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { db } from "~/db/client.server";
-import { learnerProfiles, records, stages } from "~/db/schema.server";
+import { learnerProfiles, records } from "~/db/schema.server";
 import { useUnsavedWarning } from "~/hooks/useUnsavedWarning";
 import { requireVerified } from "~/lib/auth/auth.middleware";
 import { createNoteSchema } from "~/lib/auth/validation";
@@ -24,8 +24,6 @@ import { getPlainText } from "~/lib/content/content.server";
 import { generateNoteTitle } from "~/lib/utils/title.server";
 import { getNextRecordSlug } from "~/db/queries/records/records.server";
 import { nanoid } from "~/lib/utils/utils.server";
-
-const NO_STAGE_VALUE = "__none__";
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "짧은 기록 — DiveLog" }];
@@ -35,21 +33,15 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const auth = await requireVerified(request, context);
 
   const database = db(context.cloudflare.env.DB);
-  const [currentStageResult, allStages, learnerResult] = await database.batch([
-    database.select().from(stages).where(eq(stages.isCurrent, true)).limit(1),
-    database
-      .select({ id: stages.id, name: stages.name, isCurrent: stages.isCurrent })
-      .from(stages)
-      .orderBy(stages.order),
-    database.select().from(learnerProfiles).where(eq(learnerProfiles.userId, auth.user.id)).limit(1),
-  ]);
+  const learnerResult = await database
+    .select()
+    .from(learnerProfiles)
+    .where(eq(learnerProfiles.userId, auth.user.id))
+    .limit(1);
 
   const learner = learnerResult[0] ?? null;
 
   return {
-    currentStage: currentStageResult[0] ?? null,
-    stages: allStages,
-    currentUserId: auth.user?.id ?? null,
     learnerDefaults: {
       defaultVisibility: learner?.defaultVisibility ?? "public",
       defaultResponsePreference: learner?.defaultResponsePreference ?? "open",
@@ -69,7 +61,6 @@ export async function action({ request, context }: Route.ActionArgs) {
   const parsed = createNoteSchema.safeParse({
     content,
     visibility: formData.get("visibility") || "public",
-    stageId: formData.get("stageId") || undefined,
   });
 
   if (!parsed.success) {
@@ -96,22 +87,22 @@ export async function action({ request, context }: Route.ActionArgs) {
     rhythm: "free",
     visibility: parsed.data.visibility,
     responsePreference,
-    stageId: parsed.data.stageId ?? null,
+    stageId: null,
     challengeId: null,
     collaborationUnitId: null,
+    originalUrl: null,
     createdAt: now,
     updatedAt: now,
   });
 
-  throw redirect(`/write/meta/${id}`);
+  throw redirect(`/logs/${slug}`);
 }
 
 export default function WriteNotePage({ loaderData }: Route.ComponentProps) {
-  const { currentStage, stages: availableStages, learnerDefaults } = loaderData;
+  const { learnerDefaults } = loaderData;
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const [noteContent, setNoteContent] = useState("");
-  const [stageValue, setStageValue] = useState(currentStage?.id ?? NO_STAGE_VALUE);
   const isSubmitting = navigation.state === "submitting";
   const contentError = actionData?.errors?.content?.[0];
 
@@ -162,30 +153,6 @@ export default function WriteNotePage({ loaderData }: Route.ComponentProps) {
                   <SelectItem value="private">나만 보기</SelectItem>
                   <SelectItem value="cohort">코호트 공개</SelectItem>
                   <SelectItem value="public">전체 공개</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label
-                htmlFor="stageId"
-                className="mb-1.5 block text-meta font-medium text-text-secondary"
-              >
-                구간
-              </Label>
-              <input type="hidden" name="stageId" value={stageValue === NO_STAGE_VALUE ? "" : stageValue} />
-              <Select value={stageValue} onValueChange={setStageValue}>
-                <SelectTrigger id="stageId" className="w-auto min-w-40 bg-surface">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={NO_STAGE_VALUE}>구간 미지정</SelectItem>
-                  {availableStages.map((stage) => (
-                    <SelectItem key={stage.id} value={stage.id}>
-                      {stage.name}
-                      {stage.isCurrent ? " (현재)" : ""}
-                    </SelectItem>
-                  ))}
                 </SelectContent>
               </Select>
             </div>

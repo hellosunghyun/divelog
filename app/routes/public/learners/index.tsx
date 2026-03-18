@@ -101,7 +101,6 @@ export default function LearnersPage({ loaderData }: Route.ComponentProps) {
                         }
                       : undefined
                   }
-                  stage={learner.stage ?? undefined}
                 />
               </div>
             ))}

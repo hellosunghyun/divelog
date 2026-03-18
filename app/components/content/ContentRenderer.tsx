@@ -18,9 +18,9 @@ const NOTE_CLASS_NAME = [
 const ARTICLE_CLASS_NAME = [
   "break-words text-base leading-relaxed text-text-primary",
   "[&_p]:my-0 [&_p+*]:mt-5",
-  "[&_h1]:mt-0 [&_h1]:text-4xl [&_h1]:leading-title [&_h1]:font-semibold [&_h1]:tracking-tight",
-  "[&_h2]:text-3xl [&_h2]:leading-title [&_h2]:font-semibold [&_h2]:tracking-tight [&_h2:not(:first-child)]:mt-8",
-  "[&_h3]:text-2xl [&_h3]:leading-title [&_h3]:font-semibold [&_h3]:tracking-tight [&_h3:not(:first-child)]:mt-7",
+  "[&_h1]:mt-0 [&_h1]:mb-6 [&_h1]:text-4xl [&_h1]:leading-title [&_h1]:font-semibold [&_h1]:tracking-tight",
+  "[&_h2]:mb-5 [&_h2]:text-3xl [&_h2]:leading-title [&_h2]:font-semibold [&_h2]:tracking-tight [&_h2:not(:first-child)]:mt-8",
+  "[&_h3]:mb-4 [&_h3]:text-2xl [&_h3]:leading-title [&_h3]:font-semibold [&_h3]:tracking-tight [&_h3:not(:first-child)]:mt-7",
   "[&_h4]:text-xl [&_h4]:leading-title [&_h4]:font-semibold [&_h4]:tracking-tight [&_h4:not(:first-child)]:mt-6",
   "[&_ul]:my-5 [&_ul]:list-disc [&_ul]:space-y-2 [&_ul]:pl-6",
   "[&_ol]:my-5 [&_ol]:list-decimal [&_ol]:space-y-2 [&_ol]:pl-6",

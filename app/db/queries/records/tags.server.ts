@@ -128,6 +128,7 @@ export type TaggedRecord = {
   type: string;
   rhythm: string | null;
   createdAt: number;
+  recordedAt: number | null;
   authorId: string;
   author: {
     displayName: string | null;
@@ -156,6 +157,7 @@ export async function getRecordsByTag(d1: D1Database, tagId: string): Promise<Ta
       type: records.type,
       rhythm: records.rhythm,
       createdAt: records.createdAt,
+      recordedAt: records.recordedAt,
       authorId: records.authorId,
       author: {
         displayName: learnerProfiles.displayName,

@@ -117,6 +117,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
         type: records.type,
         rhythm: records.rhythm,
         createdAt: records.createdAt,
+        recordedAt: records.recordedAt,
         stageId: records.stageId,
         authorId: records.authorId,
         author: {
@@ -300,6 +301,7 @@ export default function LogsPage({ loaderData }: Route.ComponentProps) {
                 type: record.type as "personal" | "challenge" | "collaboration",
                 rhythm: record.rhythm ?? undefined,
                 createdAt: record.createdAt,
+                recordedAt: record.recordedAt,
               }}
               contentSnippet={record.contentSnippet}
               author={
@@ -307,14 +309,6 @@ export default function LogsPage({ loaderData }: Route.ComponentProps) {
                   ? {
                       displayName: record.author.displayName,
                       slug: record.author.slug ?? "",
-                    }
-                  : undefined
-              }
-              stage={
-                record.stage?.name
-                  ? {
-                      name: record.stage.name,
-                      type: record.stage.type ?? "",
                     }
                   : undefined
               }
