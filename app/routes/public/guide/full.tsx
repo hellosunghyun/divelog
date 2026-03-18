@@ -1,8 +1,10 @@
+import { useEffect, useRef, useState } from "react";
 import { Link } from "~/components/content/SmartLink";
 import type { Route } from "./+types/full";
 import HeroSection from "~/components/sections/HeroSection";
 import CTABand from "~/components/sections/CTABand";
 import { createLogger } from "~/lib/infra/logger.server";
+import { cn } from "~/lib/utils/utils";
 
 export function meta(_args: Route.MetaArgs) {
   return [
@@ -54,7 +56,48 @@ const TOC = [
   { id: "faq", label: "자주 묻는 질문" },
 ] as const;
 
+function useActiveSection(ids: readonly string[]) {
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const ratioMap = useRef<Map<string, number>>(new Map());
+
+  useEffect(() => {
+    const elements = ids
+      .map((id) => document.getElementById(id))
+      .filter(Boolean) as HTMLElement[];
+    if (elements.length === 0) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          ratioMap.current.set(entry.target.id, entry.intersectionRatio);
+        }
+
+        let best: string | null = null;
+        let bestRatio = 0;
+        for (const [id, ratio] of ratioMap.current) {
+          if (ratio > bestRatio) {
+            bestRatio = ratio;
+            best = id;
+          }
+        }
+        if (best) setActiveId(best);
+      },
+      {
+        rootMargin: "-80px 0px -40% 0px",
+        threshold: [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1],
+      },
+    );
+
+    for (const el of elements) observer.observe(el);
+    return () => observer.disconnect();
+  }, [ids]);
+
+  return activeId;
+}
+
 export default function FullGuidePage() {
+  const sectionIds = TOC.map((item) => item.id);
+  const activeSection = useActiveSection(sectionIds);
   return (
     <div>
       <HeroSection
@@ -75,16 +118,25 @@ export default function FullGuidePage() {
                 목차
               </p>
               <ul className="flex flex-col gap-1 text-sm">
-                {TOC.map((item) => (
-                  <li key={item.id}>
-                    <a
-                      href={`#${item.id}`}
-                      className="block rounded-lg px-3 py-1.5 text-text-secondary no-underline transition-colors hover:bg-mist-blue/40 hover:text-ocean-blue"
-                    >
-                      {item.label}
-                    </a>
-                  </li>
-                ))}
+                {TOC.map((item) => {
+                  const isActive = activeSection === item.id;
+                  return (
+                    <li key={item.id}>
+                      <a
+                        href={`#${item.id}`}
+                        className={cn(
+                          "block rounded-lg px-3 py-1.5 no-underline transition-colors",
+                          isActive
+                            ? "bg-mist-blue/50 text-ocean-blue font-medium"
+                            : "text-text-secondary hover:bg-mist-blue/40 hover:text-ocean-blue",
+                        )}
+                        aria-current={isActive ? "true" : undefined}
+                      >
+                        {item.label}
+                      </a>
+                    </li>
+                  );
+                })}
               </ul>
             </nav>
           </aside>
