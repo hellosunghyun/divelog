@@ -23,11 +23,13 @@ const logger = createModuleLogger("notifications.notify");
 const dedupeCache = new Set<string>();
 const CREATE_NOTIFICATION_TYPES = [
   "response",
+  "reply",
   "mention",
   "participant_added",
   "reminder",
   "reread_reminder",
- ] as const;
+  "stage_transition",
+] as const;
 type CreatableNotificationType = (typeof CREATE_NOTIFICATION_TYPES)[number];
 
 function isCreateNotificationType(type: NotificationType): type is CreatableNotificationType {
@@ -111,6 +113,7 @@ export async function notify(params: NotifyParams): Promise<{ success: boolean; 
 
     await createNotification(params.d1, {
       recipientId: params.recipientId,
+      actorId: params.actorId ?? null,
       type: notificationType,
       title: params.title,
       ...(params.content !== undefined ? { content: params.content } : {}),

@@ -448,6 +448,7 @@ describe("notify service", () => {
       expect(result.success).toBe(true);
       expect(vi.mocked(createNotification)).toHaveBeenCalledWith(d1, {
         recipientId: "user-456",
+        actorId: "user-123",
         type: "response",
         title: "응답이 달렸습니다",
         content: "좋은 질문이네요",

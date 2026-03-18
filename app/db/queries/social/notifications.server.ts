@@ -6,13 +6,16 @@ import { notifications } from "../../schema.server";
 
 export type NotificationType =
   | "response"
+  | "reply"
   | "mention"
   | "participant_added"
   | "reminder"
-  | "reread_reminder";
+  | "reread_reminder"
+  | "stage_transition";
 
 export interface CreateNotificationInput {
   recipientId: string;
+  actorId?: string | null;
   type: NotificationType;
   title: string;
   content?: string;
@@ -76,6 +79,7 @@ export async function createNotification(
     .values({
       id: nanoid(),
       recipientId: input.recipientId,
+      actorId: input.actorId ?? null,
       type: input.type,
       title: input.title,
       content: input.content,
