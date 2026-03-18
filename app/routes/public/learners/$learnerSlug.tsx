@@ -94,20 +94,19 @@ function TabButton({ active, onClick, children }: TabButtonProps) {
 }
 
 export default function LearnerDetailPage({ loaderData }: Route.ComponentProps) {
-  const {
-    learner,
-    learnerRecords,
-    learnerQuestions,
-    learnerSentences,
-    recordsByStage,
-    collaborationUnits,
-    participatedRecords,
-    mentionedRecords,
-    participantsByRecordId,
-  } = loaderData as LoaderData;
+  const typedData = loaderData as LoaderData;
+  const learner = typedData.learner;
+  const learnerRecords = typedData.learnerRecords;
+  const learnerQuestions = typedData.learnerQuestions;
+  const learnerSentences = typedData.learnerSentences;
+  const recordsByStage = typedData.recordsByStage;
+  const participatedRecords = typedData.participatedRecords ?? [];
+  const mentionedRecords = typedData.mentionedRecords ?? [];
+  const participantsByRecordId = typedData.participantsByRecordId ?? {};
   const publicData = useRouteLoaderData<PublicLoaderData>("routes/_public");
   const [activeTab, setActiveTab] = useState<TabKey>("records");
-  const isOwnProfile = publicData?.data.user?.id === learner.userId;
+  const authData = publicData as { isAuthenticated?: boolean; user?: { id: string } } | undefined;
+  const isOwnProfile = authData?.user?.id === learner.userId;
   const visibleParticipatedRecords = isOwnProfile
     ? participatedRecords
     : participatedRecords.filter(({ record }) => record.visibility === "public");
