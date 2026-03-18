@@ -13,25 +13,36 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   const database = db(context.cloudflare.env.DB);
 
-  const result = await database
-    .select({
-      id: records.id,
-      slug: records.slug,
-      title: records.title,
-      contentText: records.contentText,
-      format: records.format,
-      type: records.type,
-      rhythm: records.rhythm,
-      createdAt: records.createdAt,
-      authorDisplayName: learnerProfiles.displayName,
-      authorSlug: learnerProfiles.slug,
-      authorPhotoUrl: learnerProfiles.profilePhotoUrl,
-      stageId: records.stageId,
-    })
+  const fields = {
+    id: records.id,
+    slug: records.slug,
+    title: records.title,
+    contentText: records.contentText,
+    format: records.format,
+    type: records.type,
+    rhythm: records.rhythm,
+    createdAt: records.createdAt,
+    authorDisplayName: learnerProfiles.displayName,
+    authorSlug: learnerProfiles.slug,
+    authorPhotoUrl: learnerProfiles.profilePhotoUrl,
+    stageId: records.stageId,
+  };
+
+  let result = await database
+    .select(fields)
     .from(records)
     .leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
     .where(eq(records.slug, slug))
     .limit(1);
+
+  if (result.length === 0) {
+    result = await database
+      .select(fields)
+      .from(records)
+      .leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
+      .where(eq(records.id, slug))
+      .limit(1);
+  }
 
   const record = result[0];
   if (!record) {

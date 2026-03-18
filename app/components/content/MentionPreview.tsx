@@ -161,12 +161,24 @@ export function useMentionPreview(containerRef: RefObject<HTMLDivElement | null>
       tryHide();
     }
 
+    function onClick(e: MouseEvent) {
+      const anchor = (e.target as HTMLElement).closest<HTMLAnchorElement>(MENTION_SELECTOR);
+      if (!anchor || !container!.contains(anchor)) return;
+      if (showTimer.current) { clearTimeout(showTimer.current); showTimer.current = null; }
+      currentPreviewKey.current = "";
+      overAnchor.current = false;
+      overCard.current = false;
+      setOpen(false);
+    }
+
     container.addEventListener("mouseover", onOver);
     container.addEventListener("mouseout", onOut);
+    container.addEventListener("click", onClick);
 
     return () => {
       container.removeEventListener("mouseover", onOver);
       container.removeEventListener("mouseout", onOut);
+      container.removeEventListener("click", onClick);
       if (showTimer.current) clearTimeout(showTimer.current);
       if (hideTimer.current) clearTimeout(hideTimer.current);
     };

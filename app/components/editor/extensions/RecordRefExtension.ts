@@ -113,6 +113,12 @@ export function createRecordRefExtension() {
 
   return Mention.extend({
     name: "recordRef",
+    addAttributes() {
+      return {
+        ...this.parent?.(),
+        slug: { default: null },
+      };
+    },
     renderText: ({ node }: { node: { attrs: Record<string, unknown> } }) => (node.attrs.label as string) ?? (node.attrs.id as string),
   }).configure({
     HTMLAttributes: { class: "record-ref" },
