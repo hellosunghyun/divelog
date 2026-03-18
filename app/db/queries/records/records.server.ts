@@ -192,34 +192,6 @@ export async function updateRecord(
 
   let revisionCreated = false;
 
-  try {
-    const latestRevisionNumber = await getLatestRevisionNumber(d1, id);
-    await createRevision(d1, {
-      recordId: id,
-      authorId,
-      revisionNumber: latestRevisionNumber + 1,
-      snapshot: currentRecord as Record<string, unknown>,
-      changedFields: changedFieldNames,
-      tagsSnapshot: options?.oldTags,
-    });
-    revisionCreated = true;
-  } catch (err) {
-    console.error("[revision] Failed to create revision:", err);
-  }
-
-  try {
-    await createAuditLog(d1, {
-      actorId: authorId,
-      targetType: "record",
-      targetId: id,
-      action: "update",
-      beforeState: currentRecord as Record<string, unknown>,
-      afterState: auditAfterState as Record<string, unknown>,
-    });
-  } catch (err) {
-    console.error("[audit] Failed to create audit log:", err);
-  }
-
   const updateData: Partial<CreateRecordInput> & { updatedAt: number } = {
     ...data,
     updatedAt: Math.floor(Date.now() / 1000),
@@ -234,10 +206,52 @@ export async function updateRecord(
     setData.recordedEndAt = parseDateToUnix(data.recordedEndAt);
   }
 
-  await database
-    .update(records)
-    .set(setData)
-    .where(and(eq(records.id, id), eq(records.authorId, authorId)));
+  try {
+    await database
+      .update(records)
+      .set(setData)
+      .where(and(eq(records.id, id), eq(records.authorId, authorId)));
+
+    try {
+      const latestRevisionNumber = await getLatestRevisionNumber(d1, id);
+      await createRevision(d1, {
+        recordId: id,
+        authorId,
+        revisionNumber: latestRevisionNumber + 1,
+        snapshot: currentRecord as Record<string, unknown>,
+        changedFields: changedFieldNames,
+        tagsSnapshot: options?.oldTags,
+      });
+      revisionCreated = true;
+    } catch (err) {
+      Sentry.captureException(err, {
+        tags: { type: "revision_write", operation: "update_record" },
+        extra: { recordId: id, authorId },
+      });
+    }
+
+    try {
+      await createAuditLog(d1, {
+        actorId: authorId,
+        targetType: "record",
+        targetId: id,
+        action: "update",
+        beforeState: currentRecord as Record<string, unknown>,
+        afterState: auditAfterState as Record<string, unknown>,
+      });
+    } catch (err) {
+      Sentry.captureException(err, {
+        tags: { type: "audit_log", operation: "update_record" },
+        extra: { recordId: id, authorId },
+      });
+    }
+  } catch (err) {
+    Sentry.captureException(err, {
+      tags: { type: "record_update", operation: "update_record" },
+      extra: { recordId: id, authorId },
+    });
+    throw err;
+  }
 
   return { updated: true, revisionCreated };
 }

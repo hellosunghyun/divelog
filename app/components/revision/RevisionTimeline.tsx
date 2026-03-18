@@ -1,5 +1,13 @@
 import { RevisionDiffView } from "./RevisionDiffView";
 
+function safeJsonParse<T>(json: string, fallback: T): T {
+  try {
+    return JSON.parse(json) as T;
+  } catch {
+    return fallback;
+  }
+}
+
 interface RevisionItem {
   revision: {
     id: string;
@@ -59,33 +67,36 @@ export function RevisionTimeline({
 
       <div className="flex flex-col gap-6">
         {revisions.map((item, index) => {
-          const afterState =
-            index === 0
-              ? currentRecord
-              : JSON.parse(revisions[index - 1].revision.snapshot);
+           const afterState =
+             index === 0
+               ? currentRecord
+               : safeJsonParse(revisions[index - 1].revision.snapshot, {});
 
-          const afterTags =
-            index === 0
-              ? currentTags
-              : JSON.parse(
-                  revisions[index - 1].revision.tagsSnapshot ?? "null",
-                ) ?? [];
+           const afterTags =
+             index === 0
+               ? currentTags
+               : safeJsonParse(
+                   revisions[index - 1].revision.tagsSnapshot ?? "null",
+                   [],
+                 );
 
-          const beforeSnapshot =
-            index === revisions.length - 1
-              ? {}
-              : JSON.parse(revisions[index + 1].revision.snapshot);
+           const beforeSnapshot =
+             index === revisions.length - 1
+               ? {}
+               : safeJsonParse(revisions[index + 1].revision.snapshot, {});
 
-          const beforeTags =
-            index === revisions.length - 1
-              ? []
-              : JSON.parse(
-                  revisions[index + 1].revision.tagsSnapshot ?? "null",
-                ) ?? [];
+           const beforeTags =
+             index === revisions.length - 1
+               ? []
+               : safeJsonParse(
+                   revisions[index + 1].revision.tagsSnapshot ?? "null",
+                   [],
+                 );
 
-          const changedFields: string[] = JSON.parse(
-            item.revision.changedFields,
-          );
+           const changedFields: string[] = safeJsonParse(
+             item.revision.changedFields,
+             [],
+           );
 
           return (
             <div

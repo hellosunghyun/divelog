@@ -2,9 +2,11 @@ import { redirect } from "react-router";
 import { useNavigation } from "react-router";
 import type { Route } from "./+types/curation";
 import { desc, eq } from "drizzle-orm";
+import type { curationSlots } from "~/db/schema.server";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Spinner } from "~/components/feedback/Spinner";
+import { requireRole } from "~/lib/auth/auth.middleware";
 import {
   Table,
   TableBody,
@@ -35,6 +37,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   return { slots: await db(context.cloudflare.env.DB).select().from(curationSlots).orderBy(desc(curationSlots.position)) };
 }
 export async function action({ request, context }: Route.ActionArgs) {
+  await requireRole(request, context, "admin");
   const { db } = await import("~/db/client.server");
   const { createLogger } = await import("~/lib/infra/logger.server");
   const { curationSlots } = await import("~/db/schema.server");

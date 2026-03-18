@@ -44,7 +44,11 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
   let participantsRaw: Awaited<ReturnType<typeof getParticipantsBatch>> = [];
   try {
     participantsRaw = await getParticipantsBatch(d1, recordIds);
-  } catch { }
+  } catch (e) {
+    logger.error("participants_batch_error", {
+      error: e instanceof Error ? e.message : String(e),
+    });
+  }
   const participantsByRecordId = new Map<string, typeof participantsRaw>();
   for (const p of participantsRaw) {
     const existing = participantsByRecordId.get(p.recordId) ?? [];

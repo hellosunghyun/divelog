@@ -37,6 +37,12 @@ function reloadAfterSentryDrain() {
   window.setTimeout(doReload, 150);
 }
 
+function logWebVital(metric: { name: string; value: number; rating: string }) {
+  if (import.meta.env.DEV) {
+    console.log("[web-vitals]", metric.name, Math.round(metric.value), metric.rating);
+  }
+}
+
 window.addEventListener("load", () => {
   setTimeout(async () => {
     const { replayIntegration, feedbackIntegration } = await import(
@@ -149,23 +155,26 @@ window.addEventListener("load", () => {
 
 // Web Vitals 수집
 onLCP((metric) => {
-  console.log("[web-vitals]", metric.name, Math.round(metric.value), metric.rating);
+  logWebVital(metric);
 });
 
 onINP((metric) => {
-  console.log("[web-vitals]", metric.name, Math.round(metric.value), metric.rating);
+  logWebVital(metric);
 });
 
 onCLS((metric) => {
-  console.log("[web-vitals]", metric.name, Math.round(metric.value * 1000), metric.rating);
+  logWebVital({
+    ...metric,
+    value: metric.value * 1000,
+  });
 });
 
 onFCP((metric) => {
-  console.log("[web-vitals]", metric.name, Math.round(metric.value), metric.rating);
+  logWebVital(metric);
 });
 
 onTTFB((metric) => {
-  console.log("[web-vitals]", metric.name, Math.round(metric.value), metric.rating);
+  logWebVital(metric);
 });
 
 startTransition(() => {

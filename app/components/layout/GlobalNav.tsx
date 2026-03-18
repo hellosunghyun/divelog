@@ -146,14 +146,14 @@ function GlobalNav() {
     setIsMenuOpen(false);
     setOpenDropdown(null);
     setSearchQuery("");
-  }, [location.pathname]);
+  }, []);
 
   // Load notification count on mount (authenticated only)
   useEffect(() => {
     if (data?.isAuthenticated) {
       notifFetcher.load("/api/notifications");
     }
-  }, [data?.isAuthenticated, notifFetcher]);
+  }, [data?.isAuthenticated, notifFetcher.load]);
 
   // Unified outside-click + Escape handler
   useEffect(() => {

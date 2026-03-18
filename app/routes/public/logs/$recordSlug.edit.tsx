@@ -131,7 +131,7 @@ export async function action({ params, request, context }: Route.ActionArgs) {
 
   const database = db(context.cloudflare.env.DB);
   const formData = await request.formData();
-  const recordData = await getRecordBySlug(context.cloudflare.env.DB, recordSlug, auth.user.id);
+  const recordData = await getRecordBySlug(context.cloudflare.env.DB, recordSlug);
 
   if (!recordData || recordData.record.authorId !== auth.user.id) {
     return data({ error: "권한이 없습니다." }, { status: 403 });

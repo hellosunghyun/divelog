@@ -4,6 +4,46 @@ import { mentions, learnerProfiles, records } from "../../schema.server";
 import { nanoid } from "../../../lib/utils/utils.server";
 
 /**
+ * @deprecated Use syncAllMentionsForRecord instead.
+ * This function will be removed in a future version.
+ */
+export async function syncMentionsForRecord(
+  d1: D1Database,
+  recordId: string,
+  authorId: string,
+  mentionedSlugs: string[],
+) {
+  const database = db(d1);
+  await database.delete(mentions).where(eq(mentions.recordId, recordId));
+
+  const now = Math.floor(Date.now() / 1000);
+
+  // Batch resolve all slugs → userIds in a single query
+  const slugMap = new Map<string, string>();
+  if (mentionedSlugs.length > 0) {
+    const resolved = await database
+      .select({ slug: learnerProfiles.slug, userId: learnerProfiles.userId })
+      .from(learnerProfiles)
+      .where(inArray(learnerProfiles.slug, mentionedSlugs));
+    for (const r of resolved) {
+      slugMap.set(r.slug, r.userId);
+    }
+  }
+
+  // Batch insert all mentions in a single query
+  if (mentionedSlugs.length > 0) {
+    const rows = mentionedSlugs.map((slugOrId) => ({
+      id: nanoid(),
+      recordId,
+      mentionedUserId: slugMap.get(slugOrId) ?? slugOrId,
+      mentionedById: authorId,
+      createdAt: now,
+    }));
+    await database.insert(mentions).values(rows);
+  }
+}
+
+/**
  * Sync all mentions for a record from both explicit user IDs and content-extracted mentions.
  * Merges both sources, removes duplicates, and replaces all existing mentions for the record.
  *

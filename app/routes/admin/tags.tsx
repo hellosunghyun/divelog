@@ -25,6 +25,7 @@ import {
   adminThClass,
   adminTrClass,
 } from "~/components/admin/admin-patterns";
+import { requireRole } from "~/lib/auth/auth.middleware";
 
 export function meta(_: Route.MetaArgs) {
   return [{ title: "게시글 태그 관리" }];
@@ -43,6 +44,8 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
+  await requireRole(request, context, "admin");
+
   const { createLogger } = await import("~/lib/infra/logger.server");
   const { createTag, updateTag, deleteTag, getTagById, getTagByName, getTagBySlug, getTagUsageCount } = await import(
     "~/db/queries/records/tags.server"

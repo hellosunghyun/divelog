@@ -1,6 +1,8 @@
 import { Mention } from "@tiptap/extension-mention";
-import { PluginKey } from "@tiptap/pm/state";
+import { PluginKey, EditorState } from "@tiptap/pm/state";
+import { EditorView } from "@tiptap/pm/view";
 import { exitSuggestion, type SuggestionProps } from "@tiptap/suggestion";
+import type { Editor, Range } from "@tiptap/core";
 
 const tagPluginKey = new PluginKey("inlineTag");
 
@@ -25,19 +27,20 @@ function filterTags(query: string) {
 export function createInlineTagExtension() {
   return Mention.extend({ name: "inlineTag" }).configure({
     HTMLAttributes: { class: "inline-tag" },
-    renderText: ({ node }: { node: any }) => `#${node.attrs.label ?? node.attrs.id}`,
+    renderText: ({ node }: { node: { attrs: Record<string, unknown> } }) => `#${node.attrs.label ?? node.attrs.id}`,
     suggestion: {
       char: "#",
       pluginKey: tagPluginKey,
-      allow: ({ state }: { editor: any; state: any }) => {
+      allow: ({ state }: { editor: Editor; state: EditorState }) => {
         const parent = state.selection.$from.parent;
         return parent.isTextblock && !parent.type.spec.code;
       },
       items: ({ query }: { query: string }) => filterTags(query),
-      command: ({ editor, range, props }: { editor: any; range: any; props: any }) => {
+      command: ({ editor, range, props }: { editor: Editor; range: Range; props: unknown }) => {
+        const item = props as TagItem;
         exitSuggestion(editor.view, tagPluginKey);
         editor.chain().focus().insertContentAt(range, [
-          { type: "inlineTag", attrs: { id: props.id, label: props.label } },
+          { type: "inlineTag", attrs: { id: item.id, label: item.label } },
           { type: "text", text: " " },
         ]).run();
       },
@@ -87,7 +90,7 @@ export function createInlineTagExtension() {
             window.addEventListener("scroll", scrollHandler, true);
           },
           onUpdate: (props: SuggestionProps<TagItem>) => { selectedIndex = 0; currentProps = props; update(); position(); },
-          onKeyDown: ({ event, view }: { event: KeyboardEvent; view: any }) => {
+           onKeyDown: ({ event, view }: { event: KeyboardEvent; view: EditorView }) => {
             if (!currentProps || !popup || currentProps.items.length === 0) return false;
             if (event.isComposing || event.keyCode === 229) { return false; }
             if (event.key === "ArrowUp") { event.preventDefault(); selectedIndex = (selectedIndex + currentProps.items.length - 1) % currentProps.items.length; update(); return true; }

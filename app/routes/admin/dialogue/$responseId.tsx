@@ -9,6 +9,7 @@ import { Badge } from "~/components/ui/badge";
 import { SubmitButton } from "~/components/feedback/SubmitButton";
 import { Spinner } from "~/components/feedback/Spinner";
 import { eq } from "drizzle-orm";
+import { requireRole } from "~/lib/auth/auth.middleware";
 
 const RESPONSE_TYPE_LABELS: Record<string, string> = {
   resonance: "공명",
@@ -58,6 +59,8 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
 }
 
 export async function action({ params, request, context }: Route.ActionArgs) {
+  await requireRole(request, context, "admin");
+
   const { db } = await import("~/db/client.server");
   const { createLogger } = await import("~/lib/infra/logger.server");
   const { responses, records, learnerProfiles, questions } = await import("~/db/schema.server");

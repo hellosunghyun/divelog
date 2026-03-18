@@ -11,6 +11,7 @@ import { Textarea } from "~/components/ui/textarea";
 import { SubmitButton } from "~/components/feedback/SubmitButton";
 import { Spinner } from "~/components/feedback/Spinner";
 import { eq } from "drizzle-orm";
+import { requireRole } from "~/lib/auth/auth.middleware";
 
 const ALL_VALUE = "__all__";
 
@@ -26,6 +27,7 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
   return { template: tmpl[0] };
 }
 export async function action({ params, request, context }: Route.ActionArgs) {
+  await requireRole(request, context, "admin");
   const { db } = await import("~/db/client.server");
   const { createLogger } = await import("~/lib/infra/logger.server");
   const { templates } = await import("~/db/schema.server");

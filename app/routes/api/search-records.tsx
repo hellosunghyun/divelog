@@ -5,6 +5,10 @@ import { records, learnerProfiles } from "~/db/schema.server";
 import { getOptionalUser } from "~/lib/auth/auth.middleware";
 import { createLogger } from "~/lib/infra/logger.server";
 
+function escapeLikeWildcards(s: string): string {
+  return s.replace(/[%_\\]/g, "\\$&");
+}
+
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const logger = createLogger(request, context.cloudflare.env).child({ route: "api.search-records" });
   logger.info("loader_start");
@@ -40,12 +44,12 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       ? sql`(${records.visibility} IN ('cohort', 'public') OR ${records.authorId} = ${currentUserId})`
       : sql`${records.visibility} IN ('cohort', 'public')`;
 
-    const results = q.length > 0
-      ? await baseQuery.where(and(
-          visibilityFilter,
-          sql`(${records.title} LIKE ${"%" + q + "%"} OR ${records.contentText} LIKE ${"%" + q + "%"})`,
-        )).limit(8)
-      : await baseQuery.where(visibilityFilter).orderBy(sql`${records.createdAt} DESC`).limit(8);
+     const results = q.length > 0
+       ? await baseQuery.where(and(
+           visibilityFilter,
+           sql`(${records.title} LIKE ${"%" + escapeLikeWildcards(q) + "%"} OR ${records.contentText} LIKE ${"%" + escapeLikeWildcards(q) + "%"})`,
+         )).limit(8)
+       : await baseQuery.where(visibilityFilter).orderBy(sql`${records.createdAt} DESC`).limit(8);
 
     logger.info("search_results", { count: results.length });
     return Response.json({ results });

@@ -2,6 +2,8 @@ import { redirect } from "react-router";
 import { useNavigation } from "react-router";
 import type { Route } from "./+types/settings";
 import { eq } from "drizzle-orm";
+import type { settings } from "~/db/schema.server";
+import { requireRole } from "~/lib/auth/auth.middleware";
 import {
   adminCardClass,
   adminCardHeaderClass,
@@ -29,6 +31,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
+  await requireRole(request, context, "admin");
   const { db } = await import("~/db/client.server");
   const { createLogger } = await import("~/lib/infra/logger.server");
   const { settings } = await import("~/db/schema.server");

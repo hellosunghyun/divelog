@@ -17,6 +17,7 @@ import { TaskItem } from "@tiptap/extension-task-item";
 import { TaskList } from "@tiptap/extension-task-list";
 import { Underline } from "@tiptap/extension-underline";
 import { Extension, EditorContent, useEditor, type Editor } from "@tiptap/react";
+import type { Editor as TiptapEditor } from "@tiptap/core";
 import { BubbleMenu } from "@tiptap/react/menus";
 import { StarterKit } from "@tiptap/starter-kit";
 import { common, createLowlight } from "lowlight";
@@ -124,7 +125,7 @@ const BG_COLORS = [
   { color: "#F3F4F6", label: "회색" }, { color: "transparent", label: "없음" },
 ];
 
-function ColorPickerMenu({ editor }: { editor: any }) {
+function ColorPickerMenu({ editor }: { editor: TiptapEditor }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 

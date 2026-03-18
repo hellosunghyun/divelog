@@ -5,6 +5,10 @@ import { learnerProfiles } from "~/db/schema.server";
 import { getOptionalUser } from "~/lib/auth/auth.middleware";
 import { createLogger } from "~/lib/infra/logger.server";
 
+function escapeLikeWildcards(s: string): string {
+  return s.replace(/[%_\\]/g, "\\$&");
+}
+
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const logger = createLogger(request, context.cloudflare.env).child({ route: "api.search-learners" });
   logger.info("loader_start");
@@ -32,9 +36,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       })
       .from(learnerProfiles);
 
-    const results = q.length > 0
-      ? await baseQuery.where(sql`${learnerProfiles.displayName} LIKE ${"%" + q + "%"} OR ${learnerProfiles.slug} LIKE ${"%" + q + "%"}`).limit(8)
-      : await baseQuery.limit(8);
+     const results = q.length > 0
+       ? await baseQuery.where(sql`${learnerProfiles.displayName} LIKE ${"%" + escapeLikeWildcards(q) + "%"} OR ${learnerProfiles.slug} LIKE ${"%" + escapeLikeWildcards(q) + "%"}`).limit(8)
+       : await baseQuery.limit(8);
 
     logger.info("search_results", { count: results.length });
     return Response.json({ results });

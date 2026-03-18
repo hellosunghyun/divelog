@@ -1,5 +1,6 @@
 import { data, redirect, useNavigation } from "react-router";
 import type { Route } from "./+types/$stageId";
+import { requireRole } from "~/lib/auth/auth.middleware";
 import { Link } from "~/components/content/SmartLink";
 import { Button } from "~/components/ui/button";
 import { Checkbox } from "~/components/ui/checkbox";
@@ -23,6 +24,7 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
   return { stage: stage[0] };
 }
 export async function action({ params, request, context }: Route.ActionArgs) {
+  await requireRole(request, context, "admin");
   const { db } = await import("~/db/client.server");
   const { createLogger } = await import("~/lib/infra/logger.server");
   const { stages } = await import("~/db/schema.server");
