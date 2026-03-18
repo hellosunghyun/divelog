@@ -82,7 +82,7 @@ export function useAutosave(options: UseAutosaveOptions): AutosaveState {
       contentJson: formData.contentJson ?? "",
       stageId: formData.stageId ?? null,
       rhythm: formData.rhythm ?? "free",
-      visibility: formData.visibility ?? "draft",
+      visibility: formData.visibility ?? "public",
       responsePreference: formData.responsePreference ?? "open",
     });
 
@@ -104,7 +104,7 @@ export function useAutosave(options: UseAutosaveOptions): AutosaveState {
       contentJson: formData.contentJson,
       stageId: formData.stageId,
       rhythm: formData.rhythm,
-      visibility: (formData.visibility as "draft" | "cohort" | "public") || "draft",
+      visibility: (formData.visibility as "draft" | "cohort" | "public") || "public",
       responsePreference: (formData.responsePreference as "open" | "question_only" | "closed") || "open",
     });
 
@@ -125,7 +125,7 @@ export function useAutosave(options: UseAutosaveOptions): AutosaveState {
           contentJson: latestFormData.contentJson || "",
           stageId: latestFormData.stageId || "",
           rhythm: latestFormData.rhythm || "",
-          visibility: latestFormData.visibility || "draft",
+          visibility: latestFormData.visibility || "public",
           responsePreference: latestFormData.responsePreference || "open",
         },
         { method: "POST", action: "/api/autosave" }

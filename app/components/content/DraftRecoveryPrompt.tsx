@@ -1,5 +1,31 @@
 import { clearLocalDraft, type DraftData } from '~/lib/infra/draft-storage';
 
+function extractPreviewText(content: string): string {
+  try {
+    const parsed = JSON.parse(content);
+    if (parsed && typeof parsed === 'object' && parsed.type === 'doc') {
+      const text = extractNodeText(parsed);
+      return text.replace(/\n{3,}/g, '\n\n').trim();
+    }
+    return content;
+  } catch {
+    return content;
+  }
+}
+
+function extractNodeText(node: { type?: string; text?: string; content?: Array<{ type?: string; text?: string; content?: unknown[]; attrs?: Record<string, unknown> }>; attrs?: Record<string, unknown> }): string {
+  if (node.type === 'text') return node.text ?? '';
+  if (node.type === 'hardBreak' || node.type === 'horizontalRule') return '\n';
+  if (node.type === 'mention' || node.type === 'userMention') {
+    const label = (node.attrs?.label as string) ?? '';
+    return label ? `@${label}` : '';
+  }
+  const children = (node.content ?? []).map((child) => extractNodeText(child as typeof node)).join('');
+  const blockTypes = new Set(['paragraph', 'heading', 'blockquote', 'listItem', 'bulletList', 'orderedList', 'codeBlock']);
+  if (node.type && blockTypes.has(node.type)) return `${children}\n`;
+  return children;
+}
+
 interface DraftRecoveryPromptProps {
   draft: DraftData;
   format: 'note' | 'article';
@@ -18,6 +44,9 @@ export function DraftRecoveryPrompt({
     onDiscard();
   };
 
+  const preview = extractPreviewText(draft.content);
+  const displayText = preview || draft.title || '내용 없음';
+
   return (
     <div
       data-testid="draft-recovery-prompt"
@@ -26,9 +55,14 @@ export function DraftRecoveryPrompt({
       <p className="text-sm text-text-secondary mb-2">
         이전에 작성하던 글이 있습니다.
       </p>
+      {draft.title && (
+        <p className="text-sm font-medium text-text-primary mb-1">
+          {draft.title}
+        </p>
+      )}
       <p className="text-xs text-text-tertiary mb-3 line-clamp-2">
-        {draft.content.slice(0, 150)}
-        {draft.content.length > 150 ? '...' : ''}
+        {displayText.slice(0, 150)}
+        {displayText.length > 150 ? '...' : ''}
       </p>
       <div className="flex gap-3">
         <button

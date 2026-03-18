@@ -11,7 +11,8 @@ import { Link } from "~/components/content/SmartLink";
 import { db } from "~/db/client.server";
 import { getResponsesByAuthor } from "~/db/queries/dialogue/responses.server";
 import { getSavedRecordsWithDetails } from "~/db/queries/records/savedRecords.server";
-import { learnerProfiles, questions, records, sentences, stages } from "~/db/schema.server";
+import { drafts, learnerProfiles, questions, records, sentences, stages } from "~/db/schema.server";
+import { getPlainText } from "~/lib/content/content.server";
 import { createLogger } from "~/lib/infra/logger.server";
 import { cn } from "~/lib/utils/cn";
 
@@ -49,13 +50,18 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const auth = await requireAuth(request, context);
   const database = db(context.cloudflare.env.DB);
 
-  const [drafts, mySentences, myQuestions, unansweredQuestions, allStages, myRecordsWithStage] = await database.batch([
+  const [draftRecords, autosaveDrafts, mySentences, myQuestions, unansweredQuestions, allStages, myRecordsWithStage] = await database.batch([
     database
       .select({ record: records })
       .from(records)
       .where(and(eq(records.authorId, auth.user.id), eq(records.visibility, "draft")))
       .orderBy(desc(records.updatedAt))
       .limit(5),
+    database
+      .select()
+      .from(drafts)
+      .where(eq(drafts.authorId, auth.user.id))
+      .orderBy(desc(drafts.updatedAt)),
     database
       .select({ sentence: sentences })
       .from(sentences)
@@ -121,10 +127,16 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     recordsByStage[stageId].push(row);
   }
 
+  const autosaveDraftsWithPreview = autosaveDrafts.map((draft) => ({
+    ...draft,
+    preview: getPlainText(draft.content, draft.format as "note" | "article").slice(0, 200),
+  }));
+
   logger.info("loader_end");
   return {
     learner: learnerResult[0] ?? null,
-    drafts,
+    draftRecords,
+    autosaveDrafts: autosaveDraftsWithPreview,
     mySentences,
     myQuestions,
     unansweredQuestions,
@@ -136,7 +148,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 }
 
 export default function MySpacePage({ loaderData }: Route.ComponentProps) {
-  const { learner, drafts, mySentences, myQuestions, unansweredQuestions, myResponses, mySavedRecords, stages, recordsByStage } = loaderData;
+  const { learner, draftRecords, autosaveDrafts, mySentences, myQuestions, unansweredQuestions, myResponses, mySavedRecords, stages, recordsByStage } = loaderData;
   const [activeTab, setActiveTab] = useState<"records" | "questions" | "responses" | "saved">("records");
 
   return (
@@ -326,37 +338,63 @@ export default function MySpacePage({ loaderData }: Route.ComponentProps) {
               </div>
             </section>
 
-            {drafts.length > 0 && (
+            {(draftRecords.length > 0 || autosaveDrafts.length > 0) && (
               <section>
                 <div className="flex items-center justify-between mb-8">
                   <h2 className="text-xl font-semibold text-text-primary tracking-tight">
                     임시저장
                   </h2>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                  {drafts.map(({ record }) => (
-                    <div key={record.id} className="relative group">
-                      <SceneCard
-                        record={{
-                          slug: record.slug,
-                          title: record.title,
-                          content: record.content,
-                          format: record.format as "note" | "article",
-                          type: record.type as "personal" | "challenge" | "collaboration",
-                          rhythm: record.rhythm ?? undefined,
-                          createdAt: record.createdAt,
-                        }}
-                      />
-                      <div className="absolute inset-0 bg-surface/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-2xl">
-                        <Link
-                          to={`/logs/${record.slug}/edit`}
-                          className="px-4 py-2 rounded-full bg-ocean-blue text-white font-medium no-underline shadow-sm hover:bg-deep-ocean transition-colors"
-                        >
-                          이어 쓰기
-                        </Link>
+                <div className="flex flex-col gap-5">
+                  {autosaveDrafts.map((draft) => (
+                    <Link
+                      key={draft.id}
+                      to={`/write/${draft.format}`}
+                      className="block p-5 rounded-2xl bg-mist-blue/30 border border-mist-blue hover:border-ocean-blue/40 transition-colors no-underline"
+                    >
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="inline-flex items-center rounded-full bg-ocean-blue/10 px-2.5 py-0.5 text-xs font-medium text-ocean-blue">
+                          자동저장 · {draft.format === "note" ? "짧은 메모" : "글"}
+                        </span>
+                        <span className="text-xs text-text-tertiary">
+                          {new Date(draft.updatedAt * 1000).toLocaleDateString("ko-KR", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                        </span>
                       </div>
-                    </div>
+                      {draft.title && (
+                        <p className="text-base font-medium text-text-primary mb-1">{draft.title}</p>
+                      )}
+                      <p className="text-sm text-text-secondary line-clamp-2">
+                        {draft.preview || "작성 중인 내용이 있습니다"}
+                      </p>
+                    </Link>
                   ))}
+                  {draftRecords.length > 0 && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                      {draftRecords.map(({ record }) => (
+                        <div key={record.id} className="relative group">
+                          <SceneCard
+                            record={{
+                              slug: record.slug,
+                              title: record.title,
+                              content: record.content,
+                              format: record.format as "note" | "article",
+                              type: record.type as "personal" | "challenge" | "collaboration",
+                              rhythm: record.rhythm ?? undefined,
+                              createdAt: record.createdAt,
+                            }}
+                          />
+                          <div className="absolute inset-0 bg-surface/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-2xl">
+                            <Link
+                              to={`/logs/${record.slug}/edit`}
+                              className="px-4 py-2 rounded-full bg-ocean-blue text-white font-medium no-underline shadow-sm hover:bg-deep-ocean transition-colors"
+                            >
+                              이어 쓰기
+                            </Link>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </section>
             )}

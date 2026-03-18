@@ -386,7 +386,7 @@ export const drafts = sqliteTable(
     stageId: text("stage_id").references(() => stages.id),
     challengeId: text("challenge_id").references(() => challenges.id),
     rhythm: text("rhythm").notNull().default("free"),
-    visibility: text("visibility").notNull().default("draft"),
+    visibility: text("visibility").notNull().default("public"),
     responsePreference: text("response_preference").notNull().default("open"),
     createdAt: integer("created_at").notNull().default(now()),
     updatedAt: integer("updated_at").notNull().default(now()),

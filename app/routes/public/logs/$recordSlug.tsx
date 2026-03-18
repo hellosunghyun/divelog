@@ -301,7 +301,7 @@ function renderResponseThread(
                    </div>
                    
                    <Textarea name="content" rows={3} placeholder="답글을 입력하세요..." required className="bg-surface" />
-                   <input type="hidden" name="visibility" value="cohort" />
+                   <input type="hidden" name="visibility" value="public" />
                    
                    <div className="flex gap-2">
                      <Button type="submit" className="rounded-full bg-deep-ocean text-white text-sm px-4 py-2">답글 등록</Button>
@@ -916,7 +916,7 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
                 <label htmlFor="response-visibility" className="text-sm font-medium text-text-secondary mb-2 block">
                   공개 범위
                 </label>
-                <Select name="visibility" defaultValue="cohort">
+                <Select name="visibility" defaultValue="public">
                   <SelectTrigger id="response-visibility" className="w-full bg-surface">
                     <SelectValue />
                   </SelectTrigger>

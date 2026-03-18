@@ -182,7 +182,7 @@ export async function action({ request, context }: Route.ActionArgs) {
       type: formData.get("type"),
       recordId: formData.get("recordId"),
       questionId: formData.get("questionId") || undefined,
-      visibility: formData.get("visibility") || "cohort",
+      visibility: formData.get("visibility") || "public",
       parentResponseId: formData.get("parentResponseId") || undefined,
     });
 

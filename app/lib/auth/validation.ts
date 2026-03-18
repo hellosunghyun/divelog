@@ -53,7 +53,7 @@ export const autosaveDraftSchema = z.object({
   contentJson: z.string().optional(),
   stageId: z.string().optional().nullable(),
   rhythm: z.string().default("free"),
-  visibility: z.enum(["draft", "private", "cohort", "public"]).default("draft"),
+  visibility: z.enum(["draft", "private", "cohort", "public"]).default("public"),
   responsePreference: z.enum(["open", "question_only", "closed"]).default("open"),
 });
 

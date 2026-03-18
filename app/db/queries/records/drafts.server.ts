@@ -36,7 +36,7 @@ export async function upsertDraft(d1: D1Database, input: DraftInput): Promise<Dr
         stageId: input.stageId ?? null,
         challengeId: input.challengeId ?? null,
         rhythm: input.rhythm ?? "free",
-        visibility: input.visibility ?? "draft",
+        visibility: input.visibility ?? "public",
         responsePreference: input.responsePreference ?? "open",
         updatedAt: now,
       })
@@ -60,7 +60,7 @@ export async function upsertDraft(d1: D1Database, input: DraftInput): Promise<Dr
     stageId: input.stageId ?? null,
     challengeId: input.challengeId ?? null,
     rhythm: input.rhythm ?? "free",
-    visibility: input.visibility ?? "draft",
+    visibility: input.visibility ?? "public",
     responsePreference: input.responsePreference ?? "open",
     createdAt: now,
     updatedAt: now,
