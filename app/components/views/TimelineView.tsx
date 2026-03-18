@@ -23,10 +23,12 @@ type TimelineItem =
 function buildItems(records: TimelineRecord[], stages: StageListItem[]): TimelineItem[] {
   const stageMap = new Map(stages.map((s) => [s.id, s]));
   const items: TimelineItem[] = [];
-  let prevStageId: string | null | undefined;
+  const seenStages = new Set<string>();
 
   for (const record of records) {
-    if (record.stageId !== prevStageId) {
+    const key = record.stageId ?? "__unassigned__";
+    if (!seenStages.has(key)) {
+      seenStages.add(key);
       const stage = record.stageId ? stageMap.get(record.stageId) : null;
       items.push({
         kind: "stage",
@@ -34,7 +36,6 @@ function buildItems(records: TimelineRecord[], stages: StageListItem[]): Timelin
         stageName: stage?.name ?? "미분류",
         stageType: stage?.type ?? "unassigned",
       });
-      prevStageId = record.stageId;
     }
     items.push({ kind: "record", record });
   }
