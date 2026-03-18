@@ -10,8 +10,6 @@ import EmptyState from "~/components/feedback/EmptyState";
 import { db } from "~/db/client.server";
 import { challengeStages, challenges, learnerProfiles, records, stages } from "~/db/schema.server";
 import { createLogger } from "~/lib/infra/logger.server";
-import { motion } from "~/lib/motion/motion";
-import { staggerContainer, staggerItem } from "~/lib/motion/motion-utils";
 import { cn } from "~/lib/utils/cn";
 
 export async function loader({ params, request, context }: Route.LoaderArgs) {
@@ -93,14 +91,9 @@ export default function ChallengeDetailPage({ loaderData }: Route.ComponentProps
       />
 
       <div className="max-w-content mx-auto px-6 py-16 md:py-24">
-        <motion.div
-          variants={staggerContainer}
-          initial="hidden"
-          animate="visible"
-          className="flex flex-col gap-12"
-        >
+        <div className="flex flex-col gap-12">
           {challenge.currentQuestion && (
-            <motion.section variants={staggerItem}>
+            <section>
               <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-6">
                 현재 질문
               </h2>
@@ -112,11 +105,11 @@ export default function ChallengeDetailPage({ loaderData }: Route.ComponentProps
                   isOpen: challenge.status === "active",
                 }}
               />
-            </motion.section>
+            </section>
           )}
 
           {challenge.problemDefinition && !challenge.currentQuestion && (
-            <motion.section variants={staggerItem}>
+            <section>
               <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-6">
                 문제 정의
               </h2>
@@ -125,11 +118,11 @@ export default function ChallengeDetailPage({ loaderData }: Route.ComponentProps
                   {challenge.problemDefinition}
                 </p>
               </div>
-            </motion.section>
+            </section>
           )}
 
           {relatedStages.length > 0 && (
-            <motion.section variants={staggerItem}>
+            <section>
               <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-6">
                 관련 Stage
               </h2>
@@ -150,12 +143,12 @@ export default function ChallengeDetailPage({ loaderData }: Route.ComponentProps
                   </Link>
                 ))}
               </div>
-            </motion.section>
+            </section>
           )}
 
           {/* [COLLAB_DISABLED] collaboration section removed */}
 
-          <motion.section variants={staggerItem}>
+          <section>
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-semibold text-text-primary tracking-tight">
                 탐구 기록
@@ -194,22 +187,22 @@ export default function ChallengeDetailPage({ loaderData }: Route.ComponentProps
                 ))}
               </div>
             )}
-          </motion.section>
+          </section>
 
-          <motion.section variants={staggerItem}>
+          <section>
             <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-6">
               전환점
             </h2>
             <EmptyState variant="generic" message="아직 기록된 전환점이 없습니다." />
-          </motion.section>
+          </section>
 
-          <motion.section variants={staggerItem}>
+          <section>
             <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-6">
               회고
             </h2>
             <EmptyState variant="generic" message="아직 작성된 회고가 없습니다." />
-          </motion.section>
-        </motion.div>
+          </section>
+        </div>
       </div>
     </div>
   );

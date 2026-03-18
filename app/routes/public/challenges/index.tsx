@@ -6,8 +6,6 @@ import EmptyState from "~/components/feedback/EmptyState";
 import { db } from "~/db/client.server";
 import { challenges } from "~/db/schema.server";
 import { createLogger } from "~/lib/infra/logger.server";
-import { motion } from "~/lib/motion/motion";
-import { staggerContainer, staggerItem } from "~/lib/motion/motion-utils";
 import { cn } from "~/lib/utils/cn";
 
 export function meta(_args: Route.MetaArgs) {
@@ -59,18 +57,13 @@ export default function ChallengesPage({ loaderData }: Route.ComponentProps) {
         {allChallenges.length === 0 ? (
           <EmptyState variant="generic" message="아직 진행 중인 챌린지가 없습니다." />
         ) : (
-          <motion.div
-            variants={staggerContainer}
-            initial="hidden"
-            animate="visible"
-            className="flex flex-col gap-5"
-          >
+          <div className="flex flex-col gap-5">
             {allChallenges.map((challenge: { id: string; slug: string; name: string; status: string; currentQuestion: string | null; problemDefinition: string | null }) => {
               const statusAccent = STATUS_ACCENTS[challenge.status] ?? STATUS_ACCENTS.active;
               const isActive = challenge.status === "active";
 
               return (
-                <motion.div key={challenge.id} variants={staggerItem}>
+                <div key={challenge.id}>
                   <Link
                     to={`/challenges/${challenge.slug}`}
                     className={cn(
@@ -118,10 +111,10 @@ export default function ChallengesPage({ loaderData }: Route.ComponentProps) {
                       </div>
                     </div>
                   </Link>
-                </motion.div>
+                </div>
               );
             })}
-          </motion.div>
+          </div>
         )}
       </div>
     </div>

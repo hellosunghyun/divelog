@@ -12,8 +12,6 @@ import { learnerProfiles, questions, records, sentences } from "~/db/schema.serv
 import { getPlainText } from "~/lib/content/content.server";
 import { normalizeContentFormat } from "~/lib/content/editor-extensions";
 import { createLogger } from "~/lib/infra/logger.server";
-import { motion } from "~/lib/motion/motion";
-import { staggerContainer, staggerItem } from "~/lib/motion/motion-utils";
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "검색 — DiveLog" }];
@@ -208,11 +206,7 @@ export default function SearchPage({ loaderData }: Route.ComponentProps) {
             <EmptyState variant="search" message={`"${q}"에 대한 결과가 없습니다.`} />
           </div>
         ) : (
-          <motion.div
-            initial="hidden"
-            animate="visible"
-            variants={staggerContainer}
-          >
+          <div>
             <div className="flex justify-center mb-10">
               <div className="inline-flex rounded-full bg-surface-secondary p-1 gap-0.5">
                 {TABS.map((t) => (
@@ -233,19 +227,13 @@ export default function SearchPage({ loaderData }: Route.ComponentProps) {
 
             <div className="space-y-12">
               {(tab === "all" || tab === "records") && results.records.length > 0 && (
-                <motion.section
-                  variants={staggerItem}
-                  className="mb-10"
-                >
+                <section className="mb-10">
                   <h2 className="text-lg font-semibold text-text-primary tracking-tight mb-6">
                     기록
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                     {results.records.map((item: typeof results.records[number]) => (
-                      <motion.div
-                        key={item.record.id}
-                        variants={staggerItem}
-                      >
+                      <div key={item.record.id}>
                         <SceneCard
                           record={{
                             ...item.record,
@@ -260,79 +248,63 @@ export default function SearchPage({ loaderData }: Route.ComponentProps) {
                           author={item.author ?? undefined}
                           contentSnippet={item.contentSnippet}
                         />
-                      </motion.div>
+                      </div>
                     ))}
                   </div>
-                </motion.section>
+                </section>
               )}
 
               {(tab === "all" || tab === "learners") && results.learners.length > 0 && (
-                <motion.section
-                  variants={staggerItem}
-                  className="mb-10"
-                >
+                <section className="mb-10">
                   <h2 className="text-lg font-semibold text-text-primary tracking-tight mb-6">
                     러너
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                     {results.learners.map((learner: typeof results.learners[number]) => (
-                      <motion.div
-                        key={learner.userId}
-                        variants={staggerItem}
-                      >
+                      <div key={learner.userId}>
                         <LearnerCard learner={learner} />
-                      </motion.div>
+                      </div>
                     ))}
                   </div>
-                </motion.section>
+                </section>
               )}
 
               {(tab === "all" || tab === "questions") && results.questions.length > 0 && (
-                <motion.section
-                  variants={staggerItem}
-                  className="mb-10"
-                >
+                <section className="mb-10">
                   <h2 className="text-lg font-semibold text-text-primary tracking-tight mb-6">
                     질문
                   </h2>
                   <div className="flex flex-col gap-4 max-w-2xl">
                     {results.questions.map((questionItem: typeof results.questions[number]) => (
-                      <motion.div
+                      <div
                         key={questionItem.question.id}
-                        variants={staggerItem}
                         className="p-5 bg-surface rounded-2xl border border-border text-text-primary quiet-depth-card"
                       >
                         <p className="text-base leading-relaxed">{questionItem.question.content}</p>
-                      </motion.div>
+                      </div>
                     ))}
                   </div>
-                </motion.section>
+                </section>
               )}
 
               {(tab === "all" || tab === "sentences") && results.sentences.length > 0 && (
-                <motion.section
-                  variants={staggerItem}
-                  className="mb-10"
-                >
+                <section className="mb-10">
                   <h2 className="text-lg font-semibold text-text-primary tracking-tight mb-6">
                     문장
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     {results.sentences.map((sentenceItem: typeof results.sentences[number]) => (
-                      <motion.div
-                        key={sentenceItem.sentence.id}
-                        variants={staggerItem}
-                      >
+                      <div key={sentenceItem.sentence.id}>
                         <HighlightedSentenceCard
                           sentence={sentenceItem.sentence}
                         />
-                      </motion.div>
+                      </div>
                     ))}
                   </div>
-                </motion.section>
+                </section>
               )}
             </div>
-          </motion.div>
+          </div>
         )}
       </div>
     </div>

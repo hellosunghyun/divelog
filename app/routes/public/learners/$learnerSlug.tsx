@@ -5,8 +5,6 @@ import QuestionCard from "~/components/cards/QuestionCard";
 import HighlightedSentenceCard from "~/components/cards/HighlightedSentenceCard";
 // [COLLAB_DISABLED] import CollaborationUnitCard from "~/components/cards/CollaborationUnitCard";
 import EmptyState from "~/components/feedback/EmptyState";
-import { motion } from "~/lib/motion/motion";
-import { staggerContainer, staggerItem, fadeUp } from "~/lib/motion/motion-utils";
 import { cn } from "~/lib/utils/cn";
 import { useState } from "react";
 
@@ -105,14 +103,9 @@ export default function LearnerDetailPage({ loaderData }: Route.ComponentProps) 
   return (
     <div className="min-h-screen">
       <section className="bg-gradient-to-b from-mist-blue/60 via-mist-blue/30 to-bg -mt-15 sm:-mt-16 pt-[6.75rem] sm:pt-28 md:pt-32 pb-12 md:pb-16">
-        <motion.div
-          variants={staggerContainer}
-          initial="hidden"
-          animate="visible"
-          className="max-w-content mx-auto px-6"
-        >
+        <div className="max-w-content mx-auto px-6">
           <div className="flex flex-col md:flex-row items-start gap-6">
-            <motion.div variants={staggerItem}>
+            <div>
               {learner.profilePhotoUrl ? (
                 <img
                   src={learner.profilePhotoUrl}
@@ -124,9 +117,9 @@ export default function LearnerDetailPage({ loaderData }: Route.ComponentProps) 
                   {learner.displayName[0]}
                 </div>
               )}
-            </motion.div>
+            </div>
 
-            <motion.div variants={staggerItem} className="flex-1">
+            <div className="flex-1">
               <h1 className="text-3xl md:text-4xl font-semibold tracking-tight text-text-primary">
                 {learner.displayName}
               </h1>
@@ -148,18 +141,13 @@ export default function LearnerDetailPage({ loaderData }: Route.ComponentProps) 
                   </p>
                 </div>
               )}
-            </motion.div>
+            </div>
           </div>
-        </motion.div>
+        </div>
       </section>
 
       <div className="max-w-content mx-auto px-6 pt-8">
-        <motion.div
-          variants={fadeUp}
-          initial="hidden"
-          animate="visible"
-          className="flex gap-2 mb-8"
-        >
+        <div className="flex gap-2 mb-8">
           {tabItems.map((tab) => (
             <TabButton
               key={tab.key}
@@ -169,15 +157,10 @@ export default function LearnerDetailPage({ loaderData }: Route.ComponentProps) 
               {tab.label} {tab.count}
             </TabButton>
           ))}
-        </motion.div>
+        </div>
 
         {activeTab === "records" && (
-          <motion.section
-            key="records"
-            variants={staggerContainer}
-            initial="hidden"
-            animate="visible"
-          >
+          <section key="records">
             {learnerRecords.length === 0 ? (
               <EmptyState variant="records" message="아직 작성한 기록이 없습니다." />
             ) : (
@@ -185,7 +168,7 @@ export default function LearnerDetailPage({ loaderData }: Route.ComponentProps) 
                 {learnerRecords.map((item) => {
                   const { record } = item;
                   return (
-                    <motion.div key={record.id} variants={staggerItem}>
+                    <div key={record.id}>
                       <SceneCard
                         record={{
                           slug: record.slug,
@@ -197,21 +180,16 @@ export default function LearnerDetailPage({ loaderData }: Route.ComponentProps) 
                           createdAt: record.createdAt,
                         }}
                       />
-                    </motion.div>
+                    </div>
                   );
                 })}
               </div>
             )}
-          </motion.section>
+          </section>
         )}
 
         {activeTab === "questions" && (
-          <motion.section
-            key="questions"
-            variants={staggerContainer}
-            initial="hidden"
-            animate="visible"
-          >
+          <section key="questions">
             {learnerQuestions.length === 0 ? (
               <EmptyState variant="generic" message="아직 남긴 질문이 없습니다." />
             ) : (
@@ -219,17 +197,17 @@ export default function LearnerDetailPage({ loaderData }: Route.ComponentProps) 
                 {learnerQuestions.map((item) => {
                   const { question, recordSlug, recordTitle } = item;
                   return (
-                    <motion.div key={question.id} variants={staggerItem}>
+                    <div key={question.id}>
                       <QuestionCard
                         question={question}
                         record={recordSlug && recordTitle ? { slug: recordSlug, title: recordTitle } : undefined}
                       />
-                    </motion.div>
+                    </div>
                   );
                 })}
               </div>
             )}
-          </motion.section>
+          </section>
         )}
       </div>
 
@@ -238,21 +216,16 @@ export default function LearnerDetailPage({ loaderData }: Route.ComponentProps) 
           <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-8">
             남겨둔 문장들
           </h2>
-          <motion.div
-            variants={staggerContainer}
-            initial="hidden"
-            animate="visible"
-            className="flex flex-col gap-5"
-          >
+          <div className="flex flex-col gap-5">
             {learnerSentences.map((item) => {
               const { sentence } = item;
               return (
-                <motion.div key={sentence.id} variants={staggerItem}>
+                <div key={sentence.id}>
                   <HighlightedSentenceCard sentence={sentence} />
-                </motion.div>
+                </div>
               );
             })}
-          </motion.div>
+          </div>
         </section>
       )}
 

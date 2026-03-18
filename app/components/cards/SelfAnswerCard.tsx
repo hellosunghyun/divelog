@@ -1,6 +1,4 @@
 import { cn } from "~/lib/utils/cn";
-import { motion } from "~/lib/motion/motion";
-import { fadeUp } from "~/lib/motion/motion-utils";
 
 interface SelfAnswerCardProps {
   selfAnswer: {
@@ -28,11 +26,8 @@ export default function SelfAnswerCard({
   className,
 }: SelfAnswerCardProps) {
   return (
-    <motion.article
+    <article
       data-testid="self-answer-card"
-      variants={fadeUp}
-      initial="hidden"
-      animate="visible"
       className={cn(
         "relative pl-4 border-l-2 border-ocean-blue/60 rounded-r-xl bg-surface p-5",
         className
@@ -50,6 +45,6 @@ export default function SelfAnswerCard({
       <p className="text-base leading-relaxed text-text-primary whitespace-pre-wrap">
         {selfAnswer.content}
       </p>
-    </motion.article>
+    </article>
   );
 }
