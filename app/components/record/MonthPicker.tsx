@@ -219,6 +219,7 @@ export function MonthPicker({ selectedMonth, onMonthSelect }: MonthPickerProps) 
                 <button
                   key={label}
                   type="button"
+                  role="gridcell"
                   data-month-gridcell="true"
                   aria-label={`${displayYear}년 ${label}${isSelected ? " (선택됨)" : ""}`}
                   onClick={() => handleMonthClick(idx)}

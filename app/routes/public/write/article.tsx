@@ -63,7 +63,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const database = db(context.cloudflare.env.DB);
   const [currentStageResult, allStages, learnerResult] = await database.batch([
     database.select().from(stages).where(eq(stages.isCurrent, true)).limit(1),
-    database.select({ id: stages.id, name: stages.name, isCurrent: stages.isCurrent }).from(stages).orderBy(stages.order),
+    database.select({ id: stages.id, name: stages.name, isCurrent: stages.isCurrent, startDate: stages.startDate, endDate: stages.endDate }).from(stages).orderBy(stages.order),
     database.select().from(learnerProfiles).where(eq(learnerProfiles.userId, auth.user.id)).limit(1),
   ]);
   const learner = learnerResult[0] ?? null;
