@@ -1,12 +1,13 @@
 import { eq } from "drizzle-orm";
 import { Link } from "~/components/content/SmartLink";
-import { data, redirect, useActionData, useNavigation } from "react-router";
+import { data, redirect, useActionData } from "react-router";
 import { useState } from "react";
 
 import type { Route } from "./+types/$recordSlug.details";
 
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
+import { SubmitButton } from "~/components/feedback/SubmitButton";
 import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
 import {
   Select,
@@ -184,7 +185,6 @@ function createReferenceField(): ReferenceField {
 export default function RecordDetailsPage({ loaderData }: Route.ComponentProps) {
   const { record, existingQuestion, tags, currentTags, existingReferences } = loaderData;
   const actionData = useActionData<typeof action>();
-  const navigation = useNavigation();
   const [question, setQuestion] = useState(existingQuestion?.content ?? "");
   const [selectedTags, setSelectedTags] = useState<Set<string>>(
     new Set(currentTags.map((tag: { id: string }) => tag.id)),
@@ -198,7 +198,6 @@ export default function RecordDetailsPage({ loaderData }: Route.ComponentProps) 
         }))
       : [],
   );
-  const isSubmitting = navigation.state === "submitting";
 
   const errors = actionData && "errors" in actionData ? actionData.errors : undefined;
   const formError = actionData && "error" in actionData ? actionData.error : undefined;
@@ -368,13 +367,12 @@ export default function RecordDetailsPage({ loaderData }: Route.ComponentProps) 
         />
 
         <div className="flex gap-3 pt-4 border-t border-border">
-          <Button
-            type="submit"
-            disabled={isSubmitting}
+          <SubmitButton
+            loadingText="저장 중..."
             className="h-auto rounded-md px-6 py-3 text-base font-medium"
           >
-            {isSubmitting ? "저장 중..." : "저장"}
-          </Button>
+            저장
+          </SubmitButton>
           <Link
             to={`/logs/${record.slug}`}
             className="inline-flex items-center justify-center border border-border text-text-secondary rounded-md px-6 py-3 text-base font-medium hover:bg-surface-secondary transition-colors no-underline"
