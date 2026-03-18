@@ -1,4 +1,5 @@
 import { redirect } from "react-router";
+import { useNavigation } from "react-router";
 import type { Route } from "./+types/settings";
 import { eq } from "drizzle-orm";
 import {
@@ -9,6 +10,7 @@ import {
   adminBtnPrimary,
   adminHelperClass,
 } from "~/components/admin/admin-patterns";
+import { Spinner } from "~/components/feedback/Spinner";
 
 type SettingRow = typeof settings.$inferSelect;
 
@@ -49,6 +51,8 @@ export async function action({ request, context }: Route.ActionArgs) {
 
 export default function AdminSettingsPage({ loaderData }: Route.ComponentProps) {
   const { settings: allSettings } = loaderData;
+  const navigation = useNavigation();
+  const isSaving = navigation.state === "submitting";
   const getVal = (key: string) => allSettings.find((s: SettingRow) => s.key === key)?.value === "true";
 
   const SETTING_GROUPS = [
@@ -118,8 +122,12 @@ export default function AdminSettingsPage({ loaderData }: Route.ComponentProps) 
 
         <div className={adminCardClass}>
           <div className={adminCardFooterClass}>
-            <button type="submit" className={adminBtnPrimary}>
-              설정 저장
+            <button
+              type="submit"
+              disabled={isSaving}
+              className={`${adminBtnPrimary} disabled:opacity-50 disabled:cursor-not-allowed`}
+            >
+              {isSaving ? <><Spinner size="sm" /> 저장 중...</> : "설정 저장"}
             </button>
           </div>
         </div>

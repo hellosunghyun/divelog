@@ -5,6 +5,7 @@ import HeroSection from "~/components/sections/HeroSection";
 import EmptyState from "~/components/feedback/EmptyState";
 import { Link } from "~/components/content/SmartLink";
 import { Button } from "~/components/ui/button";
+import { SubmitButton } from "~/components/feedback/SubmitButton";
 import { db } from "~/db/client.server";
 import { notifications, records } from "~/db/schema.server";
 import { createLogger } from "~/lib/infra/logger.server";
@@ -128,18 +129,20 @@ export default function InboxPage({ loaderData }: Route.ComponentProps) {
               읽지 않음
             </a>
           </div>
-          {unreadCount > 0 && (
-            <Form method="post">
-              <input type="hidden" name="intent" value="mark_all_read" />
-              <Button
-                type="submit"
-                variant="ghost"
-                className="h-auto px-0 py-0 text-meta font-normal text-text-tertiary hover:bg-transparent hover:text-text-secondary"
-              >
-                모두 읽음 처리
-              </Button>
-            </Form>
-          )}
+           {unreadCount > 0 && (
+             <Form method="post">
+               <input type="hidden" name="intent" value="mark_all_read" />
+               <SubmitButton
+                 variant="ghost"
+                 formDataMatch={{ intent: "mark_all_read" }}
+                 loadingText="처리 중..."
+                 spinnerSize="sm"
+                 className="h-auto px-0 py-0 text-meta font-normal text-text-tertiary hover:bg-transparent hover:text-text-secondary"
+               >
+                 모두 읽음 처리
+               </SubmitButton>
+             </Form>
+           )}
         </div>
 
         {notifs.length === 0 ? (
@@ -172,22 +175,23 @@ export default function InboxPage({ loaderData }: Route.ComponentProps) {
                     </Link>
                   )}
                 </div>
-                {!n.isRead && (
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-ocean-blue flex-shrink-0" />
-                    <Form method="post">
-                      <input type="hidden" name="intent" value="mark_read" />
-                      <input type="hidden" name="id" value={n.id} />
-                      <Button
-                        type="submit"
-                        variant="ghost"
-                        className="h-auto whitespace-nowrap p-0 text-caption font-normal text-text-tertiary hover:bg-transparent hover:text-text-secondary"
-                      >
-                        읽음
-                      </Button>
-                    </Form>
-                  </div>
-                )}
+                 {!n.isRead && (
+                   <div className="flex items-center gap-2">
+                     <span className="w-2 h-2 rounded-full bg-ocean-blue flex-shrink-0" />
+                     <Form method="post">
+                       <input type="hidden" name="intent" value="mark_read" />
+                       <input type="hidden" name="id" value={n.id} />
+                       <SubmitButton
+                         variant="ghost"
+                         formDataMatch={{ intent: "mark_read", id: String(n.id) }}
+                         spinnerSize="sm"
+                         className="h-auto whitespace-nowrap p-0 text-caption font-normal text-text-tertiary hover:bg-transparent hover:text-text-secondary"
+                       >
+                         읽음
+                       </SubmitButton>
+                     </Form>
+                   </div>
+                 )}
               </div>
             ))}
           </div>

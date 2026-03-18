@@ -1,7 +1,7 @@
 import { format } from "date-fns";
 import { asc, eq } from "drizzle-orm";
 import { Link } from "~/components/content/SmartLink";
-import { data, Form, redirect, useActionData, useNavigation } from "react-router";
+import { data, Form, redirect, useActionData } from "react-router";
 import { useState, Suspense, lazy } from "react";
 
 import type { Route } from "./+types/$recordSlug.edit";
@@ -14,6 +14,7 @@ import { RhythmDateInput } from "~/components/record/RhythmDateInput";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
+import { SubmitButton } from "~/components/feedback/SubmitButton";
 import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
 import {
   Select,
@@ -306,8 +307,6 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
     references: initialReferences,
   } = loaderData;
   const actionData = useActionData<typeof action>();
-  const navigation = useNavigation();
-  const isSubmitting = navigation.state === "submitting";
 
   const isArticleRecord = record.format === "article";
   const [rhythm, setRhythm] = useState(record.rhythm ?? "free");
@@ -646,13 +645,12 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
         </div>
 
         <div className="flex gap-3 pt-4 border-t border-border">
-          <Button
-            type="submit"
-            disabled={isSubmitting}
+          <SubmitButton
+            loadingText="저장 중..."
             className="h-auto rounded-md px-6 py-3 text-base font-medium"
           >
-            {isSubmitting ? "저장 중..." : "수정 저장"}
-          </Button>
+            수정 저장
+          </SubmitButton>
           <Link
             to={`/logs/${record.slug}`}
             className="inline-flex items-center justify-center border border-border text-text-secondary rounded-md px-6 py-3 text-base font-medium hover:bg-surface-secondary transition-colors no-underline"

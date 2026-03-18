@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { cn } from "~/lib/utils/cn";
 import EmptyState from "~/components/feedback/EmptyState";
+import { SubmitButton } from "~/components/feedback/SubmitButton";
 import HighlightedSentenceCard from "~/components/cards/HighlightedSentenceCard";
 import QuestionCard from "~/components/cards/QuestionCard";
 import ResponseCard from "~/components/cards/ResponseCard";
@@ -215,8 +216,6 @@ type RenderThreadContext = {
   setEditingContent: (v: string) => void;
   setEditingResponseId: (v: string | null) => void;
   setEditingResponseType: (v: string) => void;
-  isSubmittingResponseEdit: boolean;
-  isSubmittingResponseDelete: boolean;
   handleEditResponse: (id: string) => void;
   handleDeleteResponse: (id: string) => void;
   replyingToId: string | null;
@@ -225,6 +224,7 @@ type RenderThreadContext = {
   setReplyResponseType: (v: string) => void;
   currentUserId: string | null | undefined;
   loaderData: LoaderData;
+  deletingResponseId: string | null;
 };
 
 const DEPTH_INDENT_CLASSES: Record<number, string> = {
@@ -303,9 +303,14 @@ function renderResponseThread(
               className="w-full bg-surface"
             />
             <div className="flex gap-3">
-              <Button type="submit" disabled={ctx.isSubmittingResponseEdit} className="rounded-full bg-deep-ocean text-white px-5 py-2.5 text-sm">
-                {ctx.isSubmittingResponseEdit ? "저장 중..." : "저장"}
-              </Button>
+              <SubmitButton
+                formDataMatch={{ intent: "update_response" }}
+                loadingText="저장 중..."
+                className="rounded-full bg-deep-ocean text-white px-5 py-2.5 text-sm"
+                spinnerSize="sm"
+              >
+                저장
+              </SubmitButton>
               <Button type="button" variant="ghost" onClick={() => ctx.setEditingResponseId(null)} className="rounded-full px-5 py-2.5 text-sm border border-border">
                 취소
               </Button>
@@ -313,15 +318,16 @@ function renderResponseThread(
           </form>
          ) : (
            <>
-             <ResponseCard
-               response={node}
-               author={authorForCard}
-               isSelfAnswer={node.type === "self_answer"}
-               currentUserId={ctx.currentUserId}
-               onEdit={ctx.handleEditResponse}
-               onDelete={ctx.handleDeleteResponse}
-               onReply={ctx.setReplyingToId}
-             />
+              <ResponseCard
+                response={node}
+                author={authorForCard}
+                isSelfAnswer={node.type === "self_answer"}
+                currentUserId={ctx.currentUserId}
+                onEdit={ctx.handleEditResponse}
+                onDelete={ctx.handleDeleteResponse}
+                onReply={ctx.setReplyingToId}
+                isDeleting={ctx.deletingResponseId === node.id}
+              />
               {ctx.replyingToId === node.id && (
                 <div className="mt-4 pl-4 border-l-2 border-[#E3E8EF]">
                   <form method="post" className="flex flex-col gap-3 bg-surface-secondary rounded-xl border border-border p-4">
@@ -357,7 +363,14 @@ function renderResponseThread(
                     <input type="hidden" name="visibility" value="public" />
                     
                     <div className="flex gap-2">
-                      <Button type="submit" className="rounded-full bg-deep-ocean text-white text-sm px-4 py-2">답글 등록</Button>
+                      <SubmitButton
+                        formDataMatch={{ intent: "create_response" }}
+                        loadingText="등록 중..."
+                        className="rounded-full bg-deep-ocean text-white text-sm px-4 py-2"
+                        spinnerSize="sm"
+                      >
+                        답글 등록
+                      </SubmitButton>
                       <Button type="button" variant="ghost" onClick={() => ctx.setReplyingToId(null)} className="rounded-full text-sm px-4 py-2">취소</Button>
                     </div>
                   </form>
@@ -400,14 +413,12 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
     references,
   } = loaderData as LoaderData;
   const actionData = useActionData<Action>();
-  const navigation = useNavigation();
   const submit = useSubmit();
-  const submittingIntent = navigation.formData?.get("intent");
-  const isSubmittingResponse = navigation.state === "submitting" && submittingIntent === "create_response";
-  const isSubmittingSentence = navigation.state === "submitting" && submittingIntent === "save_sentence";
-  const isSubmittingSelfAnswer = navigation.state === "submitting" && submittingIntent === "create_self_answer";
-  const isSubmittingResponseEdit = navigation.state === "submitting" && submittingIntent === "update_response";
-  const isSubmittingResponseDelete = navigation.state === "submitting" && submittingIntent === "delete_response";
+  const navigation = useNavigation();
+  const deletingResponseId = navigation.state === "submitting"
+    && navigation.formData?.get("intent") === "delete_response"
+    ? String(navigation.formData.get("responseId"))
+    : null;
 
   const [expandedQuestionId, setExpandedQuestionId] = useState<string | null>(null);
   const [editingResponseId, setEditingResponseId] = useState<string | null>(null);
@@ -931,13 +942,13 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
                           </div>
 
                           <div className="flex gap-3">
-                            <Button
-                              type="submit"
-                              disabled={isSubmittingSelfAnswer}
+                            <SubmitButton
+                              formDataMatch={{ intent: "create_self_answer" }}
+                              loadingText="등록 중..."
                               className="rounded-full bg-deep-ocean text-white px-5 py-2.5 text-sm font-medium hover:bg-ocean-blue transition-all shadow-sm hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2 disabled:opacity-60"
                             >
-                              {isSubmittingSelfAnswer ? "등록 중..." : "답변 등록"}
-                            </Button>
+                              답변 등록
+                            </SubmitButton>
                             <Button
                               type="button"
                               variant="ghost"
@@ -1071,9 +1082,13 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
                 />
               </div>
 
-              <Button type="submit" disabled={isSubmittingResponse} className="self-start rounded-full bg-deep-ocean px-7 py-3 text-[15px] font-medium text-white hover:bg-ocean-blue">
-                {isSubmittingResponse ? "등록 중..." : "응답 등록"}
-              </Button>
+              <SubmitButton
+                formDataMatch={{ intent: "create_response" }}
+                loadingText="등록 중..."
+                className="self-start rounded-full bg-deep-ocean px-7 py-3 text-[15px] font-medium text-white hover:bg-ocean-blue"
+              >
+                응답 등록
+              </SubmitButton>
             </form>
 
 
@@ -1102,26 +1117,25 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
                   }))
                 );
 
-                return responseTree.map((rootNode) =>
-                  renderResponseThread(rootNode, 0, {
-                    editingResponseId,
-                    editingContent,
-                    editingResponseType,
-                    setEditingContent,
-                    setEditingResponseId,
-                    setEditingResponseType,
-                    isSubmittingResponseEdit,
-                    isSubmittingResponseDelete,
-                    handleEditResponse,
-                    handleDeleteResponse,
-                    replyingToId,
-                    setReplyingToId,
-                    replyResponseType,
-                    setReplyResponseType,
-                    currentUserId,
-                    loaderData,
-                  })
-                );
+                 return responseTree.map((rootNode) =>
+                   renderResponseThread(rootNode, 0, {
+                     editingResponseId,
+                     editingContent,
+                     editingResponseType,
+                     setEditingContent,
+                     setEditingResponseId,
+                     setEditingResponseType,
+                     handleEditResponse,
+                     handleDeleteResponse,
+                     replyingToId,
+                     setReplyingToId,
+                     replyResponseType,
+                     setReplyResponseType,
+                     currentUserId,
+                     loaderData,
+                     deletingResponseId,
+                   })
+                 );
               })()}
             </div>
           ) : (
@@ -1382,14 +1396,15 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
               >
                 취소
               </Button>
-              <Button
+              <SubmitButton
                 type="button"
-                disabled={isSubmittingSentence}
+                formDataMatch={{ intent: "save_sentence" }}
+                loadingText="저장 중..."
                 onClick={handleSentencePopupSave}
                 className="rounded-full bg-deep-ocean px-5 py-2.5 text-sm font-medium text-white hover:bg-ocean-blue transition-all shadow-sm hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2 disabled:opacity-60"
               >
-                {isSubmittingSentence ? "저장 중..." : "저장하기"}
-              </Button>
+                저장하기
+              </SubmitButton>
             </div>
           </div>
         </div>

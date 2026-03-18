@@ -1,6 +1,7 @@
 import type { Route } from "./+types/tags";
 import type { TagWithUsage } from "~/db/queries/records/tags.server";
 import { data, redirect } from "react-router";
+import { useNavigation } from "react-router";
 import { eq } from "drizzle-orm";
 import {
   adminTableClass,
@@ -22,6 +23,7 @@ import {
   adminEmptyDescClass,
 } from "~/components/admin/admin-patterns";
 import { Input } from "~/components/ui/input";
+import { Spinner } from "~/components/feedback/Spinner";
 
 export function meta(_: Route.MetaArgs) {
   return [{ title: "태그 관리" }];
@@ -166,6 +168,8 @@ function generateSlug(name: string): string {
 
 export default function AdminTagsPage({ loaderData, actionData }: Route.ComponentProps) {
   const error = (actionData as { error?: string } | undefined)?.error;
+  const navigation = useNavigation();
+  const isCreating = navigation.state === "submitting" && navigation.formData?.get("intent") === "create_tag";
 
   return (
     <div>
@@ -252,8 +256,12 @@ export default function AdminTagsPage({ loaderData, actionData }: Route.Componen
               </div>
             </div>
 
-            <button type="submit" className={adminBtnPrimary}>
-              추가
+            <button
+              type="submit"
+              disabled={isCreating}
+              className={`${adminBtnPrimary} disabled:opacity-50 disabled:cursor-not-allowed`}
+            >
+              {isCreating ? <><Spinner size="sm" /> 추가 중...</> : "추가"}
             </button>
           </form>
         </div>
@@ -316,17 +324,25 @@ export default function AdminTagsPage({ loaderData, actionData }: Route.Componen
                       <form id={deleteFormId} method="post" className="inline">
                         <input type="hidden" name="intent" value="delete_tag" />
                         <input type="hidden" name="id" value={tag.id} />
-                        <button
-                          type="submit"
-                          className={`${adminBtnDanger} ${adminBtnSm}`}
-                          onClick={(e) => {
-                            if (!confirm(`"${tag.name}" 태그를 삭제하시겠습니까?`)) {
-                              e.preventDefault();
-                            }
-                          }}
-                        >
-                          삭제
-                        </button>
+                        {(() => {
+                          const isDeletingThisTag = navigation.state === "submitting"
+                            && navigation.formData?.get("intent") === "delete_tag"
+                            && navigation.formData?.get("id") === tag.id;
+                          return (
+                            <button
+                              type="submit"
+                              disabled={isDeletingThisTag}
+                              className={`${adminBtnDanger} ${adminBtnSm} disabled:opacity-50 disabled:cursor-not-allowed`}
+                              onClick={(e) => {
+                                if (!confirm(`"${tag.name}" 태그를 삭제하시겠습니까?`)) {
+                                  e.preventDefault();
+                                }
+                              }}
+                            >
+                              {isDeletingThisTag ? <><Spinner size="sm" /> 삭제 중...</> : "삭제"}
+                            </button>
+                          );
+                        })()}
                       </form>
                     </td>
                   </tr>

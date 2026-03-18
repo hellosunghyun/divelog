@@ -1,10 +1,13 @@
 import { data, redirect } from "react-router";
 import type { Route } from "./+types/$responseId";
+import { useNavigation } from "react-router";
 import { Link } from "~/components/content/SmartLink";
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
 import { Badge } from "~/components/ui/badge";
+import { SubmitButton } from "~/components/feedback/SubmitButton";
+import { Spinner } from "~/components/feedback/Spinner";
 import { eq } from "drizzle-orm";
 
 const RESPONSE_TYPE_LABELS: Record<string, string> = {
@@ -105,6 +108,8 @@ const getModerationBadgeVariant = (
 
 export default function AdminDialogueDetailPage({ loaderData }: Route.ComponentProps) {
   const { response, record, author, question } = loaderData;
+  const navigation = useNavigation();
+  const isDeleting = navigation.state === "submitting" && navigation.formData?.get("intent") === "delete";
 
   return (
     <div>
@@ -198,55 +203,58 @@ export default function AdminDialogueDetailPage({ loaderData }: Route.ComponentP
             </div>
           )}
 
-          <form method="post" className="bg-admin-surface rounded-lg p-5 border border-admin-border">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-admin-text-secondary mb-4">
-              Moderation
-            </h3>
+           <form method="post" className="bg-admin-surface rounded-lg p-5 border border-admin-border">
+             <h3 className="text-xs font-semibold uppercase tracking-wider text-admin-text-secondary mb-4">
+               Moderation
+             </h3>
 
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="moderation-status" className="text-xs text-admin-text-secondary">
-                  상태
-                </Label>
-                <Select name="moderationStatus" defaultValue={response.moderationStatus ?? "clean"}>
-                  <SelectTrigger id="moderation-status" className="h-9 rounded-md border-admin-border px-3 text-sm mt-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="clean">Clean</SelectItem>
-                    <SelectItem value="flagged">Flagged</SelectItem>
-                    <SelectItem value="hidden">Hidden</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+             <div className="space-y-4">
+               <input type="hidden" name="intent" value="moderate" />
+               <div>
+                 <Label htmlFor="moderation-status" className="text-xs text-admin-text-secondary">
+                   상태
+                 </Label>
+                 <Select name="moderationStatus" defaultValue={response.moderationStatus ?? "clean"}>
+                   <SelectTrigger id="moderation-status" className="h-9 rounded-md border-admin-border px-3 text-sm mt-1">
+                     <SelectValue />
+                   </SelectTrigger>
+                   <SelectContent>
+                     <SelectItem value="clean">Clean</SelectItem>
+                     <SelectItem value="flagged">Flagged</SelectItem>
+                     <SelectItem value="hidden">Hidden</SelectItem>
+                   </SelectContent>
+                 </Select>
+               </div>
 
-              <Button
-                type="submit"
-                className="w-full h-9 rounded-md bg-admin-accent text-white text-sm hover:opacity-90"
-              >
-                저장
-              </Button>
-            </div>
-          </form>
+               <SubmitButton
+                 formDataMatch={{ intent: "moderate" }}
+                 loadingText="저장 중..."
+                 className="w-full h-9 rounded-md bg-admin-accent text-white text-sm hover:opacity-90"
+               >
+                 저장
+               </SubmitButton>
+             </div>
+           </form>
 
-          <div className="border border-error/30 rounded-lg p-5 bg-error/5">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-error mb-3">위험 영역</h3>
-            <p className="text-sm text-admin-text-secondary mb-4">이 응답을 삭제하면 되돌릴 수 없습니다.</p>
-            <form method="post">
-              <input type="hidden" name="intent" value="delete" />
-              <button
-                type="submit"
-                className="w-full h-9 rounded-md bg-error text-white text-sm font-medium hover:opacity-90 transition-colors"
-                onClick={(e) => {
-                  if (!confirm("정말로 이 응답을 삭제하시겠습니까?")) {
-                    e.preventDefault();
-                  }
-                }}
-              >
-                응답 삭제
-              </button>
-            </form>
-          </div>
+           <div className="border border-error/30 rounded-lg p-5 bg-error/5">
+             <h3 className="text-xs font-semibold uppercase tracking-wider text-error mb-3">위험 영역</h3>
+             <p className="text-sm text-admin-text-secondary mb-4">이 응답을 삭제하면 되돌릴 수 없습니다.</p>
+             <form method="post">
+               <input type="hidden" name="intent" value="delete" />
+               <button
+                 type="submit"
+                 disabled={isDeleting}
+                 className="w-full h-9 rounded-md bg-error text-white text-sm font-medium hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                 onClick={(e) => {
+                   if (!confirm("정말로 이 응답을 삭제하시겠습니까?")) {
+                     e.preventDefault();
+                   }
+                 }}
+               >
+                 {isDeleting ? <><Spinner size="sm" /> 삭제 중...</> : "응답 삭제"}
+               </button>
+             </form>
+           </div>
         </div>
       </div>
     </div>

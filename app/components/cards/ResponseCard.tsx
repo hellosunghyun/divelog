@@ -1,5 +1,6 @@
 import { Link } from "~/components/content/SmartLink";
 import { cn } from "~/lib/utils/cn";
+import { Spinner } from "~/components/feedback/Spinner";
 import {
   AlertDialog,
   AlertDialogTrigger,
@@ -40,6 +41,7 @@ interface ResponseCardProps {
   onReply?: (responseId: string) => void;
   isSelfAnswer?: boolean;
   className?: string;
+  isDeleting?: boolean;
 }
 
 const TYPE_CONFIG: Record<
@@ -74,6 +76,7 @@ export default function ResponseCard({
   onReply,
   isSelfAnswer,
   className,
+  isDeleting = false,
 }: ResponseCardProps) {
   const typeInfo = isResponseType(response.type)
     ? TYPE_CONFIG[response.type]
@@ -142,9 +145,10 @@ export default function ResponseCard({
               <AlertDialogTrigger asChild>
                 <button
                   type="button"
-                  className="text-xs text-red-600/70 hover:text-red-600 transition-colors"
+                  disabled={isDeleting}
+                  className="text-xs text-red-600/70 hover:text-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  삭제
+                  {isDeleting ? <><Spinner size="sm" /> 삭제 중...</> : "삭제"}
                 </button>
               </AlertDialogTrigger>
               <AlertDialogContent>
