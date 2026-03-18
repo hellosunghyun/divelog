@@ -7,6 +7,7 @@ import type { Route } from "./+types/note";
 import { DraftRecoveryPrompt } from "~/components/content/DraftRecoveryPrompt";
 import { NoteEditor } from "~/components/editor/editors/NoteEditor";
 import { AutosaveIndicator } from "~/components/feedback/AutosaveIndicator";
+import { NavigationBlockerDialog } from "~/components/feedback/NavigationBlockerDialog";
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
 import {
@@ -181,7 +182,7 @@ export default function WriteNotePage({ loaderData }: Route.ComponentProps) {
   const isSubmitting = navigation.state === "submitting";
   const contentError = actionData?.errors?.content?.[0];
 
-  useUnsavedWarning(noteContent.length > 0);
+  const blocker = useUnsavedWarning(noteContent.length > 0);
 
   const getFormData = useCallback(() => ({
     content: noteContent,
@@ -321,6 +322,7 @@ export default function WriteNotePage({ loaderData }: Route.ComponentProps) {
             />
           </div>
         </Form>
+        <NavigationBlockerDialog blocker={blocker} />
       </div>
     </div>
   );

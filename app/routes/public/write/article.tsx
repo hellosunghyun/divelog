@@ -12,6 +12,7 @@ const ArticleEditor = lazy(() =>
 );
 import { DraftRecoveryPrompt } from "~/components/content/DraftRecoveryPrompt";
 import { AutosaveIndicator } from "~/components/feedback/AutosaveIndicator";
+import { NavigationBlockerDialog } from "~/components/feedback/NavigationBlockerDialog";
 import { Button } from "~/components/ui/button";
 import { Calendar } from "~/components/ui/calendar";
 import { Input } from "~/components/ui/input";
@@ -247,7 +248,7 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
   const titleError = errors && "title" in errors ? errors.title?.[0] : undefined;
   const contentError = errors && "content" in errors ? errors.content?.[0] : undefined;
 
-  useUnsavedWarning(title.length > 0 || articleContent.length > 0);
+  const blocker = useUnsavedWarning(title.length > 0 || articleContent.length > 0);
 
   const getFormData = useCallback(() => ({
     title,
@@ -567,6 +568,7 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
             {contentError ? <p className="mt-1 text-meta text-error">{contentError}</p> : null}
           </div>
         </Form>
+        <NavigationBlockerDialog blocker={blocker} />
       </div>
     </div>
   );
