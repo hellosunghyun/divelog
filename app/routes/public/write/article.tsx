@@ -560,7 +560,7 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
                 key={editorKey}
                 name="content"
                 content={articleContent}
-                onChange={(json, text) => { setArticleJson(json); setArticleContent(text); }}
+                onChange={(json, text) => { setArticleJson(JSON.stringify(json)); setArticleContent(text); }}
                 placeholder="여기에 글을 쓰세요. `/`를 입력하면 블록을 추가할 수 있습니다."
               />
             </Suspense>
