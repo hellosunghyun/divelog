@@ -2,11 +2,11 @@ import { useState } from "react";
 import { Link } from "~/components/content/SmartLink";
 import { useLocation } from "react-router";
 import {
+  type Icon,
   House,
   BookOpen,
   Users,
   ChatTeardrop,
-  UsersThree,
   Selection,
   Brain,
   Files,
@@ -24,7 +24,7 @@ import { cn } from "~/lib/utils/cn";
 interface NavItem {
   label: string;
   href: string;
-  icon: React.ComponentType<{ size?: number; weight?: string; className?: string }>;
+  icon: Icon;
 }
 
 interface NavGroup {
@@ -51,7 +51,6 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { label: "러너 관리", href: "/admin/learners", icon: Users },
       { label: "Dialogue 관리", href: "/admin/dialogue", icon: ChatTeardrop },
-      // [COLLAB_DISABLED] { label: "Collaboration 관리", href: "/admin/collaboration", icon: UsersThree },
     ],
   },
   {

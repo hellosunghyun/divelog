@@ -42,8 +42,6 @@ export default [
     route("admin/records/:recordId", "routes/admin/records/$recordId.tsx"),
     route("admin/dialogue", "routes/admin/dialogue/index.tsx"),
     route("admin/dialogue/:responseId", "routes/admin/dialogue/$responseId.tsx"),
-    // [COLLAB_DISABLED] route("admin/collaboration", "routes/admin/collaboration/index.tsx"),
-    // [COLLAB_DISABLED] route("admin/collaboration/:groupId", "routes/admin/collaboration/$groupId.tsx"),
     route("admin/curation", "routes/admin/curation.tsx"),
     route("admin/memories", "routes/admin/memories/index.tsx"),
     route("admin/memories/:stageId", "routes/admin/memories/$stageId.tsx"),

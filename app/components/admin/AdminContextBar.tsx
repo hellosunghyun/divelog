@@ -19,7 +19,6 @@ const ROUTE_LABELS: Record<string, string> = {
   "/admin/learners": "러너 관리",
   "/admin/records": "기록 관리",
   "/admin/dialogue": "Dialogue 관리",
-  // [COLLAB_DISABLED] "/admin/collaboration": "Collaboration 관리",
   "/admin/curation": "큐레이션",
   "/admin/memories": "Collective Memory",
   "/admin/templates": "템플릿",
@@ -31,13 +30,13 @@ const ROUTE_LABELS: Record<string, string> = {
 };
 
 function generateBreadcrumbs(pathname: string): BreadcrumbItem[] {
-  const crumbs: BreadcrumbItem[] = [{ label: "Admin", href: "/admin" }];
+  const crumbs: BreadcrumbItem[] = [{ label: "관리자", href: "/admin" }];
   const segments = pathname.split("/").filter(Boolean);
-  
-  if (segments.length > 1 && segments[0] === "admin") {
+
+  if (segments.length > 2 && segments[0] === "admin") {
     const mainPath = `/admin/${segments[1]}`;
     const mainLabel = ROUTE_LABELS[mainPath];
-    
+
     if (mainLabel) {
       crumbs.push({ label: mainLabel, href: mainPath });
     }
@@ -51,7 +50,6 @@ function getCurrentTitle(pathname: string): string {
   if (pathname.match(/\/admin\/learners\/[^/]+$/)) return "러너 상세";
   if (pathname.match(/\/admin\/records\/[^/]+$/)) return "기록 상세";
   if (pathname.match(/\/admin\/dialogue\/[^/]+$/)) return "Dialogue 상세";
-  // [COLLAB_DISABLED] if (pathname.match(/\/admin\/collaboration\/[^/]+$/)) return "Collaboration 상세";
   if (pathname.match(/\/admin\/memories\/[^/]+$/)) return "Memory 상세";
   if (pathname.match(/\/admin\/templates\/[^/]+$/)) return "템플릿 상세";
 
