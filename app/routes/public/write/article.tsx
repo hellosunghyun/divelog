@@ -30,10 +30,11 @@ import { db } from "~/db/client.server";
 import { syncMentionsForRecord } from "~/db/queries/dialogue/mentions.server";
 import { markAsRead } from "~/db/queries/records/recordReads.server";
 import { syncRecordLinksForRecord } from "~/db/queries/records/recordLinks.server";
+import { syncRecordReferences } from "~/db/queries/records/references.server";
 import { learnerProfiles, notifications, records, stages } from "~/db/schema.server";
 import { useUnsavedWarning } from "~/hooks/useUnsavedWarning";
 import { requireVerified } from "~/lib/auth/auth.middleware";
-import { createArticleSchema } from "~/lib/auth/validation";
+import { createArticleSchema, parseReferencesFromFormData } from "~/lib/auth/validation";
 import { getPlainText } from "~/lib/content/content.server";
 import {
   extractRecordRefs,
@@ -55,6 +56,11 @@ const RHYTHM_OPTIONS = [
 ] as const;
 
 type DateMode = "none" | "single" | "range";
+type ReferenceField = { id: string; url: string; title: string };
+
+function createReferenceField(): ReferenceField {
+  return { id: crypto.randomUUID(), url: "", title: "" };
+}
 
 function CalendarIcon() {
   return (
@@ -102,6 +108,9 @@ export async function action({ request, context }: Route.ActionArgs) {
   const formData = await request.formData();
   const contentRaw = formData.get("content");
   const content = typeof contentRaw === "string" ? contentRaw : "";
+  const originalUrlRaw = formData.get("originalUrl");
+  const originalUrl = typeof originalUrlRaw === "string" ? originalUrlRaw : "";
+  const references = parseReferencesFromFormData(formData);
   const responsePreferenceRaw = formData.get("responsePreference");
   const responsePreference = typeof responsePreferenceRaw === "string" ? responsePreferenceRaw : "open";
 
@@ -124,6 +133,8 @@ export async function action({ request, context }: Route.ActionArgs) {
     stageId: formData.get("stageId") || undefined,
     recordedAt: typeof recordedAtRaw === "string" && recordedAtRaw ? recordedAtRaw : undefined,
     recordedEndAt: typeof recordedEndAtRaw === "string" && recordedEndAtRaw ? recordedEndAtRaw : undefined,
+    originalUrl,
+    references,
   });
 
   if (!parsed.success) {
@@ -161,6 +172,7 @@ export async function action({ request, context }: Route.ActionArgs) {
     collaborationUnitId: null,
     recordedAt,
     recordedEndAt,
+    originalUrl: parsed.data.originalUrl || null,
     createdAt: now,
     updatedAt: now,
   });
@@ -205,6 +217,8 @@ export async function action({ request, context }: Route.ActionArgs) {
     await syncRecordLinksForRecord(context.cloudflare.env.DB, id, recordRefs);
   }
 
+  await syncRecordReferences(context.cloudflare.env.DB, id, parsed.data.references ?? []);
+
   if (parsed.data.visibility !== "draft") {
     try {
       await markAsRead(context.cloudflare.env.DB, auth.user.id, id);
@@ -223,6 +237,7 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
   const [stageValue, setStageValue] = useState(currentStage?.id ?? NO_STAGE_VALUE);
   const [title, setTitle] = useState("");
   const [articleContent, setArticleContent] = useState("");
+  const [references, setReferences] = useState<ReferenceField[]>([]);
   const [rhythm, setRhythm] = useState("free");
   const [dateMode, setDateMode] = useState<DateMode>("none");
   const [singleDate, setSingleDate] = useState<Date | undefined>(undefined);
@@ -318,7 +333,7 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value={NO_STAGE_VALUE}>구간 미지정</SelectItem>
-                  {availableStages.map((stage) => (
+                  {availableStages.map((stage: (typeof availableStages)[number]) => (
                     <SelectItem key={stage.id} value={stage.id}>
                       {stage.name}
                       {stage.isCurrent ? " (현재)" : ""}
@@ -467,6 +482,23 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
           </div>
 
           <div>
+            <div className="space-y-2">
+              <label htmlFor="originalUrl" className="block text-sm font-medium text-[#6E6E73]">
+                원문 링크 <span className="text-xs text-[#8C8C91]">(선택)</span>
+              </label>
+              <input
+                type="text"
+                inputMode="url"
+                id="originalUrl"
+                name="originalUrl"
+                defaultValue=""
+                placeholder="블로그나 원본 글의 URL을 입력하세요"
+                className="w-full rounded-xl border border-[#E3E8EF] bg-white px-4 py-3 text-sm text-[#1D1D1F] placeholder:text-[#8C8C91] focus:border-[#146C94] focus:outline-none focus:ring-2 focus:ring-[#146C94]/20"
+              />
+            </div>
+          </div>
+
+          <div>
             <Label htmlFor="title" className="mb-2 block text-meta font-medium text-text-secondary">
               제목 <span className="text-error">*</span>
             </Label>
@@ -477,7 +509,7 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
               required
               placeholder="제목을 입력하세요"
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+                onChange={(e: { target: { value: string } }) => setTitle(e.target.value)}
               aria-invalid={Boolean(titleError)}
               className="w-full bg-surface focus-visible:ring-offset-1"
             />
@@ -492,11 +524,65 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
               <ArticleEditor
                 name="content"
                 content={articleContent}
-                onChange={(_json, text) => setArticleContent(text)}
+                onChange={(_json: unknown, text: string) => setArticleContent(text)}
                 placeholder="여기에 글을 쓰세요. `/`를 입력하면 블록을 추가할 수 있습니다."
               />
             </Suspense>
             {contentError ? <p className="mt-1 text-meta text-error">{contentError}</p> : null}
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-[#6E6E73]">
+                참조 및 출처 <span className="text-xs text-[#8C8C91]">(선택)</span>
+              </span>
+              <button
+                type="button"
+                onClick={() => setReferences((prev: ReferenceField[]) => [...prev, createReferenceField()])}
+                className="min-h-11 px-1 text-sm text-[#146C94] transition-colors hover:text-[#0B2447]"
+              >
+                + 참조 추가
+              </button>
+            </div>
+            {references.map((reference: ReferenceField, index: number) => (
+              <div key={reference.id} className="flex items-start gap-2">
+                <div className="flex-1 space-y-2">
+                  <input
+                    type="text"
+                    inputMode="url"
+                    name={`references[${index}][url]`}
+                    value={reference.url}
+                    onChange={(e: { target: { value: string } }) => {
+                      const next = [...references];
+                      next[index] = { ...next[index], url: e.target.value };
+                      setReferences(next);
+                    }}
+                    placeholder="https://example.com"
+                    className="w-full rounded-xl border border-[#E3E8EF] bg-white px-4 py-2.5 text-sm text-[#1D1D1F] placeholder:text-[#8C8C91] focus:border-[#146C94] focus:outline-none focus:ring-2 focus:ring-[#146C94]/20"
+                  />
+                  <input
+                    type="text"
+                    name={`references[${index}][title]`}
+                    value={reference.title}
+                    onChange={(e: { target: { value: string } }) => {
+                      const next = [...references];
+                      next[index] = { ...next[index], title: e.target.value };
+                      setReferences(next);
+                    }}
+                    placeholder="제목 (선택)"
+                    className="w-full rounded-xl border border-[#E3E8EF] bg-white px-4 py-2.5 text-sm text-[#1D1D1F] placeholder:text-[#8C8C91] focus:border-[#146C94] focus:outline-none focus:ring-2 focus:ring-[#146C94]/20"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setReferences((prev: ReferenceField[]) => prev.filter((item) => item.id !== reference.id))}
+                  className="mt-2.5 min-h-11 min-w-11 p-1 text-[#8C8C91] transition-colors hover:text-[#1D1D1F]"
+                  aria-label="참조 삭제"
+                >
+                  x
+                </button>
+              </div>
+            ))}
           </div>
         </Form>
       </div>
