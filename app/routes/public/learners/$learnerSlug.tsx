@@ -1,4 +1,5 @@
 import type { Route } from "./+types/$learnerSlug";
+import { useRouteLoaderData } from "react-router";
 import { Link } from "~/components/content/SmartLink";
 import SceneCard from "~/components/cards/SceneCard";
 import QuestionCard from "~/components/cards/QuestionCard";
@@ -11,6 +12,7 @@ import { useState } from "react";
 export { loader } from "./$learnerSlug.server";
 
 type LoaderData = Awaited<ReturnType<typeof import("./$learnerSlug.server").loader>>;
+type PublicLoaderData = Awaited<ReturnType<typeof import("../../_public").loader>>;
 
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 const CACHE_MAX_SIZE = 50;
@@ -92,8 +94,26 @@ function TabButton({ active, onClick, children }: TabButtonProps) {
 }
 
 export default function LearnerDetailPage({ loaderData }: Route.ComponentProps) {
-  const { learner, learnerRecords, learnerQuestions, learnerSentences, recordsByStage, collaborationUnits } = loaderData as LoaderData;
+  const {
+    learner,
+    learnerRecords,
+    learnerQuestions,
+    learnerSentences,
+    recordsByStage,
+    collaborationUnits,
+    participatedRecords,
+    mentionedRecords,
+    participantsByRecordId,
+  } = loaderData as LoaderData;
+  const publicData = useRouteLoaderData<PublicLoaderData>("routes/_public");
   const [activeTab, setActiveTab] = useState<TabKey>("records");
+  const isOwnProfile = publicData?.data.user?.id === learner.userId;
+  const visibleParticipatedRecords = isOwnProfile
+    ? participatedRecords
+    : participatedRecords.filter(({ record }) => record.visibility === "public");
+  const visibleMentionedRecords = isOwnProfile
+    ? mentionedRecords
+    : mentionedRecords.filter(({ record }) => record.visibility === "public");
 
   const tabItems: { key: TabKey; label: string; count: number }[] = [
     { key: "records", label: "기록", count: learnerRecords.length },
@@ -179,11 +199,73 @@ export default function LearnerDetailPage({ loaderData }: Route.ComponentProps) 
                           rhythm: record.rhythm ?? undefined,
                           createdAt: record.createdAt,
                         }}
+                        participants={participantsByRecordId?.[record.id]}
                       />
                     </div>
                   );
                 })}
               </div>
+            )}
+
+            {visibleParticipatedRecords.length > 0 && (
+              <section className="mt-12">
+                <h2 className="text-xl font-semibold tracking-tight text-text-primary mb-6">
+                  함께한 기록
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {visibleParticipatedRecords.map(({ record, author, participantRole, participantAddedAt }) => (
+                    <div key={`${record.id}-${participantRole}-${participantAddedAt}`}>
+                      <SceneCard
+                        record={{
+                          slug: record.slug,
+                          title: record.title,
+                          content: record.content,
+                          format: record.format as "note" | "article",
+                          type: record.type as "personal" | "challenge" | "collaboration",
+                          rhythm: record.rhythm ?? undefined,
+                          createdAt: record.createdAt,
+                          updatedAt: record.updatedAt ?? undefined,
+                        }}
+                        author={author?.displayName ? {
+                          displayName: author.displayName,
+                          slug: author.slug ?? "",
+                        } : undefined}
+                        participants={participantsByRecordId?.[record.id]}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {visibleMentionedRecords.length > 0 && (
+              <section className="mt-12">
+                <h2 className="text-xl font-semibold tracking-tight text-text-primary mb-6">
+                  언급된 기록
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {visibleMentionedRecords.map(({ record, author, mentionedAt }) => (
+                    <div key={`${record.id}-${mentionedAt}`}>
+                      <SceneCard
+                        record={{
+                          slug: record.slug,
+                          title: record.title,
+                          content: record.content,
+                          format: record.format as "note" | "article",
+                          type: record.type as "personal" | "challenge" | "collaboration",
+                          rhythm: record.rhythm ?? undefined,
+                          createdAt: record.createdAt,
+                          updatedAt: record.updatedAt ?? undefined,
+                        }}
+                        author={author?.displayName ? {
+                          displayName: author.displayName,
+                          slug: author.slug ?? "",
+                        } : undefined}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </section>
             )}
           </section>
         )}

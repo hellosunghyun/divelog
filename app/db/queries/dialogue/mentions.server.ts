@@ -1,4 +1,4 @@
-import { eq, and, sql, inArray } from "drizzle-orm";
+import { desc, eq, and, sql, inArray } from "drizzle-orm";
 import { db } from "../../client.server";
 import { mentions, learnerProfiles, records } from "../../schema.server";
 import { nanoid } from "../../../lib/utils/utils.server";
@@ -171,4 +171,37 @@ export async function getMentionsOfUser(d1: D1Database, userId: string, limit = 
       ),
     )
     .limit(limit);
+}
+
+export async function getRecordsWithMention(
+  d1: D1Database,
+  userId: string,
+  limit = 20,
+  offset = 0,
+) {
+  const database = db(d1);
+
+  return database
+    .select({
+      record: records,
+      mentionedAt: mentions.createdAt,
+      author: {
+        userId: learnerProfiles.userId,
+        displayName: learnerProfiles.displayName,
+        slug: learnerProfiles.slug,
+        profilePhotoUrl: learnerProfiles.profilePhotoUrl,
+      },
+    })
+    .from(mentions)
+    .innerJoin(records, eq(mentions.recordId, records.id))
+    .leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
+    .where(
+      and(
+        eq(mentions.mentionedUserId, userId),
+        sql`${records.visibility} IN ('cohort', 'public')`,
+      ),
+    )
+    .orderBy(desc(mentions.createdAt))
+    .limit(limit)
+    .offset(offset);
 }
