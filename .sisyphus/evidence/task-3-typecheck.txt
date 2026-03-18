@@ -1,0 +1,2 @@
+TagSelector and recordSlug files: 0 errors
+(Pre-existing error in AdminSidebar.tsx unrelated to this refactoring)
