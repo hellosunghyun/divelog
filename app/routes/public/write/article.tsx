@@ -1,6 +1,5 @@
 import { eq } from "drizzle-orm";
 import { useState, Suspense, lazy } from "react";
-import PersonSearch from "~/components/PersonSearch";
 import { Link } from "~/components/content/SmartLink";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import type { Route } from "./+types/article";
@@ -20,24 +19,14 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { RhythmDateInput } from "~/components/record/RhythmDateInput";
-import { TagSelector } from "~/components/TagSelector";
 import { db } from "~/db/client.server";
-import { syncAllMentionsForRecord } from "~/db/queries/dialogue/mentions.server";
-import { createNotification } from "~/db/queries/social/notifications.server";
-import { markAsRead } from "~/db/queries/records/recordReads.server";
 import { syncRecordLinksForRecord } from "~/db/queries/records/recordLinks.server";
-import { syncParticipantsForRecord } from "~/db/queries/records/participants.server";
-import { syncRecordReferences } from "~/db/queries/records/references.server";
-import { getAllTags } from "~/db/queries/records/tags.server";
-import { learnerProfiles, records, recordTags, stages } from "~/db/schema.server";
+import { learnerProfiles, records, stages } from "~/db/schema.server";
 import { useUnsavedWarning } from "~/hooks/useUnsavedWarning";
 import { requireVerified } from "~/lib/auth/auth.middleware";
-import { createArticleSchema, parseReferencesFromFormData } from "~/lib/auth/validation";
+import { createArticleSchema } from "~/lib/auth/validation";
 import { getPlainText } from "~/lib/content/content.server";
-import {
-  extractRecordRefs,
-  extractUserMentions,
-} from "~/lib/content/extract-references.server";
+import { extractRecordRefs } from "~/lib/content/extract-references.server";
 import { cn } from "~/lib/utils/cn";
 import { getNextRecordSlug } from "~/db/queries/records/records.server";
 import { nanoid } from "~/lib/utils/utils.server";
@@ -52,12 +41,6 @@ const RHYTHM_OPTIONS = [
   { value: "monthly", label: "월간" },
   { value: "stage", label: "구간" },
 ] as const;
-
-type ReferenceField = { id: string; url: string; title: string };
-
-function createReferenceField(): ReferenceField {
-  return { id: crypto.randomUUID(), url: "", title: "" };
-}
 
 function parseDateToUnix(dateStr: string | undefined): number | null {
   if (!dateStr) return null;
@@ -80,13 +63,10 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     database.select().from(learnerProfiles).where(eq(learnerProfiles.userId, auth.user.id)).limit(1),
   ]);
   const learner = learnerResult[0] ?? null;
-  const allTags = await getAllTags(context.cloudflare.env.DB);
 
   return {
     currentStage: currentStageResult[0] ?? null,
     stages: allStages,
-    tags: allTags,
-    currentUserId: auth.user?.id ?? null,
     learnerDefaults: {
       defaultVisibility: learner?.defaultVisibility ?? "public",
       defaultResponsePreference: learner?.defaultResponsePreference ?? "open",
@@ -100,9 +80,6 @@ export async function action({ request, context }: Route.ActionArgs) {
   const formData = await request.formData();
   const contentRaw = formData.get("content");
   const content = typeof contentRaw === "string" ? contentRaw : "";
-  const originalUrlRaw = formData.get("originalUrl");
-  const originalUrl = typeof originalUrlRaw === "string" ? originalUrlRaw : "";
-  const references = parseReferencesFromFormData(formData);
   const responsePreferenceRaw = formData.get("responsePreference");
   const responsePreference = typeof responsePreferenceRaw === "string" ? responsePreferenceRaw : "open";
 
@@ -125,8 +102,6 @@ export async function action({ request, context }: Route.ActionArgs) {
     stageId: formData.get("stageId") || undefined,
     recordedAt: typeof recordedAtRaw === "string" && recordedAtRaw ? recordedAtRaw : undefined,
     recordedEndAt: typeof recordedEndAtRaw === "string" && recordedEndAtRaw ? recordedEndAtRaw : undefined,
-    originalUrl,
-    references,
   });
 
   if (!parsed.success) {
@@ -158,90 +133,27 @@ export async function action({ request, context }: Route.ActionArgs) {
     collaborationUnitId: null,
     recordedAt,
     recordedEndAt,
-    originalUrl: parsed.data.originalUrl || null,
+    originalUrl: null,
     createdAt: now,
     updatedAt: now,
   });
 
-  const participantsJson = formData.get("participantsJson")?.toString() ?? "[]";
-  const mentionUserIdsJson = formData.get("mentionUserIds")?.toString() ?? "[]";
-  const participants = JSON.parse(participantsJson) as { userId: string; role: string }[];
-  const mentionUserIds = JSON.parse(mentionUserIdsJson) as string[];
-  const mentionedUsers = extractUserMentions(content);
   const recordRefs = extractRecordRefs(content);
-  const allMentionUserIds = Array.from(
-    new Set([...mentionUserIds, ...mentionedUsers.map((mention) => mention.userId)])
-  );
-  const actorName = auth.user.nickname ?? auth.user.name ?? "누군가";
-
-  await syncParticipantsForRecord(context.cloudflare.env.DB, id, participants, auth.user.id);
-  await syncAllMentionsForRecord(context.cloudflare.env.DB, id, allMentionUserIds, content, auth.user.id);
-
-  const notified = new Set<string>();
-
-  for (const participant of participants) {
-    if (participant.userId !== auth.user.id) {
-      await createNotification(context.cloudflare.env.DB, {
-        recipientId: participant.userId,
-        type: "participant_added",
-        title: `${actorName}님이 기록에 함께하는 사람으로 남겼습니다`,
-        content: parsed.data.title,
-        recordId: id,
-      });
-      notified.add(participant.userId);
-    }
-  }
-
-  for (const userId of allMentionUserIds) {
-    if (userId !== auth.user.id && !notified.has(userId)) {
-      await createNotification(context.cloudflare.env.DB, {
-        recipientId: userId,
-        type: "mention",
-        title: `${actorName}님이 기록에서 당신을 언급했습니다`,
-        content: parsed.data.title,
-        recordId: id,
-      });
-    }
-  }
 
   if (recordRefs.length > 0) {
     await syncRecordLinksForRecord(context.cloudflare.env.DB, id, recordRefs);
   }
 
-  await syncRecordReferences(context.cloudflare.env.DB, id, parsed.data.references ?? []);
-
-  // Handle tags
-  const tagIds = formData.getAll("tagIds") as string[];
-  if (tagIds.length > 0) {
-    for (const tagId of tagIds) {
-      await database.insert(recordTags).values({
-        recordId: id,
-        tagId,
-        createdAt: now,
-      });
-    }
-  }
-
-  if (parsed.data.visibility !== "draft") {
-    try {
-      await markAsRead(context.cloudflare.env.DB, auth.user.id, id);
-    } catch {
-      // silent fail — 읽음 처리 실패가 작성을 막지 않음
-    }
-  }
-
-  throw redirect(`/logs/${slug}/details`);
+  throw redirect(`/write/meta/${id}`);
 }
 
 export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
-  const { currentStage, stages: availableStages, tags, learnerDefaults, currentUserId } = loaderData;
+  const { currentStage, stages: availableStages, learnerDefaults } = loaderData;
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const [title, setTitle] = useState("");
   const [articleContent, setArticleContent] = useState("");
-  const [references, setReferences] = useState<ReferenceField[]>([]);
   const [rhythm, setRhythm] = useState("free");
-  const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
   const isSubmitting = navigation.state === "submitting";
   const errors = actionData?.errors;
   const titleError = errors && "title" in errors ? errors.title?.[0] : undefined;
@@ -342,21 +254,6 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
 
           <RhythmDateInput rhythm={rhythm} stages={availableStages} />
 
-          <div className="space-y-2">
-            <label htmlFor="originalUrl" className="block text-sm font-medium text-[#6E6E73]">
-              원문 링크 <span className="text-xs text-[#8C8C91]">(선택)</span>
-            </label>
-            <input
-              type="text"
-              inputMode="url"
-              id="originalUrl"
-              name="originalUrl"
-              defaultValue=""
-              placeholder="블로그나 원본 글의 URL을 입력하세요"
-              className="w-full rounded-xl border border-[#E3E8EF] bg-white px-4 py-3 text-sm text-[#1D1D1F] placeholder:text-[#8C8C91] focus:border-[#146C94] focus:outline-none focus:ring-2 focus:ring-[#146C94]/20"
-            />
-          </div>
-
           <div>
             <Label htmlFor="title" className="mb-2 block text-meta font-medium text-text-secondary">
               제목 <span className="text-error">*</span>
@@ -389,91 +286,6 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
              </Suspense>
              {contentError ? <p className="mt-1 text-meta text-error">{contentError}</p> : null}
            </div>
-
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-[#6E6E73]">
-                  참조 및 출처 <span className="text-xs text-[#8C8C91]">(선택)</span>
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setReferences((prev) => [...prev, createReferenceField()])}
-                  className="min-h-11 px-1 text-sm text-[#146C94] transition-colors hover:text-[#0B2447]"
-                >
-                  + 참조 추가
-                </button>
-              </div>
-              {references.map((reference, index) => (
-                <div key={reference.id} className="flex items-start gap-2">
-                  <div className="flex-1 space-y-2">
-                    <input
-                      type="text"
-                      inputMode="url"
-                      name={`references[${index}][url]`}
-                      value={reference.url}
-                      onChange={(e) => {
-                        const next = [...references];
-                        next[index] = { ...next[index], url: e.target.value };
-                        setReferences(next);
-                      }}
-                      placeholder="https://example.com"
-                      className="w-full rounded-xl border border-[#E3E8EF] bg-white px-4 py-2.5 text-sm text-[#1D1D1F] placeholder:text-[#8C8C91] focus:border-[#146C94] focus:outline-none focus:ring-2 focus:ring-[#146C94]/20"
-                    />
-                    <input
-                      type="text"
-                      name={`references[${index}][title]`}
-                      value={reference.title}
-                      onChange={(e) => {
-                        const next = [...references];
-                        next[index] = { ...next[index], title: e.target.value };
-                        setReferences(next);
-                      }}
-                      placeholder="제목 (선택)"
-                      className="w-full rounded-xl border border-[#E3E8EF] bg-white px-4 py-2.5 text-sm text-[#1D1D1F] placeholder:text-[#8C8C91] focus:border-[#146C94] focus:outline-none focus:ring-2 focus:ring-[#146C94]/20"
-                    />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setReferences((prev) => prev.filter((item) => item.id !== reference.id))}
-                    className="mt-2.5 min-h-11 min-w-11 p-1 text-[#8C8C91] transition-colors hover:text-[#1D1D1F]"
-                    aria-label="참조 삭제"
-                  >
-                    x
-                  </button>
-                </div>
-              ))}
-            </div>
-
-            <details className="mt-6">
-             <summary className="cursor-pointer text-sm font-medium text-text-secondary">부가 정보</summary>
-            <div className="mt-4">
-              <TagSelector
-                tags={tags}
-                selectedTagIds={Array.from(selectedTags)}
-                onChange={(newIds) => setSelectedTags(new Set(newIds))}
-              />
-
-              <div className="mt-4 space-y-4">
-                <PersonSearch
-                  label="함께하는 사람"
-                  name="participantsJson"
-                  selectedPeople={[]}
-                  excludeUserId={currentUserId ?? undefined}
-                  roleOptions={[
-                    { value: "coauthor", label: "공동작성" },
-                    { value: "companion", label: "함께활동" },
-                    { value: "mentor", label: "멘토" },
-                  ]}
-                />
-                <PersonSearch
-                  label="언급된 사람"
-                  name="mentionUserIds"
-                  selectedPeople={[]}
-                  excludeUserId={currentUserId ?? undefined}
-                />
-              </div>
-            </div>
-          </details>
          </Form>
          <NavigationBlockerDialog blocker={blocker} />
        </div>
