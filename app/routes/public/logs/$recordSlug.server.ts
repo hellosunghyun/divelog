@@ -15,6 +15,7 @@ import {
 import { getIncomingLinks } from "~/db/queries/records/recordLinks.server";
 import { getLinkedRecords } from "~/db/queries/records/records.server";
 import { getRevisionsByRecord } from "~/db/queries/records/revisions.server";
+import { isRecordSaved } from "~/db/queries/records/savedRecords.server";
 import { saveSentence } from "~/db/queries/records/sentences.server";
 import { getTagsByRecord } from "~/db/queries/records/tags.server";
 import {
@@ -101,7 +102,7 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
       .orderBy(desc(sentences.createdAt)),
   ]);
 
-  const [linkedRecordsRaw, selfAnswersData, recordTags, incomingLinks, isAdmin] = await Promise.all([
+  const [linkedRecordsRaw, selfAnswersData, recordTags, incomingLinks, isAdmin, isSaved] = await Promise.all([
     getLinkedRecords(
       context.cloudflare.env.DB,
       recordData.record.id,
@@ -124,6 +125,9 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
           .where(and(eq(userRoles.userId, optionalAuth.user.id), eq(userRoles.role, "admin")))
           .limit(1)
           .then((adminRole) => adminRole.length > 0)
+      : Promise.resolve(false),
+    currentUserId
+      ? isRecordSaved(context.cloudflare.env.DB, currentUserId, recordData.record.id)
       : Promise.resolve(false),
   ]);
 
@@ -161,6 +165,7 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
     plainTextContent,
     revisions,
     isAuthorOrAdmin,
+    isSaved,
   };
 }
 

@@ -10,6 +10,7 @@ import EmptyState from "~/components/feedback/EmptyState";
 import { Link } from "~/components/content/SmartLink";
 import { db } from "~/db/client.server";
 import { getResponsesByAuthor } from "~/db/queries/dialogue/responses.server";
+import { getSavedRecordsWithDetails } from "~/db/queries/records/savedRecords.server";
 import { learnerProfiles, questions, records, sentences, stages } from "~/db/schema.server";
 import { createLogger } from "~/lib/infra/logger.server";
 import { cn } from "~/lib/utils/cn";
@@ -106,7 +107,10 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     .where(eq(learnerProfiles.userId, auth.user.id))
     .limit(1);
 
-  const myResponses = await getResponsesByAuthor(context.cloudflare.env.DB, auth.user.id);
+  const [myResponses, mySavedRecords] = await Promise.all([
+    getResponsesByAuthor(context.cloudflare.env.DB, auth.user.id),
+    getSavedRecordsWithDetails(context.cloudflare.env.DB, auth.user.id),
+  ]);
 
   const recordsByStage: Record<string, typeof myRecordsWithStage> = {};
   for (const row of myRecordsWithStage) {
@@ -125,14 +129,15 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     myQuestions,
     unansweredQuestions,
     myResponses,
+    mySavedRecords,
     stages: allStages,
     recordsByStage,
   };
 }
 
 export default function MySpacePage({ loaderData }: Route.ComponentProps) {
-  const { learner, drafts, mySentences, myQuestions, unansweredQuestions, myResponses, stages, recordsByStage } = loaderData;
-  const [activeTab, setActiveTab] = useState<"records" | "questions" | "responses">("records");
+  const { learner, drafts, mySentences, myQuestions, unansweredQuestions, myResponses, mySavedRecords, stages, recordsByStage } = loaderData;
+  const [activeTab, setActiveTab] = useState<"records" | "questions" | "responses" | "saved">("records");
 
   return (
     <div>
@@ -205,6 +210,19 @@ export default function MySpacePage({ loaderData }: Route.ComponentProps) {
             >
               내 응답
               {activeTab === "responses" && (
+                <span className="absolute bottom-0 left-0 w-full h-0.5 bg-ocean-blue" />
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("saved")}
+              className={cn(
+                "pb-4 text-base font-medium transition-colors relative",
+                activeTab === "saved" ? "text-ocean-blue" : "text-text-secondary hover:text-text-primary"
+              )}
+            >
+              저장한 기록
+              {activeTab === "saved" && (
                 <span className="absolute bottom-0 left-0 w-full h-0.5 bg-ocean-blue" />
               )}
             </button>
@@ -425,6 +443,38 @@ export default function MySpacePage({ loaderData }: Route.ComponentProps) {
                         author={learner ? { displayName: learner.displayName, slug: learner.slug } : undefined}
                       />
                     </div>
+                  ))}
+                </div>
+              )}
+            </section>
+          </div>
+        )}
+
+        {activeTab === "saved" && (
+          <div className="space-y-16">
+            <section>
+              <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-8">
+                저장한 기록
+              </h2>
+              {mySavedRecords.length === 0 ? (
+                <EmptyState variant="generic" message="아직 저장한 기록이 없습니다. 다른 Learner의 기록을 읽다가 나중에 다시 보고 싶은 글을 저장해보세요." />
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                  {mySavedRecords.map((saved) => (
+                    <SceneCard
+                      key={saved.record.id}
+                      record={{
+                        slug: saved.record.slug,
+                        title: saved.record.title,
+                        content: saved.record.content,
+                        format: saved.record.format as "note" | "article",
+                        type: saved.record.type as "personal" | "challenge" | "collaboration",
+                        rhythm: saved.record.rhythm ?? undefined,
+                        createdAt: saved.record.createdAt,
+                      }}
+                      author={saved.author ? { displayName: saved.author.displayName, slug: saved.author.slug } : undefined}
+                      stage={saved.stage ? { name: saved.stage.name, type: saved.stage.type } : undefined}
+                    />
                   ))}
                 </div>
               )}
