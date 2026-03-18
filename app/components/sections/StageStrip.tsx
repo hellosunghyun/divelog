@@ -14,6 +14,7 @@ interface Stage {
 interface StageStripProps {
   stages: Stage[];
   currentStageSlug?: string;
+  linkTarget?: string;
 }
 
 const STAGE_ACCENT_CLASSES: Record<string, { glow: string; bg: string; text: string }> = {
@@ -39,7 +40,11 @@ const STAGE_ACCENT_CLASSES: Record<string, { glow: string; bg: string; text: str
   },
 };
 
-export default function StageStrip({ stages, currentStageSlug }: StageStripProps) {
+export default function StageStrip({
+  stages,
+  currentStageSlug,
+  linkTarget = "/journey",
+}: StageStripProps) {
   const currentIndex = stages.findIndex(
     (stage) => stage.isCurrent || stage.slug === currentStageSlug
   );
@@ -101,12 +106,12 @@ export default function StageStrip({ stages, currentStageSlug }: StageStripProps
 
            return (
              <Link
-               key={stage.id}
-               to={`/journey/${stage.slug}`}
-               prefetch="intent"
-               className={cn(baseClasses, stateClasses)}
-               aria-current={isCurrent ? "page" : undefined}
-             >
+                key={stage.id}
+                to={linkTarget}
+                prefetch="intent"
+                className={cn(baseClasses, stateClasses)}
+                aria-current={isCurrent ? "page" : undefined}
+              >
                {stage.name}
              </Link>
            );

@@ -6,6 +6,7 @@ import {
   endOfWeek,
   isWithinInterval,
   format,
+  getWeek,
   isSameDay,
 } from "date-fns";
 
@@ -93,8 +94,8 @@ export function WeekPicker({ selectedWeek, onWeekSelect }: WeekPickerProps) {
   const selectedDate = selectedWeek?.from;
 
   const displayText = selectedWeek
-    ? `${format(selectedWeek.from, "yyyy년 M월 d일", { locale: ko })} — ${format(selectedWeek.to, "M월 d일", { locale: ko })}`
-    : "날짜를 선택하면 해당 주가 지정됩니다";
+    ? `${format(selectedWeek.from, "yyyy년 M월", { locale: ko })} ${getWeek(selectedWeek.from, { weekStartsOn: 1, locale: ko })}주차`
+    : "주를 선택하세요";
 
   return (
     <Popover>
@@ -129,16 +130,18 @@ export function WeekPicker({ selectedWeek, onWeekSelect }: WeekPickerProps) {
             button_previous: cn(
               "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors",
               "hover:bg-surface-secondary hover:text-text-primary",
-              "h-7 w-7 bg-transparent p-0 text-text-secondary opacity-70 hover:opacity-100",
+              "h-8 w-8 bg-transparent p-0 text-text-secondary opacity-70 hover:opacity-100",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-1",
             ),
             button_next: cn(
               "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors",
               "hover:bg-surface-secondary hover:text-text-primary",
-              "h-7 w-7 bg-transparent p-0 text-text-secondary opacity-70 hover:opacity-100",
+              "h-8 w-8 bg-transparent p-0 text-text-secondary opacity-70 hover:opacity-100",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-1",
             ),
             month_grid: "w-full border-collapse space-y-1",
             weekdays: "flex",
-            weekday: "text-text-tertiary rounded-md w-9 font-normal text-[0.8rem]",
+            weekday: "text-text-tertiary rounded-md w-11 font-normal text-[0.8rem]",
             week: "flex w-full mt-2",
             day: cn(
               "relative p-0 text-center text-sm",
@@ -147,7 +150,7 @@ export function WeekPicker({ selectedWeek, onWeekSelect }: WeekPickerProps) {
             day_button: cn(
               "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors",
               "hover:bg-surface-secondary hover:text-text-primary",
-              "h-9 w-9 p-0 font-normal",
+              "h-11 w-11 p-0 font-normal",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-1",
               "aria-selected:opacity-100",
             ),

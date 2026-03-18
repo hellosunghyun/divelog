@@ -179,7 +179,8 @@ export function MonthPicker({ selectedMonth, onMonthSelect }: MonthPickerProps) 
               className={cn(
                 "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors",
                 "hover:bg-surface-secondary hover:text-text-primary",
-                "h-7 w-7 p-0 text-text-secondary"
+                "h-8 w-8 p-0 text-text-secondary",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-1"
               )}
               aria-label={`${displayYear - 1}년으로 이동`}
             >
@@ -194,7 +195,8 @@ export function MonthPicker({ selectedMonth, onMonthSelect }: MonthPickerProps) 
               className={cn(
                 "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors",
                 "hover:bg-surface-secondary hover:text-text-primary",
-                "h-7 w-7 p-0 text-text-secondary"
+                "h-8 w-8 p-0 text-text-secondary",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-1"
               )}
               aria-label={`${displayYear + 1}년으로 이동`}
             >
@@ -221,11 +223,13 @@ export function MonthPicker({ selectedMonth, onMonthSelect }: MonthPickerProps) 
                   type="button"
                   role="gridcell"
                   data-month-gridcell="true"
+                  aria-selected={isSelected}
                   aria-label={`${displayYear}년 ${label}${isSelected ? " (선택됨)" : ""}`}
                   onClick={() => handleMonthClick(idx)}
                   onKeyDown={(e) => handleKeyDown(e, idx)}
                   className={cn(
-                    "rounded-md py-2 text-sm font-medium transition-colors",
+                    "rounded-md py-3 text-sm font-medium transition-colors",
+                    "min-h-11 min-w-11",
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-1",
                     isSelected
                       ? "bg-ocean-blue text-white hover:bg-ocean-blue"

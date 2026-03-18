@@ -20,6 +20,7 @@ import {
 } from "~/components/ui/select";
 import { RhythmDateInput } from "~/components/record/RhythmDateInput";
 import { db } from "~/db/client.server";
+import { getStages } from "~/db/queries/journey/stages.server";
 import { syncRecordLinksForRecord } from "~/db/queries/records/recordLinks.server";
 import { learnerProfiles, records } from "~/db/schema.server";
 import { useUnsavedWarning } from "~/hooks/useUnsavedWarning";
@@ -27,6 +28,7 @@ import { requireVerified } from "~/lib/auth/auth.middleware";
 import { createArticleSchema } from "~/lib/auth/validation";
 import { getPlainText } from "~/lib/content/content.server";
 import { extractRecordRefs } from "~/lib/content/extract-references.server";
+import { parseDateToUnix } from "~/lib/utils/date";
 import { cn } from "~/lib/utils/cn";
 import { getNextRecordSlug } from "~/db/queries/records/records.server";
 import { nanoid } from "~/lib/utils/utils.server";
@@ -34,17 +36,12 @@ import { nanoid } from "~/lib/utils/utils.server";
 const RHYTHM_OPTIONS = [
   { value: "free", label: "자유" },
   { value: "moment", label: "순간" },
+  { value: "reflection", label: "회고" },
   { value: "sprint", label: "스프린트" },
   { value: "weekly", label: "주간" },
   { value: "monthly", label: "월간" },
+  { value: "stage", label: "구간" },
 ] as const;
-
-function parseDateToUnix(dateStr: string | undefined): number | null {
-  if (!dateStr) return null;
-  const date = new Date(`${dateStr}T00:00:00`);
-  if (Number.isNaN(date.getTime())) return null;
-  return Math.floor(date.getTime() / 1000);
-}
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "글쓰기 — DiveLog" }];
@@ -54,18 +51,32 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const auth = await requireVerified(request, context);
 
   const database = db(context.cloudflare.env.DB);
-  const learnerResult = await database
-    .select()
-    .from(learnerProfiles)
-    .where(eq(learnerProfiles.userId, auth.user.id))
-    .limit(1);
+  const [learnerResult, stagesData] = await Promise.all([
+    database
+      .select()
+      .from(learnerProfiles)
+      .where(eq(learnerProfiles.userId, auth.user.id))
+      .limit(1),
+    getStages(context.cloudflare.env.DB),
+  ]);
   const learner = learnerResult[0] ?? null;
+
+  const stages = stagesData.map((stage) => ({
+    id: stage.id,
+    name: stage.name,
+    slug: stage.slug,
+    type: stage.type,
+    startDate: stage.startDate,
+    endDate: stage.endDate,
+    isCurrent: stage.isCurrent,
+  }));
 
   return {
     learnerDefaults: {
       defaultVisibility: learner?.defaultVisibility ?? "public",
       defaultResponsePreference: learner?.defaultResponsePreference ?? "open",
     },
+    stages,
   };
 }
 
@@ -141,7 +152,7 @@ export async function action({ request, context }: Route.ActionArgs) {
 }
 
 export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
-   const { learnerDefaults } = loaderData;
+   const { learnerDefaults, stages } = loaderData;
    const actionData = useActionData<typeof action>();
    const [title, setTitle] = useState("");
    const [articleContent, setArticleContent] = useState("");
@@ -235,7 +246,7 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
             </div>
           </div>
 
-          <RhythmDateInput rhythm={rhythm} />
+          <RhythmDateInput rhythm={rhythm} stages={stages} />
 
           <div>
             <Label htmlFor="title" className="mb-2 block text-meta font-medium text-text-secondary">

@@ -90,7 +90,7 @@ export default function JourneyPage({ loaderData }: Route.ComponentProps) {
               return (
                 <div key={stage.id}>
                   <Link
-                    to={`/journey/${stage.slug}`}
+                    to="/journey"
                     className={cn(
                       "group block no-underline",
                       "ring-1 ring-border p-1.5 md:p-2 rounded-2xl",
