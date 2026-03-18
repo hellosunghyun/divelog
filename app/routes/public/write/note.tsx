@@ -1,13 +1,13 @@
 import { eq } from "drizzle-orm";
 import { useState } from "react";
 import { Link } from "~/components/content/SmartLink";
-import { Form, redirect, useActionData, useNavigation } from "react-router";
+import { Form, redirect, useActionData } from "react-router";
 import type { Route } from "./+types/note";
 
 import { NoteEditor } from "~/components/editor/editors/NoteEditor";
 import PersonSearch from "~/components/PersonSearch";
 import { NavigationBlockerDialog } from "~/components/feedback/NavigationBlockerDialog";
-import { Button } from "~/components/ui/button";
+import { SubmitButton } from "~/components/feedback/SubmitButton";
 import { Label } from "~/components/ui/label";
 import {
   Select,
@@ -156,12 +156,10 @@ export async function action({ request, context }: Route.ActionArgs) {
 export default function WriteNotePage({ loaderData }: Route.ComponentProps) {
   const { currentStage, stages: availableStages, tags, learnerDefaults, currentUserId } = loaderData;
   const actionData = useActionData<typeof action>();
-  const navigation = useNavigation();
   const [noteContent, setNoteContent] = useState("");
   const [stageValue, setStageValue] = useState(currentStage?.id ?? NO_STAGE_VALUE);
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
   const [references, setReferences] = useState<ReferenceField[]>([]);
-  const isSubmitting = navigation.state === "submitting";
   const contentError = actionData?.errors?.content?.[0];
 
   const blocker = useUnsavedWarning(noteContent.length > 0);
@@ -183,13 +181,9 @@ export default function WriteNotePage({ loaderData }: Route.ComponentProps) {
                 >
                   취소
                 </Link>
-                <Button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="h-auto rounded-md px-4 py-2 text-sm font-medium"
-                >
-                  {isSubmitting ? "저장 중..." : "저장"}
-                </Button>
+                <SubmitButton loadingText="저장 중...">
+                  저장
+                </SubmitButton>
               </div>
             </div>
           </div>

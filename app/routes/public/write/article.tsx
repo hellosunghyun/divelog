@@ -2,14 +2,14 @@ import { eq } from "drizzle-orm";
 import { useState, Suspense, lazy } from "react";
 import PersonSearch from "~/components/PersonSearch";
 import { Link } from "~/components/content/SmartLink";
-import { Form, redirect, useActionData, useNavigation } from "react-router";
+import { Form, redirect, useActionData } from "react-router";
 import type { Route } from "./+types/article";
 
 const ArticleEditor = lazy(() =>
   import("~/components/editor/editors/ArticleEditor").then(m => ({ default: m.ArticleEditor }))
 );
 import { NavigationBlockerDialog } from "~/components/feedback/NavigationBlockerDialog";
-import { Button } from "~/components/ui/button";
+import { SubmitButton } from "~/components/feedback/SubmitButton";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import {
@@ -236,13 +236,11 @@ export async function action({ request, context }: Route.ActionArgs) {
 export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
   const { currentStage, stages: availableStages, tags, learnerDefaults, currentUserId } = loaderData;
   const actionData = useActionData<typeof action>();
-  const navigation = useNavigation();
   const [title, setTitle] = useState("");
   const [articleContent, setArticleContent] = useState("");
   const [references, setReferences] = useState<ReferenceField[]>([]);
   const [rhythm, setRhythm] = useState("free");
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
-  const isSubmitting = navigation.state === "submitting";
   const errors = actionData?.errors;
   const titleError = errors && "title" in errors ? errors.title?.[0] : undefined;
   const contentError = errors && "content" in errors ? errors.content?.[0] : undefined;
@@ -270,13 +268,9 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
                 >
                   취소
                 </Link>
-                <Button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="h-auto rounded-md px-4 py-2 text-sm font-medium"
-                >
-                  {isSubmitting ? "저장 중..." : "저장"}
-                </Button>
+                <SubmitButton loadingText="저장 중...">
+                  저장
+                </SubmitButton>
               </div>
             </div>
           </div>
