@@ -10,48 +10,50 @@ interface MentionItem {
   profilePhotoUrl: string | null;
 }
 
+const LOADING_SENTINEL: MentionItem = { id: "__loading__", slug: "", displayName: "", profilePhotoUrl: null };
 const mentionPluginKey = new PluginKey("userMention");
 
 let allLearners: MentionItem[] | null = null;
+let loadPromise: Promise<MentionItem[]> | null = null;
 
 function hangulIncludes(target: string, search: string): boolean {
-  if (disassemble(target).includes(disassemble(search))) return true;
-  if (getChoseong(target).includes(search)) return true;
+  const dt = disassemble(target);
+  const ds = disassemble(search);
+  if (dt.includes(ds)) return true;
+  const ct = getChoseong(target);
+  if (ct.includes(search)) return true;
   return target.toLowerCase().includes(search.toLowerCase());
 }
 
-async function loadAllLearners(): Promise<MentionItem[]> {
-  if (allLearners !== null) return allLearners;
+function loadAllLearners(): Promise<MentionItem[]> {
+  if (allLearners !== null) return Promise.resolve(allLearners);
+  if (loadPromise) return loadPromise;
 
-  try {
-    const res = await fetch("/api/search-learners?q=");
-    if (!res.ok) return [];
-    const data = (await res.json()) as { results: MentionItem[] };
-    allLearners = data.results ?? [];
-    return allLearners;
-  } catch {
-    return [];
-  }
+  loadPromise = fetch("/api/search-learners?q=")
+    .then((res) => (res.ok ? (res.json() as Promise<{ results: MentionItem[] }>) : { results: [] as MentionItem[] }))
+    .then((data) => {
+      allLearners = data.results ?? [];
+      loadPromise = null;
+      return allLearners;
+    })
+    .catch(() => {
+      loadPromise = null;
+      return [] as MentionItem[];
+    });
+
+  return loadPromise;
 }
 
-async function fetchLearners(query: string): Promise<MentionItem[]> {
-  const all = await loadAllLearners();
-  if (!query) return all;
-  return all.filter((item) => hangulIncludes(item.displayName, query));
+function filterLearners(query: string): MentionItem[] {
+  if (!allLearners) return [LOADING_SENTINEL];
+  if (!query) return allLearners;
+  return allLearners.filter((item) => hangulIncludes(item.displayName, query));
 }
 
 function createMentionPopup() {
   const popup = document.createElement("div");
   popup.dataset.role = "mention-popup";
-  popup.style.position = "fixed";
-  popup.style.zIndex = "60";
-  popup.style.minWidth = "220px";
-  popup.style.maxWidth = "300px";
-  popup.style.padding = "4px";
-  popup.style.borderRadius = "12px";
-  popup.style.border = "1px solid var(--color-border)";
-  popup.style.background = "var(--color-surface)";
-  popup.style.boxShadow = "0 4px 20px -2px rgba(11,36,71,0.08)";
+  popup.style.cssText = "position:fixed;z-index:60;min-width:220px;max-width:300px;padding:4px;border-radius:12px;border:1px solid var(--color-border);background:var(--color-surface);box-shadow:0 4px 20px -2px rgba(11,36,71,0.08)";
   return popup;
 }
 
@@ -63,62 +65,42 @@ function renderMentionList(
 ) {
   container.innerHTML = "";
 
+  if (items.length === 1 && items[0] === LOADING_SENTINEL) {
+    const el = document.createElement("div");
+    el.style.cssText = "padding:12px 16px;font-size:13px;color:var(--color-text-tertiary)";
+    el.textContent = "검색 중…";
+    container.appendChild(el);
+    return;
+  }
+
   if (items.length === 0) {
-    const empty = document.createElement("div");
-    empty.style.padding = "12px 16px";
-    empty.style.fontSize = "13px";
-    empty.style.color = "var(--color-text-tertiary)";
-    empty.textContent = "러너를 찾을 수 없습니다";
-    container.appendChild(empty);
+    const el = document.createElement("div");
+    el.style.cssText = "padding:12px 16px;font-size:13px;color:var(--color-text-tertiary)";
+    el.textContent = "러너를 찾을 수 없습니다";
+    container.appendChild(el);
     return;
   }
 
   items.forEach((item, index) => {
     const row = document.createElement("button");
     row.type = "button";
-    row.style.width = "100%";
-    row.style.display = "flex";
-    row.style.alignItems = "center";
-    row.style.gap = "10px";
-    row.style.padding = "8px 12px";
-    row.style.border = "none";
-    row.style.borderRadius = "8px";
-    row.style.cursor = "pointer";
-    row.style.textAlign = "left";
-    row.style.background = index === selectedIndex ? "var(--color-mist-blue)" : "transparent";
-    row.style.color = "var(--color-text-primary)";
-    row.style.transition = "background 150ms";
+    row.style.cssText = `width:100%;display:flex;align-items:center;gap:10px;padding:8px 12px;border:none;border-radius:8px;cursor:pointer;text-align:left;color:var(--color-text-primary);transition:background 150ms;background:${index === selectedIndex ? "var(--color-mist-blue)" : "transparent"}`;
 
     if (item.profilePhotoUrl) {
       const img = document.createElement("img");
       img.src = item.profilePhotoUrl;
       img.alt = "";
-      img.style.width = "28px";
-      img.style.height = "28px";
-      img.style.borderRadius = "50%";
-      img.style.objectFit = "cover";
-      img.style.flexShrink = "0";
+      img.style.cssText = "width:28px;height:28px;border-radius:50%;object-fit:cover;flex-shrink:0";
       row.appendChild(img);
     } else {
       const avatar = document.createElement("div");
-      avatar.style.width = "28px";
-      avatar.style.height = "28px";
-      avatar.style.borderRadius = "50%";
-      avatar.style.background = "var(--color-mist-blue)";
-      avatar.style.display = "flex";
-      avatar.style.alignItems = "center";
-      avatar.style.justifyContent = "center";
-      avatar.style.fontSize = "12px";
-      avatar.style.fontWeight = "600";
-      avatar.style.color = "var(--color-ocean-blue)";
-      avatar.style.flexShrink = "0";
+      avatar.style.cssText = "width:28px;height:28px;border-radius:50%;background:var(--color-mist-blue);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--color-ocean-blue);flex-shrink:0";
       avatar.textContent = item.displayName[0] ?? "?";
       row.appendChild(avatar);
     }
 
     const name = document.createElement("span");
-    name.style.fontSize = "14px";
-    name.style.fontWeight = "500";
+    name.style.cssText = "font-size:14px;font-weight:500";
     name.textContent = item.displayName;
     row.appendChild(name);
 
@@ -127,15 +109,15 @@ function renderMentionList(
         (btn as HTMLElement).style.background = i === index ? "var(--color-mist-blue)" : "transparent";
       });
     });
-
     row.addEventListener("mousedown", (e) => e.preventDefault());
     row.addEventListener("click", () => onSelect(item));
-
     container.appendChild(row);
   });
 }
 
 export function createUserMentionExtension() {
+  loadAllLearners();
+
   return Mention.extend({ name: "userMention" }).configure({
     HTMLAttributes: { class: "user-mention" },
     suggestion: {
@@ -146,8 +128,9 @@ export function createUserMentionExtension() {
         const parent = state.selection.$from.parent;
         return parent.isTextblock && !parent.type.spec.code;
       },
-      items: async ({ query }: { query: string }) => fetchLearners(query),
+      items: ({ query }: { query: string }) => filterLearners(query),
       command: ({ editor, range, props }: { editor: any; range: any; props: any }) => {
+        if (props.id === "__loading__") return;
         const label = props.displayName ?? props.label ?? props.id;
         const slug = props.slug ?? props.id;
         exitSuggestion(editor.view, mentionPluginKey);
@@ -192,6 +175,14 @@ export function createUserMentionExtension() {
             position();
             scrollHandler = () => position();
             window.addEventListener("scroll", scrollHandler, true);
+
+            if (props.items.length === 1 && props.items[0] === LOADING_SENTINEL) {
+              loadAllLearners().then(() => {
+                if (!currentProps || !popup) return;
+                currentProps = { ...currentProps, items: filterLearners(currentProps.query ?? "") };
+                update();
+              });
+            }
           },
           onUpdate: (props: SuggestionProps<MentionItem>) => {
             selectedIndex = 0;
@@ -200,10 +191,9 @@ export function createUserMentionExtension() {
             position();
           },
           onKeyDown: ({ event, view }: { event: KeyboardEvent; view: any }) => {
-            if (!currentProps || !popup || currentProps.items.length === 0) return false;
-            if (event.isComposing || event.keyCode === 229) {
-              return false;
-            }
+            if (!currentProps || !popup) return false;
+            if (currentProps.items.length === 0 || (currentProps.items.length === 1 && currentProps.items[0] === LOADING_SENTINEL)) return false;
+            if (event.isComposing || event.keyCode === 229) return false;
             if (event.key === "ArrowUp") {
               event.preventDefault();
               selectedIndex = (selectedIndex + currentProps.items.length - 1) % currentProps.items.length;
