@@ -1,6 +1,5 @@
 import type { Route } from "./+types/index";
 import LearnerCard from "~/components/cards/LearnerCard";
-import HeroSection from "~/components/sections/HeroSection";
 import EmptyState from "~/components/feedback/EmptyState";
 import FilterBar from "~/components/filters/FilterBar";
 import {
@@ -57,12 +56,15 @@ export default function LearnersPage({ loaderData }: Route.ComponentProps) {
 
   return (
     <div>
-      <HeroSection
-        variant="learner"
-        title="러너"
-        subtitle="탐구하는 사람들을 만나보세요"
-      />
-      <div className="max-w-content mx-auto py-16 px-6">
+      <div className="max-w-content mx-auto px-6 pt-12 pb-8 md:pt-16 md:pb-12">
+        <h1 className="text-4xl font-semibold tracking-tight text-text-primary mb-2">
+          러너
+        </h1>
+        <p className="text-lg text-text-secondary leading-body">
+          탐구하는 사람들을 만나보세요
+        </p>
+      </div>
+      <div className="max-w-content mx-auto px-6 pb-12 md:pb-16">
         <h2 className="sr-only">러너 목록</h2>
         {filterOptions.length > 0 && (
           <div className="mb-10">

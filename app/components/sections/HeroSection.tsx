@@ -46,7 +46,7 @@ export default function HeroSection({
         />
         <div className="hero-caustics" aria-hidden="true" />
 
-        <div className="relative z-10 max-w-content mx-auto px-6 w-full grid grid-cols-1 md:grid-cols-5 gap-8 md:gap-10 items-end pb-12 sm:pb-16 md:pb-20 pt-2 sm:pt-4 md:pt-6">
+        <div className="relative z-10 max-w-content mx-auto px-6 w-full grid grid-cols-1 md:grid-cols-5 gap-8 md:gap-10 items-end pb-12 sm:pb-16 md:pb-20 pt-8 sm:pt-10 md:pt-14">
           <div className="md:col-span-3 space-y-5 md:space-y-6">
             <div>
               <span className="inline-flex items-center rounded-full px-3 py-1 text-xs uppercase tracking-wide font-medium bg-white/10 text-white/80 backdrop-blur-sm border border-white/20">
