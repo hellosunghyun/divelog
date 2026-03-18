@@ -154,3 +154,11 @@ Date: 2026-03-18
 ### Build Verification
 - `npx react-router build`: SUCCESS
 - `pnpm exec tsc --noEmit`: SUCCESS (no errors)
+
+## Task 9: Merge Conflict Replay Notes
+
+Date: 2026-03-18
+
+- `feat/article-links`는 현재 `main`에 이미 포함되어 있어 실제 `git merge` 충돌 재현이 되지 않을 수 있음.
+- 충돌 파일 재작업 시, `main`에 이미 반영된 article-links 변경(relations/validation/logs detail/edit/server)을 건드리지 않고 누락된 `write/article.tsx` 링크 입력/저장 흐름만 맞추는 편이 안전함.
+- `write/article.tsx`에서 핵심은 `parseReferencesFromFormData` + `createArticleSchema` 입력 확장 + `syncRecordReferences` 호출 + UI 입력명(`references[index][url|title]`) 일치.
