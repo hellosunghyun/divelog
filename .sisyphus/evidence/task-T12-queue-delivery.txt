@@ -1,0 +1,39 @@
+T12 Queue-backed async delivery path evidence
+Date: 2026-03-19
+Worktree: /Users/hellosunghyun/Documents/Github/divelog-notification-delivery
+
+1) Wrangler queue consumer registration
+- Updated `wrangler.toml` with:
+  [[queues.consumers]]
+  queue = "divelog-queue"
+
+2) Worker queue consumer handler
+- Updated `workers/app.ts` to export:
+  async queue(batch: MessageBatch<NotificationQueueMessage>, env: Env, ctx: ExecutionContext)
+- Handler iterates queue messages and calls:
+  notify({ d1: env.DB, ...message.body })
+
+3) Queue publish helper + graceful fallback
+- Added `app/lib/notifications/publish.server.ts`:
+  - `NotificationQueueMessage = Omit<NotifyParams, "d1">`
+  - `publishNotification(queue, params, d1)`
+  - enqueue first with `queue.send(params)`
+  - on queue publish failure, falls back to direct `notify({ d1, ...params })`
+
+4) Route/service integration
+- `app/lib/notifications/mention-delivery.server.ts` now uses `publishNotification(...)`
+- `app/routes/public/logs/$recordSlug.server.ts` now uses `publishNotification(...)` for reply/response notifications
+
+5) Diagnostics and verification
+- LSP diagnostics: clean for all modified files
+  - workers/app.ts
+  - app/lib/notifications/publish.server.ts
+  - app/lib/notifications/mention-delivery.server.ts
+  - app/routes/public/logs/$recordSlug.server.ts
+  - app/lib/notifications/__tests__/mention-delivery.test.ts
+- Targeted test:
+  - `pnpm vitest app/lib/notifications/__tests__/mention-delivery.test.ts` -> passed (3/3)
+- Build:
+  - `pnpm build` fails due to pre-existing unrelated issue in `app/routes/public/settings.tsx`
+  - error: server-only module referenced by client (`~/db/queries/social/notificationPreferences.server`)
+  - no T12-changed files reported in failure cause

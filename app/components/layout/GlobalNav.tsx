@@ -24,6 +24,7 @@ interface NotificationItem {
   title: string;
   content: string | null;
   recordId: string | null;
+  recordSlug: string | null;
   isRead: boolean;
   createdAt: number;
 }
@@ -67,7 +68,6 @@ const NOTIF_TYPE_LABEL: Record<string, string> = {
 };
 
 const navLinks = [
-  { to: "/journey", label: "여정" },
   { to: "/logs", label: "기록" },
   { to: "/learners", label: "러너" },
   { to: "/guide", label: "가이드" },
@@ -138,22 +138,28 @@ function GlobalNav() {
   // --- Effects ---
 
   useEffect(() => {
-    setCurrentUrl(window.location.href);
-  }, []);
+    const fullUrl = window.location.origin + location.pathname + location.search + location.hash;
+    setCurrentUrl(fullUrl);
+  }, [location]);
 
   useEffect(() => {
-    void location.pathname;
+    const currentPathname = location.pathname;
     setIsMenuOpen(false);
     setOpenDropdown(null);
     setSearchQuery("");
-  }, []);
+  }, [location.pathname]);
 
-  // Load notification count on mount (authenticated only)
   useEffect(() => {
-    if (data?.isAuthenticated) {
+    if (!data?.isAuthenticated) return;
+
+    notifFetcher.load("/api/notifications");
+
+    const intervalId = setInterval(() => {
       notifFetcher.load("/api/notifications");
-    }
-  }, [data?.isAuthenticated, notifFetcher.load]);
+    }, 30000);
+
+    return () => clearInterval(intervalId);
+  }, [data?.isAuthenticated, notifFetcher]);
 
   // Unified outside-click + Escape handler
   useEffect(() => {
@@ -461,7 +467,6 @@ function GlobalNav() {
                                     <img
                                       src={learner.profilePhotoUrl}
                                       alt=""
-                                      aria-hidden="true"
                                       className="w-6 h-6 rounded-full object-cover"
                                     />
                                   ) : (
@@ -586,7 +591,7 @@ function GlobalNav() {
                               {notifications.map((notif) => (
                                 <Link
                                   key={notif.id}
-                                  to={notif.recordId ? `/logs/${notif.recordId}` : "/inbox"}
+                                  to={notif.recordSlug ? `/logs/${notif.recordSlug}` : "/inbox"}
                                   className={cn(
                                     "flex items-start gap-3 px-4 py-3 transition-colors no-underline",
                                     focusRing,

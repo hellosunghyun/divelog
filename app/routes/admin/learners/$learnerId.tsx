@@ -1,9 +1,8 @@
 import { data, redirect } from "react-router";
 import type { Route } from "./+types/$learnerId";
 import { Link } from "~/components/content/SmartLink";
-import { eq, desc } from "drizzle-orm";
+import { asc, desc, eq } from "drizzle-orm";
 import { VISIBILITY_LABELS } from "~/lib/constants/visibility";
-import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
 import {
   Select,
@@ -20,7 +19,7 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
   const { db } = await import("~/db/client.server");
   const { createLogger } = await import("~/lib/infra/logger.server");
   const { learnerProfiles, records, questions, responses, stages } = await import("~/db/schema.server");
-  const { adminGetUserRoles, adminAddUserRole, adminRemoveUserRole } = await import("~/db/queries/admin/ops/roles.server");
+  const { adminGetUserRoles } = await import("~/db/queries/admin/ops/roles.server");
 
   const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.learners.$learnerId" });
   logger.info("loader_start");
@@ -36,7 +35,7 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
     throw data("러너를 찾을 수 없습니다", { status: 404 });
   }
 
-  const [lr, qs, rs, userRoleList, currentStage] = await Promise.all([
+  const [lr, qs, rs, userRoleList, currentStage, availableStages] = await Promise.all([
     database
       .select()
       .from(records)
@@ -60,6 +59,7 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
     learner[0].currentStageId
       ? database.select().from(stages).where(eq(stages.id, learner[0].currentStageId)).limit(1)
       : [],
+    database.select().from(stages).orderBy(asc(stages.order), asc(stages.createdAt)),
   ]);
 
   return {
@@ -69,6 +69,7 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
     responses: rs,
     roles: userRoleList,
     currentStage: currentStage[0] ?? null,
+    availableStages,
   };
 }
 
@@ -77,12 +78,16 @@ export async function action({ params, request, context }: Route.ActionArgs) {
 
   const { db } = await import("~/db/client.server");
   const { createLogger } = await import("~/lib/infra/logger.server");
-  const { learnerProfiles, records, questions, responses, stages } = await import("~/db/schema.server");
-  const { adminGetUserRoles, adminAddUserRole, adminRemoveUserRole } = await import("~/db/queries/admin/ops/roles.server");
+  const { learnerProfiles, stages } = await import("~/db/schema.server");
+  const { adminAddUserRole, adminRemoveUserRole } = await import("~/db/queries/admin/ops/roles.server");
+  const { adminGetLearnerByUserId, adminUpdateLearner } = await import("~/db/queries/admin/data/learners.server");
+  const { requireRole } = await import("~/lib/auth/auth.middleware");
+  const { deliverStageTransitionNotification } = await import("~/lib/notifications/stage-transition.server");
 
   const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.learners.$learnerId" });
   const formData = await request.formData();
   const intent = formData.get("intent") as string;
+  const auth = await requireRole(request, context, "admin");
 
   logger.info("action_start", { intent, learnerId: params.learnerId });
 
@@ -97,6 +102,55 @@ export async function action({ params, request, context }: Route.ActionArgs) {
     if (role) {
       await adminRemoveUserRole(context.cloudflare.env.DB, params.learnerId, role);
       logger.info("role_removed", { role });
+    }
+  } else if (intent === "update_stage") {
+    const learner = await adminGetLearnerByUserId(context.cloudflare.env.DB, params.learnerId);
+
+    if (!learner) {
+      throw data("러너를 찾을 수 없습니다", { status: 404 });
+    }
+
+    const selectedStageId = formData.get("stageId")?.toString() ?? "none";
+    const nextStageId = selectedStageId === "none" ? null : selectedStageId;
+
+    if (learner.currentStageId !== nextStageId) {
+      let nextStageName: string | null = null;
+
+      if (nextStageId) {
+        const database = db(context.cloudflare.env.DB);
+        const nextStage = await database
+          .select({ id: stages.id, name: stages.name })
+          .from(stages)
+          .where(eq(stages.id, nextStageId))
+          .limit(1);
+
+        if (!nextStage[0]) {
+          throw data("선택한 Stage를 찾을 수 없습니다", { status: 400 });
+        }
+
+        nextStageName = nextStage[0].name;
+      }
+
+      await adminUpdateLearner(context.cloudflare.env.DB, params.learnerId, {
+        currentStageId: nextStageId,
+      });
+
+      logger.info("learner_stage_updated", {
+        learnerId: params.learnerId,
+        previousStageId: learner.currentStageId,
+        nextStageId,
+        actorId: auth.user.id,
+      });
+
+      if (nextStageId && nextStageName) {
+        await deliverStageTransitionNotification({
+          d1: context.cloudflare.env.DB,
+          actorId: auth.user.id,
+          recipientId: params.learnerId,
+          stageId: nextStageId,
+          stageName: nextStageName,
+        });
+      }
     }
   }
 
@@ -133,7 +187,15 @@ const getRoleBadgeVariant = (role: string): "destructive" | "default" | "seconda
 };
 
 export default function AdminLearnerDetailPage({ loaderData }: Route.ComponentProps) {
-  const { learner, records: lr, questions: qs, responses: rs, roles, currentStage } = loaderData;
+  const {
+    learner,
+    records: lr,
+    questions: qs,
+    responses: rs,
+    roles,
+    currentStage,
+    availableStages,
+  } = loaderData;
 
   const availableRoles = ADMIN_ROLES.filter(
     (role: AdminRole) => !roles.some((ur) => ur.role === role),
@@ -274,6 +336,36 @@ export default function AdminLearnerDetailPage({ loaderData }: Route.ComponentPr
                 </SubmitButton>
               </form>
             )}
+          </div>
+
+          <div className="bg-admin-surface rounded-lg p-5 border border-admin-border">
+            <h3 className="text-sm font-semibold mb-4 text-admin-text">Stage 관리</h3>
+            <form method="post" className="space-y-3">
+              <input type="hidden" name="intent" value="update_stage" />
+              <Select name="stageId" defaultValue={currentStage?.id ?? "none"}>
+                <SelectTrigger className="h-9 text-xs">
+                  <SelectValue placeholder="Stage 선택" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none" className="text-xs">
+                    미설정
+                  </SelectItem>
+                  {availableStages.map((stage) => (
+                    <SelectItem key={stage.id} value={stage.id} className="text-xs">
+                      {stage.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <SubmitButton
+                size="sm"
+                formDataMatch={{ intent: "update_stage" }}
+                loadingText="저장 중..."
+                className="h-9 px-3 text-xs bg-admin-accent hover:opacity-90"
+              >
+                Stage 저장
+              </SubmitButton>
+            </form>
           </div>
         </div>
       </div>

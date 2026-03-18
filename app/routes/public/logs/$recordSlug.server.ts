@@ -21,6 +21,7 @@ import { saveSentence } from "~/db/queries/records/sentences.server";
 import { getTagsByRecord } from "~/db/queries/records/tags.server";
 import { getParticipantsByRecord } from "~/db/queries/records/participants.server";
 import { getMentionsByRecord } from "~/db/queries/dialogue/mentions.server";
+import { extractMentionUserIdsFromContent } from "~/db/queries/dialogue/mentions.server";
 import {
   learnerProfiles,
   questions,
@@ -29,7 +30,8 @@ import {
   sentences,
   userRoles,
 } from "~/db/schema.server";
-import { createNotification } from "~/db/queries/social/notifications.server";
+import { deliverMentionNotifications } from "~/lib/notifications/mention-delivery.server";
+import { publishNotification } from "~/lib/notifications/publish.server";
 import { updateResponse, deleteResponse, getResponseById } from "~/db/queries/dialogue/responses.server";
 
 export async function loader({ params, context, request }: Route.LoaderArgs) {
@@ -295,7 +297,20 @@ export async function action({ request, context }: Route.ActionArgs) {
       const authorName = authorProfile[0]?.displayName ?? "누군가";
 
       const recordAuthorId = targetRecord[0].authorId;
+      const recordVisibility = targetRecord[0]?.visibility;
       const currentUserId = auth.user.id;
+
+      context.cloudflare.ctx.waitUntil(
+        deliverMentionNotifications({
+          d1: context.cloudflare.env.DB,
+          queue: context.cloudflare.env.QUEUE,
+          actorId: currentUserId,
+          actorName: authorName,
+          content: parsed.data.content,
+          recordId: parsed.data.recordId,
+          visibility: parsed.data.visibility,
+        }),
+      );
 
       if (parsed.data.parentResponseId) {
         // 답글 알림: 부모 응답 작성자에게
@@ -303,47 +318,71 @@ export async function action({ request, context }: Route.ActionArgs) {
         const parentAuthorId = parentResponse?.authorId;
 
         if (parentAuthorId && parentAuthorId !== currentUserId) {
-          await createNotification(context.cloudflare.env.DB, {
-            recipientId: parentAuthorId,
-            type: "response",
-            title: `${authorName}님이 답글을 남겼습니다`,
-            recordId: parsed.data.recordId,
-          }).catch((err) => {
+          const result = await publishNotification(
+            context.cloudflare.env.QUEUE,
+            {
+              actorId: currentUserId,
+              recipientId: parentAuthorId,
+              type: "reply",
+              title: `${authorName}님이 답글을 남겼습니다`,
+              recordId: parsed.data.recordId,
+              visibility: recordVisibility,
+            },
+            context.cloudflare.env.DB,
+          );
+
+          if (!result.success) {
             logger.warn("notification_create_failed", {
-              error: err instanceof Error ? err.message : String(err),
+              error: result.error ?? "알림 생성에 실패했습니다.",
               recordId: parsed.data.recordId,
             });
-          });
+          }
         }
 
         // 기록 작성자가 부모 응답 작성자와 다르고, 현재 사용자가 기록 작성자가 아닐 때 추가 알림
         if (recordAuthorId !== parentAuthorId && recordAuthorId !== currentUserId) {
-          await createNotification(context.cloudflare.env.DB, {
-            recipientId: recordAuthorId,
-            type: "response",
-            title: `${authorName}님이 ${typeLabel}을 남겼습니다`,
-            recordId: parsed.data.recordId,
-          }).catch((err) => {
+          const result = await publishNotification(
+            context.cloudflare.env.QUEUE,
+            {
+              actorId: currentUserId,
+              recipientId: recordAuthorId,
+              type: "response",
+              title: `${authorName}님이 ${typeLabel}을 남겼습니다`,
+              recordId: parsed.data.recordId,
+              visibility: recordVisibility,
+            },
+            context.cloudflare.env.DB,
+          );
+
+          if (!result.success) {
             logger.warn("notification_create_failed", {
-              error: err instanceof Error ? err.message : String(err),
+              error: result.error ?? "알림 생성에 실패했습니다.",
               recordId: parsed.data.recordId,
             });
-          });
+          }
         }
       } else {
         // 일반 응답 알림: 기록 작성자에게
         if (currentUserId !== recordAuthorId) {
-          await createNotification(context.cloudflare.env.DB, {
-            recipientId: recordAuthorId,
-            type: "response",
-            title: `${authorName}님이 ${typeLabel}을 남겼습니다`,
-            recordId: parsed.data.recordId,
-          }).catch((err) => {
+          const result = await publishNotification(
+            context.cloudflare.env.QUEUE,
+            {
+              actorId: currentUserId,
+              recipientId: recordAuthorId,
+              type: "response",
+              title: `${authorName}님이 ${typeLabel}을 남겼습니다`,
+              recordId: parsed.data.recordId,
+              visibility: recordVisibility,
+            },
+            context.cloudflare.env.DB,
+          );
+
+          if (!result.success) {
             logger.warn("notification_create_failed", {
-              error: err instanceof Error ? err.message : String(err),
+              error: result.error ?? "알림 생성에 실패했습니다.",
               recordId: parsed.data.recordId,
             });
-          });
+          }
         }
       }
     }
@@ -499,7 +538,7 @@ async function buildMentionSlugMap(
 ): Promise<MentionSlugMap> {
   const map: MentionSlugMap = new Map();
 
-  const mentionIds = extractMentionIds(content);
+  const mentionIds = extractMentionUserIdsFromContent(content);
   if (mentionIds.length === 0) return map;
 
   const results = await database
@@ -519,42 +558,4 @@ async function buildMentionSlugMap(
   }
 
   return map;
-}
-
-function extractMentionIds(content: string): string[] {
-  try {
-    const doc = JSON.parse(content);
-    if (!doc || doc.type !== "doc") return [];
-
-    const ids: string[] = [];
-    const seen = new Set<string>();
-
-    function traverse(node: Record<string, unknown>): void {
-      if (
-        (node.type === "userMention" || node.type === "mention") &&
-        node.attrs &&
-        typeof node.attrs === "object" &&
-        "id" in node.attrs
-      ) {
-        const id = String((node.attrs as Record<string, unknown>).id);
-        if (id && !seen.has(id)) {
-          seen.add(id);
-          ids.push(id);
-        }
-      }
-
-      if (Array.isArray(node.content)) {
-        for (const child of node.content) {
-          if (typeof child === "object" && child !== null) {
-            traverse(child as Record<string, unknown>);
-          }
-        }
-      }
-    }
-
-    traverse(doc);
-    return ids;
-  } catch {
-    return [];
-  }
 }

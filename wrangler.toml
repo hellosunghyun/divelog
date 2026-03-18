@@ -30,6 +30,9 @@ bucket_name = "divelog-r2"
 binding = "QUEUE"
 queue = "divelog-queue"
 
+[[queues.consumers]]
+queue = "divelog-queue"
+
 [observability]
 [observability.logs]
 enabled = true

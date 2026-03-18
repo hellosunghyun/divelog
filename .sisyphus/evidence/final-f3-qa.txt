@@ -1,0 +1,9 @@
+VERDICT: REJECT
+
+QA Results:
+- [PASS] Full test suite: 20 passed
+- [PASS] Opt-out enforcement: `app/lib/notifications/notify.server.ts:2` imports `getNotificationPreferences`, and `app/lib/notifications/notify.server.ts:86` checks preferences before delivery
+- [PASS] Badge rendering: 15 passed
+- [FAIL] Settings toggles: 4
+- [PASS] Queue consumer: `workers/app.ts:126` defines `async queue(` and `workers/app.ts:127` uses `MessageBatch<NotificationQueueMessage>`
+- [PASS] Build: pass

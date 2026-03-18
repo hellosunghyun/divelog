@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { useState } from "react";
-import { data, Form, redirect, useNavigation } from "react-router";
+import { Form, redirect, useNavigation } from "react-router";
 import type { Route } from "./+types/meta.$recordId";
 
 import { Link } from "~/components/content/SmartLink";
@@ -15,7 +15,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~
 import { Textarea } from "~/components/ui/textarea";
 import { db } from "~/db/client.server";
 import { syncAllMentionsForRecord } from "~/db/queries/dialogue/mentions.server";
-import { bulkCreateNotifications } from "~/db/queries/social/notifications.server";
 import { syncParticipantsForRecord, getParticipantsByRecord } from "~/db/queries/records/participants.server";
 import { markAsRead } from "~/db/queries/records/recordReads.server";
 import { syncTypedRecordLinks, getTypedRecordLinks } from "~/db/queries/records/recordLinks.server";
@@ -26,6 +25,8 @@ import { questions, records } from "~/db/schema.server";
 import { useUnsavedWarning } from "~/hooks/useUnsavedWarning";
 import { requireVerified } from "~/lib/auth/auth.middleware";
 import { parseReferencesFromFormData } from "~/lib/auth/validation";
+import { deliverMentionNotifications } from "~/lib/notifications/mention-delivery.server";
+import { notify } from "~/lib/notifications/notify.server";
 
 type ReferenceField = { id: string; url: string; title: string };
 type LoaderTag = { id: string };
@@ -38,13 +39,6 @@ type LoaderRecordLink = {
   targetTitle: string | null;
   authorDisplayName: string | null;
 };
-
-export async function clientAction({ serverAction }: Route.ClientActionArgs) {
-  if (typeof sessionStorage !== "undefined") {
-    sessionStorage.setItem("divelog:invalidate-record-cache", "1");
-  }
-  return await serverAction();
-}
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "기록 마무리 — DiveLog" }];
@@ -107,12 +101,8 @@ export async function action({ params, request, context }: Route.ActionArgs) {
   }
 
   const record = await getRecordById(context.cloudflare.env.DB, recordId);
-  if (!record) {
-    throw new Response("Not Found", { status: 404 });
-  }
-
-  if (record.authorId !== auth.user.id) {
-    return data({ error: "권한이 없습니다." }, { status: 403 });
+  if (!record || record.authorId !== auth.user.id) {
+    throw new Response("Forbidden", { status: 403 });
   }
 
   const formData = await request.formData();
@@ -180,6 +170,16 @@ export async function action({ params, request, context }: Route.ActionArgs) {
 
   await syncParticipantsForRecord(context.cloudflare.env.DB, record.id, participants, auth.user.id);
   await syncAllMentionsForRecord(context.cloudflare.env.DB, record.id, [], record.content ?? "", auth.user.id);
+  context.cloudflare.ctx.waitUntil(
+    deliverMentionNotifications({
+      d1: context.cloudflare.env.DB,
+      actorId: auth.user.id,
+      actorName,
+      content: record.content,
+      recordId: record.id,
+      visibility: record.visibility,
+    }),
+  );
 
   const mentionedRecordIds = JSON.parse(formData.get("mentionedRecordIds")?.toString() ?? "[]") as string[];
   await syncTypedRecordLinks(context.cloudflare.env.DB, record.id, mentionedRecordIds, "mentioned");
@@ -198,16 +198,27 @@ export async function action({ params, request, context }: Route.ActionArgs) {
     });
   }
 
-  const notificationInputs = participants
-    .filter((participant) => participant.userId !== auth.user.id)
-    .map((participant) => ({
-      recipientId: participant.userId,
-      type: "participant_added" as const,
-      title: `${actorName}님이 기록에 함께하는 사람으로 남겼습니다`,
-      content: record.title,
-      recordId: record.id,
-    }));
-  await bulkCreateNotifications(context.cloudflare.env.DB, notificationInputs);
+  // Deliver participant notifications asynchronously via waitUntil
+  context.cloudflare.ctx.waitUntil(
+    (async () => {
+      for (const participant of participants) {
+        if (participant.userId === auth.user.id) {
+          continue;
+        }
+
+        await notify({
+          d1: context.cloudflare.env.DB,
+          actorId: auth.user.id,
+          recipientId: participant.userId,
+          type: "participant_added",
+          title: `${actorName}님이 기록에 함께하는 사람으로 남겼습니다`,
+          content: record.title,
+          recordId: record.id,
+          visibility: record.visibility,
+        });
+      }
+    })(),
+  );
 
   if (record.visibility !== "draft") {
     try {

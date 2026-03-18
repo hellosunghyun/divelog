@@ -1,6 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { syncAllMentionsForRecord, getMentionsByRecord, getMentionsOfUser } from "../dialogue/mentions.server";
+import {
+  extractMentionUserIdsFromContent,
+  getMentionsByRecord,
+  getMentionsOfUser,
+  syncAllMentionsForRecord,
+} from "../dialogue/mentions.server";
 import { db } from "../../client.server";
 
 vi.mock("../../client.server", () => ({
@@ -277,6 +282,30 @@ describe("mentions query", () => {
       const insertedValues = calls[0]?.[0];
       expect(Array.isArray(insertedValues)).toBe(true);
       expect((insertedValues as Array<unknown>)).toHaveLength(1);
+    });
+  });
+
+  describe("extractMentionUserIdsFromContent", () => {
+    it("returns unique user ids from mention nodes", () => {
+      const content = JSON.stringify({
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+            content: [
+              { type: "userMention", attrs: { id: "user-1", label: "하나" } },
+              { type: "mention", attrs: { id: "user-2", label: "둘" } },
+              { type: "userMention", attrs: { id: "user-1", label: "하나" } },
+            ],
+          },
+        ],
+      });
+
+      expect(extractMentionUserIdsFromContent(content)).toEqual(["user-1", "user-2"]);
+    });
+
+    it("returns empty array for invalid json", () => {
+      expect(extractMentionUserIdsFromContent("not-json")).toEqual([]);
     });
   });
 

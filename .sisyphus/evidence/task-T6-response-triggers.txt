@@ -1,0 +1,21 @@
+2026-03-19 T6 - Response/reply notification trigger migration
+
+Modified file
+- app/routes/public/logs/$recordSlug.server.ts
+
+What changed
+- Replaced the route import of `createNotification` with `notify` from `app/lib/notifications/notify.server.ts`.
+- Top-level responses now call `notify({ type: "response", actorId, recipientId: recordAuthorId, recordId, visibility })`.
+- Replies now call `notify({ type: "reply", actorId, recipientId: parentAuthorId, recordId, visibility })` for the parent response author.
+- Replies additionally call `notify({ type: "response", actorId, recipientId: recordAuthorId, recordId, visibility })` when the record author differs from the parent response author and the current user.
+- Existing route-side self/double-work guards remain in place.
+
+Verification
+- LSP diagnostics for `app/routes/public/logs/$recordSlug.server.ts`: clean.
+- `pnpm typecheck`: fails due to pre-existing repository errors outside this task (examples: `app/db/queries/dialogue/responses.server.ts`, `app/db/schema.server.ts`, `app/lib/auth/auth.middleware.ts`, several admin/public memory routes).
+- `pnpm build`: not executed because `pnpm typecheck && pnpm build` stopped at the existing typecheck failures.
+
+Relevant diff points
+- Parent reply notification type changed from `response` to `reply`.
+- All notification calls now pass `actorId: auth.user.id`.
+- All notification calls now pass record visibility from the target record.

@@ -1,5 +1,9 @@
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
+import { and, desc, eq } from "drizzle-orm";
 import { getOptionalUser } from "~/lib/auth/auth.middleware";
+import { db } from "~/db/client.server";
+import { notifications, records } from "~/db/schema.server";
+import { getUnreadCount } from "~/db/queries/social/notifications.server";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const auth = await getOptionalUser(request, context);
@@ -8,17 +12,31 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     return Response.json({ notifications: [], unreadCount: 0 });
   }
 
-  const { getNotifications, getUnreadCount } = await import(
-    "~/db/queries/social/notifications.server"
-  );
+  const database = db(context.cloudflare.env.DB);
 
   const [notifs, unreadCount] = await Promise.all([
-    getNotifications(context.cloudflare.env.DB, auth.user.id),
+    database
+      .select({
+        id: notifications.id,
+        type: notifications.type,
+        title: notifications.title,
+        content: notifications.content,
+        recordId: notifications.recordId,
+        recordSlug: records.slug,
+        questionId: notifications.questionId,
+        isRead: notifications.isRead,
+        createdAt: notifications.createdAt,
+      })
+      .from(notifications)
+      .leftJoin(records, eq(notifications.recordId, records.id))
+      .where(eq(notifications.recipientId, auth.user.id))
+      .orderBy(desc(notifications.createdAt))
+      .limit(8),
     getUnreadCount(context.cloudflare.env.DB, auth.user.id),
   ]);
 
   return Response.json({
-    notifications: notifs.slice(0, 8),
+    notifications: notifs,
     unreadCount,
   });
 }

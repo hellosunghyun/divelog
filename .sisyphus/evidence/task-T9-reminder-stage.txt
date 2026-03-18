@@ -1,0 +1,21 @@
+Task T9 evidence - 2026-03-19
+
+Implemented
+- Added `app/lib/notifications/reminder-delivery.server.ts` to route self-answer reminder and reread reminder events through centralized `notify()` with `actorId: null`.
+- Added `app/lib/notifications/stage-transition.server.ts` to route learner stage changes through centralized `notify()` with the admin actor.
+- Updated `app/routes/admin/learners/$learnerId.tsx` to expose Stage 관리, persist `learner_profiles.current_stage_id`, and notify the learner when an admin moves them to a new stage.
+- Added tests in `app/lib/notifications/__tests__/reminder-delivery.test.ts` and `app/lib/notifications/__tests__/stage-transition.test.ts`.
+
+Verification
+- `pnpm exec vitest run app/lib/notifications/__tests__/reminder-delivery.test.ts app/lib/notifications/__tests__/stage-transition.test.ts` -> 2 files passed, 5 tests passed.
+- `pnpm build` -> passed.
+- `lsp_diagnostics` -> clean for:
+  - `app/lib/notifications/reminder-delivery.server.ts`
+  - `app/lib/notifications/stage-transition.server.ts`
+  - `app/lib/notifications/__tests__/reminder-delivery.test.ts`
+  - `app/lib/notifications/__tests__/stage-transition.test.ts`
+  - `app/routes/admin/learners/$learnerId.tsx`
+
+Notes
+- `deliverDueQuestionReminders()` marks a due reminder as sent only after `notify()` succeeds, so failed deliveries remain retryable.
+- `deliverRereadReminderNotification()` is available for future queue/admin triggers where reread reminder events are emitted.

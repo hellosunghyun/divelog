@@ -1,0 +1,60 @@
+# T10: Settings UI for Per-Type Notification Opt-Out
+
+## Task Description
+Extend `/settings` page to show per-type notification toggles with Korean labels, persisted via `upsertNotificationPreferences`.
+
+## Implementation Summary
+
+### Changes Made to `app/routes/public/settings.tsx`
+
+1. **Added imports**:
+   - `getNotificationPreferences`, `upsertNotificationPreferences`, `NOTIFICATION_TYPES`, `NotificationType` from `~/db/queries/social/notificationPreferences.server.ts`
+
+2. **Added `NOTIFICATION_TYPE_LABELS` constant**:
+   - Maps each notification type to Korean title and description
+   - All 7 types covered: response, reply, mention, participant_added, reminder, reread_reminder, stage_transition
+
+3. **Updated loader**:
+   - Calls `getNotificationPreferences(context.cloudflare.env.DB, auth.user.id)`
+   - Returns `notificationTypePreferences` alongside existing `learner`
+
+4. **Updated action**:
+   - Parses form data for each notification type (`notif_${type}`)
+   - Calls `upsertNotificationPreferences` to persist changes
+
+5. **Updated component**:
+   - Destructures `notificationTypePreferences` from `loaderData`
+   - Added notification type toggles in "알림 설정" section after the existing email toggle
+   - Uses same UI pattern as existing checkbox (p-4, rounded-xl, border, bg-surface-secondary/50)
+   - Quiet Depth design: clean layout, no visual clutter
+
+## Korean Labels Implemented
+
+| Type | Title | Description |
+|------|-------|-------------|
+| response | 응답 알림 | 내 기록에 공명, 질문, 연결, 제안이 남겨지면 알림을 받습니다. |
+| reply | 답글 알림 | 내 질문이나 응답에 답글이 달리면 알림을 받습니다. |
+| mention | 멘션 알림 | 다른 글에서 내가 멘션되면 알림을 받습니다. |
+| participant_added | 참가자 추가 알림 | 협업에 새 참가자가 추가되면 알림을 받습니다. |
+| reminder | 리마인더 알림 | 설정한 리마인더 시간에 알림을 받습니다. |
+| reread_reminder | 다시 읽기 리마인더 | 다시 읽고 싶다고 표시한 기록을 상기시켜 주는 알림을 받습니다. |
+| stage_transition | 스테이지 전환 알림 | 여정의 새로운 스테이지가 시작되면 알림을 받습니다. |
+
+## Verification
+
+- [x] `app/routes/public/settings.tsx` updated with notification type toggles
+- [x] At minimum 4 toggles visible (all 7 implemented)
+- [x] Toggles loaded from `getNotificationPreferences` in loader
+- [x] Saving form calls `upsertNotificationPreferences` in action
+- [x] Existing `notificationEmailEnabled` field preserved
+- [x] Quiet Depth design: clean toggle group, Korean labels, no visual clutter
+- [x] LSP diagnostics clean on modified file
+- [x] No `as any`, `@ts-ignore`, or `@ts-expect-error`
+- [x] No English labels in UI
+
+## File Modified
+- `app/routes/public/settings.tsx` (364 lines, +89 from original)
+
+## Test Status
+- Typecheck: settings.tsx has no errors (pre-existing errors in other files are OUT OF SCOPE)
+- LSP diagnostics: Clean on settings.tsx

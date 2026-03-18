@@ -1,0 +1,17 @@
+VERDICT: APPROVE
+
+Must Have Compliance:
+- [PASS] Self-notification prevention: `app/lib/notifications/notify.server.ts:77` returns early when `actorId === recipientId`; covered by `app/lib/notifications/__tests__/notify.test.ts:35`, and `pnpm exec vitest run app/lib/notifications/__tests__/notify.test.ts` passed with 12/12 tests.
+- [PASS] Draft guard: `app/lib/notifications/notify.server.ts:81` returns early when `visibility === "draft"`; covered by `app/lib/notifications/__tests__/notify.test.ts:126`.
+- [PASS] Safe failure: `app/lib/notifications/notify.server.ts:130` catches errors and returns `{ success: false, error }` instead of throwing; callers log and continue in `app/routes/public/logs/$recordSlug.server.ts:321`, `app/routes/public/write/meta.$recordId.tsx:201`, and `app/routes/admin/learners/$learnerId.tsx:143`.
+- [PASS] Korean text: notification titles/default text are Korean in `app/lib/notifications/reminder-delivery.server.ts:11`, `app/lib/notifications/stage-transition.server.ts:23`, `app/lib/notifications/mention-delivery.server.ts:40`, `app/routes/public/logs/$recordSlug.server.ts:327`, and `app/routes/public/write/meta.$recordId.tsx:214`.
+- [PASS] Centralized service: `createNotification()` is only invoked in `app/lib/notifications/notify.server.ts:114`; routes and queue delivery flow through `notify()` or `publishNotification()` (`app/lib/notifications/publish.server.ts:29`, `workers/app.ts:133`).
+- [PASS] Per-type opt-out: Korean per-type toggles are defined in `app/routes/public/settings.tsx:30`; preferences are persisted via `upsertNotificationPreferences()` in `app/routes/public/settings.tsx:137` and enforced in `app/lib/notifications/notify.server.ts:85` before any create.
+
+Must NOT Have Compliance:
+- [PASS] No email sending: search for `nodemailer|sendEmail` in `app/` and `workers/` returned no matches; the codebase only has a stored UI preference at `app/routes/public/settings.tsx:268` and `app/db/schema.server.ts:16`.
+- [PASS] No WebSocket/SSE/Push: search for `WebSocket|EventSource|pushManager` in `app/` and `workers/` returned no matches.
+- [PASS] No direct createNotification in routes: search for `createNotification` under `app/routes/` returned no matches; occurrences are limited to `app/lib/notifications/notify.server.ts:114`, query-layer code, and tests.
+- [PASS] No delete/archive UI: notification UI/action paths expose only `mark_read` and `mark_all_read` in `app/routes/public/inbox.tsx:71` and `app/routes/api/notifications.tsx:57`; no delete/archive notification controls were found.
+
+Issues Found: None. Supporting evidence files exist under `.sisyphus/evidence/`, including `task-T1-schema.txt` through `task-T12-queue-delivery.txt`.

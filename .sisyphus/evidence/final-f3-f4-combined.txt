@@ -1,0 +1,12 @@
+F3 VERDICT: APPROVE
+F4 VERDICT: APPROVE
+
+F3 Results:
+- [PASS] Tests: 20 passed (4 files)
+- [PASS] Settings loop renders all types: app/routes/public/settings.tsx:293 `NOTIFICATION_TYPES.map((type) => {`
+- [PASS] Build: pass (`⚡ Done in 101ms`, `[patch-worker] bundled build/client/_worker.js for Cloudflare Pages`)
+- [PASS] Badge tests: 15 passed (1 file)
+
+F4 Results:
+- [PASS] Changed files within notification scope: no out-of-scope files detected
+- [PASS] No forbidden patterns: no non-test/spec/md matches for `WebSocket|EventSource|pushManager|nodemailer|sendEmail|deleteNotification|archiveNotification` in `app/` and `workers/`

@@ -17,9 +17,48 @@ import {
 } from "~/components/ui/select";
 import { db } from "~/db/client.server";
 import { clearAllReads } from "~/db/queries/records/recordReads.server";
+import {
+  getNotificationPreferences,
+  upsertNotificationPreferences,
+} from "~/db/queries/social/notificationPreferences.server";
 import { learnerProfiles } from "~/db/schema.server";
+import {
+  NOTIFICATION_TYPES,
+  type NotificationType,
+} from "~/lib/constants/notificationTypes";
 import { clearLocalReads } from "~/lib/infra/read-storage";
 import { createLogger } from "~/lib/infra/logger.server";
+
+const NOTIFICATION_TYPE_LABELS: Record<NotificationType, { title: string; description: string }> = {
+  response: {
+    title: "응답 알림",
+    description: "내 기록에 공명, 질문, 연결, 제안이 남겨지면 알림을 받습니다.",
+  },
+  reply: {
+    title: "답글 알림",
+    description: "내 질문이나 응답에 답글이 달리면 알림을 받습니다.",
+  },
+  mention: {
+    title: "멘션 알림",
+    description: "다른 글에서 내가 멘션되면 알림을 받습니다.",
+  },
+  participant_added: {
+    title: "참가자 추가 알림",
+    description: "협업에 새 참가자가 추가되면 알림을 받습니다.",
+  },
+  reminder: {
+    title: "리마인더 알림",
+    description: "설정한 리마인더 시간에 알림을 받습니다.",
+  },
+  reread_reminder: {
+    title: "다시 읽기 리마인더",
+    description: "다시 읽고 싶다고 표시한 기록을 상기시켜 주는 알림을 받습니다.",
+  },
+  stage_transition: {
+    title: "스테이지 전환 알림",
+    description: "여정의 새로운 스테이지가 시작되면 알림을 받습니다.",
+  },
+};
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "설정 — DiveLog" }];
@@ -50,7 +89,14 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     .where(eq(learnerProfiles.userId, auth.user.id))
     .limit(1);
 
-  return { learner: learnerResult[0] ?? null };
+  const learner = learnerResult[0] ?? null;
+
+  const notificationTypePreferences = await getNotificationPreferences(
+    context.cloudflare.env.DB,
+    auth.user.id
+  );
+
+  return { learner, notificationTypePreferences };
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
@@ -90,13 +136,23 @@ export async function action({ request, context }: Route.ActionArgs) {
     })
     .where(eq(learnerProfiles.userId, auth.user.id));
 
+  const notificationTypePrefs: Partial<Record<NotificationType, boolean>> = {};
+  for (const type of NOTIFICATION_TYPES) {
+    notificationTypePrefs[type] = formData.get(`notif_${type}`) === "on";
+  }
+  await upsertNotificationPreferences(
+    context.cloudflare.env.DB,
+    auth.user.id,
+    notificationTypePrefs
+  );
+
   logger.info("settings_update", { fields: changedFields });
 
   return { success: "설정이 저장되었습니다." };
 }
 
 export default function SettingsPage({ loaderData }: Route.ComponentProps) {
-  const { learner } = loaderData;
+  const { learner, notificationTypePreferences } = loaderData;
   const actionData = useActionData<typeof action>();
 
   return (
@@ -226,6 +282,41 @@ export default function SettingsPage({ loaderData }: Route.ComponentProps) {
                   <p className="text-sm text-text-secondary">
                     내 기록에 남겨진 질문과 공명, 그리고 멘토의 피드백을 이메일로 받아봅니다.
                   </p>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-border">
+                <p className="text-sm text-text-secondary mb-4">
+                  알림을 받을 유형을 선택할 수 있습니다.
+                </p>
+                <div className="space-y-3">
+                  {NOTIFICATION_TYPES.map((type) => {
+                    const label = NOTIFICATION_TYPE_LABELS[type];
+                    return (
+                      <div
+                        key={type}
+                        className="flex items-start gap-3 p-4 rounded-xl border border-border bg-surface-secondary/50"
+                      >
+                        <Checkbox
+                          id={`notif_${type}`}
+                          name={`notif_${type}`}
+                          defaultChecked={notificationTypePreferences[type]}
+                          className="mt-1 border-border data-[state=checked]:border-ocean-blue data-[state=checked]:bg-ocean-blue"
+                        />
+                        <div className="flex flex-col gap-1">
+                          <Label
+                            htmlFor={`notif_${type}`}
+                            className="cursor-pointer text-base font-medium text-text-primary"
+                          >
+                            {label.title}
+                          </Label>
+                          <p className="text-sm text-text-secondary">
+                            {label.description}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </div>
