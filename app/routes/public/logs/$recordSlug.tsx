@@ -1375,7 +1375,6 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
               <Button
                 type="button"
                 variant="ghost"
-                size="sm"
                 onClick={closeSentencePopup}
                 className="rounded-full px-5 py-2.5 text-sm border border-border bg-transparent text-text-secondary cursor-pointer transition-all duration-normal hover:border-text-secondary/30 hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
               >
