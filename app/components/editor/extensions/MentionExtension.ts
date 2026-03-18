@@ -1,7 +1,9 @@
 import { Mention } from "@tiptap/extension-mention";
-import { PluginKey } from "@tiptap/pm/state";
+import { PluginKey, EditorState } from "@tiptap/pm/state";
+import { EditorView } from "@tiptap/pm/view";
 import { exitSuggestion, type SuggestionProps } from "@tiptap/suggestion";
 import { disassemble, getChoseong } from "es-hangul";
+import type { Editor, Range } from "@tiptap/core";
 
 interface MentionItem {
   id: string;
@@ -124,15 +126,16 @@ export function createUserMentionExtension() {
       char: "@",
       pluginKey: mentionPluginKey,
       allowedPrefixes: null,
-      allow: ({ state }: { editor: any; state: any }) => {
+      allow: ({ state }: { editor: Editor; state: EditorState }) => {
         const parent = state.selection.$from.parent;
         return parent.isTextblock && !parent.type.spec.code;
       },
       items: ({ query }: { query: string }) => filterLearners(query),
-      command: ({ editor, range, props }: { editor: any; range: any; props: any }) => {
-        if (props.id === "__loading__") return;
-        const label = props.displayName ?? props.label ?? props.id;
-        const slug = props.slug ?? props.id;
+      command: ({ editor, range, props }: { editor: Editor; range: Range; props: unknown }) => {
+        const item = props as MentionItem;
+        if (item.id === "__loading__") return;
+        const label = item.displayName ?? item.id;
+        const slug = item.slug ?? item.id;
         exitSuggestion(editor.view, mentionPluginKey);
         editor
           .chain()
@@ -190,7 +193,7 @@ export function createUserMentionExtension() {
             update();
             position();
           },
-          onKeyDown: ({ event, view }: { event: KeyboardEvent; view: any }) => {
+           onKeyDown: ({ event, view }: { event: KeyboardEvent; view: EditorView }) => {
             if (!currentProps || !popup) return false;
             if (currentProps.items.length === 0 || (currentProps.items.length === 1 && currentProps.items[0] === LOADING_SENTINEL)) return false;
             if (event.isComposing || event.keyCode === 229) return false;

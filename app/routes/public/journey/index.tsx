@@ -8,6 +8,7 @@ import { sql } from "drizzle-orm";
 import { db } from "~/db/client.server";
 import { stages } from "~/db/schema.server";
 import { createLogger } from "~/lib/infra/logger.server";
+import type { InferSelectModel } from "drizzle-orm";
 
 export function meta(_args: Route.MetaArgs) {
   return [
@@ -16,12 +17,14 @@ export function meta(_args: Route.MetaArgs) {
   ];
 }
 
-export async function loader({ request, context }: Route.LoaderArgs): Promise<{ stages: any[]; currentStage: any }> {
+type Stage = InferSelectModel<typeof stages>;
+
+export async function loader({ request, context }: Route.LoaderArgs): Promise<{ stages: Stage[]; currentStage: Stage | null }> {
   const logger = createLogger(request, context.cloudflare.env).child({ route: "journey" });
   logger.info("loader_start");
   const database = db(context.cloudflare.env.DB);
   const allStages = await database.select().from(stages).orderBy(sql`"order" ASC`);
-  const currentStage = allStages.find((s: any) => s.isCurrent) ?? null;
+  const currentStage = allStages.find((s) => s.isCurrent) ?? null;
   logger.info("loader_end");
   return { stages: allStages, currentStage };
 }
@@ -81,9 +84,9 @@ export default function JourneyPage({ loaderData }: Route.ComponentProps) {
       <div className="max-w-content mx-auto px-6 py-16 md:py-24">
         {allStages.length === 0 ? (
           <EmptyState variant="generic" message="아직 Stage가 등록되지 않았습니다." />
-        ) : (
-          <div className="flex flex-col gap-5">
-            {allStages.map((stage: any, index: number) => {
+         ) : (
+           <div className="flex flex-col gap-5">
+             {allStages.map((stage, index: number) => {
               const accentColor = STAGE_ACCENTS[stage.type] ?? "var(--color-ocean-blue)";
               const isCurrent = stage.isCurrent;
 

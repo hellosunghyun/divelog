@@ -1,5 +1,6 @@
 import { Extension, type Editor, type Range } from "@tiptap/core";
-import { PluginKey } from "@tiptap/pm/state";
+import { PluginKey, EditorState } from "@tiptap/pm/state";
+import { EditorView } from "@tiptap/pm/view";
 import Suggestion, { exitSuggestion, type SuggestionOptions, type SuggestionProps } from "@tiptap/suggestion";
 
 const slashCommandPluginKey = new PluginKey("slashCommand");
@@ -377,7 +378,7 @@ export function createSlashCommandExtension(
         suggestion: {
           char: "/",
           pluginKey: slashCommandPluginKey,
-          allow: ({ editor, state }: { editor: any; state: any }) => {
+          allow: ({ editor, state }: { editor: Editor; state: EditorState }) => {
             const parent = state.selection.$from.parent;
             return !editor.view.composing && parent.isTextblock && !parent.type.spec.code;
           },
@@ -567,7 +568,7 @@ export function createSlashCommandExtension(
                 buildList();
                 updatePosition();
               },
-              onKeyDown: ({ event, view }: { event: KeyboardEvent; view: any }) => {
+               onKeyDown: ({ event, view }: { event: KeyboardEvent; view: EditorView }) => {
                 if (!currentProps || !menu || currentProps.items.length === 0) {
                   return false;
                 }
