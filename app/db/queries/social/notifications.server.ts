@@ -7,6 +7,7 @@ import { notifications } from "../../schema.server";
 export type NotificationType =
   | "response"
   | "mention"
+  | "participant_added"
   | "reminder"
   | "reread_reminder"
   | "carry_over"

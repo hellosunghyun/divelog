@@ -1,7 +1,8 @@
-import { eq, sql } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 import { useState, Suspense, lazy } from "react";
+import PersonSearch from "~/components/PersonSearch";
 import { Link } from "~/components/content/SmartLink";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import type { DateRange } from "react-day-picker";
@@ -28,11 +29,13 @@ import {
 } from "~/components/ui/select";
 import { TagSelector } from "~/components/TagSelector";
 import { db } from "~/db/client.server";
-import { syncMentionsForRecord } from "~/db/queries/dialogue/mentions.server";
+import { syncAllMentionsForRecord } from "~/db/queries/dialogue/mentions.server";
+import { createNotification } from "~/db/queries/social/notifications.server";
 import { markAsRead } from "~/db/queries/records/recordReads.server";
 import { syncRecordLinksForRecord } from "~/db/queries/records/recordLinks.server";
+import { syncParticipantsForRecord } from "~/db/queries/records/participants.server";
 import { getAllTags } from "~/db/queries/records/tags.server";
-import { learnerProfiles, notifications, records, recordTags, stages } from "~/db/schema.server";
+import { learnerProfiles, records, recordTags, stages } from "~/db/schema.server";
 import { useUnsavedWarning } from "~/hooks/useUnsavedWarning";
 import { requireVerified } from "~/lib/auth/auth.middleware";
 import { createArticleSchema } from "~/lib/auth/validation";
@@ -93,6 +96,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     currentStage: currentStageResult[0] ?? null,
     stages: allStages,
     tags: allTags,
+    currentUserId: auth.user?.id ?? null,
     learnerDefaults: {
       defaultVisibility: learner?.defaultVisibility ?? "public",
       defaultResponsePreference: learner?.defaultResponsePreference ?? "open",
@@ -169,39 +173,44 @@ export async function action({ request, context }: Route.ActionArgs) {
     updatedAt: now,
   });
 
+  const participantsJson = formData.get("participantsJson")?.toString() ?? "[]";
+  const mentionUserIdsJson = formData.get("mentionUserIds")?.toString() ?? "[]";
+  const participants = JSON.parse(participantsJson) as { userId: string; role: string }[];
+  const mentionUserIds = JSON.parse(mentionUserIdsJson) as string[];
   const mentionedUsers = extractUserMentions(content);
   const recordRefs = extractRecordRefs(content);
+  const allMentionUserIds = Array.from(
+    new Set([...mentionUserIds, ...mentionedUsers.map((mention) => mention.userId)])
+  );
+  const actorName = auth.user.nickname ?? auth.user.name ?? "누군가";
 
-  if (mentionedUsers.length > 0) {
-    await syncMentionsForRecord(
-      context.cloudflare.env.DB,
-      id,
-      auth.user.id,
-      mentionedUsers.map((m) => m.slug),
-    );
+  await syncParticipantsForRecord(context.cloudflare.env.DB, id, participants, auth.user.id);
+  await syncAllMentionsForRecord(context.cloudflare.env.DB, id, mentionUserIds, content, auth.user.id);
 
-    const mentionSlugs = [...new Set(mentionedUsers.map((m) => m.slug).filter(Boolean))];
-    if (mentionSlugs.length > 0) {
-      const mentionedLearners = await database
-        .select({ userId: learnerProfiles.userId })
-        .from(learnerProfiles)
-        .where(sql`${learnerProfiles.slug} IN (${sql.join(mentionSlugs.map((s) => sql`${s}`), sql`, `)})`);
+  const notified = new Set<string>();
 
-      const actorName = auth.user.nickname ?? auth.user.name ?? "누군가";
-      for (const row of mentionedLearners) {
-        if (row.userId !== auth.user.id) {
-          await database.insert(notifications).values({
-            id: nanoid(),
-            recipientId: row.userId,
-            type: "mention",
-            title: `${actorName}님이 기록에서 당신을 언급했습니다`,
-            content: parsed.data.title,
-            recordId: id,
-            isRead: false,
-            createdAt: now,
-          });
-        }
-      }
+  for (const participant of participants) {
+    if (participant.userId !== auth.user.id) {
+      await createNotification(context.cloudflare.env.DB, {
+        recipientId: participant.userId,
+        type: "participant_added",
+        title: `${actorName}님이 기록에 함께하는 사람으로 남겼습니다`,
+        content: parsed.data.title,
+        recordId: id,
+      });
+      notified.add(participant.userId);
+    }
+  }
+
+  for (const userId of allMentionUserIds) {
+    if (userId !== auth.user.id && !notified.has(userId)) {
+      await createNotification(context.cloudflare.env.DB, {
+        recipientId: userId,
+        type: "mention",
+        title: `${actorName}님이 기록에서 당신을 언급했습니다`,
+        content: parsed.data.title,
+        recordId: id,
+      });
     }
   }
 
@@ -233,7 +242,7 @@ export async function action({ request, context }: Route.ActionArgs) {
 }
 
 export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
-  const { currentStage, stages: availableStages, tags, learnerDefaults } = loaderData;
+  const { currentStage, stages: availableStages, tags, learnerDefaults, currentUserId } = loaderData;
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const [stageValue, setStageValue] = useState(currentStage?.id ?? NO_STAGE_VALUE);
@@ -518,14 +527,34 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
 
            <details className="mt-6">
              <summary className="cursor-pointer text-sm font-medium text-text-secondary">부가 정보</summary>
-             <div className="mt-4">
-               <TagSelector
-                 tags={tags}
-                 selectedTagIds={Array.from(selectedTags)}
-                 onChange={(newIds) => setSelectedTags(new Set(newIds))}
-               />
-             </div>
-           </details>
+            <div className="mt-4">
+              <TagSelector
+                tags={tags}
+                selectedTagIds={Array.from(selectedTags)}
+                onChange={(newIds) => setSelectedTags(new Set(newIds))}
+              />
+
+              <div className="mt-4 space-y-4">
+                <PersonSearch
+                  label="함께하는 사람"
+                  name="participantsJson"
+                  selectedPeople={[]}
+                  excludeUserId={currentUserId ?? undefined}
+                  roleOptions={[
+                    { value: "coauthor", label: "공동작성" },
+                    { value: "companion", label: "함께활동" },
+                    { value: "mentor", label: "멘토" },
+                  ]}
+                />
+                <PersonSearch
+                  label="언급된 사람"
+                  name="mentionUserIds"
+                  selectedPeople={[]}
+                  excludeUserId={currentUserId ?? undefined}
+                />
+              </div>
+            </div>
+          </details>
          </Form>
        </div>
      </div>
