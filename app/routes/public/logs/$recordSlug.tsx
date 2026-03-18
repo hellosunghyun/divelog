@@ -297,10 +297,6 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
   }, [closeSentencePopup, record.id, selectedText, sentenceReason, submit]);
 
   useEffect(() => {
-    if (!isArticleRecord) {
-      return;
-    }
-
     const articleContentElement = articleContentRef.current;
 
     if (!articleContentElement) {
@@ -312,7 +308,7 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
     return () => {
       articleContentElement.removeEventListener("mouseup", handleArticleMouseUp);
     };
-  }, [handleArticleMouseUp, isArticleRecord]);
+  }, [handleArticleMouseUp]);
 
   useEffect(() => {
     if (!showSentenceButton || showSentencePopup || typeof document === "undefined") {
@@ -503,13 +499,9 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
       </header>
 
       <section className="mb-12 relative">
-        {isArticleRecord ? (
-          <div ref={articleContentRef}>
-            <ContentRenderer contentHtml={contentHtml} format={recordFormat} />
-          </div>
-        ) : (
+        <div ref={articleContentRef}>
           <ContentRenderer contentHtml={contentHtml} format={recordFormat} />
-        )}
+        </div>
 
         {showSentenceButton && selectedText && !showSentencePopup ? (
           <div
