@@ -38,7 +38,7 @@ import { syncRecordLinksForRecord } from "~/db/queries/records/recordLinks.serve
 import { getRecordBySlug, updateRecord } from "~/db/queries/records/records.server";
 import { getAllTags, getTagsByRecord, findOrCreateTag, syncTagsForRecord } from "~/db/queries/records/tags.server";
 import { recordReferences, templates } from "~/db/schema.server";
-import { requireVerified } from "~/lib/auth/auth.middleware";
+import { requireVerified } from "~/lib/auth/auth.middleware.server";
 import { createRecordSchema, parseReferencesFromFormData } from "~/lib/auth/validation";
 import { getPlainText } from "~/lib/content/content.server";
 import { extractRecordRefs, extractUserMentions } from "~/lib/content/extract-references.server";
@@ -261,6 +261,7 @@ export async function action({ params, request, context }: Route.ActionArgs) {
   context.cloudflare.ctx.waitUntil(
     deliverMentionNotifications({
       d1: context.cloudflare.env.DB,
+      queue: context.cloudflare.env.QUEUE,
       actorId: auth.user.id,
       actorName: auth.user.nickname ?? auth.user.name ?? "누군가",
       content: parsed.data.content,

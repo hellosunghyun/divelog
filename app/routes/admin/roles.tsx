@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { redirect, useNavigation } from "react-router";
 import type { Route } from "./+types/roles";
-import { requireRole } from "~/lib/auth/auth.middleware";
+import { requireRole } from "~/lib/auth/auth.middleware.server";
 import { asc, eq } from "drizzle-orm";
 import { Spinner } from "~/components/feedback/Spinner";
 import {

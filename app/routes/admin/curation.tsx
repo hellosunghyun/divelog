@@ -6,7 +6,7 @@ import type { curationSlots } from "~/db/schema.server";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Spinner } from "~/components/feedback/Spinner";
-import { requireRole } from "~/lib/auth/auth.middleware";
+import { requireRole } from "~/lib/auth/auth.middleware.server";
 import {
   Table,
   TableBody,

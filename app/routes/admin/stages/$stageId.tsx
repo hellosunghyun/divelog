@@ -1,6 +1,6 @@
 import { data, redirect, useNavigation } from "react-router";
 import type { Route } from "./+types/$stageId";
-import { requireRole } from "~/lib/auth/auth.middleware";
+import { requireRole } from "~/lib/auth/auth.middleware.server";
 import { Link } from "~/components/content/SmartLink";
 import { Button } from "~/components/ui/button";
 import { Checkbox } from "~/components/ui/checkbox";

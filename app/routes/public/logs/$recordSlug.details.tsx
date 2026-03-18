@@ -24,7 +24,7 @@ import { getRecordReferences } from "~/db/queries/records/references.server";
 import { syncRecordReferences } from "~/db/queries/records/references.server";
 import { getAllTags, getTagsByRecord } from "~/db/queries/records/tags.server";
 import { questions, records, recordTags } from "~/db/schema.server";
-import { requireVerified } from "~/lib/auth/auth.middleware";
+import { requireVerified } from "~/lib/auth/auth.middleware.server";
 import { updateRecordMetadataSchema, parseReferencesFromFormData } from "~/lib/auth/validation";
 import { nanoid } from "~/lib/utils/utils.server";
 

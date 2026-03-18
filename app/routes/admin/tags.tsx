@@ -25,7 +25,7 @@ import {
   adminThClass,
   adminTrClass,
 } from "~/components/admin/admin-patterns";
-import { requireRole } from "~/lib/auth/auth.middleware";
+import { requireRole } from "~/lib/auth/auth.middleware.server";
 
 export function meta(_: Route.MetaArgs) {
   return [{ title: "게시글 태그 관리" }];

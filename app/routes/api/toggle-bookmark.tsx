@@ -1,5 +1,5 @@
 import type { ActionFunctionArgs } from "react-router";
-import { getOptionalUser } from "~/lib/auth/auth.middleware";
+import { getOptionalUser } from "~/lib/auth/auth.middleware.server";
 import { isRecordSaved, saveRecord, unsaveRecord } from "~/db/queries/records/savedRecords.server";
 
 export async function action({ request, context }: ActionFunctionArgs) {

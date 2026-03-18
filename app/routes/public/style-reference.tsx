@@ -1,5 +1,5 @@
 import type { Route } from "./+types/style-reference";
-import { requireRole } from "~/lib/auth/auth.middleware";
+import { requireRole } from "~/lib/auth/auth.middleware.server";
 import { motion } from "~/lib/motion/motion";
 import { fadeUp, staggerContainer, staggerItem, tapScale } from "~/lib/motion/motion-utils";
 import { cn } from "~/lib/utils/cn";

@@ -3,7 +3,7 @@ import { useNavigation } from "react-router";
 import type { Route } from "./+types/settings";
 import { eq } from "drizzle-orm";
 import type { settings } from "~/db/schema.server";
-import { requireRole } from "~/lib/auth/auth.middleware";
+import { requireRole } from "~/lib/auth/auth.middleware.server";
 import {
   adminCardClass,
   adminCardHeaderClass,

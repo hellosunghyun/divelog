@@ -13,7 +13,7 @@ import {
 } from "~/components/ui/select";
 import { SubmitButton } from "~/components/feedback/SubmitButton";
 import { ADMIN_ROLES, type AdminRole } from "~/db/queries/admin/ops/roles";
-import { requireRole } from "~/lib/auth/auth.middleware";
+import { requireRole } from "~/lib/auth/auth.middleware.server";
 
 export async function loader({ params, request, context }: Route.LoaderArgs) {
   const { db } = await import("~/db/client.server");
@@ -81,7 +81,6 @@ export async function action({ params, request, context }: Route.ActionArgs) {
   const { learnerProfiles, stages } = await import("~/db/schema.server");
   const { adminAddUserRole, adminRemoveUserRole } = await import("~/db/queries/admin/ops/roles.server");
   const { adminGetLearnerByUserId, adminUpdateLearner } = await import("~/db/queries/admin/data/learners.server");
-  const { requireRole } = await import("~/lib/auth/auth.middleware");
   const { deliverStageTransitionNotification } = await import("~/lib/notifications/stage-transition.server");
 
   const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.learners.$learnerId" });

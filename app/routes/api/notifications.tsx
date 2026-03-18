@@ -1,6 +1,6 @@
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { and, desc, eq } from "drizzle-orm";
-import { getOptionalUser } from "~/lib/auth/auth.middleware";
+import { getOptionalUser } from "~/lib/auth/auth.middleware.server";
 import { db } from "~/db/client.server";
 import { notifications, records } from "~/db/schema.server";
 import { getUnreadCount } from "~/db/queries/social/notifications.server";

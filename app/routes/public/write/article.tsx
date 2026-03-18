@@ -24,7 +24,7 @@ import { getStages } from "~/db/queries/journey/stages.server";
 import { syncRecordLinksForRecord } from "~/db/queries/records/recordLinks.server";
 import { learnerProfiles, records } from "~/db/schema.server";
 import { useUnsavedWarning } from "~/hooks/useUnsavedWarning";
-import { requireVerified } from "~/lib/auth/auth.middleware";
+import { requireVerified } from "~/lib/auth/auth.middleware.server";
 import { createArticleSchema } from "~/lib/auth/validation";
 import { getPlainText } from "~/lib/content/content.server";
 import { extractRecordRefs } from "~/lib/content/extract-references.server";

@@ -2,7 +2,7 @@ import { and, desc, eq, sql } from "drizzle-orm";
 import { data } from "react-router";
 import type { Route } from "./+types/$recordSlug";
 import { db } from "~/db/client.server";
-import { requireVerified, getOptionalUser } from "~/lib/auth/auth.middleware";
+import { requireVerified, getOptionalUser } from "~/lib/auth/auth.middleware.server";
 import { createResponseSchema, saveSentenceSchema, updateResponseSchema } from "~/lib/auth/validation";
 import { normalizeContentFormat } from "~/lib/content/editor-extensions";
 import { getPlainText, renderContentToHtml, type MentionSlugMap } from "~/lib/content/content.server";

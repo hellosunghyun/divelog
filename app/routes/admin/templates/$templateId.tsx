@@ -11,7 +11,7 @@ import { Textarea } from "~/components/ui/textarea";
 import { SubmitButton } from "~/components/feedback/SubmitButton";
 import { Spinner } from "~/components/feedback/Spinner";
 import { eq } from "drizzle-orm";
-import { requireRole } from "~/lib/auth/auth.middleware";
+import { requireRole } from "~/lib/auth/auth.middleware.server";
 
 const ALL_VALUE = "__all__";
 

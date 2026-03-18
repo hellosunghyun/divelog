@@ -1,7 +1,7 @@
 import { Outlet, data } from "react-router";
 import * as Sentry from "@sentry/react-router/cloudflare";
 import type { Route } from "./+types/_public";
-import { ensureAdminByEmail } from "~/lib/auth/auth.middleware";
+import { ensureAdminByEmail } from "~/lib/auth/auth.middleware.server";
 import { and, eq } from "drizzle-orm";
 import { db } from "~/db/client.server";
 import { userRoles } from "~/db/schema.server";

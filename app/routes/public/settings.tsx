@@ -1,5 +1,5 @@
 import type { Route } from "./+types/settings";
-import { requireAuth } from "~/lib/auth/auth.middleware";
+import { requireAuth } from "~/lib/auth/auth.middleware.server";
 import { eq } from "drizzle-orm";
 import { useActionData } from "react-router";
 import { Form } from "react-router";

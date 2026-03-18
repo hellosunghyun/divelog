@@ -1,7 +1,7 @@
 import { Outlet, isRouteErrorResponse } from "react-router";
 import * as Sentry from "@sentry/react-router/cloudflare";
 import type { Route } from "./+types/_admin";
-import { requireRole, bootstrapAdmin } from "~/lib/auth/auth.middleware";
+import { requireRole, bootstrapAdmin } from "~/lib/auth/auth.middleware.server";
 import AdminSidebar from "~/components/admin/AdminSidebar";
 import AdminContextBar from "~/components/admin/AdminContextBar";
 

@@ -1,7 +1,7 @@
 import { data, redirect } from "react-router";
 import type { Route } from "./+types/$recordId";
 import { useNavigation } from "react-router";
-import { requireRole } from "~/lib/auth/auth.middleware";
+import { requireRole } from "~/lib/auth/auth.middleware.server";
 import { Link } from "~/components/content/SmartLink";
 import { Button } from "~/components/ui/button";
 import { VISIBILITY_LABELS } from "~/lib/constants/visibility";

@@ -2,7 +2,7 @@ import { sql, and } from "drizzle-orm";
 import type { LoaderFunctionArgs } from "react-router";
 import { db } from "~/db/client.server";
 import { records, learnerProfiles } from "~/db/schema.server";
-import { getOptionalUser } from "~/lib/auth/auth.middleware";
+import { getOptionalUser } from "~/lib/auth/auth.middleware.server";
 import { createLogger } from "~/lib/infra/logger.server";
 
 function escapeLikeWildcards(s: string): string {

@@ -23,7 +23,7 @@ import { getRecordReferences, syncRecordReferences } from "~/db/queries/records/
 import { findOrCreateTag, getAllTags, getTagsByRecord, syncTagsForRecord } from "~/db/queries/records/tags.server";
 import { questions, records } from "~/db/schema.server";
 import { useUnsavedWarning } from "~/hooks/useUnsavedWarning";
-import { requireVerified } from "~/lib/auth/auth.middleware";
+import { requireVerified } from "~/lib/auth/auth.middleware.server";
 import { parseReferencesFromFormData } from "~/lib/auth/validation";
 import { deliverMentionNotifications } from "~/lib/notifications/mention-delivery.server";
 import { notify } from "~/lib/notifications/notify.server";
@@ -173,6 +173,7 @@ export async function action({ params, request, context }: Route.ActionArgs) {
   context.cloudflare.ctx.waitUntil(
     deliverMentionNotifications({
       d1: context.cloudflare.env.DB,
+      queue: context.cloudflare.env.QUEUE,
       actorId: auth.user.id,
       actorName,
       content: record.content,

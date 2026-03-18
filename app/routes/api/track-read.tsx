@@ -1,5 +1,5 @@
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
-import { getOptionalUser } from "~/lib/auth/auth.middleware";
+import { getOptionalUser } from "~/lib/auth/auth.middleware.server";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const auth = await getOptionalUser(request, context);

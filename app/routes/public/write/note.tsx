@@ -18,7 +18,7 @@ import {
 import { db } from "~/db/client.server";
 import { learnerProfiles, records } from "~/db/schema.server";
 import { useUnsavedWarning } from "~/hooks/useUnsavedWarning";
-import { requireVerified } from "~/lib/auth/auth.middleware";
+import { requireVerified } from "~/lib/auth/auth.middleware.server";
 import { createNoteSchema } from "~/lib/auth/validation";
 import { getPlainText } from "~/lib/content/content.server";
 import { generateNoteTitle } from "~/lib/utils/title.server";

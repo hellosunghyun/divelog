@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { Route } from "./+types/me";
-import { requireAuth } from "~/lib/auth/auth.middleware";
+import { requireAuth } from "~/lib/auth/auth.middleware.server";
 import { eq, and, desc, sql } from "drizzle-orm";
 import SceneCard from "~/components/cards/SceneCard";
 import HighlightedSentenceCard from "~/components/cards/HighlightedSentenceCard";

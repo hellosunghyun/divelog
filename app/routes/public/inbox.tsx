@@ -1,6 +1,6 @@
 import type { Route } from "./+types/inbox";
 import { eq, and, desc } from "drizzle-orm";
-import { requireAuth } from "~/lib/auth/auth.middleware";
+import { requireAuth } from "~/lib/auth/auth.middleware.server";
 import HeroSection from "~/components/sections/HeroSection";
 import EmptyState from "~/components/feedback/EmptyState";
 import { Link } from "~/components/content/SmartLink";

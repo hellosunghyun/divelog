@@ -9,7 +9,7 @@ import { Badge } from "~/components/ui/badge";
 import { SubmitButton } from "~/components/feedback/SubmitButton";
 import { Spinner } from "~/components/feedback/Spinner";
 import { eq } from "drizzle-orm";
-import { requireRole } from "~/lib/auth/auth.middleware";
+import { requireRole } from "~/lib/auth/auth.middleware.server";
 
 const RESPONSE_TYPE_LABELS: Record<string, string> = {
   resonance: "공명",
