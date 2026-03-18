@@ -14,17 +14,30 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import { db } from "~/db/client.server";
+import { clearAllReads } from "~/db/queries/records/recordReads.server";
+import { learnerProfiles } from "~/db/schema.server";
 import { clearLocalReads } from "~/lib/infra/read-storage";
+import { createLogger } from "~/lib/infra/logger.server";
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "설정 — DiveLog" }];
 }
 
-export async function loader({ request, context }: Route.LoaderArgs) {
-  const { createLogger } = await import("~/lib/infra/logger.server");
-  const { db } = await import("~/db/client.server");
-  const { learnerProfiles } = await import("~/db/schema.server");
+export function shouldRevalidate({
+  formMethod,
+  defaultShouldRevalidate,
+}: {
+  formMethod?: string;
+  defaultShouldRevalidate: boolean;
+}): boolean {
+  if (formMethod && formMethod !== "GET") {
+    return defaultShouldRevalidate;
+  }
+  return false;
+}
 
+export async function loader({ request, context }: Route.LoaderArgs) {
   const logger = createLogger(request, context.cloudflare.env).child({ route: "settings" });
   logger.info("loader_start");
   const auth = await requireAuth(request, context);
@@ -40,10 +53,6 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
-  const { createLogger } = await import("~/lib/infra/logger.server");
-  const { db } = await import("~/db/client.server");
-  const { learnerProfiles } = await import("~/db/schema.server");
-
   const logger = createLogger(request, context.cloudflare.env).child({ route: "settings" });
   const auth = await requireAuth(request, context);
   const formData = await request.formData();
@@ -54,7 +63,6 @@ export async function action({ request, context }: Route.ActionArgs) {
   // Intent-based dispatch
   const intent = formData.get("intent");
   if (intent === "reset_all_reads") {
-    const { clearAllReads } = await import("~/db/queries/records/recordReads.server");
     await clearAllReads(context.cloudflare.env.DB, auth.user.id);
     logger.info("reads_reset");
     return { readReset: "읽음 상태가 초기화되었습니다." };

@@ -2,6 +2,7 @@ import * as Sentry from "@sentry/react-router/cloudflare";
 import { startTransition } from "react";
 import { hydrateRoot } from "react-dom/client";
 import { HydratedRouter } from "react-router/dom";
+import { onLCP, onINP, onCLS, onFCP, onTTFB } from "web-vitals";
 
 Sentry.init({
   dsn: "https://eb0588c8197661ea070258e9aca009e4@o4509761661304832.ingest.us.sentry.io/4511052944572416",
@@ -9,7 +10,6 @@ Sentry.init({
 
   integrations: [
     Sentry.reactRouterTracingIntegration(),
-    Sentry.replayIntegration(),
   ],
 
   tracesSampleRate: 0.1,
@@ -17,6 +17,13 @@ Sentry.init({
 
   replaysSessionSampleRate: 0.01,
   replaysOnErrorSampleRate: 0.5,
+});
+
+window.addEventListener("load", () => {
+  setTimeout(async () => {
+    const { replayIntegration } = await import("@sentry/react-router/cloudflare");
+    Sentry.addIntegration(replayIntegration());
+  }, 2000);
 });
 
 // 배포 후 구 청크 로딩 실패 시 자동 새로고침 (1회만)
@@ -51,6 +58,27 @@ window.addEventListener("unhandledrejection", (event) => {
 // 정상 로드 시 플래그 초기화
 window.addEventListener("load", () => {
   sessionStorage.removeItem("chunk_reload");
+});
+
+// Web Vitals 수집
+onLCP((metric) => {
+  console.log("[web-vitals]", metric.name, Math.round(metric.value), metric.rating);
+});
+
+onINP((metric) => {
+  console.log("[web-vitals]", metric.name, Math.round(metric.value), metric.rating);
+});
+
+onCLS((metric) => {
+  console.log("[web-vitals]", metric.name, Math.round(metric.value * 1000), metric.rating);
+});
+
+onFCP((metric) => {
+  console.log("[web-vitals]", metric.name, Math.round(metric.value), metric.rating);
+});
+
+onTTFB((metric) => {
+  console.log("[web-vitals]", metric.name, Math.round(metric.value), metric.rating);
 });
 
 startTransition(() => {

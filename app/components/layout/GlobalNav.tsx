@@ -292,6 +292,7 @@ export default function GlobalNav() {
                 <Link
                   key={link.to}
                   to={link.to}
+                  prefetch="intent"
                   className={cn(
                     "text-[14px] font-medium transition-colors no-underline",
                     focusRing,
@@ -970,6 +971,7 @@ export default function GlobalNav() {
                 <motion.div key={link.to} variants={staggerItem}>
                   <Link
                     to={link.to}
+                    prefetch="intent"
                     className={cn(
                       "block py-3 text-2xl font-medium no-underline",
                       focusRing,

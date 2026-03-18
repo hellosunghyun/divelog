@@ -1,7 +1,5 @@
-import { data } from "react-router";
 import type { Route } from "./+types/$learnerSlug";
 import { Link } from "~/components/content/SmartLink";
-import { eq, and, desc, sql } from "drizzle-orm";
 import SceneCard from "~/components/cards/SceneCard";
 import QuestionCard from "~/components/cards/QuestionCard";
 import HighlightedSentenceCard from "~/components/cards/HighlightedSentenceCard";
@@ -12,85 +10,63 @@ import { staggerContainer, staggerItem, fadeUp } from "~/lib/motion/motion-utils
 import { cn } from "~/lib/utils/cn";
 import { useState } from "react";
 
-const cache = new Map<string, unknown>();
+export { loader } from "./$learnerSlug.server";
+
+type LoaderData = Awaited<ReturnType<typeof import("./$learnerSlug.server").loader>>;
+
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const CACHE_MAX_SIZE = 50;
+
+type CacheEntry<T> = { data: T; timestamp: number };
+const cache = new Map<string, CacheEntry<unknown>>();
+
+function getCached<T>(key: string): T | null {
+  const entry = cache.get(key);
+  if (!entry) return null;
+  if (Date.now() - entry.timestamp > CACHE_TTL_MS) {
+    cache.delete(key);
+    return null;
+  }
+  return entry.data as T;
+}
+
+function setCached(key: string, data: unknown): void {
+  // Evict oldest entry if at max size
+  if (cache.size >= CACHE_MAX_SIZE) {
+    const firstKey = cache.keys().next().value;
+    if (firstKey !== undefined) cache.delete(firstKey);
+  }
+  cache.set(key, { data, timestamp: Date.now() });
+}
 
 type TabKey = "records" | "questions";
 
-export async function loader({ params, request, context }: Route.LoaderArgs) {
-  const { db } = await import("~/db/client.server");
-  const { learnerProfiles, records, questions, sentences, stages } = await import("~/db/schema.server");
-  const { createLogger } = await import("~/lib/infra/logger.server");
-
-  const { learnerSlug } = params;
-  const logger = createLogger(request, context.cloudflare.env).child({ route: "learner_detail" });
-  logger.info("loader_start");
-  const database = db(context.cloudflare.env.DB);
-
-  const learnerResult = await database.select().from(learnerProfiles).where(eq(learnerProfiles.slug, learnerSlug)).limit(1);
-  const learner = learnerResult[0];
-  if (!learner) {
-    logger.info("not_found", { slug: learnerSlug });
-    throw data("러너를 찾을 수 없습니다", { status: 404 });
-  }
-
-  const [learnerRecords, learnerQuestions, learnerSentences] = await database.batch([
-    database.select({
-      record: records,
-    }).from(records).where(and(eq(records.authorId, learner.userId), sql`${records.visibility} IN ('cohort', 'public')`)).orderBy(desc(records.createdAt)).limit(12),
-    database.select({ question: questions, recordSlug: records.slug, recordTitle: records.title })
-      .from(questions).leftJoin(records, eq(questions.recordId, records.id))
-      .where(and(eq(records.authorId, learner.userId), eq(questions.isOpen, true), sql`${records.visibility} IN ('cohort', 'public')`)).orderBy(desc(questions.createdAt)).limit(5),
-    database.select({ sentence: sentences }).from(sentences).leftJoin(records, eq(sentences.recordId, records.id)).where(and(eq(sentences.savedById, learner.userId), sql`${records.visibility} IN ('cohort', 'public')`)).orderBy(desc(sentences.createdAt)).limit(6),
-  ]);
-
-  const recordsWithStage = await database
-    .select({
-      stageId: records.stageId,
-      stageName: stages.name,
-      stageSlug: stages.slug,
-    })
-    .from(records)
-    .leftJoin(stages, eq(records.stageId, stages.id))
-    .where(and(eq(records.authorId, learner.userId), sql`${records.visibility} IN ('cohort', 'public')`));
-
-  const stageCountMap = new Map<string, { stageId: string | null; stageName: string | null; stageSlug: string | null; count: number }>();
-  for (const row of recordsWithStage) {
-    const key = row.stageId ?? "no-stage";
-    const existing = stageCountMap.get(key);
-    if (existing) {
-      existing.count++;
-    } else {
-      stageCountMap.set(key, {
-        stageId: row.stageId,
-        stageName: row.stageName,
-        stageSlug: row.stageSlug,
-        count: 1,
-      });
-    }
-  }
-  const recordsByStage = Array.from(stageCountMap.values());
-
-  // [COLLAB_DISABLED] collaboration query removed
-
-  logger.info("loader_end");
-  return { learner, learnerRecords, learnerQuestions, learnerSentences, recordsByStage, collaborationUnits: [] as never[] };
-}
-
-export async function clientLoader({ params, serverLoader }: {
-  params: { learnerSlug?: string };
-  serverLoader: () => Promise<unknown>;
-}) {
+export async function clientLoader({ params, serverLoader }: Route.ClientLoaderArgs) {
   const key = params.learnerSlug ?? "";
-  if (cache.has(key)) return cache.get(key);
+  const cached = getCached<LoaderData>(key);
+  if (cached) return cached;
   const loaderData = await serverLoader();
-  cache.set(key, loaderData);
+  setCached(key, loaderData);
   return loaderData;
 }
 
 export function meta({ data: loaderData }: Route.MetaArgs) {
   if (!loaderData) return [{ title: "러너 — DiveLog" }];
-  const typedData = loaderData as Awaited<ReturnType<typeof loader>>;
+  const typedData = loaderData as LoaderData;
   return [{ title: `${typedData.learner.displayName} — DiveLog` }];
+}
+
+export function shouldRevalidate({
+  formMethod,
+  defaultShouldRevalidate,
+}: {
+  formMethod?: string;
+  defaultShouldRevalidate: boolean;
+}): boolean {
+  if (formMethod && formMethod !== "GET") {
+    return defaultShouldRevalidate;
+  }
+  return false;
 }
 
 interface TabButtonProps {
@@ -118,7 +94,7 @@ function TabButton({ active, onClick, children }: TabButtonProps) {
 }
 
 export default function LearnerDetailPage({ loaderData }: Route.ComponentProps) {
-  const { learner, learnerRecords, learnerQuestions, learnerSentences, recordsByStage, collaborationUnits } = loaderData as Awaited<ReturnType<typeof loader>>;
+  const { learner, learnerRecords, learnerQuestions, learnerSentences, recordsByStage, collaborationUnits } = loaderData as LoaderData;
   const [activeTab, setActiveTab] = useState<TabKey>("records");
 
   const tabItems: { key: TabKey; label: string; count: number }[] = [

@@ -26,10 +26,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import { db } from "~/db/client.server";
+import { syncMentionsForRecord } from "~/db/queries/dialogue/mentions.server";
+import { markAsRead } from "~/db/queries/records/recordReads.server";
+import { syncRecordLinksForRecord } from "~/db/queries/records/recordLinks.server";
+import { learnerProfiles, notifications, records, stages } from "~/db/schema.server";
 import { useUnsavedWarning } from "~/hooks/useUnsavedWarning";
 import { requireVerified } from "~/lib/auth/auth.middleware";
 import { createArticleSchema } from "~/lib/auth/validation";
+import { getPlainText } from "~/lib/content/content.server";
+import {
+  extractRecordRefs,
+  extractUserMentions,
+} from "~/lib/content/extract-references.server";
 import { cn } from "~/lib/utils/cn";
+import { nanoid } from "~/lib/utils/utils.server";
 
 const NO_STAGE_VALUE = "__none__";
 
@@ -65,14 +76,6 @@ export function meta(_args: Route.MetaArgs) {
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {
-  const { db } = await import("~/db/client.server");
-  const { learnerProfiles, notifications, records, stages } = await import("~/db/schema.server");
-  const { getPlainText } = await import("~/lib/content/content.server");
-  const { syncMentionsForRecord } = await import("~/db/queries/dialogue/mentions.server");
-  const { syncRecordLinksForRecord } = await import("~/db/queries/records/recordLinks.server");
-  const { extractUserMentions, extractRecordRefs } = await import("~/lib/content/extract-references.server");
-  const { nanoid } = await import("~/lib/utils/utils.server");
-
   const auth = await requireVerified(request, context);
 
   const database = db(context.cloudflare.env.DB);
@@ -94,14 +97,6 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
-  const { db } = await import("~/db/client.server");
-  const { learnerProfiles, notifications, records, stages } = await import("~/db/schema.server");
-  const { getPlainText } = await import("~/lib/content/content.server");
-  const { syncMentionsForRecord } = await import("~/db/queries/dialogue/mentions.server");
-  const { syncRecordLinksForRecord } = await import("~/db/queries/records/recordLinks.server");
-  const { extractUserMentions, extractRecordRefs } = await import("~/lib/content/extract-references.server");
-  const { nanoid } = await import("~/lib/utils/utils.server");
-
   const auth = await requireVerified(request, context);
 
   const formData = await request.formData();
@@ -212,7 +207,6 @@ export async function action({ request, context }: Route.ActionArgs) {
 
   if (parsed.data.visibility !== "draft") {
     try {
-      const { markAsRead } = await import("~/db/queries/records/recordReads.server");
       await markAsRead(context.cloudflare.env.DB, auth.user.id, id);
     } catch {
       // silent fail — 읽음 처리 실패가 작성을 막지 않음

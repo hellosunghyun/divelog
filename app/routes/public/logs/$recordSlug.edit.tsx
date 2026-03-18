@@ -20,8 +20,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import { db } from "~/db/client.server";
+import { syncMentionsForRecord } from "~/db/queries/dialogue/mentions.server";
+import { syncRecordLinksForRecord } from "~/db/queries/records/recordLinks.server";
+import { getRecordBySlug, updateRecord } from "~/db/queries/records/records.server";
+import { getAllTags, getTagsByRecord } from "~/db/queries/records/tags.server";
+import { recordTags, stages, templates } from "~/db/schema.server";
 import { requireVerified } from "~/lib/auth/auth.middleware";
 import { createRecordSchema } from "~/lib/auth/validation";
+import { getPlainText } from "~/lib/content/content.server";
+import {
+  extractRecordRefs,
+  extractUserMentions,
+} from "~/lib/content/extract-references.server";
+import { createLogger } from "~/lib/infra/logger.server";
+import { cleanupRemovedImages } from "~/lib/infra/r2-cleanup.server";
 import { useUnsavedWarning } from "~/hooks/useUnsavedWarning";
 
 const NO_SELECTION_VALUE = "__none__";
@@ -31,17 +44,6 @@ export function meta(_args: Route.MetaArgs) {
 }
 
 export async function loader({ params, request, context }: Route.LoaderArgs) {
-  const { db } = await import("~/db/client.server");
-  const { recordTags, stages, templates } = await import("~/db/schema.server");
-  const { syncMentionsForRecord } = await import("~/db/queries/dialogue/mentions.server");
-  const { getRecordBySlug, updateRecord } = await import("~/db/queries/records/records.server");
-  const { syncRecordLinksForRecord } = await import("~/db/queries/records/recordLinks.server");
-  const { getAllTags, getTagsByRecord } = await import("~/db/queries/records/tags.server");
-  const { getPlainText } = await import("~/lib/content/content.server");
-  const { extractRecordRefs, extractUserMentions } = await import("~/lib/content/extract-references.server");
-  const { createLogger } = await import("~/lib/infra/logger.server");
-  const { cleanupRemovedImages } = await import("~/lib/infra/r2-cleanup.server");
-
   const logger = createLogger(request, context.cloudflare.env).child({ route: "logs_edit" });
   logger.info("loader_start");
   const auth = await requireVerified(request, context);
@@ -82,17 +84,6 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
 }
 
 export async function action({ params, request, context }: Route.ActionArgs) {
-  const { db } = await import("~/db/client.server");
-  const { recordTags, stages, templates } = await import("~/db/schema.server");
-  const { syncMentionsForRecord } = await import("~/db/queries/dialogue/mentions.server");
-  const { getRecordBySlug, updateRecord } = await import("~/db/queries/records/records.server");
-  const { syncRecordLinksForRecord } = await import("~/db/queries/records/recordLinks.server");
-  const { getAllTags, getTagsByRecord } = await import("~/db/queries/records/tags.server");
-  const { getPlainText } = await import("~/lib/content/content.server");
-  const { extractRecordRefs, extractUserMentions } = await import("~/lib/content/extract-references.server");
-  const { createLogger } = await import("~/lib/infra/logger.server");
-  const { cleanupRemovedImages } = await import("~/lib/infra/r2-cleanup.server");
-
   const logger = createLogger(request, context.cloudflare.env).child({ route: "logs_edit" });
   logger.info("action_start");
   const auth = await requireVerified(request, context);

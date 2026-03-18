@@ -2,6 +2,8 @@ import type { Route } from "./+types/index";
 import { Link } from "~/components/content/SmartLink";
 import EmptyState from "~/components/feedback/EmptyState";
 import HeroSection from "~/components/sections/HeroSection";
+import { getAllTags } from "~/db/queries/records/tags.server";
+import { createLogger } from "~/lib/infra/logger.server";
 
 export function meta() {
   return [
@@ -10,10 +12,20 @@ export function meta() {
   ];
 }
 
-export async function loader({ request, context }: Route.LoaderArgs) {
-  const { getAllTags } = await import("~/db/queries/records/tags.server");
-  const { createLogger } = await import("~/lib/infra/logger.server");
+export function shouldRevalidate({
+  formMethod,
+  defaultShouldRevalidate,
+}: {
+  formMethod?: string;
+  defaultShouldRevalidate: boolean;
+}): boolean {
+  if (formMethod && formMethod !== "GET") {
+    return defaultShouldRevalidate;
+  }
+  return false;
+}
 
+export async function loader({ request, context }: Route.LoaderArgs) {
   const logger = createLogger(request, context.cloudflare.env).child({ route: "tags" });
   logger.info("loader_start");
   const tags = await getAllTags(context.cloudflare.env.DB);

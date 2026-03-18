@@ -16,20 +16,32 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { Textarea } from "~/components/ui/textarea";
+import { db } from "~/db/client.server";
+import { getRecordBySlug } from "~/db/queries/records/records.server";
+import { getAllTags, getTagsByRecord } from "~/db/queries/records/tags.server";
+import { questions, records, recordTags } from "~/db/schema.server";
 import { requireVerified } from "~/lib/auth/auth.middleware";
 import { updateRecordMetadataSchema } from "~/lib/auth/validation";
+import { nanoid } from "~/lib/utils/utils.server";
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "세부 설정 — DiveLog" }];
 }
 
-export async function loader({ params, request, context }: Route.LoaderArgs) {
-  const { db } = await import("~/db/client.server");
-  const { questions, records, recordTags } = await import("~/db/schema.server");
-  const { getRecordBySlug } = await import("~/db/queries/records/records.server");
-  const { getAllTags, getTagsByRecord } = await import("~/db/queries/records/tags.server");
-  const { nanoid } = await import("~/lib/utils/utils.server");
+export function shouldRevalidate({
+  formMethod,
+  defaultShouldRevalidate,
+}: {
+  formMethod?: string;
+  defaultShouldRevalidate: boolean;
+}): boolean {
+  if (formMethod && formMethod !== "GET") {
+    return defaultShouldRevalidate;
+  }
+  return false;
+}
 
+export async function loader({ params, request, context }: Route.LoaderArgs) {
   const auth = await requireVerified(request, context);
   const recordSlug = params.recordSlug;
 
@@ -64,12 +76,6 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
 }
 
 export async function action({ params, request, context }: Route.ActionArgs) {
-  const { db } = await import("~/db/client.server");
-  const { questions, records, recordTags } = await import("~/db/schema.server");
-  const { getRecordBySlug } = await import("~/db/queries/records/records.server");
-  const { getAllTags, getTagsByRecord } = await import("~/db/queries/records/tags.server");
-  const { nanoid } = await import("~/lib/utils/utils.server");
-
   const auth = await requireVerified(request, context);
   const recordSlug = params.recordSlug;
 

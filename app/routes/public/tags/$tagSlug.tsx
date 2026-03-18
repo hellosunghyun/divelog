@@ -5,6 +5,9 @@ import { normalizeContentFormat } from "~/lib/content/editor-extensions";
 import SceneCard from "~/components/cards/SceneCard";
 import EmptyState from "~/components/feedback/EmptyState";
 import HeroSection from "~/components/sections/HeroSection";
+import { getTagBySlug, getRecordsByTag } from "~/db/queries/records/tags.server";
+import { getPlainText } from "~/lib/content/content.server";
+import { createLogger } from "~/lib/infra/logger.server";
 
 export function meta({ data: loaderData }: Route.MetaArgs) {
   if (!loaderData?.tag) {
@@ -17,11 +20,20 @@ export function meta({ data: loaderData }: Route.MetaArgs) {
   ];
 }
 
-export async function loader({ params, request, context }: Route.LoaderArgs) {
-  const { getTagBySlug, getRecordsByTag } = await import("~/db/queries/records/tags.server");
-  const { getPlainText } = await import("~/lib/content/content.server");
-  const { createLogger } = await import("~/lib/infra/logger.server");
+export function shouldRevalidate({
+  formMethod,
+  defaultShouldRevalidate,
+}: {
+  formMethod?: string;
+  defaultShouldRevalidate: boolean;
+}): boolean {
+  if (formMethod && formMethod !== "GET") {
+    return defaultShouldRevalidate;
+  }
+  return false;
+}
 
+export async function loader({ params, request, context }: Route.LoaderArgs) {
   const { tagSlug } = params;
   const logger = createLogger(request, context.cloudflare.env).child({ route: "tag_detail" });
   logger.info("loader_start");

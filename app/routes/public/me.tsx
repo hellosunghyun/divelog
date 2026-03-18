@@ -8,10 +8,27 @@ import QuestionCard from "~/components/cards/QuestionCard";
 import ResponseCard from "~/components/cards/ResponseCard";
 import EmptyState from "~/components/feedback/EmptyState";
 import { Link } from "~/components/content/SmartLink";
+import { db } from "~/db/client.server";
+import { getResponsesByAuthor } from "~/db/queries/dialogue/responses.server";
+import { learnerProfiles, questions, records, sentences, stages } from "~/db/schema.server";
+import { createLogger } from "~/lib/infra/logger.server";
 import { cn } from "~/lib/utils/cn";
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "내 공간 — DiveLog" }];
+}
+
+export function shouldRevalidate({
+  formMethod,
+  defaultShouldRevalidate,
+}: {
+  formMethod?: string;
+  defaultShouldRevalidate: boolean;
+}): boolean {
+  if (formMethod && formMethod !== "GET") {
+    return defaultShouldRevalidate;
+  }
+  return false;
 }
 
 const STAGE_TONE_MAP: Record<string, { bg: string; border: string; label: string }> = {
@@ -26,11 +43,6 @@ function getStageToneStyle(stageType: string) {
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {
-  const { db } = await import("~/db/client.server");
-  const { records, sentences, questions, learnerProfiles, stages } = await import("~/db/schema.server");
-  const { getResponsesByAuthor } = await import("~/db/queries/dialogue/responses.server");
-  const { createLogger } = await import("~/lib/infra/logger.server");
-
   const logger = createLogger(request, context.cloudflare.env).child({ route: "me" });
   logger.info("loader_start");
   const auth = await requireAuth(request, context);
@@ -158,6 +170,7 @@ export default function MySpacePage({ loaderData }: Route.ComponentProps) {
         <div className="max-w-content mx-auto px-6">
           <div className="flex gap-8 border-b border-transparent">
             <button
+              type="button"
               onClick={() => setActiveTab("records")}
               className={cn(
                 "pb-4 text-base font-medium transition-colors relative",
@@ -170,6 +183,7 @@ export default function MySpacePage({ loaderData }: Route.ComponentProps) {
               )}
             </button>
             <button
+              type="button"
               onClick={() => setActiveTab("questions")}
               className={cn(
                 "pb-4 text-base font-medium transition-colors relative",
@@ -182,6 +196,7 @@ export default function MySpacePage({ loaderData }: Route.ComponentProps) {
               )}
             </button>
             <button
+              type="button"
               onClick={() => setActiveTab("responses")}
               className={cn(
                 "pb-4 text-base font-medium transition-colors relative",

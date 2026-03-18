@@ -1,7 +1,5 @@
-import { data } from "react-router";
 import type { Route } from "./+types/$stageSlug";
 import { Link } from "~/components/content/SmartLink";
-import { eq, and, desc, sql } from "drizzle-orm";
 import HeroSection from "~/components/sections/HeroSection";
 import SceneCard from "~/components/cards/SceneCard";
 import QuestionCard from "~/components/cards/QuestionCard";
@@ -9,66 +7,41 @@ import QuestionCard from "~/components/cards/QuestionCard";
 import EmptyState from "~/components/feedback/EmptyState";
 import StageStrip from "~/components/sections/StageStrip";
 
-const cache = new Map<string, unknown>();
+export { loader } from "./$stageSlug.server";
 
-export async function loader({ params, request, context }: Route.LoaderArgs) {
-  const { db } = await import("~/db/client.server");
-  const { stages, records, questions, learnerProfiles, collectiveMemories } = await import("~/db/schema.server");
-  const { createLogger } = await import("~/lib/infra/logger.server");
+type LoaderData = Awaited<ReturnType<typeof import("./$stageSlug.server").loader>>;
 
-  const { stageSlug } = params;
-  const logger = createLogger(request, context.cloudflare.env).child({ route: "journey_stage_detail" });
-  logger.info("loader_start");
-  const database = db(context.cloudflare.env.DB);
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const CACHE_MAX_SIZE = 50;
 
-  const { getStageBySlug, getStages } = await import("~/db/queries/journey/stages.server");
-  const { getRecords } = await import("~/db/queries/records/records.server");
-  
-  const stage = await getStageBySlug(context.cloudflare.env.DB, stageSlug || "");
-  if (!stage) {
-    logger.info("not_found", { slug: stageSlug });
-    throw data("Stage를 찾을 수 없습니다", { status: 404 });
+type CacheEntry<T> = { data: T; timestamp: number };
+const cache = new Map<string, CacheEntry<unknown>>();
+
+function getCached<T>(key: string): T | null {
+  const entry = cache.get(key);
+  if (!entry) return null;
+  if (Date.now() - entry.timestamp > CACHE_TTL_MS) {
+    cache.delete(key);
+    return null;
   }
-
-  const allStages = await getStages(context.cloudflare.env.DB);
-  
-  // existing function: getRecords supports { stage: stage.id }
-  const stageRecords = await getRecords(context.cloudflare.env.DB, { stage: stage.id, page: 1 });
-  
-  const [stageQuestions, collectiveMemoryResult] = await database.batch([
-    database
-      .select({
-        question: questions,
-        recordSlug: records.slug,
-        recordTitle: records.title,
-      })
-      .from(questions)
-      .leftJoin(records, eq(questions.recordId, records.id))
-      .where(and(eq(records.stageId, stage.id), eq(questions.isOpen, true), sql`${records.visibility} IN ('cohort', 'public')`))
-      .orderBy(desc(questions.createdAt))
-      .limit(5),
-    // [COLLAB_DISABLED] collaboration query removed
-    database
-      .select()
-      .from(collectiveMemories)
-      .where(and(eq(collectiveMemories.stageId, stage.id), eq(collectiveMemories.status, "published")))
-      .limit(1),
-  ]);
-  const stageCollaborations: never[] = [];
-  const collectiveMemory = collectiveMemoryResult[0] ?? null;
-
-  logger.info("loader_end");
-  return { stage, allStages, stageRecords, stageQuestions, stageCollaborations, collectiveMemory };
+  return entry.data as T;
 }
 
-export async function clientLoader({ params, serverLoader }: {
-  params: { stageSlug?: string };
-  serverLoader: () => Promise<unknown>;
-}) {
+function setCached(key: string, data: unknown): void {
+  // Evict oldest entry if at max size
+  if (cache.size >= CACHE_MAX_SIZE) {
+    const firstKey = cache.keys().next().value;
+    if (firstKey !== undefined) cache.delete(firstKey);
+  }
+  cache.set(key, { data, timestamp: Date.now() });
+}
+
+export async function clientLoader({ params, serverLoader }: Route.ClientLoaderArgs) {
   const key = params.stageSlug ?? "";
-  if (cache.has(key)) return cache.get(key);
+  const cached = getCached<LoaderData>(key);
+  if (cached) return cached;
   const data = await serverLoader();
-  cache.set(key, data);
+  setCached(key, data);
   return data;
 }
 
@@ -76,7 +49,7 @@ export function meta({ data: loaderData }: Route.MetaArgs) {
   if (!loaderData) {
     return [{ title: "Stage — DiveLog" }];
   }
-  const typedData = loaderData as Awaited<ReturnType<typeof loader>>;
+  const typedData = loaderData as LoaderData;
   return [
     { title: `${typedData.stage.name} — DiveLog` },
     {
@@ -86,8 +59,21 @@ export function meta({ data: loaderData }: Route.MetaArgs) {
   ];
 }
 
+export function shouldRevalidate({
+  formMethod,
+  defaultShouldRevalidate,
+}: {
+  formMethod?: string;
+  defaultShouldRevalidate: boolean;
+}): boolean {
+  if (formMethod && formMethod !== "GET") {
+    return defaultShouldRevalidate;
+  }
+  return false;
+}
+
 export default function StageDetailPage({ loaderData }: Route.ComponentProps) {
-  const { stage, allStages, stageRecords, stageQuestions, stageCollaborations, collectiveMemory } = loaderData as Awaited<ReturnType<typeof loader>>;
+  const { stage, allStages, stageRecords, stageQuestions, stageCollaborations, collectiveMemory } = loaderData as LoaderData;
 
   return (
     <div>
