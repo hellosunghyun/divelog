@@ -1,0 +1,63 @@
+Task 8 — 전체 통합 테스트 + 엣지 케이스 코드 검증
+Date: 2026-03-18
+Worktree: /Users/hellosunghyun/Documents/Github/divelog-dialogue-response
+
+[A] 코드 통합 검증
+1) 응답 수정/삭제 체인
+- updateResponse() clean 체크 확인: app/db/queries/dialogue/responses.server.ts:115
+- update_response intent -> updateResponse() 호출 확인: app/routes/public/logs/$recordSlug.server.ts:338, app/routes/public/logs/$recordSlug.server.ts:350
+- ResponseCard onEdit -> handleEditResponse -> setEditingResponseId 연결 확인:
+  - app/routes/public/logs/$recordSlug.tsx:248
+  - app/routes/public/logs/$recordSlug.tsx:251
+  - app/routes/public/logs/$recordSlug.tsx:792
+
+2) 알림 체인
+- create_response 핸들러 createNotification() 호출 확인: app/routes/public/logs/$recordSlug.server.ts:244
+- 자기 응답 방지 조건 확인: app/routes/public/logs/$recordSlug.server.ts:227
+- self_answer 알림 방지 조건 확인: app/routes/public/logs/$recordSlug.server.ts:227
+
+3) inbox 수정
+- loader records LEFT JOIN 및 recordSlug 선택 확인:
+  - app/routes/public/inbox.tsx:45
+  - app/routes/public/inbox.tsx:51
+- 링크 /logs/${n.recordSlug} 확인: app/routes/public/inbox.tsx:168
+
+4) 질문 페이지
+- loader getOpenQuestions() 호출 확인: app/routes/public/questions.tsx:43
+- QuestionCard 응답 이동 /logs/{recordSlug} 연결 확인: app/routes/public/questions.tsx:212
+- 버튼 텍스트 "이 질문에 응답하기" 확인: app/components/cards/QuestionCard.tsx:71
+- routes.ts questions 라우트 등록 확인: app/routes.ts:9
+
+[B] 엣지 케이스 코드 확인
+1) 소유권 체크 존재 확인: app/db/queries/dialogue/responses.server.ts:115, app/db/queries/dialogue/responses.server.ts:150
+2) moderationStatus clean 체크 존재 확인: app/db/queries/dialogue/responses.server.ts:115
+3) responsePreference closed 차단 확인(서버): app/routes/public/logs/$recordSlug.server.ts:202
+4) responsePreference closed 시 폼 미노출 확인(UI): app/routes/public/logs/$recordSlug.tsx:642
+5) questions.length === 0 EmptyState 확인: app/routes/public/questions.tsx:179
+
+[C] 명령 실행 결과
+1) pnpm typecheck
+- 결과: FAIL (exit 1)
+- 확인된 기존 에러 포함:
+  - app/db/queries/dialogue/responses.server.ts:70-71 (Drizzle spread)
+  - app/db/queries/dialogue/questions.server.ts:210-211 (Drizzle spread)
+- 추가로 다수의 pre-existing 오류 존재(이번 태스크 범위 외):
+  - admin sidebar icon prop type
+  - Env 타입에 ADAKRPOS_API_KEY 누락
+  - admin routes 미정의 심볼(curationSlots, records, userRoles, settings, TagWithUsage)
+  - 일부 test/auth 타입 불일치
+
+2) pnpm build
+- 결과: PASS
+- 비차단 경고:
+  - sourcemap 경고
+  - 큰 chunk 경고
+  - sentry sourcemap upload auth token 미설정 경고
+
+[D] evidence 파일 존재 확인
+- /Users/hellosunghyun/Documents/Github/divelog/.sisyphus/evidence/ 내 task-1~task-7 관련 evidence 파일 다수 존재 확인 완료.
+
+최종 판정
+- 코드 레벨 통합 검증(요구 A/B): PASS
+- build: PASS
+- typecheck: FAIL (이번 변경 외 pre-existing 오류 다수)

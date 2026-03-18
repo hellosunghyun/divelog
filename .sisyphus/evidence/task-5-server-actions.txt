@@ -1,0 +1,84 @@
+# Task 5 — update_response / delete_response 서버 액션 + 인라인 수정 폼 UI
+
+## Implementation Summary
+
+### 1. Server Actions ($recordSlug.server.ts)
+
+#### Imports Added
+- `updateResponseSchema` from validation.ts
+- `updateResponse`, `deleteResponse` from responses.server.ts
+
+#### update_response Intent (line 338-357)
+- Validates input with updateResponseSchema
+- Calls updateResponse() with responseId, authorId, and optional fields
+- Returns error if response not found or user not authorized
+- Logs response_update event
+- Returns success message
+
+#### delete_response Intent (line 360-375)
+- Validates responseId is present
+- Calls deleteResponse() with responseId and authorId
+- Returns error if response not found or user not authorized
+- Logs response_delete event
+- Returns success message
+
+### 2. Component UI ($recordSlug.tsx)
+
+#### State Variables Added (line 191-192)
+- `editingResponseId`: tracks which response is being edited
+- `editingContent`: stores the edited content
+
+#### Submitting States Added (line 187-188)
+- `isSubmittingResponseEdit`: true when update_response is submitting
+- `isSubmittingResponseDelete`: true when delete_response is submitting
+
+#### Handler Functions Added (line 239-249)
+- `handleEditResponse(responseId)`: finds response and sets editing state
+- `handleDeleteResponse(responseId)`: submits delete form via useSubmit
+
+#### Inline Edit Form (line 747-770)
+- Conditional rendering: shows form when editingResponseId matches response.id
+- Form contains:
+  - Hidden intent field: "update_response"
+  - Hidden responseId field
+  - Textarea for content editing
+  - Save button (disabled during submission)
+  - Cancel button to close form
+- Styling matches self-answer form pattern (bg-surface-secondary, border-border)
+
+#### ResponseCard Props Updated (line 774-775)
+- Added onEdit callback: handleEditResponse
+- Added onDelete callback: handleDeleteResponse
+
+## Verification
+
+### Typecheck Results
+- No new TypeScript errors introduced
+- Pre-existing errors remain (AdminSidebar icon type issue)
+- All imports resolved correctly
+
+### Code Pattern Compliance
+✓ Intent-based action routing (create_response pattern)
+✓ Zod schema validation (updateResponseSchema)
+✓ Error handling with user-friendly messages
+✓ Logging for all mutations (response_update, response_delete)
+✓ useCallback for handler functions
+✓ Conditional rendering for inline form
+✓ Proper state management (editingResponseId, editingContent)
+✓ No as any, @ts-ignore, or @ts-expect-error
+
+### Files Modified
+1. app/routes/public/logs/$recordSlug.server.ts
+   - Added imports (updateResponseSchema, updateResponse, deleteResponse)
+   - Added update_response intent handler
+   - Added delete_response intent handler
+
+2. app/routes/public/logs/$recordSlug.tsx
+   - Added editingResponseId and editingContent state
+   - Added isSubmittingResponseEdit and isSubmittingResponseDelete states
+   - Added handleEditResponse and handleDeleteResponse callbacks
+   - Added inline edit form UI
+   - Updated ResponseCard to pass onEdit and onDelete callbacks
+
+## Commit
+feat(dialogue): 응답 수정/삭제 서버 액션 핸들러

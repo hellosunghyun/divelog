@@ -1,0 +1,82 @@
+=== TASK 6: Reply Notification Threading ===
+File: app/routes/public/logs/$recordSlug.server.ts
+Lines Modified: 258-328
+
+CHANGES SUMMARY:
+================
+
+1. CONDITION CHANGE (line 259):
+   OLD: if (auth.user.id !== targetRecord[0].authorId && parsed.data.type !== "self_answer")
+   NEW: if (parsed.data.type !== "self_answer")
+   
+   Reason: Moved the author check into separate branches to handle both reply and non-reply cases
+
+2. ADDED VARIABLES (lines 276-277):
+   - recordAuthorId: targetRecord[0].authorId
+   - currentUserId: auth.user.id
+   
+   Reason: Clearer variable names for complex conditional logic
+
+3. ADDED REPLY NOTIFICATION LOGIC (lines 279-311):
+   if (parsed.data.parentResponseId) {
+     // Get parent response author
+     const parentResponse = await getResponseById(...)
+     const parentAuthorId = parentResponse?.authorId
+     
+     // Send notification to parent response author (if not self)
+     if (parentAuthorId && parentAuthorId !== currentUserId) {
+       createNotification(...) // "답글을 남겼습니다"
+     }
+     
+     // Send notification to record author (if different from parent author and not self)
+     if (recordAuthorId !== parentAuthorId && recordAuthorId !== currentUserId) {
+       createNotification(...) // "${typeLabel}을 남겼습니다"
+     }
+   }
+
+4. REFACTORED ORIGINAL LOGIC (lines 312-327):
+   Moved original notification logic into else branch for non-reply responses:
+   else {
+     if (currentUserId !== recordAuthorId) {
+       createNotification(...) // Original logic
+     }
+   }
+
+VERIFICATION CHECKLIST:
+=======================
+✓ parentResponseId exists → notify parent response author
+✓ Parent author === record author → 1 notification only (no duplicate)
+✓ Parent author === current user → no notification (self-reply)
+✓ parentResponseId missing → original logic (notify record author)
+✓ Current user === record author → no notification (self-response)
+✓ getResponseById already imported (line 31)
+✓ createNotification already imported (line 30)
+✓ No as any, @ts-ignore used
+✓ Error handling with .catch() preserved
+
+GREP RESULTS:
+=============
+30:import { createNotification } from "~/db/queries/social/notifications.server";
+56:    .leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
+69:  const isAuthor = currentUserId === recordData.record.authorId;
+88:      .leftJoin(learnerProfiles, eq(responses.authorId, learnerProfiles.userId))
+186:      parentResponseId: formData.get("parentResponseId") || undefined,
+194:      .select({ responsePreference: records.responsePreference, visibility: records.visibility, authorId: records.authorId })
+202:      const authorId = targetRecord[0].authorId;
+204:      if ((visibility === "draft" || visibility === "private") && authorId !== auth.user.id) {
+217:    if (parsed.data.parentResponseId) {
+218:      const parentResponse = await getResponseById(context.cloudflare.env.DB, parsed.data.parentResponseId);
+248:      authorId: auth.user.id,
+253:      parentResponseId: parsed.data.parentResponseId ?? null,
+276:      const recordAuthorId = targetRecord[0].authorId;
+279:      if (parsed.data.parentResponseId) {
+281:        const parentResponse = await getResponseById(context.cloudflare.env.DB, parsed.data.parentResponseId);
+282:        const parentAuthorId = parentResponse?.authorId;
+285:          await createNotification(context.cloudflare.env.DB, {
+300:          await createNotification(context.cloudflare.env.DB, {
+315:          await createNotification(context.cloudflare.env.DB, {
+351:      .select({ visibility: records.visibility, authorId: records.authorId })
+358:      const authorId = targetRecord[0].authorId;
+360:      if ((visibility === "draft" || visibility === "private") && authorId !== auth.user.id) {
+392:      .select({ authorId: records.authorId })
+397:    if (recordData.length === 0 || recordData[0].authorId !== auth.user.id) {

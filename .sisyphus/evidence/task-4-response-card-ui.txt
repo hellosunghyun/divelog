@@ -1,0 +1,63 @@
+# Task 4 — ResponseCard 수정/삭제 UI 추가
+
+## Status: COMPLETED ✅
+
+### Changes Made
+
+#### 1. ResponseCard.tsx Props Extension
+- Added imports: AlertDialog components, EditedIndicator
+- Extended ResponseCardProps interface:
+  - response.updatedAt: number (added)
+  - response.authorId: string (added)
+  - currentUserId?: string | null (added)
+  - onEdit?: (responseId: string) => void (added)
+  - onDelete?: (responseId: string) => void (added)
+
+#### 2. Owner Check Logic
+- Line 79: `const isOwner = currentUserId != null && response.authorId === currentUserId;`
+- Line 80: `const isEdited = response.updatedAt > response.createdAt;`
+
+#### 3. EditedIndicator Display
+- Lines 116-120: Conditionally render EditedIndicator when isEdited=true
+- Passes createdAt and updatedAt to indicator
+
+#### 4. Edit/Delete UI (Owner Only)
+- Lines 122-159: Conditional render when isOwner=true
+- Edit button: text-xs, text-text-tertiary, calls onEdit?.(response.id)
+- Delete button: text-xs, text-red-600/70, triggers AlertDialog
+- AlertDialog: 
+  - Title: "응답을 삭제하시겠습니까?"
+  - Description: "삭제된 응답은 복구할 수 없습니다."
+  - Cancel button: standard outline style
+  - Delete button: bg-red-600 text-white hover:bg-red-700, calls onDelete?.(response.id)
+
+#### 5. $recordSlug.tsx Integration
+- Line 735: Pass currentUserId={loaderData.currentUserId} to ResponseCard
+- currentUserId available from loader (line 158 in $recordSlug.server.ts)
+
+### Verification
+
+✅ TypeCheck: No new ResponseCard-related errors
+✅ Build: Successful (build/worker.js 4.6mb)
+✅ Grep verification:
+  - isOwner: line 79
+  - AlertDialog imports: lines 4-12
+  - EditedIndicator import: line 14
+  - onEdit/onDelete props: lines 37-38
+  - currentUserId prop: line 36
+  - currentUserId passed in $recordSlug.tsx: line 735
+
+### Notes
+
+- onEdit and onDelete callbacks are defined but not yet connected to server actions (Task 5)
+- EditedIndicator component already exists and handles revision history display
+- AlertDialog component from @radix-ui/react-alert-dialog already available
+- No database migrations needed (updatedAt and authorId already in responses table)
+- Design follows Quiet Depth principles: subtle buttons, clear confirmation dialog
+
+### Commit
+
+```
+git add app/components/cards/ResponseCard.tsx app/routes/public/logs/'$recordSlug.tsx'
+git commit -m "feat(dialogue): ResponseCard 수정/삭제 UI"
+```

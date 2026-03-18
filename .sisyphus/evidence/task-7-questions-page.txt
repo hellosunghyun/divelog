@@ -1,0 +1,31 @@
+Task 7 — 열린 질문 전용 페이지 `/questions`
+
+Worktree: /Users/hellosunghyun/Documents/Github/divelog-dialogue-response
+Date: 2026-03-18
+
+변경 사항
+- app/routes/public/questions.tsx 생성
+- app/routes.ts 에 `route("questions", "routes/public/questions.tsx")` 추가
+
+구현 내용
+- loader에서 `getOpenQuestions()` 호출
+- active stage 목록 로드
+- 질문별 record stage 매핑을 추가 조회해서 `?stage=` 필터 지원
+- HeroSection + Stage chip + QuestionCard 목록 + EmptyState 구성
+- QuestionCard의 응답 버튼은 `/logs/{recordSlug}` 로 이동
+
+검증
+- `lsp_diagnostics`:
+  - app/routes/public/questions.tsx → clean
+  - app/routes.ts → clean
+- 파일 존재 확인:
+  - `ls app/routes/public/questions.tsx` → OK
+- `pnpm typecheck` → FAIL
+  - 현재 저장소의 기존 타입 오류로 실패
+  - 대표 예시: `app/components/admin/AdminSidebar.tsx`, `app/db/queries/dialogue/questions.server.ts`, `app/db/queries/dialogue/responses.server.ts`, `app/lib/auth/auth.middleware.ts`
+- `pnpm build` → PASS
+  - Sentry sourcemap auth token 경고는 있었지만 빌드 완료
+
+비고
+- `worker-configuration.d.ts` 는 `pnpm typecheck` 과정의 `wrangler types` 실행으로 갱신됨
+- GlobalNav 링크는 기존 정보 구조를 유지하기 위해 변경하지 않음

@@ -1,0 +1,69 @@
+# Task 3 — Inbox 알림 링크 recordId→slug 수정
+
+## Changes Made
+
+### 1. Import records table
+- Line 9: Added `records` to imports from `~/db/schema.server`
+
+### 2. Modified loader query (lines 38-54)
+- Changed from `.select()` to explicit field selection
+- Added LEFT JOIN with records table
+- Now selects `recordSlug: records.slug` alongside `recordId`
+- Graceful degradation: null slug when record doesn't exist
+
+### 3. Updated rendering (line 166)
+- Changed condition from `{n.recordId &&` to `{n.recordSlug &&`
+- Changed link from `/logs/${n.recordId}` to `/logs/${n.recordSlug}`
+
+## Verification
+
+### Grep output:
+```
+44:      recordId: notifications.recordId,
+45:      recordSlug: records.slug,
+51:    .leftJoin(records, eq(notifications.recordId, records.id))
+166:                  {n.recordSlug && (
+168:                      to={`/logs/${n.recordSlug}`}
+```
+
+### Typecheck result:
+- No inbox-specific errors
+- AdminSidebar error is pre-existing (unrelated)
+
+## Implementation Details
+
+### Query Pattern (Drizzle ORM):
+```typescript
+const allNotifs = await database
+  .select({
+    id: notifications.id,
+    type: notifications.type,
+    title: notifications.title,
+    content: notifications.content,
+    recordId: notifications.recordId,
+    recordSlug: records.slug,  // ← New field
+    questionId: notifications.questionId,
+    isRead: notifications.isRead,
+    createdAt: notifications.createdAt,
+  })
+  .from(notifications)
+  .leftJoin(records, eq(notifications.recordId, records.id))  // ← New JOIN
+  .where(eq(notifications.recipientId, auth.user.id))
+  .orderBy(desc(notifications.createdAt))
+  .limit(50);
+```
+
+### Rendering:
+```typescript
+{n.recordSlug && (
+  <Link
+    to={`/logs/${n.recordSlug}`}
+    className="text-caption text-text-tertiary hover:text-ocean-blue transition-colors no-underline"
+  >
+    기록 보기 →
+  </Link>
+)}
+```
+
+## Status
+✅ Complete - Ready for commit

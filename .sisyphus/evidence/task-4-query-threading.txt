@@ -1,0 +1,163 @@
+# Task 4: Query Threading Support — Evidence
+
+## File Modified
+- `/Users/hellosunghyun/Documents/Github/divelog-dialogue-threading/app/db/queries/dialogue/responses.server.ts`
+
+## Changes Summary
+
+### 1. Import Updates (Line 1)
+BEFORE:
+  import { and, desc, eq, gte, sql } from "drizzle-orm";
+
+AFTER:
+  import { and, asc, desc, eq, gte, inArray, sql } from "drizzle-orm";
+
+Added: `asc`, `inArray` for threading support
+
+---
+
+### 2. getResponsesByRecord() — Threading Support (Lines 8-24)
+
+BEFORE (Line 22):
+  .where(and(eq(responses.recordId, recordId), eq(responses.moderationStatus, "clean")))
+  .orderBy(desc(responses.createdAt));
+
+AFTER (Lines 22-23):
+  .where(and(eq(responses.recordId, recordId), inArray(responses.moderationStatus, ["clean", "tombstone"])))
+  .orderBy(asc(responses.createdAt));
+
+Changes:
+✓ WHERE: moderationStatus IN ("clean", "tombstone") — includes tombstone responses
+✓ ORDER BY: createdAt ASC — chronological order for threading
+✓ SELECT: responses (whole-table select) — already includes parentResponseId from schema
+
+---
+
+### 3. createResponse() — Parent Response Support (Lines 26-46)
+
+BEFORE (Lines 31-42):
+  await database.insert(responses).values({
+    id,
+    recordId: data.recordId,
+    questionId: data.questionId ?? null,
+    authorId,
+    type: data.type,
+    content: data.content,
+    visibility: data.visibility ?? "cohort",
+    moderationStatus: "clean",
+    createdAt: now,
+    updatedAt: now,
+  });
+
+AFTER (Lines 31-43):
+  await database.insert(responses).values({
+    id,
+    recordId: data.recordId,
+    questionId: data.questionId ?? null,
+    parentResponseId: data.parentResponseId ?? null,  ← ADDED
+    authorId,
+    type: data.type,
+    content: data.content,
+    visibility: data.visibility ?? "cohort",
+    moderationStatus: "clean",
+    createdAt: now,
+    updatedAt: now,
+  });
+
+Changes:
+✓ Added: parentResponseId: data.parentResponseId ?? null
+✓ Supports optional parent response linking for threading
+
+---
+
+### 4. deleteResponse() — Tombstone Pattern (Lines 143-176)
+
+BEFORE (Lines 142-157):
+  export async function deleteResponse(d1: D1Database, responseId: string, authorId: string) {
+    const database = db(d1);
+    const response = await getResponseById(d1, responseId);
+    if (!response) {
+      return false;
+    }
+    if (response.authorId !== authorId) {
+      return false;
+    }
+    await database.delete(responses).where(eq(responses.id, responseId));
+    return true;
+  }
+
+AFTER (Lines 143-176):
+  export async function deleteResponse(d1: D1Database, responseId: string, authorId: string) {
+    const database = db(d1);
+    const response = await getResponseById(d1, responseId);
+    if (!response) {
+      return false;
+    }
+    if (response.authorId !== authorId) {
+      return false;
+    }
+    
+    // Check if response has children
+    const childCount = await database
+      .select({ count: sql<number>`count(*)` })
+      .from(responses)
+      .where(eq(responses.parentResponseId, responseId));
+    
+    const hasChildren = (childCount[0]?.count ?? 0) > 0;
+    
+    if (hasChildren) {
+      // Tombstone: replace content and mark as tombstone
+      const now = Math.floor(Date.now() / 1000);
+      await database
+        .update(responses)
+        .set({ content: "[삭제된 응답]", moderationStatus: "tombstone", updatedAt: now })
+        .where(eq(responses.id, responseId));
+    } else {
+      // Hard delete if no children
+      await database.delete(responses).where(eq(responses.id, responseId));
+    }
+    
+    return true;
+  }
+
+Changes:
+✓ Check for child responses: COUNT(*) WHERE parentResponseId = responseId
+✓ If children exist: tombstone (content → "[삭제된 응답]", moderationStatus → "tombstone")
+✓ If no children: hard delete
+✓ Preserves thread integrity when parent is deleted
+
+---
+
+## Verification
+
+### Schema Confirmation
+✓ parentResponseId field exists in responses table (schema.server.ts:161)
+✓ Field type: text("parent_response_id").references(() => responses.id)
+
+### Validation Schema Confirmation
+✓ CreateResponseInput includes parentResponseId?: string (validation.ts:145)
+
+### Drizzle Imports
+✓ asc() — for ascending order
+✓ inArray() — for IN clause with multiple values
+
+---
+
+## Test Coverage (Expected)
+
+1. getResponsesByRecord() returns responses in chronological order (ASC)
+2. getResponsesByRecord() includes tombstone responses
+3. createResponse() accepts and stores parentResponseId
+4. deleteResponse() with children → tombstone
+5. deleteResponse() without children → hard delete
+6. Tombstone responses display "[삭제된 응답]" content
+7. Child responses remain accessible after parent tombstone
+
+---
+
+## No Breaking Changes
+- Existing responses without parentResponseId default to NULL
+- Existing clean responses continue to work
+- Tombstone status is additive (new feature)
+- Backward compatible with existing data
+

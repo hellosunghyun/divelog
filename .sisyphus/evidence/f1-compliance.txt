@@ -1,0 +1,45 @@
+VERDICT: REJECT
+
+Must Have:
+- [x] parentResponseId: 스키마, 쿼리, 액션, UI 모두 존재
+  - schema: app/db/schema.server.ts:161
+  - query: app/db/queries/dialogue/responses.server.ts:35,159
+  - action/validation: app/routes/public/logs/$recordSlug.server.ts:186,217,253,279 / app/lib/auth/validation.ts:145
+  - UI: app/routes/public/logs/$recordSlug.tsx:290,992
+- [x] buildResponseTree: 사용됨
+  - app/routes/public/logs/$recordSlug.tsx:26,983
+- [x] tombstone 패턴: 존재
+  - app/routes/public/logs/$recordSlug.tsx:228,251
+  - app/db/queries/dialogue/responses.server.ts:22,168
+- [x] 답글 버튼: 존재
+  - app/components/cards/ResponseCard.tsx:123,126,129
+- [x] 마이그레이션 파일: 존재
+  - drizzle/migrations/0010_add_parent_response_id.sql
+
+Must NOT Have (0건 확인):
+- [ ] as any / @ts-ignore
+  - 직접 매치 없음
+- [ ] 인기순 / 좋아요
+  - 'like' 매치 다수(Drizzle like 검색 함수):
+    - app/routes/public/search.tsx:3,59,73,81,91
+    - app/db/queries/misc/search.server.ts:1,35,67,85,99
+    - app/db/queries/records/records.server.ts:1,255
+- [ ] WebSocket
+  - 매치 없음
+- [ ] bubble
+  - bubble 클래스 매치 다수:
+    - app/styles/editor.css:555,566,583,588,593,599
+    - app/components/editor/editors/ArticleEditor.tsx:104,439,444,456,460,472,475,478,501,517
+
+Evidence:
+- task-1-migration.txt: 있음
+- task-2-migration.txt: 있음
+- task-3-validation.txt: 있음
+- task-4-query-threading.txt: 있음
+- task-5-server-actions.txt: 있음
+- task-6-reply-notification.txt: 있음
+- task-7-questions-page.txt: 있음
+- task-8-integration.txt: 있음
+- task-9-final-build.txt: 있음
+
+결론: 불합격. Must Have는 충족했지만, Must NOT Have가 0건이 아니어서(특히 like/bubble 매치) REJECT.

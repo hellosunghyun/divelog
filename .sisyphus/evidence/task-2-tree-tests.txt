@@ -1,0 +1,53 @@
+TASK 2: Thread Tree Utilities & Tests
+=====================================
+
+DELIVERABLES COMPLETED:
+✓ app/lib/utils/thread-tree.ts created
+✓ app/lib/utils/__tests__/thread-tree.test.ts created
+✓ All tests passing (7/7)
+
+FILES CREATED:
+1. /Users/hellosunghyun/Documents/Github/divelog-dialogue-threading/app/lib/utils/thread-tree.ts
+   - Exports: ThreadedResponse<T> type, buildResponseTree<T>() function
+   - Implementation: Two-pass algorithm (node creation → parent-child linking)
+   - Handles orphaned responses (treats as roots)
+   - Calculates depth correctly for nested structures
+
+2. /Users/hellosunghyun/Documents/Github/divelog-dialogue-threading/app/lib/utils/__tests__/thread-tree.test.ts
+   - 7 test cases covering all requirements:
+     1. Empty array → empty roots
+     2. Flat responses (all null parentResponseId) → all roots with depth=0
+     3. Single-level nesting → children in parent.children, depth=1
+     4. Deep nesting (4 levels) → depth values 0,1,2,3 correct
+     5. Orphaned responses → treated as roots
+     6. Property preservation → all original fields retained
+     7. Complex multi-branch tree → correct structure
+
+TEST RESULTS:
+Test Files: 1 passed (1)
+Tests: 7 passed (7)
+Duration: 653ms
+
+COMMAND EXECUTED:
+pnpm test app/lib/utils/__tests__/thread-tree.test.ts
+
+OUTPUT:
+ Test Files  1 passed (1)
+      Tests  7 passed (7)
+   Start at  16:04:18
+   Duration  653ms (transform 32ms, setup 113ms, import 17ms, tests 3ms, environment 412ms)
+
+IMPLEMENTATION DETAILS:
+- No `as any` or `@ts-ignore` used
+- No empty catch blocks
+- TypeScript strict mode compliant
+- Generic type parameter <T> properly constrained
+- Client-side compatible (no .server.ts extension)
+- Follows project testing patterns (vitest, describe/it/expect)
+
+VERIFICATION:
+✓ Files exist at correct paths
+✓ Exports match specification (ThreadedResponse type, buildResponseTree function)
+✓ All test cases pass
+✓ No TypeScript errors in new files
+✓ No linting violations

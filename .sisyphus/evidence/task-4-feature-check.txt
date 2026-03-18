@@ -1,0 +1,6 @@
+const DEBOUNCE_MS = 300;
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+    const timeoutId = setTimeout(() => {
+    if (debouncedQuery.length < MIN_QUERY_LENGTH) {
+        const searchResponse = await fetch(`/api/search-learners?q=${encodeURIComponent(debouncedQuery)}`, {
+  }, [debouncedQuery, excludeUserId, selectedIds]);

@@ -1,0 +1,33 @@
+# Task 2 — 응답 등록 시 알림 생성 로직 연결
+
+## Implementation Summary
+
+### Changes Made
+1. **Import Added** (line 29):
+   - `import { createNotification } from "~/db/queries/social/notifications.server";`
+
+2. **Notification Creation Logic** (lines 226-249):
+   - Location: `$recordSlug.server.ts` create_response intent, after DB insert
+   - Condition: `auth.user.id !== targetRecord[0].authorId && parsed.data.type !== "self_answer"`
+   - Excludes self-responses and self_answer type from notifications
+   - Fetches author display name from learnerProfiles
+   - Creates notification with type-specific label (공명, 질문, 연결, 제안)
+   - Wrapped in try-catch to prevent notification creation failure from breaking response registration
+
+### Type Safety
+- No new TypeScript errors introduced
+- Pre-existing errors (AdminSidebar, questions.server.ts, responses.server.ts, auth.middleware.ts, etc.) remain unchanged
+- All imports properly typed
+
+### Business Logic
+✓ Self-responses (auth.user.id === targetRecord[0].authorId) → no notification
+✓ self_answer type → no notification
+✓ Other response types (resonance, question, connection, suggestion) → notification created
+✓ Notification includes author name and response type label
+✓ Non-critical failure: notification creation errors logged but don't break response registration
+
+### Verification
+- grep output confirms:
+  - Line 29: createNotification import
+  - Line 226: Self-response guard condition
+  - Line 243: createNotification call

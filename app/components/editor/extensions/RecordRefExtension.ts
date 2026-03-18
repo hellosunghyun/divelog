@@ -1,6 +1,7 @@
 import { Mention } from "@tiptap/extension-mention";
 import { PluginKey } from "@tiptap/pm/state";
 import { exitSuggestion, type SuggestionProps } from "@tiptap/suggestion";
+import { disassemble, getChoseong } from "es-hangul";
 
 interface RecordItem {
   id: string;
@@ -12,44 +13,32 @@ interface RecordItem {
 
 const recordRefPluginKey = new PluginKey("recordRef");
 
-let debounceTimer: ReturnType<typeof setTimeout> | null = null;
-let lastFetchedQuery: string | null = null;
-let cachedResults: RecordItem[] | null = null;
+let allRecords: RecordItem[] | null = null;
+
+function hangulIncludes(target: string, search: string): boolean {
+  if (disassemble(target).includes(disassemble(search))) return true;
+  if (getChoseong(target).includes(search)) return true;
+  return target.toLowerCase().includes(search.toLowerCase());
+}
+
+async function loadAllRecords(): Promise<RecordItem[]> {
+  if (allRecords !== null) return allRecords;
+
+  try {
+    const res = await fetch("/api/search-records?q=");
+    if (!res.ok) return [];
+    const data = (await res.json()) as { results: RecordItem[] };
+    allRecords = data.results ?? [];
+    return allRecords;
+  } catch {
+    return [];
+  }
+}
 
 async function fetchRecords(query: string): Promise<RecordItem[]> {
-  if (!query) {
-    if (cachedResults !== null) return cachedResults;
-  }
-
-  if (query === lastFetchedQuery && cachedResults !== null) return cachedResults;
-
-  if (debounceTimer) clearTimeout(debounceTimer);
-
-  const delay = query.length === 0 ? 0 : 200;
-
-  return new Promise((resolve) => {
-    debounceTimer = setTimeout(async () => {
-      try {
-        const res = await fetch(`/api/search-records?q=${encodeURIComponent(query)}`);
-        if (!res.ok) {
-          console.warn("[record-ref] search-records 응답 오류:", res.status);
-          resolve(cachedResults ?? []);
-          return;
-        }
-        const data = (await res.json()) as { results: RecordItem[]; _auth?: boolean };
-        if (data._auth === false) {
-          console.warn("[record-ref] 인증되지 않은 상태에서 기록 검색 시도");
-        }
-        const results = data.results ?? [];
-        lastFetchedQuery = query;
-        cachedResults = results;
-        resolve(results);
-      } catch (err) {
-        console.warn("[record-ref] search-records fetch 실패:", err);
-        resolve(cachedResults ?? []);
-      }
-    }, delay);
-  });
+  const all = await loadAllRecords();
+  if (!query) return all;
+  return all.filter((item) => hangulIncludes(item.title, query));
 }
 
 function createRecordPopup() {
@@ -129,7 +118,10 @@ function renderRecordList(
 }
 
 export function createRecordRefExtension() {
-  return Mention.extend({ name: "recordRef" }).configure({
+  return Mention.extend({
+    name: "recordRef",
+    renderText: ({ node }) => node.attrs.label ?? node.attrs.id,
+  }).configure({
     HTMLAttributes: { class: "record-ref" },
     suggestion: {
       char: "[[",

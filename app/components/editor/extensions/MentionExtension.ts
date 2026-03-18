@@ -1,6 +1,7 @@
 import { Mention } from "@tiptap/extension-mention";
 import { PluginKey } from "@tiptap/pm/state";
 import { exitSuggestion, type SuggestionProps } from "@tiptap/suggestion";
+import { disassemble, getChoseong } from "es-hangul";
 
 interface MentionItem {
   id: string;
@@ -11,47 +12,32 @@ interface MentionItem {
 
 const mentionPluginKey = new PluginKey("userMention");
 
-let debounceTimer: ReturnType<typeof setTimeout> | null = null;
-let lastFetchedQuery: string | null = null;
-let cachedResults: MentionItem[] | null = null;
+let allLearners: MentionItem[] | null = null;
+
+function hangulIncludes(target: string, search: string): boolean {
+  if (disassemble(target).includes(disassemble(search))) return true;
+  if (getChoseong(target).includes(search)) return true;
+  return target.toLowerCase().includes(search.toLowerCase());
+}
+
+async function loadAllLearners(): Promise<MentionItem[]> {
+  if (allLearners !== null) return allLearners;
+
+  try {
+    const res = await fetch("/api/search-learners?q=");
+    if (!res.ok) return [];
+    const data = (await res.json()) as { results: MentionItem[] };
+    allLearners = data.results ?? [];
+    return allLearners;
+  } catch {
+    return [];
+  }
+}
 
 async function fetchLearners(query: string): Promise<MentionItem[]> {
-  // 빈 쿼리 → 캐시 있으면 즉시 반환 (Safari IME 진동 대응)
-  if (!query) {
-    if (cachedResults !== null) return cachedResults;
-  }
-
-  // 같은 쿼리 반복 호출 → 캐시 반환
-  if (query === lastFetchedQuery && cachedResults !== null) return cachedResults;
-
-  if (debounceTimer) clearTimeout(debounceTimer);
-
-  // 빈 쿼리는 debounce 없이 즉시 fetch (전체 목록)
-  const delay = query.length === 0 ? 0 : 200;
-
-  return new Promise((resolve) => {
-    debounceTimer = setTimeout(async () => {
-      try {
-        const res = await fetch(`/api/search-learners?q=${encodeURIComponent(query)}`);
-        if (!res.ok) {
-          console.warn("[mention] search-learners 응답 오류:", res.status);
-          resolve(cachedResults ?? []);
-          return;
-        }
-        const data = (await res.json()) as { results: MentionItem[]; _auth?: boolean };
-        if (data._auth === false) {
-          console.warn("[mention] 인증되지 않은 상태에서 러너 검색 시도");
-        }
-        const results = data.results ?? [];
-        lastFetchedQuery = query;
-        cachedResults = results;
-        resolve(results);
-      } catch (err) {
-        console.warn("[mention] search-learners fetch 실패:", err);
-        resolve(cachedResults ?? []);
-      }
-    }, delay);
-  });
+  const all = await loadAllLearners();
+  if (!query) return all;
+  return all.filter((item) => hangulIncludes(item.displayName, query));
 }
 
 function createMentionPopup() {

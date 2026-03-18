@@ -1,0 +1,21 @@
+  "limit": [Function Mock],
+}
+
+[36m [2m❯[22m app/db/queries/__tests__/mentions.test.ts:[2m311:22[22m[39m
+    [90m310|[39m       [35mconst[39m result [33m=[39m [35mawait[39m [34mgetMentionsByRecord[39m(d1[33m,[39m [32m"record-1"[39m)[33m;[39m
+    [90m311|[39m
+    [90m312|[39m       [34mexpect[39m(result)[33m.[39m[34mtoEqual[39m([])[33m;[39m
+    [90m   |[39m                     [31m^[39m
+    [90m313|[39m     })[33m;[39m
+    [90m314|[39m   })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m25 passed[39m[22m[90m (26)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m224 passed[39m[22m[90m (226)[39m
+[2m   Start at [22m 17:03:42
+[2m   Duration [22m 9.66s[2m (transform 2.51s, setup 7.33s, import 24.39s, tests 1.86s, environment 36.39s)[22m
+
+ ELIFECYCLE  Test failed. See above for more details.
+       0
