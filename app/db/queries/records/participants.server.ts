@@ -8,6 +8,7 @@ export type RecordParticipant = typeof recordParticipants.$inferSelect;
 export type ParticipantWithProfile = {
   userId: string;
   displayName: string | null;
+  slug: string | null;
   profilePhotoUrl: string | null;
   role: string;
   createdAt: number;
@@ -23,6 +24,7 @@ export async function getParticipantsByRecord(
     .select({
       userId: recordParticipants.participantUserId,
       displayName: learnerProfiles.displayName,
+      slug: learnerProfiles.slug,
       profilePhotoUrl: learnerProfiles.profilePhotoUrl,
       role: recordParticipants.role,
       createdAt: recordParticipants.createdAt,
