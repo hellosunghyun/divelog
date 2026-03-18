@@ -20,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import { TagSelector } from "~/components/TagSelector";
 import { db } from "~/db/client.server";
 import { syncMentionsForRecord } from "~/db/queries/dialogue/mentions.server";
 import { syncRecordLinksForRecord } from "~/db/queries/records/recordLinks.server";
@@ -383,47 +384,11 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
           </Select>
         </div>
 
-        {tags.length > 0 && (
-          <fieldset className="border-0 m-0 p-0">
-            <legend className="block text-meta font-medium text-text-secondary mb-3">
-              태그 (선택)
-            </legend>
-            <div className="flex flex-wrap gap-2">
-              {tags.map((tag) => (
-                <label
-                  key={tag.id}
-                  className="cursor-pointer"
-                >
-                  <input
-                    type="checkbox"
-                    name="tagIds"
-                    value={tag.id}
-                    checked={selectedTags.has(tag.id)}
-                    onChange={(e) => {
-                      const newTags = new Set(selectedTags);
-                      if (e.target.checked) {
-                        newTags.add(tag.id);
-                      } else {
-                        newTags.delete(tag.id);
-                      }
-                      setSelectedTags(newTags);
-                    }}
-                    className="hidden"
-                  />
-                  <span
-                    className={`inline-block px-3 py-1 rounded-full text-sm border transition-colors ${
-                      selectedTags.has(tag.id)
-                        ? "border-ocean-blue bg-mist-blue text-ocean-blue"
-                        : "border-border bg-surface text-text-secondary hover:border-ocean-blue"
-                    }`}
-                  >
-                    {tag.name}
-                  </span>
-                </label>
-              ))}
-            </div>
-          </fieldset>
-        )}
+        <TagSelector
+          tags={tags}
+          selectedTagIds={Array.from(selectedTags)}
+          onChange={(newIds) => setSelectedTags(new Set(newIds))}
+        />
 
         <div>
           <Label htmlFor="visibility" className="mb-2 block text-meta font-medium text-text-secondary">
