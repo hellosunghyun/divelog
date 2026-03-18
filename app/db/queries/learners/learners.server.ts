@@ -2,7 +2,7 @@ import { asc, desc, eq, isNotNull, sql } from "drizzle-orm";
 
 import { nanoid } from "../../../lib/utils/utils.server";
 import { db } from "../../client.server";
-import { learnerProfiles, records, stages } from "../../schema.server";
+import { learnerProfiles, questions, records, recordTags, stages, tags } from "../../schema.server";
 
 interface AdakrposUser {
   id: string;
@@ -297,4 +297,119 @@ export async function getDistinctCohorts(d1: D1Database): Promise<string[]> {
     .where(isNotNull(learnerProfiles.cohort));
 
   return result.map((r) => r.cohort as string).sort();
+}
+
+export async function getLearnerInterestTags(
+  d1: D1Database,
+  learnerId: string,
+): Promise<Array<{ slug: string; name: string }>> {
+  const database = db(d1);
+
+  const tagResults = await database
+    .select({
+      slug: tags.slug,
+      name: tags.name,
+    })
+    .from(tags)
+    .innerJoin(recordTags, eq(tags.id, recordTags.tagId))
+    .innerJoin(records, eq(recordTags.recordId, records.id))
+    .where(
+      sql`${records.authorId} = ${learnerId} AND ${records.visibility} IN ('cohort', 'public')`,
+    );
+
+  const tagMap = new Map<string, { slug: string; name: string; count: number }>();
+
+  for (const tag of tagResults) {
+    const key = tag.slug;
+    if (tagMap.has(key)) {
+      const existing = tagMap.get(key)!;
+      existing.count += 1;
+    } else {
+      tagMap.set(key, { slug: tag.slug, name: tag.name, count: 1 });
+    }
+  }
+
+  const deduplicated = Array.from(tagMap.values());
+  deduplicated.sort((a, b) => b.count - a.count);
+
+  return deduplicated.map(({ slug, name }) => ({ slug, name }));
+}
+
+export interface LearnerStageActivityResult {
+  currentStage: {
+    id: string;
+    name: string;
+    slug: string;
+  } | null;
+  recentActivity: {
+    recordCount: number;
+    questionCount: number;
+    lastActiveAt: string | null;
+  };
+}
+
+export async function getLearnerStageActivity(
+  d1: D1Database,
+  learnerId: string,
+  isOwner: boolean,
+): Promise<LearnerStageActivityResult> {
+  const database = db(d1);
+
+  const learner = await database
+    .select({ currentStageId: learnerProfiles.currentStageId })
+    .from(learnerProfiles)
+    .where(eq(learnerProfiles.userId, learnerId))
+    .limit(1);
+
+  const learnerProfile = learner[0] ?? null;
+  let currentStage: { id: string; name: string; slug: string } | null = null;
+
+  if (learnerProfile?.currentStageId) {
+    const stageResult = await database
+      .select({ id: stages.id, name: stages.name, slug: stages.slug })
+      .from(stages)
+      .where(eq(stages.id, learnerProfile.currentStageId))
+      .limit(1);
+
+    currentStage = stageResult[0] ?? null;
+  }
+
+  const recordsQuery = isOwner
+    ? database
+        .select({ createdAt: records.createdAt })
+        .from(records)
+        .where(eq(records.authorId, learnerId))
+    : database
+        .select({ createdAt: records.createdAt })
+        .from(records)
+        .where(
+          sql`${records.authorId} = ${learnerId} AND ${records.visibility} IN ('cohort', 'public')`,
+        );
+
+  const recordsList = await recordsQuery;
+
+  const questionsList = await database
+    .select({ createdAt: questions.createdAt })
+    .from(questions)
+    .innerJoin(records, eq(questions.recordId, records.id))
+    .where(eq(records.authorId, learnerId));
+
+  const allTimestamps = [
+    ...recordsList.map((r) => r.createdAt),
+    ...questionsList.map((q) => q.createdAt),
+  ];
+
+  const lastActiveAt =
+    allTimestamps.length > 0
+      ? new Date(Math.max(...allTimestamps) * 1000).toISOString()
+      : null;
+
+  return {
+    currentStage,
+    recentActivity: {
+      recordCount: recordsList.length,
+      questionCount: questionsList.length,
+      lastActiveAt,
+    },
+  };
 }
