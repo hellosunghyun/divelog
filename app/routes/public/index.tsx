@@ -1,4 +1,6 @@
 import type { Route } from "./+types/index";
+import { Suspense } from "react";
+import { Await } from "react-router";
 import { Link } from "~/components/content/SmartLink";
 import { eq, desc, and, sql, count } from "drizzle-orm";
 import { db } from "~/db/client.server";
@@ -53,7 +55,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const currentStage = currentStageResult[0] ?? null;
   const learnerCount = learnerCountResult[0]?.total ?? 0;
 
-  const [recentRecords, recentSentences, recentActivity] = await Promise.all([
+  const [recentRecords, recentSentences] = await Promise.all([
     database
       .select({
         id: records.id,
@@ -96,11 +98,12 @@ export async function loader({ request, context }: Route.LoaderArgs) {
       .where(sql`${records.visibility} IN ('cohort', 'public')`)
       .orderBy(desc(sentences.createdAt))
       .limit(4),
-    getRecentActivity(context.cloudflare.env.DB, {
-      limit: 8,
-      cohort: currentStage?.cohort ?? null,
-    }),
   ]);
+
+  const recentActivityPromise = getRecentActivity(context.cloudflare.env.DB, {
+    limit: 8,
+    cohort: currentStage?.cohort ?? null,
+  });
 
   // Pre-compute plain text snippets and relative times on server to avoid hydration mismatch
   const nowMs = Date.now();
@@ -119,7 +122,16 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   }));
 
   logger.info("loader_end");
-  return { allStages, currentStage, recentRecords: recentRecordsWithSnippets, openQuestions: openQuestionsWithTime, recentSentences, spotlightLearners, learnerCount, recentActivity };
+  return {
+    allStages,
+    currentStage,
+    recentRecords: recentRecordsWithSnippets,
+    openQuestions: openQuestionsWithTime,
+    recentSentences,
+    spotlightLearners,
+    learnerCount,
+    recentActivity: recentActivityPromise,
+  };
 }
 
 function formatRelativeTime(timestamp: number | null, nowMs?: number): string {
@@ -145,11 +157,11 @@ const FORMAT_LABELS: Record<string, string> = {
 const TYPE_LABELS: Record<string, string> = {
   personal: "개인",
   challenge: "챌린지",
-  // [COLLAB_DISABLED] collaboration: "협업",
+  collaboration: "협업",
 };
 
 export default function HomePage({ loaderData }: Route.ComponentProps) {
-  const { allStages, currentStage, recentRecords, openQuestions, recentSentences, spotlightLearners, learnerCount, recentActivity } = loaderData;
+  const { allStages, currentStage, recentRecords, openQuestions, recentSentences, spotlightLearners, learnerCount } = loaderData;
 
   return (
     <div>
@@ -261,7 +273,19 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
           </div>
         </div>
         <div>
-          <ActivityFeed activities={recentActivity} />
+          <Suspense fallback={
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-pulse">
+              {[1, 2, 3, 4].map(i => (
+                <div key={i} className="bg-surface-secondary rounded-2xl h-24" />
+              ))}
+            </div>
+          }>
+            <Await resolve={loaderData.recentActivity}>
+              {(recentActivity) => (
+                <ActivityFeed activities={recentActivity} />
+              )}
+            </Await>
+          </Suspense>
         </div>
       </section>
 

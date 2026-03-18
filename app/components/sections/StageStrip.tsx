@@ -99,17 +99,17 @@ export default function StageStrip({ stages, currentStageSlug }: StageStripProps
             );
           }
 
-          return (
-            <Link
-              key={stage.id}
-              to={`/journey/${stage.slug}`}
-              prefetch="render"
-              className={cn(baseClasses, stateClasses)}
-              aria-current={isCurrent ? "page" : undefined}
-            >
-              {stage.name}
-            </Link>
-          );
+           return (
+             <Link
+               key={stage.id}
+               to={`/journey/${stage.slug}`}
+               prefetch="intent"
+               className={cn(baseClasses, stateClasses)}
+               aria-current={isCurrent ? "page" : undefined}
+             >
+               {stage.name}
+             </Link>
+           );
         })}
       </div>
     </nav>

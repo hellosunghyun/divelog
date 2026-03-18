@@ -6,6 +6,10 @@ import { cn } from "~/lib/utils/cn";
 import StageStrip from "~/components/sections/StageStrip";
 import HeroSection from "~/components/sections/HeroSection";
 import EmptyState from "~/components/feedback/EmptyState";
+import { sql } from "drizzle-orm";
+import { db } from "~/db/client.server";
+import { stages } from "~/db/schema.server";
+import { createLogger } from "~/lib/infra/logger.server";
 
 export function meta(_args: Route.MetaArgs) {
   return [
@@ -15,11 +19,6 @@ export function meta(_args: Route.MetaArgs) {
 }
 
 export async function loader({ request, context }: Route.LoaderArgs): Promise<{ stages: any[]; currentStage: any }> {
-  const { db } = await import("~/db/client.server");
-  const { stages } = await import("~/db/schema.server");
-  const { sql } = await import("drizzle-orm");
-  const { createLogger } = await import("~/lib/infra/logger.server");
-
   const logger = createLogger(request, context.cloudflare.env).child({ route: "journey" });
   logger.info("loader_start");
   const database = db(context.cloudflare.env.DB);

@@ -7,7 +7,11 @@ import HeroSection from "~/components/sections/HeroSection";
 import EmptyState from "~/components/feedback/EmptyState";
 import HighlightedSentenceCard from "~/components/cards/HighlightedSentenceCard";
 import LoadingSkeleton from "~/components/feedback/LoadingSkeleton";
+import { db } from "~/db/client.server";
+import { learnerProfiles, questions, records, sentences } from "~/db/schema.server";
+import { getPlainText } from "~/lib/content/content.server";
 import { normalizeContentFormat } from "~/lib/content/editor-extensions";
+import { createLogger } from "~/lib/infra/logger.server";
 import { motion } from "~/lib/motion/motion";
 import { staggerContainer, staggerItem } from "~/lib/motion/motion-utils";
 
@@ -15,12 +19,20 @@ export function meta(_args: Route.MetaArgs) {
   return [{ title: "검색 — DiveLog" }];
 }
 
-export async function loader({ request, context }: Route.LoaderArgs) {
-  const { db } = await import("~/db/client.server");
-  const { records, questions, learnerProfiles, sentences } = await import("~/db/schema.server");
-  const { getPlainText } = await import("~/lib/content/content.server");
-  const { createLogger } = await import("~/lib/infra/logger.server");
+export function shouldRevalidate({
+  formMethod,
+  defaultShouldRevalidate,
+}: {
+  formMethod?: string;
+  defaultShouldRevalidate: boolean;
+}): boolean {
+  if (formMethod && formMethod !== "GET") {
+    return defaultShouldRevalidate;
+  }
+  return false;
+}
 
+export async function loader({ request, context }: Route.LoaderArgs) {
   const logger = createLogger(request, context.cloudflare.env).child({ route: "search" });
   logger.info("loader_start");
   const url = new URL(request.url);
@@ -40,18 +52,10 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const pattern = `%${q}%`;
   const database = db(context.cloudflare.env.DB);
 
-   const [foundRecords, foundQuestions, foundLearners, foundSentences] = await database.batch([
+   const [foundRecordsRaw, foundQuestions, foundLearners, foundSentences] = await database.batch([
      database
-       .select({
-         record: records,
-         author: {
-           displayName: learnerProfiles.displayName,
-           slug: learnerProfiles.slug,
-           profilePhotoUrl: learnerProfiles.profilePhotoUrl,
-         },
-       })
+       .select()
        .from(records)
-       .leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
         .where(
           and(
             or(like(records.title, pattern), like(records.contentText, pattern)),
@@ -93,8 +97,26 @@ export async function loader({ request, context }: Route.LoaderArgs) {
        .limit(10),
    ]);
 
-  const recordsWithSnippets = foundRecords.map(({ record, author }) => {
+  const authorIds = [...new Set(foundRecordsRaw.map((r) => r.authorId).filter(Boolean))];
+  const authorMap = new Map<string, { displayName: string; slug: string; profilePhotoUrl: string | null }>();
+  if (authorIds.length > 0) {
+    const authors = await database
+      .select({
+        userId: learnerProfiles.userId,
+        displayName: learnerProfiles.displayName,
+        slug: learnerProfiles.slug,
+        profilePhotoUrl: learnerProfiles.profilePhotoUrl,
+      })
+      .from(learnerProfiles)
+      .where(sql`${learnerProfiles.userId} IN ${authorIds}`);
+    for (const a of authors) {
+      authorMap.set(a.userId, { displayName: a.displayName, slug: a.slug, profilePhotoUrl: a.profilePhotoUrl });
+    }
+  }
+
+  const recordsWithSnippets = foundRecordsRaw.map((record) => {
     const plainTextContent = getPlainText(record.content, normalizeContentFormat(record.format));
+    const author = authorMap.get(record.authorId) ?? null;
 
     return {
       record,

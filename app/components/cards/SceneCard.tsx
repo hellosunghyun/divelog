@@ -52,6 +52,8 @@ const stageToneClasses: Record<string, string> = {
   epilogue: "bg-surface-secondary text-text-secondary border border-border",
 };
 
+const BLOCK_TYPES = new Set(["paragraph", "heading", "blockquote", "bulletList", "orderedList", "listItem", "codeBlock"]);
+
 function extractPlainTextFromJson(content: string): string | null {
   try {
     const parsed = JSON.parse(content);
@@ -59,7 +61,9 @@ function extractPlainTextFromJson(content: string): string | null {
     const extract = (node: { type?: string; text?: string; content?: unknown[] }): string => {
       if (node.type === "text") return node.text ?? "";
       if (!Array.isArray(node.content)) return "";
-      return node.content.map((child) => extract(child as typeof node)).join("");
+      const childText = node.content.map((child) => extract(child as typeof node)).join("");
+      if (node.type && BLOCK_TYPES.has(node.type) && childText) return childText + " ";
+      return childText;
     };
     return extract(parsed).replace(/\s+/g, " ").trim();
   } catch {
