@@ -40,26 +40,38 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
   const database = db(context.cloudflare.env.DB);
   const optionalAuth = await getOptionalUser(request, context);
 
-  const recordResult = await database
-    .select({
-      record: records,
-      author: {
-        displayName: learnerProfiles.displayName,
-        slug: learnerProfiles.slug,
-        profilePhotoUrl: learnerProfiles.profilePhotoUrl,
-        userId: learnerProfiles.userId,
-      },
-      stage: {
-        id: stages.id,
-        name: stages.name,
-        slug: stages.slug,
-      },
-    })
+  const selectFields = {
+    record: records,
+    author: {
+      displayName: learnerProfiles.displayName,
+      slug: learnerProfiles.slug,
+      profilePhotoUrl: learnerProfiles.profilePhotoUrl,
+      userId: learnerProfiles.userId,
+    },
+    stage: {
+      id: stages.id,
+      name: stages.name,
+      slug: stages.slug,
+    },
+  };
+
+  let recordResult = await database
+    .select(selectFields)
     .from(records)
     .leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
     .leftJoin(stages, eq(records.stageId, stages.id))
     .where(eq(records.slug, recordSlug))
     .limit(1);
+
+  if (recordResult.length === 0) {
+    recordResult = await database
+      .select(selectFields)
+      .from(records)
+      .leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
+      .leftJoin(stages, eq(records.stageId, stages.id))
+      .where(eq(records.id, recordSlug))
+      .limit(1);
+  }
 
   const recordData = recordResult[0];
 
