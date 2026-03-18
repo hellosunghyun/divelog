@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import { SubmitButton } from "~/components/feedback/SubmitButton";
 import { ADMIN_ROLES, type AdminRole } from "~/db/queries/admin/ops/roles";
 
 export async function loader({ params, request, context }: Route.LoaderArgs) {
@@ -222,24 +223,26 @@ export default function AdminLearnerDetailPage({ loaderData }: Route.ComponentPr
                 <p className="text-sm text-admin-text-secondary">할당된 역할이 없습니다</p>
               ) : (
                 roles.map((r) => (
-                  <div key={r.id} className="flex items-center justify-between p-2 bg-admin-bg rounded-lg">
-                    <Badge variant={getRoleBadgeVariant(r.role)} className="text-xs">
-                      {getRoleLabel(r.role)}
-                    </Badge>
-                    <form method="post">
-                      <input type="hidden" name="intent" value="remove_role" />
-                      <input type="hidden" name="role" value={r.role} />
-                      <Button
-                        type="submit"
-                        variant="ghost"
-                        size="sm"
-                        className="h-7 px-2 text-xs text-admin-text-secondary hover:text-error"
-                      >
-                        제거
-                      </Button>
-                    </form>
-                  </div>
-                ))
+                   <div key={r.id} className="flex items-center justify-between p-2 bg-admin-bg rounded-lg">
+                     <Badge variant={getRoleBadgeVariant(r.role)} className="text-xs">
+                       {getRoleLabel(r.role)}
+                     </Badge>
+                     <form method="post">
+                       <input type="hidden" name="intent" value="remove_role" />
+                       <input type="hidden" name="role" value={r.role} />
+                       <SubmitButton
+                         variant="ghost"
+                         size="sm"
+                         formDataMatch={{ intent: "remove_role", role: r.role }}
+                         spinnerSize="sm"
+                         loadingText="제거 중..."
+                         className="h-7 px-2 text-xs text-admin-text-secondary hover:text-error"
+                       >
+                         제거
+                       </SubmitButton>
+                     </form>
+                   </div>
+                 ))
               )}
             </div>
 
@@ -258,9 +261,14 @@ export default function AdminLearnerDetailPage({ loaderData }: Route.ComponentPr
                     ))}
                   </SelectContent>
                 </Select>
-                <Button type="submit" size="sm" className="h-9 px-3 text-xs bg-admin-accent hover:opacity-90">
+                <SubmitButton
+                  size="sm"
+                  formDataMatch={{ intent: "add_role" }}
+                  loadingText="추가 중..."
+                  className="h-9 px-3 text-xs bg-admin-accent hover:opacity-90"
+                >
                   추가
-                </Button>
+                </SubmitButton>
               </form>
             )}
           </div>

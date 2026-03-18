@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { redirect } from "react-router";
+import { redirect, useNavigation } from "react-router";
 import type { Route } from "./+types/roles";
 import { asc, eq } from "drizzle-orm";
+import { Spinner } from "~/components/feedback/Spinner";
 import {
   adminTableClass,
   adminThClass,
@@ -123,6 +124,7 @@ export default function AdminRolesPage({ loaderData }: Route.ComponentProps) {
   const { roles, allLearners } = loaderData;
   const [selectedUserId, setSelectedUserId] = useState("__none__");
   const [selectedRole, setSelectedRole] = useState(Object.keys(ROLE_LABELS)[0] ?? "admin");
+  const navigation = useNavigation();
 
   return (
     <div>
@@ -157,39 +159,55 @@ export default function AdminRolesPage({ loaderData }: Route.ComponentProps) {
                   </tr>
                 </thead>
                 <tbody>
-                  {roles.map(({ role, learner }: RoleRow) => (
-                    <tr key={role.id} className={adminTrClass}>
-                      <td className={adminTdClass}>
-                        <div>
-                          <span className="block text-caption font-medium text-admin-text">
-                            {userLabel(learner?.email ?? null, learner?.displayName ?? null, role.userId)}
-                          </span>
-                          {learner?.email && learner.displayName && (
-                            <span className="text-[11px] text-admin-text-secondary">
-                              {learner.displayName}
+                  {roles.map(({ role, learner }: RoleRow) => {
+                    const isRevokingThisRow =
+                      navigation.state === "submitting" &&
+                      navigation.formData?.get("intent") === "revoke" &&
+                      navigation.formData?.get("id") === role.id;
+                    return (
+                      <tr key={role.id} className={adminTrClass}>
+                        <td className={adminTdClass}>
+                          <div>
+                            <span className="block text-caption font-medium text-admin-text">
+                              {userLabel(learner?.email ?? null, learner?.displayName ?? null, role.userId)}
                             </span>
-                          )}
-                        </div>
-                      </td>
-                      <td className={adminTdClass}>
-                        <span className={`${adminBadgeBase} ${adminBadgePrimary}`}>
-                          {ROLE_LABELS[role.role] ?? role.role}
-                        </span>
-                      </td>
-                      <td className={`${adminTdClass} text-admin-text-secondary tabular-nums`}>
-                        {new Date(role.grantedAt * 1000).toLocaleDateString("ko-KR")}
-                      </td>
-                      <td className={adminTdClass}>
-                        <form method="post" className="inline">
-                          <input type="hidden" name="id" value={role.id} />
-                          <input type="hidden" name="intent" value="revoke" />
-                          <button type="submit" className={`${adminBtnDanger} ${adminBtnSm}`}>
-                            회수
-                          </button>
-                        </form>
-                      </td>
-                    </tr>
-                  ))}
+                            {learner?.email && learner.displayName && (
+                              <span className="text-[11px] text-admin-text-secondary">
+                                {learner.displayName}
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td className={adminTdClass}>
+                          <span className={`${adminBadgeBase} ${adminBadgePrimary}`}>
+                            {ROLE_LABELS[role.role] ?? role.role}
+                          </span>
+                        </td>
+                        <td className={`${adminTdClass} text-admin-text-secondary tabular-nums`}>
+                          {new Date(role.grantedAt * 1000).toLocaleDateString("ko-KR")}
+                        </td>
+                        <td className={adminTdClass}>
+                          <form method="post" className="inline">
+                            <input type="hidden" name="id" value={role.id} />
+                            <input type="hidden" name="intent" value="revoke" />
+                            <button
+                              type="submit"
+                              disabled={isRevokingThisRow}
+                              className={`${adminBtnDanger} ${adminBtnSm} disabled:opacity-50 disabled:cursor-not-allowed`}
+                            >
+                              {isRevokingThisRow ? (
+                                <>
+                                  <Spinner size="sm" /> 회수 중...
+                                </>
+                              ) : (
+                                "회수"
+                              )}
+                            </button>
+                          </form>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             )}
@@ -248,10 +266,16 @@ export default function AdminRolesPage({ loaderData }: Route.ComponentProps) {
               <div className="pt-2">
                 <button
                   type="submit"
-                  disabled={selectedUserId === "__none__"}
+                  disabled={selectedUserId === "__none__" || navigation.state === "submitting"}
                   className={`${adminBtnPrimary} disabled:opacity-50 disabled:cursor-not-allowed`}
                 >
-                  역할 부여
+                  {navigation.state === "submitting" && navigation.formData?.get("intent") === "grant" ? (
+                    <>
+                      <Spinner size="sm" /> 부여 중...
+                    </>
+                  ) : (
+                    "역할 부여"
+                  )}
                 </button>
               </div>
             </form>
