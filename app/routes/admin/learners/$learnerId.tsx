@@ -14,6 +14,7 @@ import {
 } from "~/components/ui/select";
 import { SubmitButton } from "~/components/feedback/SubmitButton";
 import { ADMIN_ROLES, type AdminRole } from "~/db/queries/admin/ops/roles";
+import { requireRole } from "~/lib/auth/auth.middleware";
 
 export async function loader({ params, request, context }: Route.LoaderArgs) {
   const { db } = await import("~/db/client.server");
@@ -72,6 +73,8 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
 }
 
 export async function action({ params, request, context }: Route.ActionArgs) {
+  await requireRole(request, context, "admin");
+
   const { db } = await import("~/db/client.server");
   const { createLogger } = await import("~/lib/infra/logger.server");
   const { learnerProfiles, records, questions, responses, stages } = await import("~/db/schema.server");
