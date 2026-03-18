@@ -11,6 +11,11 @@
 
 ---
 
+> **구현 상태 안내**: 이 문서는 설계 명세입니다. 일부 기능은 아직 구현되지 않았습니다.
+> - `[구현됨]` — 라우트와 기능이 구현됨
+> - `[미구현]` — 설계만 존재, 라우트 미구현
+> - `[비활성화]` — 코드 존재하나 라우트에서 비활성화됨
+
 ## 어드민 역할
 어드민 콘솔은 공공-facing 서비스가 아니라 **운영 효율과 안전성**을 위한 도구다.
 
@@ -31,20 +36,21 @@
 
 좌측 사이드바 기준 기본 구조는 아래와 같다.
 
-- Dashboard
-- Stage
-- Challenge
-- Learner
-- Records
-- Dialogue
-- Collaboration
-- Curation
-- Collective Memory
-- Templates
-- Analytics
-- Settings
-- Roles & Permissions
-- Audit Log
+- Dashboard [구현됨]
+- Stage [구현됨]
+- Challenge [미구현]
+- Learner [구현됨]
+- Records [구현됨]
+- Dialogue [구현됨]
+- Collaboration [비활성화]
+- Curation [구현됨]
+- Collective Memory [비활성화]
+- Templates [구현됨]
+- Tags [구현됨]
+- Analytics [구현됨]
+- Settings [구현됨]
+- Roles & Permissions [구현됨]
+- Audit Log [구현됨]
 
 ---
 

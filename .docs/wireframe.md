@@ -9,6 +9,9 @@
 - 프론트엔드 개발자가 페이지별 모듈과 레이아웃을 이해하게 한다.
 - 운영자가 어떤 정보가 화면에 드러나는지 확인하게 한다.
 
+> **구현 상태**: 이 문서는 설계 명세입니다. 현재 구현 상태는 AGENTS.md의 라우트 섹션을 참조하세요.
+> 챌린지 화면 (9-10번, 21-22번)은 미구현, Collaboration 화면 (11번, 29-30번)은 비활성화, Collective Memory 화면 (17번, 32-33번)은 비활성화 상태입니다.
+
 ---
 
 ## 공통 레이아웃 규칙
@@ -279,7 +282,7 @@ Learner를 질문 중심으로 탐색
 
 ---
 
-## 9. 챌린지 목록
+## 9. 챌린지 목록 [미구현]
 
 ### 목적
 문제 해결 중심 구간을 목록으로 본다.
@@ -297,7 +300,7 @@ Learner를 질문 중심으로 탐색
 
 ---
 
-## 10. 챌린지 상세
+## 10. 챌린지 상세 [미구현]
 
 ### 목적
 하나의 문제 해결 여정을 입체적으로 읽는 화면
@@ -326,7 +329,7 @@ Learner를 질문 중심으로 탐색
 
 ---
 
-## 11. Collaboration Unit 상세
+## 11. Collaboration Unit 상세 [비활성화]
 
 ### 목적
 실제 협업 단위가 생겼을 때만 존재하는 허브
@@ -448,7 +451,7 @@ Draft, 북마크, 질문, 저장한 문장을 관리
 
 ---
 
-## 17. Collective Memory
+## 17. Collective Memory [비활성화]
 
 ### 목적
 한 Stage를 공동 서사로 다시 읽는 화면
@@ -539,7 +542,7 @@ Stage 편집
 
 ---
 
-## 21. Admin Challenge 목록
+## 21. Admin Challenge 목록 [미구현]
 
 ### 목적
 Challenge 관리
@@ -558,7 +561,7 @@ Challenge 관리
 
 ---
 
-## 22. Admin Challenge 상세
+## 22. Admin Challenge 상세 [미구현]
 
 ### 목적
 문제 정의와 연결 구조 편집
@@ -686,7 +689,7 @@ Learner 상태 심층 확인
 
 ---
 
-## 29. Admin Collaboration 목록
+## 29. Admin Collaboration 목록 [비활성화]
 
 ### 목적
 Collaboration Unit 관리
@@ -706,7 +709,7 @@ Collaboration Unit 관리
 
 ---
 
-## 30. Admin Collaboration 상세
+## 30. Admin Collaboration 상세 [비활성화]
 
 ### 목적
 협업 단위 편집
@@ -740,7 +743,7 @@ Collaboration Unit 관리
 
 ---
 
-## 32. Admin Collective Memory 목록
+## 32. Admin Collective Memory 목록 [비활성화]
 
 ### 목적
 Stage별 공동 기억 작업 상태 확인
@@ -753,7 +756,7 @@ Stage별 공동 기억 작업 상태 확인
 
 ---
 
-## 33. Admin Collective Memory 상세
+## 33. Admin Collective Memory 상세 [비활성화]
 
 ### 목적
 Collective Memory 편집 및 발행
