@@ -509,3 +509,13 @@ INSERT INTO question_carry_overs (
   'stage-test-closed',
   unixepoch() - 2000
 );
+
+-- record_participants 샘플 데이터
+-- 협업 기록에 참여자 추가 (작성자 본인 제외)
+INSERT OR IGNORE INTO record_participants (record_id, participant_user_id, added_by_id, role, created_at) VALUES
+  ('record-005', 'jiwon', 'minjun', 'coauthor', unixepoch() - 86400 * 4),
+  ('record-005', 'soyeon', 'minjun', 'coauthor', unixepoch() - 86400 * 4),
+  ('record-022', 'jiwon', 'minjun', 'companion', unixepoch() - 86400 * 16),
+  ('record-022', 'soyeon', 'minjun', 'companion', unixepoch() - 86400 * 16),
+  ('record-022', 'hyunjin', 'minjun', 'companion', unixepoch() - 86400 * 16),
+  ('record-010', 'jaemin', 'minjun', 'mentor', unixepoch() - 86400 * 2);
