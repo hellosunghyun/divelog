@@ -208,6 +208,8 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
   const [sentenceReason, setSentenceReason] = useState("");
   const articleContentRef = useRef<HTMLDivElement | null>(null);
   const sentencePopupRef = useRef<HTMLDivElement | null>(null);
+  const savedRangeRef = useRef<Range | null>(null);
+  const highlightCleanupRef = useRef<(() => void) | null>(null);
   const { unmarkRead } = useReadTracking({
     recordId: record.id,
     format: record.format,
@@ -234,16 +236,70 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
     setButtonPosition({ x: 0, y: 0 });
   }, []);
 
+  const removeHighlight = useCallback(() => {
+    highlightCleanupRef.current?.();
+    highlightCleanupRef.current = null;
+    savedRangeRef.current = null;
+  }, []);
+
   const closeSentencePopup = useCallback(() => {
+    removeHighlight();
     setShowSentencePopup(false);
     setSentenceReason("");
     setSelectedText("");
+  }, [removeHighlight]);
+
+  const applyHighlight = useCallback((range: Range) => {
+    const marks: HTMLElement[] = [];
+    const container = range.commonAncestorContainer.nodeType === Node.TEXT_NODE
+      ? range.commonAncestorContainer.parentElement
+      : range.commonAncestorContainer;
+    if (!container) return;
+
+    const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT);
+    const textNodes: Node[] = [];
+    let n = walker.nextNode();
+    while (n) {
+      if (range.intersectsNode(n)) textNodes.push(n);
+      n = walker.nextNode();
+    }
+
+    for (const textNode of textNodes) {
+      const r = document.createRange();
+      r.setStart(textNode, textNode === range.startContainer ? range.startOffset : 0);
+      r.setEnd(textNode, textNode === range.endContainer ? range.endOffset : (textNode.textContent?.length ?? 0));
+      if (r.collapsed) continue;
+
+      const mark = document.createElement("mark");
+      mark.style.backgroundColor = "rgba(108,196,214,0.3)";
+      mark.style.borderRadius = "2px";
+      try {
+        r.surroundContents(mark);
+        marks.push(mark);
+      } catch { /* empty */ }
+    }
+
+    highlightCleanupRef.current = () => {
+      for (const m of marks) {
+        const p = m.parentNode;
+        if (!p) continue;
+        while (m.firstChild) p.insertBefore(m.firstChild, m);
+        p.removeChild(m);
+        p.normalize();
+      }
+    };
   }, []);
 
   const openSentencePopup = useCallback(() => {
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0) {
+      const range = sel.getRangeAt(0).cloneRange();
+      savedRangeRef.current = range;
+      applyHighlight(range);
+    }
     setShowSentenceButton(false);
     setShowSentencePopup(true);
-  }, []);
+  }, [applyHighlight]);
 
   const handleEditResponse = useCallback((responseId: string) => {
     const response = recordResponses.find(r => r.response.id === responseId);
@@ -905,7 +961,6 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
                 value={sentenceReason}
                 onChange={(e) => setSentenceReason(e.target.value)}
                 rows={2}
-                autoFocus
                 placeholder="왜 이 문장이 남았는지 적어보세요."
                 className="bg-surface-secondary"
               />
