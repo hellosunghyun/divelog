@@ -23,6 +23,10 @@ function withHtmlCacheHeaders(response: Response, request: Request) {
     return response;
   }
 
+  if (response.status >= 300 && response.status < 400) {
+    return response;
+  }
+
   const isAuthenticated =
     request.headers.get("cookie")?.includes("adakrpos_session") ?? false;
   const headers = new Headers(response.headers);

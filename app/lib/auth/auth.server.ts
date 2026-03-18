@@ -58,11 +58,21 @@ export async function getAuth(request: Request, apiKey: string): Promise<AuthCon
     authCache.set(request, auth);
     return auth;
   } catch (e) {
-    Sentry.captureException(e, { tags: { type: "auth_sdk" } });
-    logger.error("auth_sdk_error", {
-      error: e instanceof Error ? e.message : String(e),
-    });
-    debugCache.set(request, `err:${e instanceof Error ? e.message : String(e)}`);
+    const message = e instanceof Error ? e.message : String(e);
+    const isUpstreamError = message.includes("status 5") || message.includes("fetch failed") || message.includes("Load failed");
+
+    if (isUpstreamError) {
+      Sentry.captureMessage(`Auth upstream error: ${message}`, {
+        level: "warning",
+        tags: { type: "auth_sdk", upstream: "true" },
+        fingerprint: ["auth-upstream-error"],
+      });
+    } else {
+      Sentry.captureException(e, { tags: { type: "auth_sdk" } });
+    }
+
+    logger.error("auth_sdk_error", { error: message });
+    debugCache.set(request, `err:${message}`);
     authCache.set(request, unauthenticatedContext);
     return unauthenticatedContext;
   }
