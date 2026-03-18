@@ -90,15 +90,31 @@ export async function action({ request, context }: ActionFunctionArgs) {
       return Response.json({ error: "entries가 필요합니다" }, { status: 400 });
     }
 
-    let entries: { recordId: string; readAt: number }[];
+    let parsed: unknown;
     try {
-      entries = JSON.parse(entriesRaw);
+      parsed = JSON.parse(entriesRaw);
     } catch {
       return Response.json({ error: "entries 파싱 실패" }, { status: 400 });
     }
 
-    if (!Array.isArray(entries)) {
+    if (!Array.isArray(parsed)) {
       return Response.json({ error: "entries는 배열이어야 합니다" }, { status: 400 });
+    }
+
+    if (parsed.length > 1000) {
+      return Response.json({ error: "entries가 너무 많습니다 (최대 1000개)" }, { status: 400 });
+    }
+
+    const entries: { recordId: string; readAt: number }[] = [];
+    for (const entry of parsed) {
+      if (
+        typeof entry !== "object" || entry === null ||
+        typeof entry.recordId !== "string" || !entry.recordId ||
+        typeof entry.readAt !== "number" || !Number.isFinite(entry.readAt)
+      ) {
+        return Response.json({ error: "유효하지 않은 entries 형식입니다" }, { status: 400 });
+      }
+      entries.push({ recordId: entry.recordId, readAt: entry.readAt });
     }
 
     await bulkMarkAsRead(context.cloudflare.env.DB, learnerId, entries);

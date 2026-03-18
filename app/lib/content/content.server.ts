@@ -104,7 +104,8 @@ function renderNode(node: TiptapNode, mentionSlugMap?: MentionSlugMap): string {
             text = `<code>${text}</code>`;
             break;
           case "link": {
-            const href = escapeHtml(mark.attrs?.href ?? "");
+            const rawHref = mark.attrs?.href ?? "";
+            const href = isSafeUrl(rawHref) ? escapeHtml(rawHref) : "";
             text = `<a href="${href}">${text}</a>`;
             break;
           }
@@ -160,7 +161,8 @@ function renderNode(node: TiptapNode, mentionSlugMap?: MentionSlugMap): string {
     case "hardBreak":
       return "<br>";
     case "image": {
-      const src = escapeHtml((node.attrs?.src as string) ?? "");
+      const rawSrc = (node.attrs?.src as string) ?? "";
+      const src = isSafeUrl(rawSrc) ? escapeHtml(rawSrc) : "";
       const alt = escapeHtml((node.attrs?.alt as string) ?? "");
       const width = node.attrs?.width ? ` style="width:${escapeHtml(String(node.attrs.width))};max-width:100%"` : "";
       const caption = (node.attrs?.caption as string) ?? "";
@@ -273,7 +275,7 @@ function renderPlainText(content: string): string {
   let html = escapeHtml(content);
 
   html = html.replace(/@([\wㄱ-ㅎ가-힣]+)/g, (_match, name) => {
-    return `<a href="/learners/${name}" class="user-mention">@${name}</a>`;
+    return `<a href="/learners/${encodeURIComponent(name)}" class="user-mention">@${name}</a>`;
   });
 
   html = html.replace(/\[\[(.+?)\]\]/g, (_match, title) => {
@@ -282,7 +284,7 @@ function renderPlainText(content: string): string {
       .replace(/[^a-z0-9ㄱ-ㅎ가-힣]/g, "-")
       .replace(/-+/g, "-")
       .replace(/^-|-$/g, "");
-    return `<a href="/logs/${slug}" class="record-ref">${title}</a>`;
+    return `<a href="/logs/${encodeURIComponent(slug)}" class="record-ref">${title}</a>`;
   });
 
   return `<div class="whitespace-pre-wrap">${html}</div>`;
@@ -295,4 +297,15 @@ function escapeHtml(text: string): string {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
+}
+
+function isSafeUrl(url: string): boolean {
+  if (!url) return false;
+  if (url.startsWith("/") || url.startsWith("#")) return true;
+  try {
+    const parsed = new URL(url);
+    return ["http:", "https:", "mailto:"].includes(parsed.protocol);
+  } catch {
+    return false;
+  }
 }

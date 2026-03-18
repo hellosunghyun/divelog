@@ -73,7 +73,6 @@ export async function action({ request, context }: { request: Request; context: 
     const draft = await upsertDraft(context.cloudflare.env.DB, {
       authorId: auth.user.id,
       ...parsed.data,
-      visibility: "public",
     });
 
     return Response.json({

@@ -1,4 +1,4 @@
-import { asc, desc, eq, inArray, isNotNull, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNotNull, sql } from "drizzle-orm";
 
 import { nanoid } from "../../../lib/utils/utils.server";
 import { db } from "../../client.server";
@@ -224,7 +224,7 @@ export async function getLearnersWithActivity(
       createdAt: records.createdAt,
     })
     .from(records)
-    .where(sql`${records.authorId} IN ${userIds} AND ${records.visibility} IN ('cohort', 'public')`)
+    .where(and(inArray(records.authorId, userIds), sql`${records.visibility} IN ('cohort', 'public')`))
     .orderBy(desc(records.createdAt));
 
   const mostRecentRecordByAuthor = new Map<
@@ -254,7 +254,7 @@ export async function getLearnersWithActivity(
     const stagesData = await database
       .select({ id: stages.id, name: stages.name })
       .from(stages)
-      .where(sql`${stages.id} IN ${stageIds}`);
+      .where(inArray(stages.id, stageIds as string[]));
 
     for (const stage of stagesData) {
       stageMap.set(stage.id, { name: stage.name });
