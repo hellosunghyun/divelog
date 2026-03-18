@@ -7,6 +7,7 @@ import {
   curationSlots,
   drafts,
   learnerProfiles,
+  notificationPreferences,
   notifications,
   questionReminders,
   questions,
@@ -35,7 +36,9 @@ export const learnerProfilesRelations = relations(learnerProfiles, ({ many, one 
   records: many(records),
   responses: many(responses),
   sentences: many(sentences),
-  notifications: many(notifications),
+  notifications: many(notifications, { relationName: "notification_recipient" }),
+  actorNotifications: many(notifications, { relationName: "notification_actor" }),
+  notificationPreferences: many(notificationPreferences),
   collaborationMembers: many(collaborationMembers),
   selfAnswers: many(selfAnswers),
   drafts: many(drafts),
@@ -170,6 +173,12 @@ export const notificationsRelations = relations(notifications, ({ one }) => ({
   recipient: one(learnerProfiles, {
     fields: [notifications.recipientId],
     references: [learnerProfiles.userId],
+    relationName: "notification_recipient",
+  }),
+  actor: one(learnerProfiles, {
+    fields: [notifications.actorId],
+    references: [learnerProfiles.userId],
+    relationName: "notification_actor",
   }),
   record: one(records, {
     fields: [notifications.recordId],
@@ -178,6 +187,13 @@ export const notificationsRelations = relations(notifications, ({ one }) => ({
   question: one(questions, {
     fields: [notifications.questionId],
     references: [questions.id],
+  }),
+}));
+
+export const notificationPreferencesRelations = relations(notificationPreferences, ({ one }) => ({
+  learner: one(learnerProfiles, {
+    fields: [notificationPreferences.learnerId],
+    references: [learnerProfiles.userId],
   }),
 }));
 

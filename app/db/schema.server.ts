@@ -176,6 +176,7 @@ export const notifications = sqliteTable("notifications", {
   recipientId: text("recipient_id")
     .notNull()
     .references(() => learnerProfiles.userId),
+  actorId: text("actor_id").references(() => learnerProfiles.userId),
   type: text("type").notNull(),
   title: text("title").notNull(),
   content: text("content"),
@@ -183,7 +184,29 @@ export const notifications = sqliteTable("notifications", {
   questionId: text("question_id").references(() => questions.id),
   isRead: integer("is_read", { mode: "boolean" }).notNull().default(false),
   createdAt: integer("created_at").notNull().default(now()),
-});
+}, (table) => [
+  index("idx_notifications_recipient_read_created_at").on(
+    table.recipientId,
+    table.isRead,
+    table.createdAt,
+  ),
+]);
+
+export const notificationPreferences = sqliteTable(
+  "notification_preferences",
+  {
+    id: text("id").primaryKey(),
+    learnerId: text("learner_id")
+      .notNull()
+      .references(() => learnerProfiles.userId, { onDelete: "cascade" }),
+    type: text("type").notNull(),
+    enabled: integer("enabled", { mode: "boolean" }).notNull().default(true),
+    updatedAt: integer("updated_at"),
+  },
+  (table) => [
+    uniqueIndex("idx_notification_preferences_learner_type").on(table.learnerId, table.type),
+  ],
+);
 
 
 
@@ -404,5 +427,4 @@ export const recordParticipants = sqliteTable(
   },
   (table) => [primaryKey({ columns: [table.recordId, table.participantUserId] })],
 );
-
 
