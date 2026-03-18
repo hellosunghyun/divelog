@@ -1,7 +1,7 @@
 import { eq, sql } from "drizzle-orm";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
-import { useState, Suspense, lazy } from "react";
+import { useCallback, useEffect, useState, Suspense, lazy } from "react";
 import { Link } from "~/components/content/SmartLink";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import type { DateRange } from "react-day-picker";
@@ -10,6 +10,8 @@ import type { Route } from "./+types/article";
 const ArticleEditor = lazy(() =>
   import("~/components/editor/editors/ArticleEditor").then(m => ({ default: m.ArticleEditor }))
 );
+import { DraftRecoveryPrompt } from "~/components/content/DraftRecoveryPrompt";
+import { AutosaveIndicator } from "~/components/feedback/AutosaveIndicator";
 import { Button } from "~/components/ui/button";
 import { Calendar } from "~/components/ui/calendar";
 import { Input } from "~/components/ui/input";
@@ -27,10 +29,12 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { db } from "~/db/client.server";
+import { deleteDraft } from "~/db/queries/records/drafts.server";
 import { syncMentionsForRecord } from "~/db/queries/dialogue/mentions.server";
 import { markAsRead } from "~/db/queries/records/recordReads.server";
 import { syncRecordLinksForRecord } from "~/db/queries/records/recordLinks.server";
 import { learnerProfiles, notifications, records, stages } from "~/db/schema.server";
+import { useAutosave } from "~/hooks/useAutosave";
 import { useUnsavedWarning } from "~/hooks/useUnsavedWarning";
 import { requireVerified } from "~/lib/auth/auth.middleware";
 import { createArticleSchema } from "~/lib/auth/validation";
@@ -39,6 +43,7 @@ import {
   extractRecordRefs,
   extractUserMentions,
 } from "~/lib/content/extract-references.server";
+import { loadDraftFromLocal, type DraftData } from "~/lib/infra/draft-storage";
 import { cn } from "~/lib/utils/cn";
 import { nanoid } from "~/lib/utils/utils.server";
 
@@ -213,6 +218,12 @@ export async function action({ request, context }: Route.ActionArgs) {
     }
   }
 
+  try {
+    await deleteDraft(context.cloudflare.env.DB, auth.user.id, "article");
+  } catch {
+    // silent fail — 초안 정리 실패가 발행을 막지 않음
+  }
+
   throw redirect(`/logs/${slug}/details`);
 }
 
@@ -223,7 +234,11 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
   const [stageValue, setStageValue] = useState(currentStage?.id ?? NO_STAGE_VALUE);
   const [title, setTitle] = useState("");
   const [articleContent, setArticleContent] = useState("");
+  const [articleJson, setArticleJson] = useState("");
   const [rhythm, setRhythm] = useState("free");
+  const [visibility, setVisibility] = useState(learnerDefaults.defaultVisibility);
+  const [recoveredDraft, setRecoveredDraft] = useState<DraftData | null>(null);
+  const [editorKey, setEditorKey] = useState(0);
   const [dateMode, setDateMode] = useState<DateMode>("none");
   const [singleDate, setSingleDate] = useState<Date | undefined>(undefined);
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
@@ -233,6 +248,45 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
   const contentError = errors && "content" in errors ? errors.content?.[0] : undefined;
 
   useUnsavedWarning(title.length > 0 || articleContent.length > 0);
+
+  const getFormData = useCallback(() => ({
+    title,
+    content: articleJson || articleContent,
+    contentJson: articleJson,
+    stageId: stageValue === NO_STAGE_VALUE ? null : stageValue,
+    rhythm,
+    visibility,
+    responsePreference: learnerDefaults.defaultResponsePreference,
+  }), [title, articleContent, articleJson, stageValue, rhythm, visibility, learnerDefaults.defaultResponsePreference]);
+
+  const { status: autosaveStatus, lastSavedAt } = useAutosave({
+    format: "article",
+    getFormData,
+    enabled: !isSubmitting,
+  });
+
+  useEffect(() => {
+    const draft = loadDraftFromLocal("article");
+    if (draft) {
+      setRecoveredDraft(draft);
+    }
+  }, []);
+
+  function handleRecover() {
+    if (!recoveredDraft) return;
+    if (recoveredDraft.title) setTitle(recoveredDraft.title);
+    setArticleContent(recoveredDraft.content);
+    if (recoveredDraft.contentJson) setArticleJson(recoveredDraft.contentJson);
+    if (recoveredDraft.visibility) setVisibility(recoveredDraft.visibility);
+    if (recoveredDraft.stageId) setStageValue(recoveredDraft.stageId);
+    if (recoveredDraft.rhythm) setRhythm(recoveredDraft.rhythm);
+    setEditorKey((k) => k + 1);
+    setRecoveredDraft(null);
+  }
+
+  function handleDiscard() {
+    setRecoveredDraft(null);
+  }
 
   function handleDateModeChange(newMode: DateMode) {
     setDateMode(newMode);
@@ -264,7 +318,10 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
               ← 돌아가기
             </Link>
             <div className="flex items-center justify-between">
-              <h1 className="text-lg font-semibold text-text-primary m-0">글쓰기</h1>
+              <div className="flex items-center gap-3">
+                <h1 className="text-lg font-semibold text-text-primary m-0">글쓰기</h1>
+                <AutosaveIndicator status={autosaveStatus} lastSavedAt={lastSavedAt} />
+              </div>
               <div className="flex items-center gap-3">
                 <Link
                   to="/write"
@@ -283,6 +340,15 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
             </div>
           </div>
 
+          {recoveredDraft && (
+            <DraftRecoveryPrompt
+              draft={recoveredDraft}
+              format="article"
+              onRecover={handleRecover}
+              onDiscard={handleDiscard}
+            />
+          )}
+
           <div className="flex flex-wrap items-center gap-4">
             <div>
               <Label
@@ -291,7 +357,8 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
               >
                 공개 범위
               </Label>
-              <Select name="visibility" defaultValue={learnerDefaults.defaultVisibility}>
+              <input type="hidden" name="visibility" value={visibility} />
+              <Select value={visibility} onValueChange={setVisibility}>
                 <SelectTrigger id="visibility" className="w-auto min-w-36 bg-surface">
                   <SelectValue />
                 </SelectTrigger>
@@ -490,9 +557,10 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
             </p>
             <Suspense fallback={<div className="animate-pulse bg-surface-secondary rounded-lg h-64" />}>
               <ArticleEditor
+                key={editorKey}
                 name="content"
                 content={articleContent}
-                onChange={(_json, text) => setArticleContent(text)}
+                onChange={(json, text) => { setArticleJson(json); setArticleContent(text); }}
                 placeholder="여기에 글을 쓰세요. `/`를 입력하면 블록을 추가할 수 있습니다."
               />
             </Suspense>
