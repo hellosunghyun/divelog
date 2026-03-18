@@ -169,3 +169,49 @@ export function markSyncedThisSession(): void {
     // Silently fail if sessionStorage is unavailable
   }
 }
+
+const SESSION_CACHE_KEY = 'divelog-read-cache';
+
+export function getSessionReadCache(): Set<string> | null {
+  try {
+    const stored = sessionStorage.getItem(SESSION_CACHE_KEY);
+    if (!stored) return null;
+    const ids: string[] = JSON.parse(stored);
+    return new Set(ids);
+  } catch {
+    return null;
+  }
+}
+
+export function setSessionReadCache(ids: string[]): void {
+  try {
+    sessionStorage.setItem(SESSION_CACHE_KEY, JSON.stringify(ids));
+  } catch {
+    // Silently fail if sessionStorage is unavailable or quota exceeded
+  }
+}
+
+export function addToSessionReadCache(recordId: string): void {
+  try {
+    const stored = sessionStorage.getItem(SESSION_CACHE_KEY);
+    const ids: string[] = stored ? JSON.parse(stored) : [];
+    if (!ids.includes(recordId)) {
+      ids.push(recordId);
+      sessionStorage.setItem(SESSION_CACHE_KEY, JSON.stringify(ids));
+    }
+  } catch {
+    // Silently fail
+  }
+}
+
+export function removeFromSessionReadCache(recordId: string): void {
+  try {
+    const stored = sessionStorage.getItem(SESSION_CACHE_KEY);
+    if (!stored) return;
+    const ids: string[] = JSON.parse(stored);
+    const filtered = ids.filter((id) => id !== recordId);
+    sessionStorage.setItem(SESSION_CACHE_KEY, JSON.stringify(filtered));
+  } catch {
+    // Silently fail
+  }
+}

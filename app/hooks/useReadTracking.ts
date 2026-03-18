@@ -4,6 +4,8 @@ import { useFetcher } from "react-router";
 import {
   markLocalRead,
   unmarkLocalRead,
+  addToSessionReadCache,
+  removeFromSessionReadCache,
 } from "~/lib/infra/read-storage";
 
 interface UseReadTrackingOptions {
@@ -39,6 +41,7 @@ export function useReadTracking({
           { intent: "mark_read", recordId },
           { method: "POST", action: "/api/track-read" }
         );
+        addToSessionReadCache(recordId);
       } else {
         markLocalRead(recordId);
       }
@@ -59,6 +62,7 @@ export function useReadTracking({
         { intent: "unmark_read", recordId },
         { method: "POST", action: "/api/track-read" }
       );
+      removeFromSessionReadCache(recordId);
       return;
     }
 

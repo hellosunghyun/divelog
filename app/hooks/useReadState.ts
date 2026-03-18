@@ -6,6 +6,8 @@ import {
   clearLocalReads,
   hasSyncedThisSession,
   markSyncedThisSession,
+  getSessionReadCache,
+  setSessionReadCache,
 } from "~/lib/infra/read-storage";
 
 interface PublicLoaderData {
@@ -37,7 +39,13 @@ export function useReadState(recordIds: string[]): UseReadStateResult {
   const recordIdsKey = recordIds.join(",");
   const hasRecordIds = recordIdsKey.length > 0;
 
-  const [readSet, setReadSet] = useState<Set<string>>(new Set());
+  const [readSet, setReadSet] = useState<Set<string>>(() => {
+    if (isAuthenticated) {
+      return getSessionReadCache() ?? new Set();
+    }
+    return new Set();
+  });
+  const hasCachedInit = readSet.size > 0;
   const [isLoading, setIsLoading] = useState(false);
 
   const syncedRef = useRef(false);
@@ -114,7 +122,9 @@ export function useReadState(recordIds: string[]): UseReadStateResult {
 
   useEffect(() => {
     if (isAuthenticated && hasRecordIds) {
-      setIsLoading(true);
+      if (!hasCachedInit) {
+        setIsLoading(true);
+      }
       fetcherRef.current.load(`/api/track-read?ids=${encodeURIComponent(recordIdsKey)}`);
       return;
     }
@@ -122,11 +132,12 @@ export function useReadState(recordIds: string[]): UseReadStateResult {
     if (!isAuthenticated) {
       refreshLocalReads();
     }
-  }, [isAuthenticated, hasRecordIds, recordIdsKey, refreshLocalReads]);
+  }, [isAuthenticated, hasRecordIds, recordIdsKey, hasCachedInit, refreshLocalReads]);
 
   useEffect(() => {
     if (fetcher.data?.readIds) {
       setReadSet(new Set(fetcher.data.readIds));
+      setSessionReadCache(fetcher.data.readIds);
       setIsLoading(false);
       return;
     }
