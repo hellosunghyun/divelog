@@ -128,7 +128,7 @@ export default function AdminTemplateEditPage({ loaderData }: Route.ComponentPro
          </div>
          <div className="flex gap-3">
            <SubmitButton formDataMatch={{ intent: "update" }} loadingText="저장 중..." className="rounded-md bg-admin-accent px-5 py-2 text-sm font-medium text-white hover:opacity-90" type="submit">저장</SubmitButton>
-           <Link to="/admin/templates" className="px-5 py-2 rounded-md border border-admin-border text-admin-text-secondary text-sm hover:bg-admin-bg transition-colors">취소</Link>
+            <Link to="/admin/templates" className="inline-flex h-10 items-center justify-center px-5 py-2 rounded-md border border-admin-border text-admin-text-secondary text-sm hover:bg-admin-bg transition-colors">취소</Link>
          </div>
        </form>
        <div className="mt-8 max-w-[700px] border border-error/30 rounded-md p-6 bg-error/5">

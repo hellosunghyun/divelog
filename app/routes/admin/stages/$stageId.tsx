@@ -111,7 +111,7 @@ export default function AdminStageEditPage({ loaderData, actionData }: Route.Com
            <SubmitButton formDataMatch={{ intent: "update" }} loadingText="저장 중..." className="rounded-sm bg-admin-accent px-5 py-2 text-sm text-white hover:opacity-90">
              저장
            </SubmitButton>
-           <Link to="/admin/stages" className="px-5 py-2 rounded-sm border border-admin-border text-admin-text-secondary text-sm hover:bg-admin-bg">취소</Link>
+            <Link to="/admin/stages" className="inline-flex h-10 items-center justify-center px-5 py-2 rounded-sm border border-admin-border text-admin-text-secondary text-sm hover:bg-admin-bg">취소</Link>
          </div>
        </form>
        <div className="mt-8 max-w-xl border border-error/30 rounded-md p-6 bg-error/5">

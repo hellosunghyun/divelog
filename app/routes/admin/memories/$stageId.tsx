@@ -76,7 +76,7 @@ export default function AdminMemoryEditPage({ loaderData }: Route.ComponentProps
          </div>
          <div className="flex gap-3">
            <SubmitButton formDataMatch={{ intent: "update" }} loadingText="저장 중..." className="rounded-sm bg-admin-accent px-5 py-2 text-sm text-white hover:opacity-90" type="submit">저장</SubmitButton>
-           <Link to="/admin/memories" className="px-5 py-2 rounded-sm border border-admin-border text-admin-text-secondary text-sm hover:bg-admin-bg">취소</Link>
+            <Link to="/admin/memories" className="inline-flex h-10 items-center justify-center px-5 py-2 rounded-sm border border-admin-border text-admin-text-secondary text-sm hover:bg-admin-bg">취소</Link>
          </div>
        </form>
        <div className="mt-8 max-w-2xl border border-error/30 rounded-md p-6 bg-error/5">
