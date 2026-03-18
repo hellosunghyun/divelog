@@ -10,7 +10,6 @@ import SelfAnswerCard from "~/components/cards/SelfAnswerCard";
 import SceneCard from "~/components/cards/SceneCard";
 import { ContentRenderer } from "~/components/content/ContentRenderer";
 import { EditedIndicator } from "~/components/ui/EditedIndicator";
-import { RevisionTimeline } from "~/components/revision/RevisionTimeline";
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
 import {
@@ -459,7 +458,12 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
           <time className="text-sm text-text-tertiary">
             {new Date(record.createdAt * 1000).toLocaleDateString("ko-KR")}
           </time>
-          <EditedIndicator createdAt={record.createdAt} updatedAt={record.updatedAt} className="ml-1" />
+          <EditedIndicator
+            createdAt={record.createdAt}
+            updatedAt={record.updatedAt}
+            className="ml-1"
+            revisions={isAuthorOrAdmin ? revisions : undefined}
+          />
           {(() => {
             const dateLabel = formatRecordDate(record.recordedAt, record.recordedEndAt);
             if (!dateLabel) return null;
@@ -531,22 +535,7 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
         ) : null}
       </section>
 
-      {isAuthorOrAdmin && revisions.length > 0 && (
-        <section className="mb-12 border-t border-[var(--color-border)] pt-8">
-          <details>
-            <summary className="text-lg font-semibold text-[var(--color-text-primary)] cursor-pointer select-none">
-              수정 이력 ({revisions.length}건)
-            </summary>
-            <div className="mt-6">
-              <RevisionTimeline
-                revisions={revisions}
-                currentRecord={record as Record<string, unknown>}
-                currentTags={recordTags}
-              />
-            </div>
-          </details>
-        </section>
-      )}
+
 
       <section className="mb-12">
         <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-8">

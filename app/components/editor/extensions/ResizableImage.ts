@@ -94,13 +94,22 @@ export const ResizableImage = Image.extend({
       captionInput.className = "image-caption-input";
       captionInput.placeholder = "캡션 추가...";
       captionInput.value = node.attrs.caption || "";
+      captionInput.addEventListener("focus", (e) => {
+        e.stopPropagation();
+      });
+      captionInput.addEventListener("mousedown", (e) => {
+        e.stopPropagation();
+      });
       captionInput.addEventListener("blur", () => {
         const pos = typeof getPos === "function" ? getPos() : undefined;
         if (pos !== undefined) {
-          editor.chain().setNodeSelection(pos).updateAttributes("image", { caption: captionInput.value }).run();
+          const { tr } = editor.view.state;
+          tr.setNodeAttribute(pos, "caption", captionInput.value);
+          editor.view.dispatch(tr);
         }
       });
       captionInput.addEventListener("keydown", (e) => {
+        e.stopPropagation();
         if (e.key === "Enter") { e.preventDefault(); captionInput.blur(); }
       });
       wrapper.appendChild(captionInput);
