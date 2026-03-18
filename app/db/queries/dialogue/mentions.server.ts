@@ -7,6 +7,10 @@ import { nanoid } from "../../../lib/utils/utils.server";
  * @deprecated Use syncAllMentionsForRecord instead.
  * This function will be removed in a future version.
  */
+/**
+ * @deprecated Use syncAllMentionsForRecord instead.
+ * This function will be removed in a future version.
+ */
 export async function syncMentionsForRecord(
   d1: D1Database,
   recordId: string,
@@ -17,22 +21,29 @@ export async function syncMentionsForRecord(
   await database.delete(mentions).where(eq(mentions.recordId, recordId));
 
   const now = Math.floor(Date.now() / 1000);
-  for (const slugOrId of mentionedSlugs) {
-    const learnerResult = await database
-      .select({ userId: learnerProfiles.userId })
+
+  // Batch resolve all slugs → userIds in a single query
+  const slugMap = new Map<string, string>();
+  if (mentionedSlugs.length > 0) {
+    const resolved = await database
+      .select({ slug: learnerProfiles.slug, userId: learnerProfiles.userId })
       .from(learnerProfiles)
-      .where(eq(learnerProfiles.slug, slugOrId))
-      .limit(1);
+      .where(inArray(learnerProfiles.slug, mentionedSlugs));
+    for (const r of resolved) {
+      slugMap.set(r.slug, r.userId);
+    }
+  }
 
-    const resolvedUserId = learnerResult[0]?.userId ?? slugOrId;
-
-    await database.insert(mentions).values({
+  // Batch insert all mentions in a single query
+  if (mentionedSlugs.length > 0) {
+    const rows = mentionedSlugs.map((slugOrId) => ({
       id: nanoid(),
       recordId,
-      mentionedUserId: resolvedUserId,
+      mentionedUserId: slugMap.get(slugOrId) ?? slugOrId,
       mentionedById: authorId,
       createdAt: now,
-    });
+    }));
+    await database.insert(mentions).values(rows);
   }
 }
 
