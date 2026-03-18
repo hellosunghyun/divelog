@@ -26,16 +26,24 @@ export function useReadTracking({
   const fetcher = useFetcher();
   const fetcherRef = useRef(fetcher);
   fetcherRef.current = fetcher;
+  const markTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const skipAutoMarkRef = useRef(false);
 
   const isAuthenticatedRef = useRef(isAuthenticated);
   isAuthenticatedRef.current = isAuthenticated;
 
   useEffect(() => {
+    skipAutoMarkRef.current = false;
+
     if (format !== "article") {
       return;
     }
 
-    const timeout = setTimeout(() => {
+    markTimeoutRef.current = setTimeout(() => {
+      if (skipAutoMarkRef.current) {
+        return;
+      }
+
       if (isAuthenticatedRef.current) {
         fetcherRef.current.submit(
           { intent: "mark_read", recordId },
@@ -48,13 +56,23 @@ export function useReadTracking({
     }, 3000);
 
     return () => {
-      clearTimeout(timeout);
+      if (markTimeoutRef.current) {
+        clearTimeout(markTimeoutRef.current);
+        markTimeoutRef.current = null;
+      }
     };
   }, [format, recordId]);
 
   const unmarkRead = useCallback(() => {
     if (format !== "article") {
       return;
+    }
+
+    skipAutoMarkRef.current = true;
+
+    if (markTimeoutRef.current) {
+      clearTimeout(markTimeoutRef.current);
+      markTimeoutRef.current = null;
     }
 
     if (isAuthenticatedRef.current) {
