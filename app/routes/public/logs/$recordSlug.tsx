@@ -206,6 +206,8 @@ type RenderThreadContext = {
   isSubmittingResponseDelete: boolean;
   handleEditResponse: (id: string) => void;
   handleDeleteResponse: (id: string) => void;
+  replyingToId: string | null;
+  setReplyingToId: (id: string | null) => void;
   currentUserId: string | null | undefined;
   loaderData: LoaderData;
 };
@@ -269,27 +271,58 @@ function renderResponseThread(
               </Button>
             </div>
           </form>
-        ) : (
-          <ResponseCard
-            response={node}
-            author={authorForCard}
-            isSelfAnswer={node.type === "self_answer"}
-            currentUserId={ctx.currentUserId}
-            onEdit={ctx.handleEditResponse}
-            onDelete={ctx.handleDeleteResponse}
-          />
-        )}
-      </div>
+         ) : (
+           <>
+             <ResponseCard
+               response={node}
+               author={authorForCard}
+               isSelfAnswer={node.type === "self_answer"}
+               currentUserId={ctx.currentUserId}
+               onEdit={ctx.handleEditResponse}
+               onDelete={ctx.handleDeleteResponse}
+               onReply={ctx.setReplyingToId}
+             />
+             {ctx.replyingToId === node.id && (
+               <div className="mt-4 pl-4 border-l-2 border-[#E3E8EF]">
+                 <form method="post" className="flex flex-col gap-3 bg-surface-secondary rounded-xl border border-border p-4">
+                   <input type="hidden" name="intent" value="create_response" />
+                   <input type="hidden" name="recordId" value={ctx.loaderData.record.id} />
+                   <input type="hidden" name="parentResponseId" value={node.id} />
+                   
+                   <div className="flex gap-2 flex-wrap">
+                     {ALL_RESPONSE_TYPE_OPTIONS.map((option) => (
+                       <label key={option.value} className="flex items-center gap-1.5 cursor-pointer">
+                         <input type="radio" name="type" value={option.value} required className="sr-only" defaultChecked={option.value === "resonance"} />
+                         <span className="text-sm px-3 py-1 rounded-full border border-border has-[:checked]:bg-deep-ocean has-[:checked]:text-white has-[:checked]:border-deep-ocean cursor-pointer">
+                           {option.shortLabel}
+                         </span>
+                       </label>
+                     ))}
+                   </div>
+                   
+                   <Textarea name="content" rows={3} placeholder="답글을 입력하세요..." required className="bg-surface" />
+                   <input type="hidden" name="visibility" value="cohort" />
+                   
+                   <div className="flex gap-2">
+                     <Button type="submit" className="rounded-full bg-deep-ocean text-white text-sm px-4 py-2">답글 등록</Button>
+                     <Button type="button" variant="ghost" onClick={() => ctx.setReplyingToId(null)} className="rounded-full text-sm px-4 py-2">취소</Button>
+                   </div>
+                 </form>
+               </div>
+             )}
+           </>
+         )}
+       </div>
 
-      {node.children.length > 0 && (
-        <div className="flex flex-col gap-6 mt-6">
-          {node.children.map((child) =>
-            renderResponseThread(child, depth + 1, ctx)
-          )}
-        </div>
-      )}
-    </div>
-  );
+       {node.children.length > 0 && (
+         <div className="flex flex-col gap-6 mt-6">
+           {node.children.map((child) =>
+             renderResponseThread(child, depth + 1, ctx)
+           )}
+         </div>
+       )}
+     </div>
+   );
 }
 
 export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
@@ -307,6 +340,7 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
   const [expandedQuestionId, setExpandedQuestionId] = useState<string | null>(null);
   const [editingResponseId, setEditingResponseId] = useState<string | null>(null);
   const [editingContent, setEditingContent] = useState("");
+  const [replyingToId, setReplyingToId] = useState<string | null>(null);
   const responseTypeOptions = getResponseTypeOptions(record.responsePreference);
   const [responseQuestionValue, setResponseQuestionValue] = useState(NO_QUESTION_VALUE);
   const [selectedResponseType, setSelectedResponseType] = useState(responseTypeOptions[0]?.value ?? "resonance");
@@ -970,6 +1004,8 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
                     isSubmittingResponseDelete,
                     handleEditResponse,
                     handleDeleteResponse,
+                    replyingToId,
+                    setReplyingToId,
                     currentUserId,
                     loaderData,
                   })
