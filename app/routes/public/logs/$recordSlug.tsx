@@ -1,5 +1,5 @@
 import { Link } from "~/components/content/SmartLink";
-import { useFetcher, useActionData, useSubmit } from "react-router";
+import { useFetcher, useActionData, useNavigation, useSubmit } from "react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { cn } from "~/lib/utils/cn";
@@ -213,6 +213,7 @@ type RenderThreadContext = {
   setReplyResponseType: (v: string) => void;
   currentUserId: string | null | undefined;
   loaderData: LoaderData;
+  deletingResponseId: string | null;
 };
 
 const DEPTH_INDENT_CLASSES: Record<number, string> = {
@@ -306,15 +307,16 @@ function renderResponseThread(
           </form>
          ) : (
            <>
-             <ResponseCard
-               response={node}
-               author={authorForCard}
-               isSelfAnswer={node.type === "self_answer"}
-               currentUserId={ctx.currentUserId}
-               onEdit={ctx.handleEditResponse}
-               onDelete={ctx.handleDeleteResponse}
-               onReply={ctx.setReplyingToId}
-             />
+              <ResponseCard
+                response={node}
+                author={authorForCard}
+                isSelfAnswer={node.type === "self_answer"}
+                currentUserId={ctx.currentUserId}
+                onEdit={ctx.handleEditResponse}
+                onDelete={ctx.handleDeleteResponse}
+                onReply={ctx.setReplyingToId}
+                isDeleting={ctx.deletingResponseId === node.id}
+              />
               {ctx.replyingToId === node.id && (
                 <div className="mt-4 pl-4 border-l-2 border-[#E3E8EF]">
                   <form method="post" className="flex flex-col gap-3 bg-surface-secondary rounded-xl border border-border p-4">
@@ -401,6 +403,11 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
   } = loaderData as LoaderData;
   const actionData = useActionData<Action>();
   const submit = useSubmit();
+  const navigation = useNavigation();
+  const deletingResponseId = navigation.state === "submitting"
+    && navigation.formData?.get("intent") === "delete_response"
+    ? String(navigation.formData.get("responseId"))
+    : null;
 
   const [expandedQuestionId, setExpandedQuestionId] = useState<string | null>(null);
   const [editingResponseId, setEditingResponseId] = useState<string | null>(null);
@@ -1109,24 +1116,25 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
                   }))
                 );
 
-                return responseTree.map((rootNode) =>
-                  renderResponseThread(rootNode, 0, {
-                    editingResponseId,
-                    editingContent,
-                    editingResponseType,
-                    setEditingContent,
-                    setEditingResponseId,
-                    setEditingResponseType,
-                    handleEditResponse,
-                    handleDeleteResponse,
-                    replyingToId,
-                    setReplyingToId,
-                    replyResponseType,
-                    setReplyResponseType,
-                    currentUserId,
-                    loaderData,
-                  })
-                );
+                 return responseTree.map((rootNode) =>
+                   renderResponseThread(rootNode, 0, {
+                     editingResponseId,
+                     editingContent,
+                     editingResponseType,
+                     setEditingContent,
+                     setEditingResponseId,
+                     setEditingResponseType,
+                     handleEditResponse,
+                     handleDeleteResponse,
+                     replyingToId,
+                     setReplyingToId,
+                     replyResponseType,
+                     setReplyResponseType,
+                     currentUserId,
+                     loaderData,
+                     deletingResponseId,
+                   })
+                 );
               })()}
             </div>
           ) : (
