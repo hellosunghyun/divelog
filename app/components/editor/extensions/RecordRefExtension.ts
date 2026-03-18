@@ -129,7 +129,10 @@ export function createRecordRefExtension() {
         const parent = state.selection.$from.parent;
         return parent.isTextblock && !parent.type.spec.code;
       },
-      items: async ({ query }: { query: string }) => fetchRecords(query),
+      items: async ({ query }: { query: string }) => {
+        console.debug("[record-ref] items query:", JSON.stringify(query), "len:", query.length);
+        return fetchRecords(query);
+      },
       command: ({ editor, range, props }: { editor: any; range: any; props: any }) => {
         const label = props.title ?? props.label ?? props.id;
         exitSuggestion(editor.view, recordRefPluginKey);

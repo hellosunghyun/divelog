@@ -146,7 +146,10 @@ export function createUserMentionExtension() {
         const parent = state.selection.$from.parent;
         return parent.isTextblock && !parent.type.spec.code;
       },
-      items: async ({ query }: { query: string }) => fetchLearners(query),
+      items: async ({ query }: { query: string }) => {
+        console.debug("[mention] items query:", JSON.stringify(query), "len:", query.length);
+        return fetchLearners(query);
+      },
       command: ({ editor, range, props }: { editor: any; range: any; props: any }) => {
         const label = props.displayName ?? props.label ?? props.id;
         const slug = props.slug ?? props.id;
