@@ -101,8 +101,12 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
   const [allTags, currentTags, existingParticipants, existingMentions] = await Promise.all([
     getAllTags(context.cloudflare.env.DB),
     getTagsByRecord(context.cloudflare.env.DB, recordData.record.id),
-    getParticipantsByRecord(context.cloudflare.env.DB, recordData.record.id),
-    getMentionsByRecord(context.cloudflare.env.DB, recordData.record.id),
+    getParticipantsByRecord(context.cloudflare.env.DB, recordData.record.id).catch(() =>
+      [] as Awaited<ReturnType<typeof getParticipantsByRecord>>
+    ),
+    getMentionsByRecord(context.cloudflare.env.DB, recordData.record.id).catch(() =>
+      [] as Awaited<ReturnType<typeof getMentionsByRecord>>
+    ),
   ]);
 
   return {

@@ -154,7 +154,12 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const totalPages = shouldLoadAllRecords ? 1 : Math.ceil(totalCount / pageSize);
 
   const recordIds = filteredRecords.map((r) => r.id);
-  const participantsRaw = await getParticipantsBatch(context.cloudflare.env.DB, recordIds);
+  let participantsRaw: Awaited<ReturnType<typeof getParticipantsBatch>> = [];
+  try {
+    participantsRaw = await getParticipantsBatch(context.cloudflare.env.DB, recordIds);
+  } catch {
+    logger.warn("participants_query_failed", { message: "record_participants 테이블이 아직 생성되지 않았을 수 있습니다." });
+  }
   const participantsByRecordId = new Map<string, typeof participantsRaw>();
   for (const p of participantsRaw) {
     const existing = participantsByRecordId.get(p.recordId) ?? [];

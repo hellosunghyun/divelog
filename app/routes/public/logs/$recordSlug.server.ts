@@ -131,8 +131,12 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
     currentUserId
       ? isRecordSaved(context.cloudflare.env.DB, currentUserId, recordData.record.id)
       : Promise.resolve(false),
-    getParticipantsByRecord(context.cloudflare.env.DB, recordData.record.id),
-    getMentionsByRecord(context.cloudflare.env.DB, recordData.record.id),
+    getParticipantsByRecord(context.cloudflare.env.DB, recordData.record.id).catch(() =>
+      [] as Awaited<ReturnType<typeof getParticipantsByRecord>>
+    ),
+    getMentionsByRecord(context.cloudflare.env.DB, recordData.record.id).catch(() =>
+      [] as Awaited<ReturnType<typeof getMentionsByRecord>>
+    ),
   ]);
 
   const linkedRecords = linkedRecordsRaw.map((lr) => ({

@@ -32,12 +32,19 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
   ]);
 
   const [participatedRecords, mentionedRecords] = await Promise.all([
-    getRecordsWithParticipant(d1, learner.userId, 10),
-    getRecordsWithMention(d1, learner.userId, 10),
+    getRecordsWithParticipant(d1, learner.userId, 10).catch(() =>
+      [] as Awaited<ReturnType<typeof getRecordsWithParticipant>>
+    ),
+    getRecordsWithMention(d1, learner.userId, 10).catch(() =>
+      [] as Awaited<ReturnType<typeof getRecordsWithMention>>
+    ),
   ]);
 
   const recordIds = learnerRecords.map((item) => item.record.id);
-  const participantsRaw = await getParticipantsBatch(d1, recordIds);
+  let participantsRaw: Awaited<ReturnType<typeof getParticipantsBatch>> = [];
+  try {
+    participantsRaw = await getParticipantsBatch(d1, recordIds);
+  } catch { }
   const participantsByRecordId = new Map<string, typeof participantsRaw>();
   for (const p of participantsRaw) {
     const existing = participantsByRecordId.get(p.recordId) ?? [];
