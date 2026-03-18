@@ -19,6 +19,7 @@ import {
   questions,
   recordParticipants,
   recordReads,
+  recordReferences,
   recordRevisions,
   recordTags,
   records,
@@ -133,6 +134,7 @@ export const recordsRelations = relations(records, ({ many, one }) => ({
   revisions: many(recordRevisions),
   reads: many(recordReads),
   participants: many(recordParticipants),
+  references: many(recordReferences),
 }));
 
 export const recordRevisionsRelations = relations(recordRevisions, ({ one }) => ({
@@ -381,6 +383,13 @@ export const personalStageReflectionsRelations = relations(personalStageReflecti
   learner: one(learnerProfiles, {
     fields: [personalStageReflections.learnerId],
     references: [learnerProfiles.userId],
+  }),
+}));
+
+export const recordReferencesRelations = relations(recordReferences, ({ one }) => ({
+  record: one(records, {
+    fields: [recordReferences.recordId],
+    references: [records.id],
   }),
 }));
 

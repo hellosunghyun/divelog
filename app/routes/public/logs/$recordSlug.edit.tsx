@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { eq } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 import { Link } from "~/components/content/SmartLink";
 import { data, redirect, useActionData, useNavigation } from "react-router";
 import { useState, Suspense, lazy } from "react";
@@ -35,11 +35,11 @@ import {
 import { syncRecordLinksForRecord } from "~/db/queries/records/recordLinks.server";
 import { getRecordBySlug, updateRecord } from "~/db/queries/records/records.server";
 import { getAllTags, getTagsByRecord } from "~/db/queries/records/tags.server";
-import { recordTags, stages, templates } from "~/db/schema.server";
+import { recordReferences, recordTags, stages, templates } from "~/db/schema.server";
 import { requireVerified } from "~/lib/auth/auth.middleware";
-import { createRecordSchema } from "~/lib/auth/validation";
+import { createRecordSchema, parseReferencesFromFormData } from "~/lib/auth/validation";
 import { getPlainText } from "~/lib/content/content.server";
-import { extractRecordRefs } from "~/lib/content/extract-references.server";
+import { extractRecordRefs, extractUserMentions } from "~/lib/content/extract-references.server";
 import { createLogger } from "~/lib/infra/logger.server";
 import { cleanupRemovedImages } from "~/lib/infra/r2-cleanup.server";
 import { cn } from "~/lib/utils/cn";
@@ -54,7 +54,6 @@ const RHYTHM_OPTIONS = [
   { value: "weekly", label: "주간" },
   { value: "monthly", label: "월간" },
   { value: "stage", label: "구간" },
-  { value: "reflection", label: "회고" },
 ] as const;
 
 type TagOption = { id: string; name: string };
@@ -85,20 +84,19 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
     throw new Response("Forbidden", { status: 403 });
   }
 
-  const [activeTemplates, currentStageResult, allStages] = await database.batch([
-    database.select().from(templates).where(eq(templates.active, true)),
-    database.select().from(stages).where(eq(stages.isCurrent, true)).limit(1),
-    database.select({
-      id: stages.id,
-      name: stages.name,
-      isCurrent: stages.isCurrent,
-      startDate: stages.startDate,
-      endDate: stages.endDate,
-    }).from(stages).orderBy(stages.order),
-    // [COLLAB_DISABLED] collaboration query removed
-  ]);
-
-  const [allTags, currentTags, existingParticipants, existingMentions] = await Promise.all([
+  const [[activeTemplates, currentStageResult, allStages], allTags, currentTags, existingParticipants, existingMentions, references] = await Promise.all([
+    database.batch([
+      database.select().from(templates).where(eq(templates.active, true)),
+      database.select().from(stages).where(eq(stages.isCurrent, true)).limit(1),
+      database.select({
+        id: stages.id,
+        name: stages.name,
+        isCurrent: stages.isCurrent,
+        startDate: stages.startDate,
+        endDate: stages.endDate,
+      }).from(stages).orderBy(stages.order),
+      // [COLLAB_DISABLED] collaboration query removed
+    ]),
     getAllTags(context.cloudflare.env.DB),
     getTagsByRecord(context.cloudflare.env.DB, recordData.record.id),
     getParticipantsByRecord(context.cloudflare.env.DB, recordData.record.id).catch(() =>
@@ -107,6 +105,11 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
     getMentionsByRecord(context.cloudflare.env.DB, recordData.record.id).catch(() =>
       [] as Awaited<ReturnType<typeof getMentionsByRecord>>
     ),
+    database
+      .select()
+      .from(recordReferences)
+      .where(eq(recordReferences.recordId, recordData.record.id))
+      .orderBy(asc(recordReferences.sortOrder)),
   ]);
 
   return {
@@ -120,6 +123,7 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
     existingParticipants,
     existingMentions,
     currentUserId: auth.user?.id ?? null,
+    references,
   };
 }
 
@@ -146,8 +150,11 @@ export async function action({ params, request, context }: Route.ActionArgs) {
   const recordedEndAtRaw = formData.get("recordedEndAt");
   const format = formatRaw === "article" ? "article" : "note";
   const content = typeof contentRaw === "string" ? contentRaw : "";
+  const participantsJson = formData.get("participantsJson")?.toString() ?? "[]";
+  const mentionUserIdsJson = formData.get("mentionUserIds")?.toString() ?? "[]";
   const participants = JSON.parse(participantsJson) as { userId: string; role: string }[];
   const mentionUserIds = JSON.parse(mentionUserIdsJson) as string[];
+  const references = parseReferencesFromFormData(formData);
 
   let contentText = "";
   if (format === "article") {
@@ -178,6 +185,7 @@ export async function action({ params, request, context }: Route.ActionArgs) {
       typeof recordedAtRaw === "string" && recordedAtRaw ? recordedAtRaw : undefined,
     recordedEndAt:
       typeof recordedEndAtRaw === "string" && recordedEndAtRaw ? recordedEndAtRaw : undefined,
+    originalUrl: formData.get("originalUrl") || undefined,
   });
 
   if (!parsed.success) {
@@ -209,6 +217,7 @@ export async function action({ params, request, context }: Route.ActionArgs) {
     collaborationUnitId: parsed.data.collaborationUnitId,
     recordedAt: parsed.data.recordedAt,
     recordedEndAt: parsed.data.recordedEndAt,
+    originalUrl: parsed.data.originalUrl,
   }, { oldTags, newTags });
 
   await syncParticipantsForRecord(
@@ -218,18 +227,43 @@ export async function action({ params, request, context }: Route.ActionArgs) {
     auth.user.id,
   );
 
-  await syncAllMentionsForRecord(
-    context.cloudflare.env.DB,
-    recordData.record.id,
-    mentionUserIds,
-    parsed.data.content,
-    auth.user.id,
-  );
+  await database.delete(recordReferences).where(eq(recordReferences.recordId, recordData.record.id));
+
+  if (references.length > 0) {
+    await database.insert(recordReferences).values(
+      references.map((reference, index) => ({
+        id: crypto.randomUUID(),
+        recordId: recordData.record.id,
+        url: reference.url,
+        title: reference.title || null,
+        sortOrder: index,
+      }))
+    );
+  }
 
   if (parsed.data.format === "article") {
+    const mentionedUsers = extractUserMentions(parsed.data.content);
+    const allMentionUserIds = Array.from(
+      new Set([...mentionUserIds, ...mentionedUsers.map((mention) => mention.userId)])
+    );
     const recordRefs = extractRecordRefs(parsed.data.content);
 
     await syncRecordLinksForRecord(context.cloudflare.env.DB, recordData.record.id, recordRefs);
+    await syncAllMentionsForRecord(
+      context.cloudflare.env.DB,
+      recordData.record.id,
+      allMentionUserIds,
+      parsed.data.content,
+      auth.user.id,
+    );
+  } else {
+    await syncAllMentionsForRecord(
+      context.cloudflare.env.DB,
+      recordData.record.id,
+      mentionUserIds,
+      parsed.data.content,
+      auth.user.id,
+    );
   }
 
   logger.info("record_update", { recordId: recordData.record.id });
@@ -262,7 +296,16 @@ export async function action({ params, request, context }: Route.ActionArgs) {
 }
 
 export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
-  const { record, templates: availableTemplates, currentStage, collaborations, stages, tags, currentTags } = loaderData;
+  const {
+    record,
+    templates: availableTemplates,
+    currentStage,
+    collaborations,
+    stages,
+    tags,
+    currentTags,
+    references: initialReferences,
+  } = loaderData;
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
@@ -274,6 +317,14 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
   );
   const [title, setTitle] = useState(record.title);
   const [articleContent, setArticleContent] = useState(isArticleRecord ? record.content : "");
+  const [originalUrl, setOriginalUrl] = useState(record.originalUrl ?? "");
+  const [refList, setRefList] = useState(
+    initialReferences.map((reference) => ({
+      id: reference.id,
+      url: reference.url,
+      title: reference.title ?? "",
+    }))
+  );
   const [templateValue, setTemplateValue] = useState(NO_SELECTION_VALUE);
   // [COLLAB_DISABLED] const [collaborationValue, setCollaborationValue] = useState(record.collaborationUnitId ?? NO_SELECTION_VALUE);
 
@@ -285,6 +336,13 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
   const hasChanges =
     title !== record.title ||
     (isArticleRecord && articleContent !== record.content) ||
+    (isArticleRecord && originalUrl !== (record.originalUrl ?? "")) ||
+    (isArticleRecord &&
+      (refList.length !== initialReferences.length ||
+        refList.some((reference, index) => {
+          const initialReference = initialReferences[index];
+          return reference.url !== initialReference?.url || reference.title !== (initialReference?.title ?? "");
+        }))) ||
     rhythm !== (record.rhythm ?? "free") ||
     selectedTags.size !== currentTags.length ||
     Array.from(selectedTags).some((id) => !currentTags.some((t: TagOption) => t.id === id));
@@ -443,6 +501,24 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
           {titleError ? <p className="text-error text-meta mt-1">{titleError}</p> : null}
         </div>
 
+        {record.format === "article" ? (
+          <div className="space-y-2">
+            <label htmlFor="originalUrl" className="block text-sm font-medium text-[#6E6E73]">
+              원문 링크 <span className="text-xs text-[#8C8C91]">(선택)</span>
+            </label>
+            <input
+              type="text"
+              inputMode="url"
+              id="originalUrl"
+              name="originalUrl"
+              value={originalUrl}
+              onChange={(event) => setOriginalUrl(event.target.value)}
+              placeholder="블로그나 원본 글의 URL을 입력하세요"
+              className="w-full rounded-xl border border-[#E3E8EF] bg-white px-4 py-3 text-sm text-[#1D1D1F] placeholder:text-[#8C8C91] focus:border-[#146C94] focus:outline-none focus:ring-2 focus:ring-[#146C94]/20"
+            />
+          </div>
+        ) : null}
+
         <div>
           <p className="block text-meta font-medium text-text-secondary mb-2">
             내용 <span className="text-error">*</span>
@@ -467,6 +543,64 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
            )}
           {contentError ? <p className="text-error text-meta mt-1">{contentError}</p> : null}
         </div>
+
+        {record.format === "article" ? (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-[#6E6E73]">
+                참조 및 출처 <span className="text-xs text-[#8C8C91]">(선택)</span>
+              </span>
+              <button
+                type="button"
+                onClick={() =>
+                  setRefList((prev) => [...prev, { id: crypto.randomUUID(), url: "", title: "" }])
+                }
+                className="text-sm text-[#146C94] transition-colors hover:text-[#0B2447]"
+              >
+                + 참조 추가
+              </button>
+            </div>
+            {refList.map((reference, index) => (
+              <div key={reference.id} className="flex items-start gap-2">
+                <div className="flex-1 space-y-2">
+                  <input
+                    type="text"
+                    inputMode="url"
+                    name={`references[${index}][url]`}
+                    value={reference.url}
+                    onChange={(event) => {
+                      const next = [...refList];
+                      next[index] = { ...next[index], url: event.target.value };
+                      setRefList(next);
+                    }}
+                    placeholder="https://example.com"
+                    className="w-full rounded-xl border border-[#E3E8EF] bg-white px-4 py-2.5 text-sm text-[#1D1D1F] placeholder:text-[#8C8C91] focus:border-[#146C94] focus:outline-none focus:ring-2 focus:ring-[#146C94]/20"
+                  />
+                  <input
+                    type="text"
+                    name={`references[${index}][title]`}
+                    value={reference.title}
+                    onChange={(event) => {
+                      const next = [...refList];
+                      next[index] = { ...next[index], title: event.target.value };
+                      setRefList(next);
+                    }}
+                    placeholder="제목 (선택)"
+                    className="w-full rounded-xl border border-[#E3E8EF] bg-white px-4 py-2.5 text-sm text-[#1D1D1F] placeholder:text-[#8C8C91] focus:border-[#146C94] focus:outline-none focus:ring-2 focus:ring-[#146C94]/20"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setRefList((prev) => prev.filter((_, currentIndex) => currentIndex !== index))}
+                  className="mt-2.5 p-1 text-[#8C8C91] transition-colors hover:text-[#1D1D1F]"
+                  aria-label="참조 삭제"
+                >
+                  X
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : null}
 
         <div>
           <Label

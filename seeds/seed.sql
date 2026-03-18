@@ -293,6 +293,21 @@ INSERT INTO memory_records (memory_id, record_id, position) VALUES
   ('memory-bridge-1', 'record-018', 2),
   ('memory-bridge-1', 'record-025', 3);
 
+-- record_references 초기화 (멱등성)
+DELETE FROM record_references;
+
+-- Article 원문 링크 업데이트
+UPDATE records SET original_url = 'https://velog.io/@learner/challenge-start' WHERE id = 'record-002';
+UPDATE records SET original_url = 'https://medium.com/@learner/team-discovery' WHERE id = 'record-005';
+
+-- 참조 링크 삽입 (제목 있는 것 + 없는 것 혼합)
+INSERT INTO record_references (id, record_id, url, title, sort_order, created_at) VALUES
+  ('ref-001', 'record-002', 'https://developer.apple.com/design/human-interface-guidelines/', 'Apple Human Interface Guidelines', 0, unixepoch()),
+  ('ref-002', 'record-002', 'https://www.nngroup.com/articles/ten-usability-heuristics/', 'Nielsen Norman Group - 10 Usability Heuristics', 1, unixepoch()),
+  ('ref-003', 'record-005', 'https://martinfowler.com/articles/on-pair-programming.html', NULL, 0, unixepoch()),
+  ('ref-004', 'record-005', 'https://www.atlassian.com/agile/scrum/retrospectives', '애자일 회고 가이드', 1, unixepoch()),
+  ('ref-005', 'record-008', 'https://jamesclear.com/atomic-habits', NULL, 0, unixepoch());
+
 INSERT INTO notifications (
   id,
   recipient_id,

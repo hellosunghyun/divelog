@@ -1,5 +1,14 @@
 import { z } from "zod";
 
+// URL 정규화 헬퍼 함수
+function normalizeUrl(val: unknown): unknown {
+  if (typeof val !== "string" || val === "") return val;
+  if (!val.startsWith("http://") && !val.startsWith("https://")) {
+    return "https://" + val;
+  }
+  return val;
+}
+
 export const createRecordSchema = z
   .object({
     title: z.string().min(1, "제목을 입력해주세요").max(200, "제목이 너무 깁니다"),
@@ -15,6 +24,10 @@ export const createRecordSchema = z
     collaborationUnitId: z.string().optional(),
     recordedAt: z.string().optional(),
     recordedEndAt: z.string().optional(),
+    originalUrl: z.preprocess(
+      normalizeUrl,
+      z.string().url().max(2048).optional().or(z.literal(""))
+    ),
   })
   .superRefine((data, ctx) => {
     if (data.format !== "article") {
@@ -57,6 +70,10 @@ export const autosaveDraftSchema = z.object({
   rhythm: z.string().default("free"),
   visibility: z.enum(["draft", "private", "cohort", "public"]).default("public"),
   responsePreference: z.enum(["open", "question_only", "closed"]).default("open"),
+  originalUrl: z.preprocess(
+    normalizeUrl,
+    z.string().url().max(2048).optional().or(z.literal(""))
+  ),
 });
 
 export type AutosaveDraftInput = z.infer<typeof autosaveDraftSchema>;
@@ -95,6 +112,22 @@ export const createArticleSchema = z
     templateId: z.string().optional(),
     captureQuestion: z.string().optional(),
     captureDirection: z.enum(["inward", "outward", "next_stage"]).default("inward"),
+    originalUrl: z.preprocess(
+      normalizeUrl,
+      z.string().url().max(2048).optional().or(z.literal(""))
+    ),
+    references: z.array(
+      z.object({
+        url: z.preprocess(normalizeUrl, z.string().url().max(2048)),
+        title: z.string().max(200).optional().or(z.literal("")),
+      })
+    ).max(50).optional().default([]).refine(
+      (refs) => {
+        const urls = refs.map((r) => r.url);
+        return urls.length === new Set(urls).size;
+      },
+      { message: "참조 링크에 중복된 URL이 있습니다" }
+    ),
   })
   .superRefine((data, ctx) => {
     try {
@@ -204,3 +237,24 @@ export const recordFilterSchema = z.object({
 });
 
 export type RecordFilterInput = z.infer<typeof recordFilterSchema>;
+
+export function parseReferencesFromFormData(
+  formData: FormData
+): { url: string; title?: string }[] {
+  const references: { url: string; title?: string }[] = [];
+  let index = 0;
+  while (true) {
+    const url = formData.get(`references[${index}][url]`);
+    if (url === null) break;
+    const urlStr = String(url).trim();
+    if (urlStr !== "") {
+      const title = formData.get(`references[${index}][title]`);
+      references.push({
+        url: urlStr,
+        title: title ? String(title).trim() || undefined : undefined,
+      });
+    }
+    index++;
+  }
+  return references;
+}

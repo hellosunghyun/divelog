@@ -50,7 +50,6 @@ const RHYTHM_OPTIONS = [
   { value: "weekly", label: "주간" },
   { value: "monthly", label: "월간" },
   { value: "stage", label: "구간" },
-  { value: "reflection", label: "회고" },
 ] as const;
 
 function parseDateToUnix(dateStr: string | undefined): number | null {
@@ -223,7 +222,7 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
   const { currentStage, stages: availableStages, tags, learnerDefaults, currentUserId } = loaderData;
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
-  const [stageValue, setStageValue] = useState(currentStage?.id ?? NO_STAGE_VALUE);
+  const [stageValue, setStageValue] = useState(NO_STAGE_VALUE);
   const [title, setTitle] = useState("");
   const [articleContent, setArticleContent] = useState("");
   const [rhythm, setRhythm] = useState("free");

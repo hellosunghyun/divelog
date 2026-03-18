@@ -14,6 +14,7 @@ import {
 } from "~/db/queries/dialogue/selfAnswers.server";
 import { getIncomingLinks } from "~/db/queries/records/recordLinks.server";
 import { getLinkedRecords } from "~/db/queries/records/records.server";
+import { getRecordReferences } from "~/db/queries/records/references.server";
 import { getRevisionsByRecord } from "~/db/queries/records/revisions.server";
 import { isRecordSaved } from "~/db/queries/records/savedRecords.server";
 import { saveSentence } from "~/db/queries/records/sentences.server";
@@ -104,7 +105,7 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
       .orderBy(desc(sentences.createdAt)),
   ]);
 
-  const [linkedRecordsRaw, selfAnswersData, recordTags, incomingLinks, isAdmin, isSaved, participants, mentions] = await Promise.all([
+  const [linkedRecordsRaw, selfAnswersData, recordTags, incomingLinks, isAdmin, isSaved, participants, mentions, recordReferences] = await Promise.all([
     getLinkedRecords(
       context.cloudflare.env.DB,
       recordData.record.id,
@@ -137,6 +138,9 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
     getMentionsByRecord(context.cloudflare.env.DB, recordData.record.id).catch(() =>
       [] as Awaited<ReturnType<typeof getMentionsByRecord>>
     ),
+    recordData.record.format === "article"
+      ? getRecordReferences(context.cloudflare.env.DB, recordData.record.id)
+      : Promise.resolve([]),
   ]);
 
   const linkedRecords = linkedRecordsRaw.map((lr) => ({
@@ -176,6 +180,7 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
     revisions,
     isAuthorOrAdmin,
     isSaved,
+    references: recordReferences,
   };
 }
 

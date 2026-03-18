@@ -3,10 +3,9 @@ import { createPortal } from "react-dom";
 
 type PreviewType = "learner" | "record";
 
-interface PreviewTarget {
+interface PreviewInfo {
   type: PreviewType;
   slug: string;
-  rect: DOMRect;
 }
 
 interface LearnerPreviewData {
@@ -62,7 +61,6 @@ async function fetchPreview(
 }
 
 const CARD_WIDTH = 300;
-const CARD_MAX_HEIGHT = 260;
 const GAP = 8;
 
 function calculatePosition(rect: DOMRect) {
@@ -73,37 +71,43 @@ function calculatePosition(rect: DOMRect) {
   if (left + CARD_WIDTH > vw - GAP) left = vw - CARD_WIDTH - GAP;
   if (left < GAP) left = GAP;
 
-  let top: number;
-
-  if (rect.bottom + GAP + CARD_MAX_HEIGHT < vh) {
-    top = rect.bottom + GAP;
-  } else {
-    top = rect.top - CARD_MAX_HEIGHT - GAP;
-  }
+  const estimatedHeight = 200;
+  const top =
+    rect.bottom + GAP + estimatedHeight < vh
+      ? rect.bottom + GAP
+      : rect.top - estimatedHeight - GAP;
 
   return { top, left };
 }
 
 const MENTION_SELECTOR = ".user-mention, .record-ref";
 
+function parseAnchor(anchor: HTMLAnchorElement): PreviewInfo | null {
+  const type: PreviewType = anchor.classList.contains("user-mention")
+    ? "learner"
+    : "record";
+  const href = anchor.getAttribute("href") ?? "";
+  const slug = href.split("/").filter(Boolean).pop() ?? "";
+  return slug ? { type, slug } : null;
+}
+
 export function useMentionPreview(containerRef: RefObject<HTMLDivElement | null>) {
-  const [target, setTarget] = useState<PreviewTarget | null>(null);
+  const [preview, setPreview] = useState<PreviewInfo | null>(null);
+  const [open, setOpen] = useState(false);
+  const [pos, setPos] = useState({ top: 0, left: 0 });
+
+  const cardRef = useRef<HTMLDivElement>(null);
+  const overAnchor = useRef(false);
+  const overCard = useRef(false);
   const showTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const cardRef = useRef<HTMLDivElement>(null);
-  const activeAnchor = useRef<HTMLElement | null>(null);
 
-  const clearTimers = useCallback(() => {
-    if (showTimer.current) { clearTimeout(showTimer.current); showTimer.current = null; }
-    if (hideTimer.current) { clearTimeout(hideTimer.current); hideTimer.current = null; }
-  }, []);
-
-  const scheduleHide = useCallback(() => {
-    if (showTimer.current) { clearTimeout(showTimer.current); showTimer.current = null; }
+  const tryHide = useCallback(() => {
     if (hideTimer.current) clearTimeout(hideTimer.current);
     hideTimer.current = setTimeout(() => {
-      setTarget(null);
-      activeAnchor.current = null;
+      if (!overAnchor.current && !overCard.current) {
+        setOpen(false);
+      }
     }, 300);
   }, []);
 
@@ -117,25 +121,20 @@ export function useMentionPreview(containerRef: RefObject<HTMLDivElement | null>
 
     function onOver(e: MouseEvent) {
       const anchor = (e.target as HTMLElement).closest<HTMLAnchorElement>(MENTION_SELECTOR);
-      if (!anchor) return;
-      if (anchor === activeAnchor.current) {
-        cancelHide();
-        return;
-      }
+      if (!anchor || !container!.contains(anchor)) return;
 
-      clearTimers();
-      activeAnchor.current = anchor;
+      overAnchor.current = true;
+      cancelHide();
 
-      const type: PreviewType = anchor.classList.contains("user-mention")
-        ? "learner"
-        : "record";
-      const href = anchor.getAttribute("href") ?? "";
-      const slug = href.split("/").filter(Boolean).pop() ?? "";
-      if (!slug) return;
+      const info = parseAnchor(anchor);
+      if (!info) return;
 
+      if (showTimer.current) clearTimeout(showTimer.current);
       showTimer.current = setTimeout(() => {
-        setTarget({ type, slug, rect: anchor.getBoundingClientRect() });
-      }, 400);
+        setPreview(info);
+        setPos(calculatePosition(anchor.getBoundingClientRect()));
+        setOpen(true);
+      }, 350);
     }
 
     function onOut(e: MouseEvent) {
@@ -144,9 +143,11 @@ export function useMentionPreview(containerRef: RefObject<HTMLDivElement | null>
 
       const related = e.relatedTarget as HTMLElement | null;
       if (related && anchor.contains(related)) return;
-      if (related && cardRef.current?.contains(related)) return;
 
-      scheduleHide();
+      overAnchor.current = false;
+
+      if (showTimer.current) { clearTimeout(showTimer.current); showTimer.current = null; }
+      tryHide();
     }
 
     container.addEventListener("mouseover", onOver);
@@ -155,71 +156,72 @@ export function useMentionPreview(containerRef: RefObject<HTMLDivElement | null>
     return () => {
       container.removeEventListener("mouseover", onOver);
       container.removeEventListener("mouseout", onOut);
-      clearTimers();
+      if (showTimer.current) clearTimeout(showTimer.current);
+      if (hideTimer.current) clearTimeout(hideTimer.current);
     };
-  }, [containerRef, clearTimers, cancelHide, scheduleHide]);
+  }, [containerRef, cancelHide, tryHide]);
 
-  const onCardEnter = cancelHide;
+  const onCardEnter = useCallback(() => {
+    overCard.current = true;
+    cancelHide();
+  }, [cancelHide]);
 
-  const onCardLeave = useCallback((e: React.MouseEvent) => {
-    const related = e.relatedTarget as HTMLElement | null;
-    if (related?.closest?.(MENTION_SELECTOR)) return;
-    scheduleHide();
-  }, [scheduleHide]);
+  const onCardLeave = useCallback(() => {
+    overCard.current = false;
+    tryHide();
+  }, [tryHide]);
 
-  return { target, cardRef, onCardEnter, onCardLeave };
+  return { preview, open, pos, cardRef, onCardEnter, onCardLeave };
 }
 
-export function MentionPreviewPortal({
-  target,
+export function MentionPreviewCard({
+  preview,
+  open,
+  pos,
   cardRef,
-  onMouseEnter,
-  onMouseLeave,
+  onCardEnter,
+  onCardLeave,
 }: {
-  target: PreviewTarget;
+  preview: PreviewInfo | null;
+  open: boolean;
+  pos: { top: number; left: number };
   cardRef: RefObject<HTMLDivElement | null>;
-  onMouseEnter: () => void;
-  onMouseLeave: (e: React.MouseEvent) => void;
+  onCardEnter: () => void;
+  onCardLeave: () => void;
 }) {
   const [data, setData] = useState<LearnerPreviewData | RecordPreviewData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-  const pos = calculatePosition(target.rect);
+  const [loading, setLoading] = useState(false);
+  const lastKey = useRef<string>("");
 
   useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    setError(false);
+    if (!preview) return;
+    const key = cacheKey(preview.type, preview.slug);
+    if (key === lastKey.current && data) return;
+    lastKey.current = key;
 
-    const cached = previewCache.get(cacheKey(target.type, target.slug));
+    const cached = previewCache.get(key);
     if (cached) {
       setData(cached);
       setLoading(false);
       return;
     }
 
-    fetchPreview(target.type, target.slug).then((result) => {
+    let cancelled = false;
+    setLoading(true);
+    fetchPreview(preview.type, preview.slug).then((result) => {
       if (cancelled) return;
-      if (result) {
-        setData(result);
-      } else {
-        setError(true);
-      }
+      setData(result);
       setLoading(false);
     });
 
-    return () => {
-      cancelled = true;
-    };
-  }, [target.type, target.slug]);
-
-  if (error) return null;
+    return () => { cancelled = true; };
+  }, [preview, data]);
 
   return createPortal(
     <div
       ref={cardRef}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
+      onMouseEnter={onCardEnter}
+      onMouseLeave={onCardLeave}
       role="tooltip"
       style={{
         position: "fixed",
@@ -227,15 +229,21 @@ export function MentionPreviewPortal({
         left: pos.left,
         width: CARD_WIDTH,
         zIndex: 9999,
+        opacity: open && preview ? 1 : 0,
+        pointerEvents: open && preview ? "auto" : "none",
+        transform: open && preview ? "scale(1)" : "scale(0.97)",
+        transition: "opacity 150ms ease, transform 150ms ease",
       }}
-      className="animate-in fade-in-0 zoom-in-95 duration-150 rounded-2xl border border-border bg-surface shadow-lg"
+      className="rounded-2xl border border-border bg-surface shadow-lg"
     >
       {loading ? (
         <PreviewSkeleton />
-      ) : data && target.type === "learner" ? (
+      ) : data && preview?.type === "learner" ? (
         <LearnerPreviewCard data={data as LearnerPreviewData} />
-      ) : data && target.type === "record" ? (
+      ) : data && preview?.type === "record" ? (
         <RecordPreviewCard data={data as RecordPreviewData} />
+      ) : preview ? (
+        <PreviewSkeleton />
       ) : null}
     </div>,
     document.body,
