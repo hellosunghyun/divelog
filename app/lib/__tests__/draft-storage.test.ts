@@ -77,6 +77,22 @@ describe("draft-storage", () => {
       expect(loaded?.visibility).toBe("public");
     });
 
+    it("should save and load draft with private visibility", () => {
+      const draftInput = {
+        title: "Private Note",
+        content: "This is private content",
+        visibility: "private" as const,
+      };
+
+      saveDraftToLocal("note", draftInput);
+      const loaded = loadDraftFromLocal("note");
+
+      expect(loaded).not.toBeNull();
+      expect(loaded?.title).toBe("Private Note");
+      expect(loaded?.content).toBe("This is private content");
+      expect(loaded?.visibility).toBe("private");
+    });
+
     it("should handle minimal draft with only content", () => {
       const draftInput = {
         content: "Just content",
