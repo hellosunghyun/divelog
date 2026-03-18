@@ -11,7 +11,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   const auth = await getOptionalUser(request, context);
   if (!auth?.isAuthenticated) {
-    return Response.json({ results: [] });
+    logger.info("search_unauthenticated");
+    return Response.json({ results: [], _auth: false });
   }
 
   const url = new URL(request.url);
@@ -23,19 +24,25 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   logger.info("search_query", { query: q });
 
-  const database = db(context.cloudflare.env.DB);
-  const pattern = `%${q}%`;
+  try {
+    const database = db(context.cloudflare.env.DB);
+    const pattern = `%${q}%`;
 
-  const results = await database
-    .select({
-      id: learnerProfiles.userId,
-      slug: learnerProfiles.slug,
-      displayName: learnerProfiles.displayName,
-      profilePhotoUrl: learnerProfiles.profilePhotoUrl,
-    })
-    .from(learnerProfiles)
-    .where(sql`${learnerProfiles.displayName} LIKE ${pattern}`)
-    .limit(8);
+    const results = await database
+      .select({
+        id: learnerProfiles.userId,
+        slug: learnerProfiles.slug,
+        displayName: learnerProfiles.displayName,
+        profilePhotoUrl: learnerProfiles.profilePhotoUrl,
+      })
+      .from(learnerProfiles)
+      .where(sql`${learnerProfiles.displayName} LIKE ${pattern} OR ${learnerProfiles.slug} LIKE ${pattern}`)
+      .limit(8);
 
-  return Response.json({ results });
+    logger.info("search_results", { count: results.length });
+    return Response.json({ results });
+  } catch (error) {
+    logger.error("search_db_error", { error: error instanceof Error ? error.message : String(error) });
+    return Response.json({ results: [], _error: true }, { status: 500 });
+  }
 }

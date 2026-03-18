@@ -11,7 +11,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   const auth = await getOptionalUser(request, context);
   if (!auth?.isAuthenticated) {
-    return Response.json({ results: [] });
+    logger.info("search_unauthenticated");
+    return Response.json({ results: [], _auth: false });
   }
 
   const url = new URL(request.url);
@@ -23,26 +24,32 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   logger.info("search_query", { query: q });
 
-  const database = db(context.cloudflare.env.DB);
-  const pattern = `%${q}%`;
+  try {
+    const database = db(context.cloudflare.env.DB);
+    const pattern = `%${q}%`;
 
-  const results = await database
-    .select({
-      id: records.id,
-      slug: records.slug,
-      title: records.title,
-      format: records.format,
-      authorDisplayName: learnerProfiles.displayName,
-    })
-    .from(records)
-    .leftJoin(learnerProfiles, sql`${records.authorId} = ${learnerProfiles.userId}`)
-    .where(
-      and(
-        sql`${records.visibility} IN ('cohort', 'public')`,
-        sql`(${records.title} LIKE ${pattern} OR ${records.contentText} LIKE ${pattern})`,
-      ),
-    )
-    .limit(8);
+    const results = await database
+      .select({
+        id: records.id,
+        slug: records.slug,
+        title: records.title,
+        format: records.format,
+        authorDisplayName: learnerProfiles.displayName,
+      })
+      .from(records)
+      .leftJoin(learnerProfiles, sql`${records.authorId} = ${learnerProfiles.userId}`)
+      .where(
+        and(
+          sql`${records.visibility} IN ('cohort', 'public')`,
+          sql`(${records.title} LIKE ${pattern} OR ${records.contentText} LIKE ${pattern})`,
+        ),
+      )
+      .limit(8);
 
-  return Response.json({ results });
+    logger.info("search_results", { count: results.length });
+    return Response.json({ results });
+  } catch (error) {
+    logger.error("search_db_error", { error: error instanceof Error ? error.message : String(error) });
+    return Response.json({ results: [], _error: true }, { status: 500 });
+  }
 }

@@ -17,15 +17,24 @@ let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 async function fetchRecords(query: string): Promise<RecordItem[]> {
   if (!query || query.length < 1) return [];
 
+  if (debounceTimer) clearTimeout(debounceTimer);
+
   return new Promise((resolve) => {
-    if (debounceTimer) clearTimeout(debounceTimer);
     debounceTimer = setTimeout(async () => {
       try {
         const res = await fetch(`/api/search-records?q=${encodeURIComponent(query)}`);
-        if (!res.ok) { resolve([]); return; }
-        const data = (await res.json()) as { results: RecordItem[] };
+        if (!res.ok) {
+          console.warn("[record-ref] search-records 응답 오류:", res.status);
+          resolve([]);
+          return;
+        }
+        const data = (await res.json()) as { results: RecordItem[]; _auth?: boolean };
+        if (data._auth === false) {
+          console.warn("[record-ref] 인증되지 않은 상태에서 기록 검색 시도");
+        }
         resolve(data.results ?? []);
-      } catch {
+      } catch (err) {
+        console.warn("[record-ref] search-records fetch 실패:", err);
         resolve([]);
       }
     }, 250);

@@ -16,15 +16,24 @@ let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 async function fetchLearners(query: string): Promise<MentionItem[]> {
   if (!query || query.length < 1) return [];
 
+  if (debounceTimer) clearTimeout(debounceTimer);
+
   return new Promise((resolve) => {
-    if (debounceTimer) clearTimeout(debounceTimer);
     debounceTimer = setTimeout(async () => {
       try {
         const res = await fetch(`/api/search-learners?q=${encodeURIComponent(query)}`);
-        if (!res.ok) { resolve([]); return; }
-        const data = (await res.json()) as { results: MentionItem[] };
+        if (!res.ok) {
+          console.warn("[mention] search-learners 응답 오류:", res.status);
+          resolve([]);
+          return;
+        }
+        const data = (await res.json()) as { results: MentionItem[]; _auth?: boolean };
+        if (data._auth === false) {
+          console.warn("[mention] 인증되지 않은 상태에서 러너 검색 시도");
+        }
         resolve(data.results ?? []);
-      } catch {
+      } catch (err) {
+        console.warn("[mention] search-learners fetch 실패:", err);
         resolve([]);
       }
     }, 250);
@@ -132,6 +141,7 @@ export function createUserMentionExtension() {
     suggestion: {
       char: "@",
       pluginKey: mentionPluginKey,
+      allowedPrefixes: null,
       allow: ({ state }: { editor: any; state: any }) => {
         const parent = state.selection.$from.parent;
         return parent.isTextblock && !parent.type.spec.code;
