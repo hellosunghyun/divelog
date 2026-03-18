@@ -1,3 +1,5 @@
+import type { Route } from "./+types/style-reference";
+import { requireRole } from "~/lib/auth/auth.middleware";
 import { motion } from "~/lib/motion/motion";
 import { fadeUp, staggerContainer, staggerItem, tapScale } from "~/lib/motion/motion-utils";
 import { cn } from "~/lib/utils/cn";
@@ -45,12 +47,13 @@ function shouldReduceMotion(): boolean {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
-export function meta() {
-  return [{ title: "Style Reference — DiveLog" }];
+export async function loader({ request, context }: Route.LoaderArgs) {
+  await requireRole(request, context, "admin");
+  return {};
 }
 
-export async function loader() {
-  return {};
+export function meta() {
+  return [{ title: "Style Reference — DiveLog" }];
 }
 
 function SectionHeader({

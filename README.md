@@ -116,6 +116,41 @@ ADMIN_USER_ID=      # 관리자 사용자 ID
 
 ---
 
+## 배포 전 체크리스트
+
+프로덕션 배포 전 아래 항목을 반드시 확인한다.
+
+### 1. ADMIN_USER_ID 설정
+
+관리자 사용자 ID를 설정하지 않으면 `/admin` 접근이 불가능하다.
+
+```bash
+# Wrangler secret으로 설정 (권장 — 저장소에 커밋되지 않음)
+wrangler secret put ADMIN_USER_ID
+# 프롬프트에 실제 관리자 ID 입력 (예: usr_xxxxxxxxxxxxxxxx)
+```
+
+> ⚠️ `usr_placeholder_replace_with_real_admin_id` 값이 그대로 남아 있으면 admin bootstrap이 조용히 건너뛰어 관리자 역할이 부여되지 않는다.
+
+### 2. ADAKRPOS_API_KEY 설정
+
+외부 인증 서비스 연동에 필요한 API 키를 설정한다.
+
+```bash
+wrangler secret put ADAKRPOS_API_KEY
+# 프롬프트에 ada-kr-pos.com에서 발급받은 API 키 입력
+```
+
+### 3. D1 마이그레이션 적용
+
+프로덕션 D1 데이터베이스에 마이그레이션을 적용한다.
+
+```bash
+wrangler d1 migrations apply DB
+```
+
+---
+
 ## 라이선스
 
 [MIT License](LICENSE) — Copyright (c) 2026 Sunghyun Kim
