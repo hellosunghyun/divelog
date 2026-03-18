@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { RhythmDateInput } from "~/components/record/RhythmDateInput";
+import { TagSelector } from "~/components/TagSelector";
 import { db } from "~/db/client.server";
 import { syncAllMentionsForRecord } from "~/db/queries/dialogue/mentions.server";
 import { createNotification } from "~/db/queries/social/notifications.server";
@@ -226,6 +227,7 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
   const [title, setTitle] = useState("");
   const [articleContent, setArticleContent] = useState("");
   const [rhythm, setRhythm] = useState("free");
+  const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
   const isSubmitting = navigation.state === "submitting";
   const errors = actionData?.errors;
   const titleError = errors && "title" in errors ? errors.title?.[0] : undefined;
