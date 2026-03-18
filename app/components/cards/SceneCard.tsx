@@ -95,15 +95,20 @@ export default function SceneCard({
       data-testid="scene-card"
       data-read={isRead ? "true" : undefined}
       className={cn(
-        "group bg-surface-secondary ring-1 ring-border p-1.5 rounded-2xl",
+        "group p-1.5 rounded-2xl ring-1",
         "hover:shadow-tinted-md transition-premium cursor-pointer",
-        isRead && "opacity-60"
+        isRead
+          ? "bg-[#ECEEF1] ring-[#D8DCE3]"
+          : "bg-surface-secondary ring-border"
       )}
       whileHover={{ y: -2 }}
       whileTap={{ scale: 0.98 }}
       transition={{ duration: 0.15, ease: [0.32, 0.72, 0, 1] }}
     >
-      <div className="bg-surface rounded-xl p-5 md:p-6 h-full flex flex-col gap-4">
+      <div className={cn(
+        "rounded-xl p-5 md:p-6 h-full flex flex-col gap-4",
+        isRead ? "bg-[#F0F2F5]" : "bg-surface"
+      )}>
         <div className="flex gap-2 flex-wrap">
           {stage && (
             <span className={cn("rounded-full px-2.5 py-0.5 text-xs font-medium", stageBadgeClass)}>
@@ -123,12 +128,18 @@ export default function SceneCard({
         <Link
           to={`/logs/${record.slug}`}
           prefetch="viewport"
-          className="text-lg font-semibold text-text-primary leading-title no-underline"
+          className={cn(
+            "text-lg font-semibold leading-title no-underline",
+            isRead ? "text-text-tertiary" : "text-text-primary"
+          )}
         >
           <h3 className="tracking-tight">{record.title}</h3>
         </Link>
 
-        <p className="text-base text-text-secondary leading-body m-0">
+        <p className={cn(
+          "text-base leading-body m-0",
+          isRead ? "text-[#A0A4AB]" : "text-text-secondary"
+        )}>
           {snippet}
         </p>
 
