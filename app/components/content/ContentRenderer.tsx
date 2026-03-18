@@ -37,7 +37,7 @@ const ARTICLE_CLASS_NAME = [
 
 export function ContentRenderer({ contentHtml, format, className }: ContentRendererProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const { target, cardRef, cancelHide, scheduleHide } = useMentionPreview(containerRef);
+  const { target, cardRef, onCardEnter, onCardLeave } = useMentionPreview(containerRef);
 
   const combinedClassName = [
     format === "note" ? NOTE_CLASS_NAME : ARTICLE_CLASS_NAME,
@@ -57,8 +57,8 @@ export function ContentRenderer({ contentHtml, format, className }: ContentRende
         <MentionPreviewPortal
           target={target}
           cardRef={cardRef}
-          onMouseEnter={cancelHide}
-          onMouseLeave={scheduleHide}
+          onMouseEnter={onCardEnter}
+          onMouseLeave={onCardLeave}
         />
       )}
     </>

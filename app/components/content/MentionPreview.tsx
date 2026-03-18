@@ -84,37 +84,47 @@ function calculatePosition(rect: DOMRect) {
   return { top, left };
 }
 
+const MENTION_SELECTOR = ".user-mention, .record-ref";
+
 export function useMentionPreview(containerRef: RefObject<HTMLDivElement | null>) {
   const [target, setTarget] = useState<PreviewTarget | null>(null);
   const showTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
+  const activeAnchor = useRef<HTMLElement | null>(null);
 
-  const clearAll = useCallback(() => {
-    if (showTimer.current) clearTimeout(showTimer.current);
-    if (hideTimer.current) clearTimeout(hideTimer.current);
+  const clearTimers = useCallback(() => {
+    if (showTimer.current) { clearTimeout(showTimer.current); showTimer.current = null; }
+    if (hideTimer.current) { clearTimeout(hideTimer.current); hideTimer.current = null; }
   }, []);
 
   const scheduleHide = useCallback(() => {
+    if (showTimer.current) { clearTimeout(showTimer.current); showTimer.current = null; }
     if (hideTimer.current) clearTimeout(hideTimer.current);
-    hideTimer.current = setTimeout(() => setTarget(null), 200);
+    hideTimer.current = setTimeout(() => {
+      setTarget(null);
+      activeAnchor.current = null;
+    }, 300);
   }, []);
 
   const cancelHide = useCallback(() => {
-    if (hideTimer.current) clearTimeout(hideTimer.current);
+    if (hideTimer.current) { clearTimeout(hideTimer.current); hideTimer.current = null; }
   }, []);
 
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
-    function onEnter(e: MouseEvent) {
-      const anchor = (e.target as HTMLElement).closest<HTMLAnchorElement>(
-        ".user-mention, .record-ref",
-      );
+    function onOver(e: MouseEvent) {
+      const anchor = (e.target as HTMLElement).closest<HTMLAnchorElement>(MENTION_SELECTOR);
       if (!anchor) return;
+      if (anchor === activeAnchor.current) {
+        cancelHide();
+        return;
+      }
 
-      clearAll();
+      clearTimers();
+      activeAnchor.current = anchor;
 
       const type: PreviewType = anchor.classList.contains("user-mention")
         ? "learner"
@@ -125,29 +135,39 @@ export function useMentionPreview(containerRef: RefObject<HTMLDivElement | null>
 
       showTimer.current = setTimeout(() => {
         setTarget({ type, slug, rect: anchor.getBoundingClientRect() });
-      }, 300);
+      }, 400);
     }
 
-    function onLeave(e: MouseEvent) {
-      const anchor = (e.target as HTMLElement).closest<HTMLAnchorElement>(
-        ".user-mention, .record-ref",
-      );
+    function onOut(e: MouseEvent) {
+      const anchor = (e.target as HTMLElement).closest<HTMLAnchorElement>(MENTION_SELECTOR);
       if (!anchor) return;
-      if (showTimer.current) clearTimeout(showTimer.current);
+
+      const related = e.relatedTarget as HTMLElement | null;
+      if (related && anchor.contains(related)) return;
+      if (related && cardRef.current?.contains(related)) return;
+
       scheduleHide();
     }
 
-    container.addEventListener("mouseenter", onEnter, true);
-    container.addEventListener("mouseleave", onLeave, true);
+    container.addEventListener("mouseover", onOver);
+    container.addEventListener("mouseout", onOut);
 
     return () => {
-      container.removeEventListener("mouseenter", onEnter, true);
-      container.removeEventListener("mouseleave", onLeave, true);
-      clearAll();
+      container.removeEventListener("mouseover", onOver);
+      container.removeEventListener("mouseout", onOut);
+      clearTimers();
     };
-  }, [containerRef, clearAll, scheduleHide]);
+  }, [containerRef, clearTimers, cancelHide, scheduleHide]);
 
-  return { target, cardRef, cancelHide, scheduleHide, close: () => setTarget(null) };
+  const onCardEnter = cancelHide;
+
+  const onCardLeave = useCallback((e: React.MouseEvent) => {
+    const related = e.relatedTarget as HTMLElement | null;
+    if (related?.closest?.(MENTION_SELECTOR)) return;
+    scheduleHide();
+  }, [scheduleHide]);
+
+  return { target, cardRef, onCardEnter, onCardLeave };
 }
 
 export function MentionPreviewPortal({
@@ -159,7 +179,7 @@ export function MentionPreviewPortal({
   target: PreviewTarget;
   cardRef: RefObject<HTMLDivElement | null>;
   onMouseEnter: () => void;
-  onMouseLeave: () => void;
+  onMouseLeave: (e: React.MouseEvent) => void;
 }) {
   const [data, setData] = useState<LearnerPreviewData | RecordPreviewData | null>(null);
   const [loading, setLoading] = useState(true);
