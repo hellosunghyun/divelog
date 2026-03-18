@@ -10,6 +10,25 @@ Sentry.init({
 
   integrations: [
     Sentry.reactRouterTracingIntegration(),
+    Sentry.feedbackIntegration({
+      colorScheme: "system",
+      showBranding: false,
+      triggerLabel: "버그 제보",
+      formTitle: "버그를 알려주세요",
+      submitButtonLabel: "제출",
+      cancelButtonLabel: "취소",
+      confirmButtonLabel: "확인",
+      addScreenshotButtonLabel: "스크린샷 첨부",
+      removeScreenshotButtonLabel: "스크린샷 제거",
+      nameLabel: "이름",
+      namePlaceholder: "이름",
+      emailLabel: "이메일",
+      emailPlaceholder: "email@example.com",
+      isRequiredLabel: "(필수)",
+      messageLabel: "설명",
+      messagePlaceholder: "어떤 문제가 있었나요? 자세히 알려주세요.",
+      successMessageText: "소중한 제보 감사합니다!",
+    }),
   ],
 
   tracesSampleRate: 0.1,
