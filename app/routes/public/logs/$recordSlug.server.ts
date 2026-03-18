@@ -18,6 +18,8 @@ import { getRevisionsByRecord } from "~/db/queries/records/revisions.server";
 import { isRecordSaved } from "~/db/queries/records/savedRecords.server";
 import { saveSentence } from "~/db/queries/records/sentences.server";
 import { getTagsByRecord } from "~/db/queries/records/tags.server";
+import { getParticipantsByRecord } from "~/db/queries/records/participants.server";
+import { getMentionsByRecord } from "~/db/queries/dialogue/mentions.server";
 import {
   learnerProfiles,
   questions,
@@ -102,7 +104,7 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
       .orderBy(desc(sentences.createdAt)),
   ]);
 
-  const [linkedRecordsRaw, selfAnswersData, recordTags, incomingLinks, isAdmin, isSaved] = await Promise.all([
+  const [linkedRecordsRaw, selfAnswersData, recordTags, incomingLinks, isAdmin, isSaved, participants, mentions] = await Promise.all([
     getLinkedRecords(
       context.cloudflare.env.DB,
       recordData.record.id,
@@ -129,6 +131,8 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
     currentUserId
       ? isRecordSaved(context.cloudflare.env.DB, currentUserId, recordData.record.id)
       : Promise.resolve(false),
+    getParticipantsByRecord(context.cloudflare.env.DB, recordData.record.id),
+    getMentionsByRecord(context.cloudflare.env.DB, recordData.record.id),
   ]);
 
   const linkedRecords = linkedRecordsRaw.map((lr) => ({
@@ -160,6 +164,8 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
     incomingLinks,
     selfAnswers: selfAnswersData,
     tags: recordTags,
+    participants,
+    mentions,
     currentUserId,
     contentHtml,
     plainTextContent,

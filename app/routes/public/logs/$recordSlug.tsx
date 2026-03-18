@@ -341,7 +341,7 @@ function renderResponseThread(
 }
 
 export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
-  const { record, author, stage, questions: recordQuestions, responses: recordResponses, sentences: recordSentences, linkedRecords, incomingLinks, selfAnswers, tags: recordTags, currentUserId, contentHtml, revisions, isAuthorOrAdmin, isSaved: initialIsSaved } = loaderData as LoaderData;
+  const { record, author, stage, questions: recordQuestions, responses: recordResponses, sentences: recordSentences, linkedRecords, incomingLinks, selfAnswers, tags: recordTags, participants, mentions, currentUserId, contentHtml, revisions, isAuthorOrAdmin, isSaved: initialIsSaved } = loaderData as LoaderData;
   const actionData = useActionData<Action>();
   const navigation = useNavigation();
   const submit = useSubmit();
@@ -390,7 +390,7 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
   const isRecordAuthor = currentUserId === record.authorId;
   const recordFormat = normalizeContentFormat(record.format);
   const isArticleRecord = recordFormat === "article";
-  const hasSidebarContent = recordTags.length > 0 || linkedRecords.length > 0 || incomingLinks.length > 0;
+  const hasSidebarContent = recordTags.length > 0 || linkedRecords.length > 0 || incomingLinks.length > 0 || participants.length > 0 || mentions.length > 0;
 
   const selfAnswersByQuestion = new Map<string, typeof selfAnswers>();
   for (const sa of selfAnswers) {
@@ -1116,6 +1116,140 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
                   <p className="text-sm font-medium text-text-primary line-clamp-2 group-hover:text-ocean-blue transition-colors">{link.sourceTitle ?? "기록"}</p>
                   <p className="text-xs text-text-tertiary mt-1.5">{link.sourceAuthorName}</p>
                 </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {participants.length > 0 && (
+          <div>
+            <h3 className="text-sm font-medium text-text-secondary mb-4 uppercase tracking-wider">함께한 사람</h3>
+            <div className="flex flex-col gap-3">
+              {(() => {
+                const roleOrder = ["coauthor", "companion", "mentor"];
+                const roleLabels: Record<string, string> = {
+                  coauthor: "공동작성",
+                  companion: "함께활동",
+                  mentor: "멘토",
+                };
+                const roleColors: Record<string, string> = {
+                  coauthor: "text-ocean-blue",
+                  companion: "text-text-secondary",
+                  mentor: "text-reef-cyan",
+                };
+
+                const grouped = participants.reduce((acc, p) => {
+                  const role = p.role || "companion";
+                  if (!acc[role]) acc[role] = [];
+                  acc[role].push(p);
+                  return acc;
+                }, {} as Record<string, typeof participants>);
+
+                return roleOrder
+                  .filter((role) => grouped[role]?.length > 0)
+                  .map((role) => (
+                    <div key={role}>
+                      <p className="text-xs font-medium text-text-tertiary mb-2">{roleLabels[role]}</p>
+                      <div className="flex flex-wrap gap-2">
+                        {grouped[role].map((participant) => (
+                          participant.slug ? (
+                            <Link
+                              key={participant.userId}
+                              to={`/learners/${participant.slug}`}
+                              className="group inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface border border-border hover:border-reef-cyan/40 hover:bg-mist-blue/30 transition-all no-underline"
+                            >
+                              {participant.profilePhotoUrl ? (
+                                <img
+                                  src={participant.profilePhotoUrl}
+                                  alt=""
+                                  className="w-5 h-5 rounded-full object-cover"
+                                />
+                              ) : (
+                                <span className="w-5 h-5 rounded-full bg-surface-secondary flex items-center justify-center text-xs font-medium text-text-secondary">
+                                  {participant.displayName?.charAt(0) ?? "?"}
+                                </span>
+                              )}
+                              <span className="text-sm text-text-primary group-hover:text-ocean-blue transition-colors">
+                                {participant.displayName ?? "알 수 없음"}
+                              </span>
+                            </Link>
+                          ) : (
+                            <span
+                              key={participant.userId}
+                              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface border border-border"
+                            >
+                              {participant.profilePhotoUrl ? (
+                                <img
+                                  src={participant.profilePhotoUrl}
+                                  alt=""
+                                  className="w-5 h-5 rounded-full object-cover"
+                                />
+                              ) : (
+                                <span className="w-5 h-5 rounded-full bg-surface-secondary flex items-center justify-center text-xs font-medium text-text-secondary">
+                                  {participant.displayName?.charAt(0) ?? "?"}
+                                </span>
+                              )}
+                              <span className="text-sm text-text-primary">
+                                {participant.displayName ?? "알 수 없음"}
+                              </span>
+                            </span>
+                          )
+                        ))}
+                      </div>
+                    </div>
+                  ));
+              })()}
+            </div>
+          </div>
+        )}
+
+        {mentions.length > 0 && (
+          <div>
+            <h3 className="text-sm font-medium text-text-secondary mb-4 uppercase tracking-wider">언급된 사람</h3>
+            <div className="flex flex-wrap gap-2">
+              {mentions.map((mention) => (
+                mention.slug ? (
+                  <Link
+                    key={mention.mentionId}
+                    to={`/learners/${mention.slug}`}
+                    className="group inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface border border-border hover:border-reef-cyan/40 hover:bg-mist-blue/30 transition-all no-underline"
+                  >
+                    {mention.profilePhotoUrl ? (
+                      <img
+                        src={mention.profilePhotoUrl}
+                        alt=""
+                        className="w-5 h-5 rounded-full object-cover"
+                      />
+                    ) : (
+                      <span className="w-5 h-5 rounded-full bg-surface-secondary flex items-center justify-center text-xs font-medium text-text-secondary">
+                        {mention.displayName?.charAt(0) ?? "?"}
+                      </span>
+                    )}
+                    <span className="text-sm text-text-primary group-hover:text-ocean-blue transition-colors">
+                      {mention.displayName ?? "알 수 없음"}
+                    </span>
+                  </Link>
+                ) : (
+                  <span
+                    key={mention.mentionId}
+                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface border border-border"
+                  >
+                    {mention.profilePhotoUrl ? (
+                      <img
+                        src={mention.profilePhotoUrl}
+                        alt=""
+                        className="w-5 h-5 rounded-full object-cover"
+                      />
+                    ) : (
+                      <span className="w-5 h-5 rounded-full bg-surface-secondary flex items-center justify-center text-xs font-medium text-text-secondary">
+                        {mention.displayName?.charAt(0) ?? "?"}
+                      </span>
+                    )}
+                    <span className="text-sm text-text-primary">
+                      {mention.displayName ?? "알 수 없음"}
+                    </span>
+                  </span>
+                )
               ))}
             </div>
           </div>

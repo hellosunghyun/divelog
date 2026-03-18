@@ -1,7 +1,8 @@
-import { eq, sql } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
-import { useCallback, useEffect, useState, Suspense, lazy } from "react";
+import { useState, Suspense, lazy } from "react";
+import PersonSearch from "~/components/PersonSearch";
 import { Link } from "~/components/content/SmartLink";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import type { DateRange } from "react-day-picker";
@@ -10,8 +11,6 @@ import type { Route } from "./+types/article";
 const ArticleEditor = lazy(() =>
   import("~/components/editor/editors/ArticleEditor").then(m => ({ default: m.ArticleEditor }))
 );
-import { DraftRecoveryPrompt } from "~/components/content/DraftRecoveryPrompt";
-import { AutosaveIndicator } from "~/components/feedback/AutosaveIndicator";
 import { Button } from "~/components/ui/button";
 import { Calendar } from "~/components/ui/calendar";
 import { Input } from "~/components/ui/input";
@@ -28,13 +27,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import { TagSelector } from "~/components/TagSelector";
 import { db } from "~/db/client.server";
-import { deleteDraft } from "~/db/queries/records/drafts.server";
-import { syncMentionsForRecord } from "~/db/queries/dialogue/mentions.server";
+import { syncAllMentionsForRecord } from "~/db/queries/dialogue/mentions.server";
+import { createNotification } from "~/db/queries/social/notifications.server";
 import { markAsRead } from "~/db/queries/records/recordReads.server";
 import { syncRecordLinksForRecord } from "~/db/queries/records/recordLinks.server";
-import { learnerProfiles, notifications, records, stages } from "~/db/schema.server";
-import { useAutosave } from "~/hooks/useAutosave";
+import { syncParticipantsForRecord } from "~/db/queries/records/participants.server";
+import { getAllTags } from "~/db/queries/records/tags.server";
+import { learnerProfiles, records, recordTags, stages } from "~/db/schema.server";
 import { useUnsavedWarning } from "~/hooks/useUnsavedWarning";
 import { requireVerified } from "~/lib/auth/auth.middleware";
 import { createArticleSchema } from "~/lib/auth/validation";
@@ -43,7 +44,6 @@ import {
   extractRecordRefs,
   extractUserMentions,
 } from "~/lib/content/extract-references.server";
-import { loadDraftFromLocal, type DraftData } from "~/lib/infra/draft-storage";
 import { cn } from "~/lib/utils/cn";
 import { nanoid } from "~/lib/utils/utils.server";
 
@@ -90,10 +90,13 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     database.select().from(learnerProfiles).where(eq(learnerProfiles.userId, auth.user.id)).limit(1),
   ]);
   const learner = learnerResult[0] ?? null;
+  const allTags = await getAllTags(context.cloudflare.env.DB);
 
   return {
     currentStage: currentStageResult[0] ?? null,
     stages: allStages,
+    tags: allTags,
+    currentUserId: auth.user?.id ?? null,
     learnerDefaults: {
       defaultVisibility: learner?.defaultVisibility ?? "public",
       defaultResponsePreference: learner?.defaultResponsePreference ?? "open",
@@ -170,44 +173,61 @@ export async function action({ request, context }: Route.ActionArgs) {
     updatedAt: now,
   });
 
+  const participantsJson = formData.get("participantsJson")?.toString() ?? "[]";
+  const mentionUserIdsJson = formData.get("mentionUserIds")?.toString() ?? "[]";
+  const participants = JSON.parse(participantsJson) as { userId: string; role: string }[];
+  const mentionUserIds = JSON.parse(mentionUserIdsJson) as string[];
   const mentionedUsers = extractUserMentions(content);
   const recordRefs = extractRecordRefs(content);
+  const allMentionUserIds = Array.from(
+    new Set([...mentionUserIds, ...mentionedUsers.map((mention) => mention.userId)])
+  );
+  const actorName = auth.user.nickname ?? auth.user.name ?? "누군가";
 
-  if (mentionedUsers.length > 0) {
-    await syncMentionsForRecord(
-      context.cloudflare.env.DB,
-      id,
-      auth.user.id,
-      mentionedUsers.map((m) => m.slug),
-    );
+  await syncParticipantsForRecord(context.cloudflare.env.DB, id, participants, auth.user.id);
+  await syncAllMentionsForRecord(context.cloudflare.env.DB, id, mentionUserIds, content, auth.user.id);
 
-    const mentionSlugs = [...new Set(mentionedUsers.map((m) => m.slug).filter(Boolean))];
-    if (mentionSlugs.length > 0) {
-      const mentionedLearners = await database
-        .select({ userId: learnerProfiles.userId })
-        .from(learnerProfiles)
-        .where(sql`${learnerProfiles.slug} IN (${sql.join(mentionSlugs.map((s) => sql`${s}`), sql`, `)})`);
+  const notified = new Set<string>();
 
-      const actorName = auth.user.nickname ?? auth.user.name ?? "누군가";
-      for (const row of mentionedLearners) {
-        if (row.userId !== auth.user.id) {
-          await database.insert(notifications).values({
-            id: nanoid(),
-            recipientId: row.userId,
-            type: "mention",
-            title: `${actorName}님이 기록에서 당신을 언급했습니다`,
-            content: parsed.data.title,
-            recordId: id,
-            isRead: false,
-            createdAt: now,
-          });
-        }
-      }
+  for (const participant of participants) {
+    if (participant.userId !== auth.user.id) {
+      await createNotification(context.cloudflare.env.DB, {
+        recipientId: participant.userId,
+        type: "participant_added",
+        title: `${actorName}님이 기록에 함께하는 사람으로 남겼습니다`,
+        content: parsed.data.title,
+        recordId: id,
+      });
+      notified.add(participant.userId);
+    }
+  }
+
+  for (const userId of allMentionUserIds) {
+    if (userId !== auth.user.id && !notified.has(userId)) {
+      await createNotification(context.cloudflare.env.DB, {
+        recipientId: userId,
+        type: "mention",
+        title: `${actorName}님이 기록에서 당신을 언급했습니다`,
+        content: parsed.data.title,
+        recordId: id,
+      });
     }
   }
 
   if (recordRefs.length > 0) {
     await syncRecordLinksForRecord(context.cloudflare.env.DB, id, recordRefs);
+  }
+
+  // Handle tags
+  const tagIds = formData.getAll("tagIds") as string[];
+  if (tagIds.length > 0) {
+    for (const tagId of tagIds) {
+      await database.insert(recordTags).values({
+        recordId: id,
+        tagId,
+        createdAt: now,
+      });
+    }
   }
 
   if (parsed.data.visibility !== "draft") {
@@ -218,75 +238,27 @@ export async function action({ request, context }: Route.ActionArgs) {
     }
   }
 
-  try {
-    await deleteDraft(context.cloudflare.env.DB, auth.user.id, "article");
-  } catch {
-    // silent fail — 초안 정리 실패가 발행을 막지 않음
-  }
-
   throw redirect(`/logs/${slug}/details`);
 }
 
 export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
-  const { currentStage, stages: availableStages, learnerDefaults } = loaderData;
+  const { currentStage, stages: availableStages, tags, learnerDefaults, currentUserId } = loaderData;
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const [stageValue, setStageValue] = useState(currentStage?.id ?? NO_STAGE_VALUE);
   const [title, setTitle] = useState("");
   const [articleContent, setArticleContent] = useState("");
-  const [articleJson, setArticleJson] = useState("");
   const [rhythm, setRhythm] = useState("free");
-  const [visibility, setVisibility] = useState(learnerDefaults.defaultVisibility);
-  const [recoveredDraft, setRecoveredDraft] = useState<DraftData | null>(null);
-  const [editorKey, setEditorKey] = useState(0);
   const [dateMode, setDateMode] = useState<DateMode>("none");
   const [singleDate, setSingleDate] = useState<Date | undefined>(undefined);
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+  const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
   const isSubmitting = navigation.state === "submitting";
   const errors = actionData?.errors;
   const titleError = errors && "title" in errors ? errors.title?.[0] : undefined;
   const contentError = errors && "content" in errors ? errors.content?.[0] : undefined;
 
   useUnsavedWarning(title.length > 0 || articleContent.length > 0);
-
-  const getFormData = useCallback(() => ({
-    title,
-    content: articleJson || articleContent,
-    contentJson: articleJson,
-    stageId: stageValue === NO_STAGE_VALUE ? null : stageValue,
-    rhythm,
-    visibility,
-    responsePreference: learnerDefaults.defaultResponsePreference,
-  }), [title, articleContent, articleJson, stageValue, rhythm, visibility, learnerDefaults.defaultResponsePreference]);
-
-  const { status: autosaveStatus, lastSavedAt } = useAutosave({
-    format: "article",
-    getFormData,
-    enabled: !isSubmitting,
-  });
-
-  useEffect(() => {
-    const draft = loadDraftFromLocal("article");
-    if (draft) {
-      setRecoveredDraft(draft);
-    }
-  }, []);
-
-  function handleRecover() {
-    if (!recoveredDraft) return;
-    if (recoveredDraft.title) setTitle(recoveredDraft.title);
-    setArticleContent(recoveredDraft.content);
-    if (recoveredDraft.contentJson) setArticleJson(recoveredDraft.contentJson);
-    if (recoveredDraft.visibility) setVisibility(recoveredDraft.visibility);
-    if (recoveredDraft.stageId) setStageValue(recoveredDraft.stageId);
-    if (recoveredDraft.rhythm) setRhythm(recoveredDraft.rhythm);
-    setEditorKey((k) => k + 1);
-    setRecoveredDraft(null);
-  }
-
-  function handleDiscard() {
-    setRecoveredDraft(null);
-  }
 
   function handleDateModeChange(newMode: DateMode) {
     setDateMode(newMode);
@@ -318,10 +290,7 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
               ← 돌아가기
             </Link>
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <h1 className="text-lg font-semibold text-text-primary m-0">글쓰기</h1>
-                <AutosaveIndicator status={autosaveStatus} lastSavedAt={lastSavedAt} />
-              </div>
+              <h1 className="text-lg font-semibold text-text-primary m-0">글쓰기</h1>
               <div className="flex items-center gap-3">
                 <Link
                   to="/write"
@@ -340,15 +309,6 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
             </div>
           </div>
 
-          {recoveredDraft && (
-            <DraftRecoveryPrompt
-              draft={recoveredDraft}
-              format="article"
-              onRecover={handleRecover}
-              onDiscard={handleDiscard}
-            />
-          )}
-
           <div className="flex flex-wrap items-center gap-4">
             <div>
               <Label
@@ -357,8 +317,7 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
               >
                 공개 범위
               </Label>
-              <input type="hidden" name="visibility" value={visibility} />
-              <Select value={visibility} onValueChange={setVisibility}>
+              <Select name="visibility" defaultValue={learnerDefaults.defaultVisibility}>
                 <SelectTrigger id="visibility" className="w-auto min-w-36 bg-surface">
                   <SelectValue />
                 </SelectTrigger>
@@ -551,23 +510,53 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
             {titleError ? <p className="mt-1 text-meta text-error">{titleError}</p> : null}
           </div>
 
-          <div>
-            <p className="mb-2 block text-meta font-medium text-text-secondary">
-              내용 <span className="text-error">*</span>
-            </p>
-            <Suspense fallback={<div className="animate-pulse bg-surface-secondary rounded-lg h-64" />}>
-              <ArticleEditor
-                key={editorKey}
-                name="content"
-                content={articleContent}
-                onChange={(json, text) => { setArticleJson(JSON.stringify(json)); setArticleContent(text); }}
-                placeholder="여기에 글을 쓰세요. `/`를 입력하면 블록을 추가할 수 있습니다."
+           <div>
+             <p className="mb-2 block text-meta font-medium text-text-secondary">
+               내용 <span className="text-error">*</span>
+             </p>
+             <Suspense fallback={<div className="animate-pulse bg-surface-secondary rounded-lg h-64" />}>
+               <ArticleEditor
+                 name="content"
+                 content={articleContent}
+                 onChange={(_json, text) => setArticleContent(text)}
+                 placeholder="여기에 글을 쓰세요. `/`를 입력하면 블록을 추가할 수 있습니다."
+               />
+             </Suspense>
+             {contentError ? <p className="mt-1 text-meta text-error">{contentError}</p> : null}
+           </div>
+
+           <details className="mt-6">
+             <summary className="cursor-pointer text-sm font-medium text-text-secondary">부가 정보</summary>
+            <div className="mt-4">
+              <TagSelector
+                tags={tags}
+                selectedTagIds={Array.from(selectedTags)}
+                onChange={(newIds) => setSelectedTags(new Set(newIds))}
               />
-            </Suspense>
-            {contentError ? <p className="mt-1 text-meta text-error">{contentError}</p> : null}
-          </div>
-        </Form>
-      </div>
-    </div>
-  );
-}
+
+              <div className="mt-4 space-y-4">
+                <PersonSearch
+                  label="함께하는 사람"
+                  name="participantsJson"
+                  selectedPeople={[]}
+                  excludeUserId={currentUserId ?? undefined}
+                  roleOptions={[
+                    { value: "coauthor", label: "공동작성" },
+                    { value: "companion", label: "함께활동" },
+                    { value: "mentor", label: "멘토" },
+                  ]}
+                />
+                <PersonSearch
+                  label="언급된 사람"
+                  name="mentionUserIds"
+                  selectedPeople={[]}
+                  excludeUserId={currentUserId ?? undefined}
+                />
+              </div>
+            </div>
+          </details>
+         </Form>
+       </div>
+     </div>
+   );
+ }

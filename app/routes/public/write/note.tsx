@@ -1,12 +1,11 @@
-import { eq, sql } from "drizzle-orm";
-import { useCallback, useEffect, useState } from "react";
+import { eq } from "drizzle-orm";
+import { useState } from "react";
 import { Link } from "~/components/content/SmartLink";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import type { Route } from "./+types/note";
 
-import { DraftRecoveryPrompt } from "~/components/content/DraftRecoveryPrompt";
 import { NoteEditor } from "~/components/editor/editors/NoteEditor";
-import { AutosaveIndicator } from "~/components/feedback/AutosaveIndicator";
+import PersonSearch from "~/components/PersonSearch";
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
 import {
@@ -16,17 +15,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import { TagSelector } from "~/components/TagSelector";
 import { db } from "~/db/client.server";
-import { deleteDraft } from "~/db/queries/records/drafts.server";
-import { syncMentionsForRecord } from "~/db/queries/dialogue/mentions.server";
-import { learnerProfiles, notifications, records, stages } from "~/db/schema.server";
-import { useAutosave } from "~/hooks/useAutosave";
+import { syncAllMentionsForRecord } from "~/db/queries/dialogue/mentions.server";
+import { syncParticipantsForRecord } from "~/db/queries/records/participants.server";
+import { getAllTags } from "~/db/queries/records/tags.server";
+import { learnerProfiles, records, recordTags, stages } from "~/db/schema.server";
 import { useUnsavedWarning } from "~/hooks/useUnsavedWarning";
 import { requireVerified } from "~/lib/auth/auth.middleware";
 import { createNoteSchema } from "~/lib/auth/validation";
 import { getPlainText } from "~/lib/content/content.server";
-import { extractUserMentions } from "~/lib/content/extract-references.server";
-import { loadDraftFromLocal, type DraftData } from "~/lib/infra/draft-storage";
 import { generateNoteTitle } from "~/lib/utils/title.server";
 import { nanoid } from "~/lib/utils/utils.server";
 
@@ -50,10 +48,13 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   ]);
 
   const learner = learnerResult[0] ?? null;
+  const allTags = await getAllTags(context.cloudflare.env.DB);
 
   return {
     currentStage: currentStageResult[0] ?? null,
     stages: allStages,
+    tags: allTags,
+    currentUserId: auth.user?.id ?? null,
     learnerDefaults: {
       defaultVisibility: learner?.defaultVisibility ?? "public",
       defaultResponsePreference: learner?.defaultResponsePreference ?? "open",
@@ -113,108 +114,44 @@ export async function action({ request, context }: Route.ActionArgs) {
     updatedAt: now,
   });
 
-  const mentionSlugs = [...new Set(Array.from(content.matchAll(/(^|\s)@([a-z0-9][a-z0-9_-]*)/gi), (match) => match[2].toLowerCase()))];
-  const mentionedUsers =
-    mentionSlugs.length > 0
-      ? extractUserMentions(
-          JSON.stringify({
-            type: "doc",
-            content: mentionSlugs.map((mentionSlug) => ({
-              type: "mention",
-              attrs: { id: mentionSlug, label: mentionSlug },
-            })),
-          }),
-        )
-      : [];
+  const participantsJson = formData.get("participantsJson")?.toString() ?? "[]";
+  const mentionUserIdsJson = formData.get("mentionUserIds")?.toString() ?? "[]";
 
-  if (mentionedUsers.length > 0) {
-    await syncMentionsForRecord(
-      context.cloudflare.env.DB,
-      id,
-      auth.user.id,
-      mentionedUsers.map((mention) => mention.slug),
-    );
+  const participants = JSON.parse(participantsJson) as { userId: string; role: string }[];
+  const mentionUserIds = JSON.parse(mentionUserIdsJson) as string[];
 
-    const uniqueMentionSlugs = [...new Set(mentionedUsers.map((mention) => mention.slug).filter(Boolean))];
-    if (uniqueMentionSlugs.length > 0) {
-      const mentionedLearners = await database
-        .select({ userId: learnerProfiles.userId })
-        .from(learnerProfiles)
-        .where(sql`${learnerProfiles.slug} IN (${sql.join(uniqueMentionSlugs.map((mentionSlug) => sql`${mentionSlug}`), sql`, `)})`);
-
-      const actorName = auth.user.nickname ?? auth.user.name ?? "누군가";
-      for (const row of mentionedLearners) {
-        if (row.userId !== auth.user.id) {
-          await database.insert(notifications).values({
-            id: nanoid(),
-            recipientId: row.userId,
-            type: "mention",
-            title: `${actorName}님이 기록에서 당신을 언급했습니다`,
-            content: title,
-            recordId: id,
-            isRead: false,
-            createdAt: now,
-          });
-        }
-      }
-    }
+  if (participants.length > 0) {
+    await syncParticipantsForRecord(context.cloudflare.env.DB, id, participants, auth.user.id);
   }
 
-  try {
-    await deleteDraft(context.cloudflare.env.DB, auth.user.id, "note");
-  } catch {
-    // silent fail — 초안 정리 실패가 발행을 막지 않음
+  await syncAllMentionsForRecord(context.cloudflare.env.DB, id, mentionUserIds, content, auth.user.id);
+
+  // Handle tags
+  const tagIds = formData.getAll("tagIds") as string[];
+  if (tagIds.length > 0) {
+    for (const tagId of tagIds) {
+      await database.insert(recordTags).values({
+        recordId: id,
+        tagId,
+        createdAt: now,
+      });
+    }
   }
 
   throw redirect(`/logs/${slug}`);
 }
 
 export default function WriteNotePage({ loaderData }: Route.ComponentProps) {
-  const { currentStage, stages: availableStages, learnerDefaults } = loaderData;
+  const { currentStage, stages: availableStages, tags, learnerDefaults, currentUserId } = loaderData;
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const [noteContent, setNoteContent] = useState("");
   const [stageValue, setStageValue] = useState(currentStage?.id ?? NO_STAGE_VALUE);
-  const [visibility, setVisibility] = useState(learnerDefaults.defaultVisibility);
-  const [recoveredDraft, setRecoveredDraft] = useState<DraftData | null>(null);
-  const [editorKey, setEditorKey] = useState(0);
+  const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
   const isSubmitting = navigation.state === "submitting";
   const contentError = actionData?.errors?.content?.[0];
 
   useUnsavedWarning(noteContent.length > 0);
-
-  const getFormData = useCallback(() => ({
-    content: noteContent,
-    stageId: stageValue === NO_STAGE_VALUE ? null : stageValue,
-    visibility,
-    responsePreference: learnerDefaults.defaultResponsePreference,
-  }), [noteContent, stageValue, visibility, learnerDefaults.defaultResponsePreference]);
-
-  const { status: autosaveStatus, lastSavedAt } = useAutosave({
-    format: "note",
-    getFormData,
-    enabled: !isSubmitting,
-  });
-
-  useEffect(() => {
-    const draft = loadDraftFromLocal("note");
-    if (draft) {
-      setRecoveredDraft(draft);
-    }
-  }, []);
-
-  function handleRecover() {
-    if (!recoveredDraft) return;
-    setNoteContent(recoveredDraft.content);
-    if (recoveredDraft.visibility) setVisibility(recoveredDraft.visibility);
-    if (recoveredDraft.stageId) setStageValue(recoveredDraft.stageId);
-    setEditorKey((k) => k + 1);
-    setRecoveredDraft(null);
-  }
-
-  function handleDiscard() {
-    setRecoveredDraft(null);
-  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -225,10 +162,7 @@ export default function WriteNotePage({ loaderData }: Route.ComponentProps) {
               ← 돌아가기
             </Link>
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <h1 className="text-lg font-semibold text-text-primary m-0">짧은 메모</h1>
-                <AutosaveIndicator status={autosaveStatus} lastSavedAt={lastSavedAt} />
-              </div>
+              <h1 className="text-lg font-semibold text-text-primary m-0">짧은 메모</h1>
               <div className="flex items-center gap-3">
                 <Link
                   to="/write"
@@ -247,15 +181,6 @@ export default function WriteNotePage({ loaderData }: Route.ComponentProps) {
             </div>
           </div>
 
-          {recoveredDraft && (
-            <DraftRecoveryPrompt
-              draft={recoveredDraft}
-              format="note"
-              onRecover={handleRecover}
-              onDiscard={handleDiscard}
-            />
-          )}
-
           <div className="flex flex-wrap items-center gap-4">
             <div>
               <Label
@@ -264,8 +189,7 @@ export default function WriteNotePage({ loaderData }: Route.ComponentProps) {
               >
                 공개 범위
               </Label>
-              <input type="hidden" name="visibility" value={visibility} />
-              <Select value={visibility} onValueChange={setVisibility}>
+              <Select name="visibility" defaultValue={learnerDefaults.defaultVisibility}>
                 <SelectTrigger id="visibility" className="w-auto min-w-36 bg-surface">
                   <SelectValue />
                 </SelectTrigger>
@@ -311,7 +235,6 @@ export default function WriteNotePage({ loaderData }: Route.ComponentProps) {
 
           <div>
             <NoteEditor
-              key={editorKey}
               name="content"
               defaultValue={noteContent}
               onChange={setNoteContent}
@@ -320,6 +243,37 @@ export default function WriteNotePage({ loaderData }: Route.ComponentProps) {
               htmlProps={{ required: true }}
             />
           </div>
+
+          <details className="mt-6">
+            <summary className="cursor-pointer text-sm font-medium text-text-secondary">부가 정보</summary>
+            <div className="mt-4">
+              <TagSelector
+                tags={tags}
+                selectedTagIds={Array.from(selectedTags)}
+                onChange={(newIds) => setSelectedTags(new Set(newIds))}
+              />
+
+              <div className="mt-4 space-y-4">
+                <PersonSearch
+                  label="함께하는 사람"
+                  name="participantsJson"
+                  selectedPeople={[]}
+                  excludeUserId={currentUserId ?? undefined}
+                  roleOptions={[
+                    { value: "coauthor", label: "공동작성" },
+                    { value: "companion", label: "함께활동" },
+                    { value: "mentor", label: "멘토" },
+                  ]}
+                />
+                <PersonSearch
+                  label="언급된 사람"
+                  name="mentionUserIds"
+                  selectedPeople={[]}
+                  excludeUserId={currentUserId ?? undefined}
+                />
+              </div>
+            </div>
+          </details>
         </Form>
       </div>
     </div>

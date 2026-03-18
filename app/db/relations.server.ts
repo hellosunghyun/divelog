@@ -17,6 +17,7 @@ import {
   questionCarryOvers,
   questionReminders,
   questions,
+  recordParticipants,
   recordReads,
   recordRevisions,
   recordTags,
@@ -47,6 +48,8 @@ export const learnerProfilesRelations = relations(learnerProfiles, ({ many, one 
   questionReminders: many(questionReminders),
   savedRecords: many(savedRecords),
   recordReads: many(recordReads),
+  recordParticipantsAsParticipant: many(recordParticipants, { relationName: "participant" }),
+  recordParticipantsAsAddedBy: many(recordParticipants, { relationName: "added_by" }),
   personalStageReflections: many(personalStageReflections),
 }));
 
@@ -129,6 +132,7 @@ export const recordsRelations = relations(records, ({ many, one }) => ({
   savedRecords: many(savedRecords),
   revisions: many(recordRevisions),
   reads: many(recordReads),
+  participants: many(recordParticipants),
 }));
 
 export const recordRevisionsRelations = relations(recordRevisions, ({ one }) => ({
@@ -349,6 +353,23 @@ export const recordReadsRelations = relations(recordReads, ({ one }) => ({
   record: one(records, {
     fields: [recordReads.recordId],
     references: [records.id],
+  }),
+}));
+
+export const recordParticipantsRelations = relations(recordParticipants, ({ one }) => ({
+  record: one(records, {
+    fields: [recordParticipants.recordId],
+    references: [records.id],
+  }),
+  participant: one(learnerProfiles, {
+    fields: [recordParticipants.participantUserId],
+    references: [learnerProfiles.userId],
+    relationName: "participant",
+  }),
+  addedBy: one(learnerProfiles, {
+    fields: [recordParticipants.addedById],
+    references: [learnerProfiles.userId],
+    relationName: "added_by",
   }),
 }));
 
