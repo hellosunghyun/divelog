@@ -12,7 +12,6 @@ import { ContentRenderer } from "~/components/content/ContentRenderer";
 import { EditedIndicator } from "~/components/ui/EditedIndicator";
 import { RevisionTimeline } from "~/components/revision/RevisionTimeline";
 import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import {
   Select,
@@ -193,7 +192,10 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
   const [selectedText, setSelectedText] = useState("");
   const [showSentenceButton, setShowSentenceButton] = useState(false);
   const [buttonPosition, setButtonPosition] = useState({ x: 0, y: 0 });
+  const [showSentencePopup, setShowSentencePopup] = useState(false);
+  const [sentenceReason, setSentenceReason] = useState("");
   const articleContentRef = useRef<HTMLDivElement | null>(null);
+  const sentencePopupRef = useRef<HTMLDivElement | null>(null);
   const { unmarkRead } = useReadTracking({
     recordId: record.id,
     format: record.format,
@@ -220,12 +222,19 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
     setButtonPosition({ x: 0, y: 0 });
   }, []);
 
-  const dismissSentenceSelection = useCallback(() => {
-    hideSentenceButton();
+  const closeSentencePopup = useCallback(() => {
+    setShowSentencePopup(false);
+    setSentenceReason("");
+    setSelectedText("");
+  }, []);
+
+  const openSentencePopup = useCallback(() => {
+    setShowSentenceButton(false);
+    setShowSentencePopup(true);
     if (typeof window !== "undefined") {
       window.getSelection()?.removeAllRanges();
     }
-  }, [hideSentenceButton]);
+  }, []);
 
   const handleArticleMouseUp = useCallback(() => {
     if (typeof window === "undefined") {
@@ -272,22 +281,21 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
     setShowSentenceButton(true);
   }, [hideSentenceButton]);
 
-  const handleFloatingSentenceSave = useCallback(() => {
-    if (!selectedText) {
-      return;
+  const handleSentencePopupSave = useCallback(() => {
+    if (!selectedText) return;
+
+    const formData: Record<string, string> = {
+      intent: "save_sentence",
+      recordId: record.id,
+      content: selectedText,
+    };
+    if (sentenceReason.trim()) {
+      formData.reason = sentenceReason.trim();
     }
 
-    submit(
-      {
-        intent: "save_sentence",
-        recordId: record.id,
-        content: selectedText,
-      },
-      { method: "post" },
-    );
-
-    dismissSentenceSelection();
-  }, [dismissSentenceSelection, record.id, selectedText, submit]);
+    submit(formData, { method: "post" });
+    closeSentencePopup();
+  }, [closeSentencePopup, record.id, selectedText, sentenceReason, submit]);
 
   useEffect(() => {
     if (!isArticleRecord) {
@@ -308,7 +316,7 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
   }, [handleArticleMouseUp, isArticleRecord]);
 
   useEffect(() => {
-    if (!showSentenceButton || typeof document === "undefined") {
+    if (!showSentenceButton || showSentencePopup || typeof document === "undefined") {
       return;
     }
 
@@ -333,7 +341,29 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
       window.removeEventListener("scroll", handleViewportChange, true);
       window.removeEventListener("resize", handleViewportChange);
     };
-  }, [hideSentenceButton, showSentenceButton]);
+  }, [hideSentenceButton, showSentenceButton, showSentencePopup]);
+
+  useEffect(() => {
+    if (!showSentencePopup || typeof document === "undefined") return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeSentencePopup();
+    };
+
+    const handleClickOutside = (e: MouseEvent) => {
+      if (sentencePopupRef.current && !sentencePopupRef.current.contains(e.target as Node)) {
+        closeSentencePopup();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showSentencePopup, closeSentencePopup]);
 
   return (
     <div className={`mx-auto px-6 py-16 md:py-24 relative ${hasSidebarContent ? 'max-w-content lg:grid lg:grid-cols-[minmax(0,720px)_280px] lg:gap-12 lg:justify-center' : 'max-w-reading'}`}>
@@ -477,26 +507,26 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
           <ContentRenderer contentHtml={contentHtml} format={recordFormat} />
         )}
 
-        {showSentenceButton && selectedText ? (
+        {showSentenceButton && selectedText && !showSentencePopup ? (
           <div
-            className="fixed z-50"
+            className="fixed z-50 animate-in fade-in duration-150"
             style={{
               left: buttonPosition.x,
               top: buttonPosition.y,
               transform: "translateX(-50%)",
             }}
           >
-            <Button
+            <button
               type="button"
-              variant="ghost"
-              size="sm"
-              disabled={isSubmittingSentence}
               onMouseDown={(event) => event.preventDefault()}
-              onClick={handleFloatingSentenceSave}
-              className="rounded-full border border-border bg-surface px-4 py-2 text-sm font-medium text-text-primary shadow-[0_10px_24px_rgba(11,36,71,0.12)] transition-all duration-normal hover:-translate-y-0.5 hover:border-reef-cyan/40 hover:text-ocean-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2 disabled:opacity-60"
+              onClick={openSentencePopup}
+              aria-label="문장 저장하기"
+              className="flex items-center justify-center w-9 h-9 rounded-full border border-border bg-surface text-ocean-blue shadow-[0_8px_20px_rgba(11,36,71,0.10)] transition-all duration-normal hover:-translate-y-0.5 hover:border-reef-cyan/40 hover:bg-mist-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
             >
-              {isSubmittingSentence ? "저장 중..." : "문장 저장"}
-            </Button>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" />
+              </svg>
+            </button>
           </div>
         ) : null}
       </section>
@@ -702,42 +732,7 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
               </Button>
             </form>
 
-            <form method="post" className="flex flex-col gap-5 bg-surface rounded-lg border border-border p-6">
-              <input type="hidden" name="intent" value="save_sentence" />
-              <input type="hidden" name="recordId" value={record.id} />
 
-              <h3 className="text-lg font-semibold text-text-primary tracking-tight">문장 저장하기</h3>
-
-              <div>
-                <Label htmlFor="sentence-content" className="text-sm font-medium text-text-secondary mb-2 block">
-                  남겨두고 싶은 문장
-                </Label>
-                <Input
-                  id="sentence-content"
-                  name="content"
-                  required
-                  placeholder="기록에서 기억하고 싶은 문장을 남겨보세요."
-                  className="w-full bg-surface"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="sentence-reason" className="text-sm font-medium text-text-secondary mb-2 block">
-                  이유 (선택)
-                </Label>
-                <Textarea
-                  id="sentence-reason"
-                  name="reason"
-                  rows={2}
-                  placeholder="왜 이 문장을 남기고 싶은지 적어보세요."
-                  className="bg-surface"
-                />
-              </div>
-
-              <Button type="submit" disabled={isSubmittingSentence} className="self-start rounded-full bg-deep-ocean px-7 py-3 text-[15px] font-medium text-white hover:bg-ocean-blue">
-                {isSubmittingSentence ? "저장 중..." : "문장 저장"}
-              </Button>
-            </form>
           </div>
         </section>
       )}
@@ -843,6 +838,59 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
         )}
       </aside>
       )}
+
+      {showSentencePopup && selectedText ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{ backgroundColor: "rgba(0,0,0,0.12)" }}>
+          <div
+            ref={sentencePopupRef}
+            className="w-full max-w-md bg-surface rounded-2xl border border-border shadow-lg p-6 animate-in fade-in zoom-in-95 duration-200"
+            role="dialog"
+            aria-label="문장 저장"
+            aria-modal="true"
+          >
+            <h3 className="text-lg font-semibold text-text-primary tracking-tight mb-4">문장 저장하기</h3>
+
+            <blockquote className="border-l-2 border-reef-cyan pl-4 py-2 mb-5 text-base text-text-primary leading-relaxed line-clamp-6">
+              {selectedText}
+            </blockquote>
+
+            <div className="mb-5">
+              <Label htmlFor="popup-sentence-reason" className="text-sm font-medium text-text-secondary mb-2 block">
+                이 문장을 남기는 이유 (선택)
+              </Label>
+              <Textarea
+                id="popup-sentence-reason"
+                value={sentenceReason}
+                onChange={(e) => setSentenceReason(e.target.value)}
+                rows={2}
+                autoFocus
+                placeholder="왜 이 문장이 남았는지 적어보세요."
+                className="bg-surface-secondary"
+              />
+            </div>
+
+            <div className="flex justify-end gap-3">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={closeSentencePopup}
+                className="rounded-full px-5 py-2.5 text-sm border border-border bg-transparent text-text-secondary cursor-pointer transition-all duration-normal hover:border-text-secondary/30 hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
+              >
+                취소
+              </Button>
+              <Button
+                type="button"
+                disabled={isSubmittingSentence}
+                onClick={handleSentencePopupSave}
+                className="rounded-full bg-deep-ocean px-5 py-2.5 text-sm font-medium text-white hover:bg-ocean-blue transition-all shadow-sm hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2 disabled:opacity-60"
+              >
+                {isSubmittingSentence ? "저장 중..." : "저장하기"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
