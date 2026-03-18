@@ -1410,15 +1410,6 @@ export function ErrorBoundary() {
     ? "삭제되었거나 존재하지 않는 기록입니다."
     : "잠시 후 다시 시도해주세요.";
 
-  let errorDetail = "";
-  if (isRouteErrorResponse(error)) {
-    errorDetail = `${error.status} ${error.statusText ?? ""}: ${typeof error.data === "string" ? error.data : JSON.stringify(error.data)}`;
-  } else if (error instanceof Error) {
-    errorDetail = `${error.name}: ${error.message}`;
-  } else {
-    errorDetail = String(error);
-  }
-
   return (
     <div className="text-center py-16 px-4 max-w-reading mx-auto">
       <p className="text-xl font-semibold text-text-primary mb-3">{title}</p>
@@ -1426,11 +1417,6 @@ export function ErrorBoundary() {
       <Link to="/logs" className="inline-block rounded-full bg-deep-ocean text-white px-7 py-3 text-[15px] font-medium hover:bg-ocean-blue transition-all shadow-sm hover:shadow-md no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2">
         기록 목록으로
       </Link>
-      {!isNotFound && errorDetail && (
-        <pre className="mt-8 text-left text-xs text-text-tertiary bg-surface-secondary rounded-xl p-4 overflow-x-auto max-w-lg mx-auto">
-          {errorDetail}
-        </pre>
-      )}
     </div>
   );
 }

@@ -319,12 +319,12 @@ function LearnerPreviewCard({ data }: { data: LearnerPreviewData }) {
           />
         ) : (
           <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border border-border bg-surface-secondary text-sm font-medium text-text-secondary">
-            {data.displayName.charAt(0)}
+            {data.displayName?.charAt(0) ?? "?"}
           </div>
         )}
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold leading-tight text-text-primary">
-            {data.displayName}
+            {data.displayName ?? "알 수 없음"}
           </p>
           {meta && (
             <p className="truncate text-xs text-text-tertiary">{meta}</p>
