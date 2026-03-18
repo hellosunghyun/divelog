@@ -7,6 +7,12 @@ const navLinks = [
   { to: "/journey", label: "여정" },
   { to: "/logs", label: "기록" },
   { to: "/learners", label: "러너" },
+  { to: "/guide", label: "가이드" },
+];
+
+const legalLinks = [
+  { to: "/terms", label: "이용약관" },
+  { to: "/privacy", label: "개인정보처리방침" },
 ];
 
 
@@ -63,7 +69,26 @@ export default function Footer() {
               </ul>
             </nav>
 
-            {/* TODO: 법적 고지 섹션 — /privacy, /terms 페이지 구현 후 복원 */}
+            <nav aria-label="법적 고지">
+              <h3 className="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-4">
+                안내
+              </h3>
+              <ul className="flex flex-col gap-3">
+                {legalLinks.map((link) => (
+                  <li key={link.to}>
+                    <Link
+                      to={link.to}
+                      className={cn(
+                        "text-[15px] text-text-secondary hover:text-ocean-blue transition-colors no-underline",
+                        focusRing
+                      )}
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
           </div>
         </div>
 

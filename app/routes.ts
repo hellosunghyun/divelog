@@ -26,6 +26,8 @@ export default [
     route("settings", "routes/public/settings.tsx"),
     route("guide", "routes/public/guide.tsx"),
     route("guide/full", "routes/public/guide/full.tsx"),
+    route("terms", "routes/public/terms.tsx"),
+    route("privacy", "routes/public/privacy.tsx"),
     route("style-reference", "routes/public/style-reference.tsx"),
   ]),
   layout("routes/_admin.tsx", [
