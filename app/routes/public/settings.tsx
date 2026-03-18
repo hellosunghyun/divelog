@@ -5,6 +5,7 @@ import { useActionData } from "react-router";
 import { Form } from "react-router";
 import HeroSection from "~/components/sections/HeroSection";
 import { Button } from "~/components/ui/button";
+import { SubmitButton } from "~/components/feedback/SubmitButton";
 import { Checkbox } from "~/components/ui/checkbox";
 import { Label } from "~/components/ui/label";
 import {
@@ -106,10 +107,11 @@ export default function SettingsPage({ loaderData }: Route.ComponentProps) {
         subtitle="DiveLog 활동을 위한 기본 설정을 관리합니다."
       />
 
-      <div className="max-w-[720px] mx-auto py-12 px-6 md:py-20">
-        <form method="post" className="flex flex-col gap-12">
-          
-          <section>
+       <div className="max-w-[720px] mx-auto py-12 px-6 md:py-20">
+         <form method="post" className="flex flex-col gap-12">
+           <input type="hidden" name="intent" value="update_preferences" />
+           
+           <section>
             <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-6 pb-4 border-b border-border">
               계정 정보
             </h2>
@@ -229,15 +231,16 @@ export default function SettingsPage({ loaderData }: Route.ComponentProps) {
             </div>
           </section>
 
-          <div className="pt-8 flex justify-end">
-            <Button
-              type="submit"
-              size="lg"
-              className="bg-text-primary text-white hover:bg-text-primary/90 text-base font-medium px-8 rounded-full"
-            >
-              변경사항 저장
-            </Button>
-          </div>
+           <div className="pt-8 flex justify-end">
+             <SubmitButton
+               size="lg"
+               formDataMatch={{ intent: "update_preferences" }}
+               loadingText="저장 중..."
+               className="bg-text-primary text-white hover:bg-text-primary/90 text-base font-medium px-8 rounded-full"
+             >
+               변경사항 저장
+             </SubmitButton>
+           </div>
         </form>
 
         {/* 읽음 상태 섹션 */}
@@ -249,17 +252,22 @@ export default function SettingsPage({ loaderData }: Route.ComponentProps) {
           {actionData && "readReset" in actionData ? (
             <p className="text-green-600 text-sm mb-4">{actionData.readReset}</p>
           ) : null}
-          <Form
-            method="post"
-            onSubmit={() => {
-              clearLocalReads();
-            }}
-          >
-            <input type="hidden" name="intent" value="reset_all_reads" />
-            <Button type="submit" variant="outline" size="sm">
-              모두 읽지 않음으로 표시
-            </Button>
-          </Form>
+           <Form
+             method="post"
+             onSubmit={() => {
+               clearLocalReads();
+             }}
+           >
+             <input type="hidden" name="intent" value="reset_all_reads" />
+             <SubmitButton
+               variant="outline"
+               size="sm"
+               formDataMatch={{ intent: "reset_all_reads" }}
+               loadingText="초기화 중..."
+             >
+               모두 읽지 않음으로 표시
+             </SubmitButton>
+           </Form>
         </section>
       </div>
     </div>
