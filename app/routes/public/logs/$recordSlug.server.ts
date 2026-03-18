@@ -139,7 +139,9 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
       [] as Awaited<ReturnType<typeof getMentionsByRecord>>
     ),
     recordData.record.format === "article"
-      ? getRecordReferences(context.cloudflare.env.DB, recordData.record.id)
+      ? getRecordReferences(context.cloudflare.env.DB, recordData.record.id).catch(() =>
+          [] as Awaited<ReturnType<typeof getRecordReferences>>
+        )
       : Promise.resolve([]),
   ]);
 
