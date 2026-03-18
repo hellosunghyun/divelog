@@ -16,7 +16,7 @@ Apple Developer Academy @ POSTECH Learner의 아홉 달을 기록하는 **Journe
 | Hosting | Cloudflare Pages |
 | Database | Cloudflare D1 (SQLite) |
 | ORM | Drizzle ORM |
-| Auth | `@adakrpos/auth` (외부 위임) |
+| Auth | [`@adakrpos/auth`](https://github.com/hellosunghyun/ada-kr-pos) (외부 위임) |
 | CSS | Tailwind CSS v4 |
 | Validation | Zod |
 | Storage | Cloudflare R2 |
