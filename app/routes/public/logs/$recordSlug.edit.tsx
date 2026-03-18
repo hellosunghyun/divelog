@@ -1,7 +1,7 @@
 import { format } from "date-fns";
 import { asc, eq } from "drizzle-orm";
 import { Link } from "~/components/content/SmartLink";
-import { data, redirect, useActionData, useNavigation } from "react-router";
+import { data, Form, redirect, useActionData, useNavigation } from "react-router";
 import { useState, Suspense, lazy } from "react";
 
 import type { Route } from "./+types/$recordSlug.edit";
@@ -227,6 +227,8 @@ export async function action({ params, request, context }: Route.ActionArgs) {
     auth.user.id,
   );
 
+  const database = db(context.cloudflare.env.DB);
+
   await database.delete(recordReferences).where(eq(recordReferences.recordId, recordData.record.id));
 
   if (references.length > 0) {
@@ -276,7 +278,6 @@ export async function action({ params, request, context }: Route.ActionArgs) {
     );
   }
 
-  const database = db(context.cloudflare.env.DB);
   const tagIds = formData.getAll("tagIds") as string[];
   
   await database.delete(recordTags).where(eq(recordTags.recordId, recordData.record.id));
@@ -366,7 +367,7 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
 
       {formError ? <p className="mb-6 text-meta text-error">{formError}</p> : null}
 
-      <form method="post" className="flex flex-col gap-6">
+      <Form method="post" className="flex flex-col gap-6">
         <input type="hidden" name="format" value={record.format} />
 
         <fieldset className="border-0 m-0 p-0">
@@ -695,7 +696,7 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
             취소
           </Link>
         </div>
-      </form>
+      </Form>
       </div>
     </div>
   );
