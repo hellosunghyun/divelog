@@ -1,0 +1,39 @@
+Tasks [22/22 compliant] | Unaccounted [CLEAN/22 files] | VERDICT: APPROVE
+[No scope violations found]
+
+Scope Fidelity Check (F4) — learner-profile-information-plan
+
+1) Branch commits reviewed
+- Command: git log --oneline feat/learner-profile-enrichment ^main
+- Commit count: 10
+- Commit subjects are learner-profile enrichment focused (loader/data enrichment, learner profile UI blocks, self-answer summaries, and learner-profile tests)
+
+2) Changed files reviewed
+- Command: git diff main...HEAD --stat
+- Result: 22 files changed (2609 insertions, 25 deletions)
+- All 22 changed files are in-scope for learner profile enrichment:
+  - learner profile UI components/tests (`app/components/learner/*`)
+  - learner profile route server/page/types/tests (`app/routes/public/learners/*`)
+  - learner data/query/auth enrichment + tests (`app/db/queries/learners/*`, `app/db/queries/dialogue/selfAnswers.server.ts`, `app/lib/auth/ada-profile.server.ts`)
+  - learner-profile specific e2e coverage (`tests/e2e/learner-profile.spec.ts`)
+  - Playwright config update to support learner-profile e2e run (`playwright.config.ts`)
+
+3) Excluded feature guardrail checks
+- No `learnerInterests` table/migration:
+  - `grep "learnerInterests|learner_interests"` => no matches
+  - `git diff main...HEAD --name-only -- drizzle/migrations app/db/schema.server.ts` => no changes
+- No changes to `getOrCreateLearnerProfile()`:
+  - `git diff main...HEAD -G"getOrCreateLearnerProfile" -- app/db/queries/learners/learners.server.ts` => no diff hunks
+- No external links in learner profile components:
+  - `grep "https?://" app/components/learner/*.tsx` => no matches
+  - Learner profile links are internal routes (`/journey/...`, `/logs/...`, `/tags/...`)
+- No social metrics features:
+  - No follower/like/ranking implementation introduced in changed code
+- No profile edit UI on learner detail page:
+  - `grep "edit|수정|프로필 편집" app/routes/public/learners/$learnerSlug.tsx` => no matches
+- No stage archive grouping implementation:
+  - `git diff main...HEAD -G"archive|아카이브|stage group|grouping|stageArchive"` => no diff hunks
+- No collaboration-disabled feature enablement:
+  - `git diff main...HEAD -G"COLLAB_DISABLED|collaboration" -- app/routes/public/learners/$learnerSlug.tsx app/routes/public/learners/$learnerSlug.server.ts` => no diff hunks
+
+Final verdict: APPROVE (scope fidelity maintained)

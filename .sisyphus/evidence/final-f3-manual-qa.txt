@@ -1,0 +1,19 @@
+Scenarios [68/68 pass] | Responsive [PASS] | Empty States [PASS] | VERDICT: APPROVE
+
+- Vitest: `pnpm exec vitest run app/routes/public/learners app/db/queries/learners/__tests__/learners.test.ts app/db/queries/dialogue/__tests__/selfAnswers.test.ts app/lib/auth/__tests__/ada-profile.test.ts app/components/learner`
+  - 결과: 10 files, 66 tests passed
+- Playwright: `pnpm exec playwright test tests/e2e/learner-profile.spec.ts`
+  - 결과: 2/2 passed
+- Empty states 확인:
+  - `app/components/learner/__tests__/ProfileIntroBlock.test.tsx:40` null intro/context/tags/question에서 빈 렌더링 검증
+  - `app/components/learner/__tests__/DiscoveryHelperBlocks.test.tsx:54` null stage/activity 및 빈 starter records graceful hide 검증
+  - `app/components/learner/__tests__/SelfAnswerSection.test.tsx:53` 빈 selfAnswers 배열에서 empty state 문구와 0 cards 검증
+- Responsive 수동 확인:
+  - `http://localhost:4173/learners/learner-hana`에서 desktop `1280x900`, mobile `390x844` viewport 확인
+  - 두 viewport 모두 `document.documentElement.scrollWidth <= window.innerWidth`로 가로 overflow 없음 확인
+- Diagnostics / build 확인:
+  - `lsp_diagnostics` error scan clean: `app/components/learner`, `app/routes/public/learners`, `app/db/queries/learners`, `app/db/queries/dialogue`, `app/lib/auth`
+  - `pnpm build` completed successfully; Sentry sourcemap/auth warnings were emitted but build finished
+- 참고 경고:
+  - Playwright 실행 중 서버 로그에 `auth_no_api_key`, `content_parse_failed` warn이 출력되었지만 테스트 assertion 실패나 브라우저 runtime error로 이어지지 않음
+  - `pnpm build` 후 `worker-configuration.d.ts` working tree modification이 남아 있음; QA 기록 외의 기존 워크트리 변경도 함께 존재함

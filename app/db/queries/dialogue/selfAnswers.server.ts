@@ -2,7 +2,8 @@ import { and, desc, eq, inArray } from "drizzle-orm";
 
 import { nanoid } from "../../../lib/utils/utils.server";
 import { db } from "../../client.server";
-import { learnerProfiles, questions, selfAnswers } from "../../schema.server";
+import { learnerProfiles, questions, records, selfAnswers } from "../../schema.server";
+import { getPlainText } from "../../../lib/content/content.server";
 
 interface CreateSelfAnswerInput {
   questionId: string;
@@ -62,7 +63,7 @@ export async function getSelfAnswersByRecord(
     return [];
   }
 
-  const questionIds = recordQuestions.map((q) => q.id);
+  const questionIds = recordQuestions.map((q: any) => q.id);
 
   return database
     .select({
@@ -77,4 +78,47 @@ export async function getSelfAnswersByRecord(
     .leftJoin(learnerProfiles, eq(selfAnswers.authorId, learnerProfiles.userId))
     .where(inArray(selfAnswers.questionId, questionIds))
     .orderBy(desc(selfAnswers.createdAt));
+}
+
+export interface LearnerSelfAnswerSummary {
+  id: string;
+  questionTitle: string;
+  snippet: string;
+  recordSlug: string;
+}
+
+export async function getLearnerSelfAnswerSummary(
+  d1: D1Database,
+  learnerId: string,
+  limit: number = 5,
+): Promise<LearnerSelfAnswerSummary[]> {
+  const database = db(d1);
+
+  const results = await database
+    .select({
+      selfAnswerId: selfAnswers.id,
+      questionContent: questions.content,
+      selfAnswerContent: selfAnswers.content,
+      recordSlug: records.slug,
+    })
+    .from(selfAnswers)
+    .innerJoin(questions, eq(selfAnswers.questionId, questions.id))
+    .innerJoin(records, eq(questions.recordId, records.id))
+    .where(eq(selfAnswers.authorId, learnerId))
+    .orderBy(desc(selfAnswers.createdAt))
+    .limit(limit);
+
+  return results.map((row: any) => {
+    const questionPlainText = getPlainText(row.questionContent, "article");
+    const answerPlainText = getPlainText(row.selfAnswerContent, "article");
+
+    const snippet = answerPlainText.substring(0, 100).trim();
+
+    return {
+      id: row.selfAnswerId,
+      questionTitle: questionPlainText,
+      snippet,
+      recordSlug: row.recordSlug,
+    };
+  });
 }
