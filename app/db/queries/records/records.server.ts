@@ -9,13 +9,12 @@ import { createRevision, getLatestRevisionNumber } from "./revisions.server";
 import { db } from "../../client.server";
 import { learnerProfiles, records, stages } from "../../schema.server";
 
-function slugify(title: string): string {
-  return title
-    .toLowerCase()
-    .replace(/[^a-z0-9가-힣]/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "")
-    .substring(0, 80);
+export async function getNextRecordSlug(d1: D1Database): Promise<string> {
+  const database = db(d1);
+  const result = await database
+    .select({ maxNum: sql<number>`COALESCE(MAX(CAST(${records.slug} AS INTEGER)), 0)` })
+    .from(records);
+  return String((result[0]?.maxNum ?? 0) + 1);
 }
 
 function parseDateToUnix(dateStr: string | undefined | null): number | null {
@@ -123,8 +122,7 @@ export async function getRecordsByAuthor(d1: D1Database, authorId: string, inclu
 export async function createRecord(d1: D1Database, authorId: string, data: CreateRecordInput) {
   const database = db(d1);
   const id = nanoid();
-  const baseSlug = slugify(data.title);
-  const slug = `${baseSlug}-${id.substring(0, 6)}`;
+  const slug = await getNextRecordSlug(d1);
   const now = Math.floor(Date.now() / 1000);
 
   const recordData = {

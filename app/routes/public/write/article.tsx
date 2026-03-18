@@ -37,6 +37,7 @@ import {
   extractUserMentions,
 } from "~/lib/content/extract-references.server";
 import { cn } from "~/lib/utils/cn";
+import { getNextRecordSlug } from "~/db/queries/records/records.server";
 import { nanoid } from "~/lib/utils/utils.server";
 
 const NO_STAGE_VALUE = "__none__";
@@ -125,13 +126,7 @@ export async function action({ request, context }: Route.ActionArgs) {
 
   const database = db(context.cloudflare.env.DB);
   const id = nanoid();
-  const baseSlug = parsed.data.title
-    .toLowerCase()
-    .replace(/[^a-z0-9가-힣]/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "")
-    .substring(0, 60);
-  const slug = `${baseSlug || "article"}-${id.substring(0, 6)}`;
+  const slug = await getNextRecordSlug(context.cloudflare.env.DB);
   const now = Math.floor(Date.now() / 1000);
 
   await database.insert(records).values({

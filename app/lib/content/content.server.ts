@@ -167,12 +167,12 @@ function renderNode(node: TiptapNode): string {
     case "mention": {
       const mentionId = escapeHtml((node.attrs?.id as string) ?? "");
       const mentionLabel = escapeHtml((node.attrs?.label as string) ?? "");
-      return `<a href="/learners/${mentionId}" class="user-mention" data-user-id="${mentionId}">@${mentionLabel}</a>`;
+      return `<a href="/learners/${mentionId}" class="user-mention" data-user-id="${mentionId}" target="_blank" rel="noopener noreferrer">@${mentionLabel}</a>`;
     }
     case "recordRef": {
       const refSlug = escapeHtml((node.attrs?.slug as string) ?? (node.attrs?.id as string) ?? "");
       const refLabel = escapeHtml((node.attrs?.label as string) ?? "");
-      return `<a href="/logs/${refSlug}" class="record-ref" data-record-id="${escapeHtml((node.attrs?.id as string) ?? "")}">${refLabel}</a>`;
+      return `<a href="/logs/${refSlug}" class="record-ref" data-record-id="${escapeHtml((node.attrs?.id as string) ?? "")}" target="_blank" rel="noopener noreferrer">${refLabel}</a>`;
     }
     case "callout": {
       const calloutType = escapeHtml((node.attrs?.type as string) ?? "info");
@@ -264,7 +264,7 @@ function renderPlainText(content: string): string {
   let html = escapeHtml(content);
 
   html = html.replace(/@([\wㄱ-ㅎ가-힣]+)/g, (_match, name) => {
-    return `<a href="/learners/${name}" class="user-mention">@${name}</a>`;
+    return `<a href="/learners/${name}" class="user-mention" target="_blank" rel="noopener noreferrer">@${name}</a>`;
   });
 
   html = html.replace(/\[\[(.+?)\]\]/g, (_match, title) => {
@@ -273,7 +273,7 @@ function renderPlainText(content: string): string {
       .replace(/[^a-z0-9ㄱ-ㅎ가-힣]/g, "-")
       .replace(/-+/g, "-")
       .replace(/^-|-$/g, "");
-    return `<a href="/logs/${slug}" class="record-ref">${title}</a>`;
+    return `<a href="/logs/${slug}" class="record-ref" target="_blank" rel="noopener noreferrer">${title}</a>`;
   });
 
   return `<div class="whitespace-pre-wrap">${html}</div>`;

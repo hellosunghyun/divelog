@@ -27,6 +27,7 @@ import { requireVerified } from "~/lib/auth/auth.middleware";
 import { createNoteSchema } from "~/lib/auth/validation";
 import { getPlainText } from "~/lib/content/content.server";
 import { generateNoteTitle } from "~/lib/utils/title.server";
+import { getNextRecordSlug } from "~/db/queries/records/records.server";
 import { nanoid } from "~/lib/utils/utils.server";
 
 const NO_STAGE_VALUE = "__none__";
@@ -87,13 +88,7 @@ export async function action({ request, context }: Route.ActionArgs) {
 
   const database = db(context.cloudflare.env.DB);
   const id = nanoid();
-  const baseSlug = title
-    .toLowerCase()
-    .replace(/[^a-z0-9가-힣]/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "")
-    .substring(0, 60);
-  const slug = `${baseSlug || "note"}-${id.substring(0, 6)}`;
+  const slug = await getNextRecordSlug(context.cloudflare.env.DB);
   const now = Math.floor(Date.now() / 1000);
 
   await database.insert(records).values({
