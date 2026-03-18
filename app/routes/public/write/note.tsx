@@ -20,17 +20,24 @@ import { TagSelector } from "~/components/TagSelector";
 import { db } from "~/db/client.server";
 import { syncAllMentionsForRecord } from "~/db/queries/dialogue/mentions.server";
 import { syncParticipantsForRecord } from "~/db/queries/records/participants.server";
+import { syncRecordReferences } from "~/db/queries/records/references.server";
 import { getAllTags } from "~/db/queries/records/tags.server";
 import { learnerProfiles, records, recordTags, stages } from "~/db/schema.server";
 import { useUnsavedWarning } from "~/hooks/useUnsavedWarning";
 import { requireVerified } from "~/lib/auth/auth.middleware";
-import { createNoteSchema } from "~/lib/auth/validation";
+import { createNoteSchema, parseReferencesFromFormData } from "~/lib/auth/validation";
 import { getPlainText } from "~/lib/content/content.server";
 import { generateNoteTitle } from "~/lib/utils/title.server";
 import { getNextRecordSlug } from "~/db/queries/records/records.server";
 import { nanoid } from "~/lib/utils/utils.server";
 
 const NO_STAGE_VALUE = "__none__";
+
+type ReferenceField = { id: string; url: string; title: string };
+
+function createReferenceField(): ReferenceField {
+  return { id: crypto.randomUUID(), url: "", title: "" };
+}
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "짧은 기록 — DiveLog" }];
@@ -72,11 +79,16 @@ export async function action({ request, context }: Route.ActionArgs) {
   const content = typeof contentRaw === "string" ? contentRaw : "";
   const responsePreferenceRaw = formData.get("responsePreference");
   const responsePreference = typeof responsePreferenceRaw === "string" ? responsePreferenceRaw : "open";
+  const originalUrlRaw = formData.get("originalUrl");
+  const originalUrl = typeof originalUrlRaw === "string" ? originalUrlRaw : "";
+  const references = parseReferencesFromFormData(formData);
 
   const parsed = createNoteSchema.safeParse({
     content,
     visibility: formData.get("visibility") || "public",
     stageId: formData.get("stageId") || undefined,
+    originalUrl,
+    references,
   });
 
   if (!parsed.success) {
@@ -106,6 +118,7 @@ export async function action({ request, context }: Route.ActionArgs) {
     stageId: parsed.data.stageId ?? null,
     challengeId: null,
     collaborationUnitId: null,
+    originalUrl: parsed.data.originalUrl || null,
     createdAt: now,
     updatedAt: now,
   });
@@ -134,6 +147,9 @@ export async function action({ request, context }: Route.ActionArgs) {
     }
   }
 
+  // Handle references
+  await syncRecordReferences(context.cloudflare.env.DB, id, parsed.data.references ?? []);
+
   throw redirect(`/logs/${slug}`);
 }
 
@@ -144,6 +160,7 @@ export default function WriteNotePage({ loaderData }: Route.ComponentProps) {
   const [noteContent, setNoteContent] = useState("");
   const [stageValue, setStageValue] = useState(currentStage?.id ?? NO_STAGE_VALUE);
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
+  const [references, setReferences] = useState<ReferenceField[]>([]);
   const isSubmitting = navigation.state === "submitting";
   const contentError = actionData?.errors?.content?.[0];
 
@@ -267,6 +284,78 @@ export default function WriteNotePage({ loaderData }: Route.ComponentProps) {
                   selectedPeople={[]}
                   excludeUserId={currentUserId ?? undefined}
                 />
+              </div>
+
+              <div className="mt-4 space-y-2">
+                <Label htmlFor="originalUrl" className="mb-1 block text-meta font-medium text-text-secondary">
+                  원문 링크 <span className="text-xs text-text-tertiary">(선택)</span>
+                </Label>
+                <p className="text-xs text-text-tertiary mb-2">
+                  블로그, 노션, 미디엄 등 원본 글이 있는 경우 링크를 남겨두면 기록 상세 페이지에서 바로 이동할 수 있습니다.
+                </p>
+                <input
+                  type="text"
+                  inputMode="url"
+                  id="originalUrl"
+                  name="originalUrl"
+                  defaultValue=""
+                  placeholder="https://blog.example.com/my-post"
+                  className="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text-primary placeholder:text-text-tertiary focus:border-ocean-blue focus:outline-none focus:ring-2 focus:ring-ocean-blue/20"
+                />
+              </div>
+
+              <div className="mt-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label className="text-meta font-medium text-text-secondary">
+                    참조 및 출처 <span className="text-xs text-text-tertiary">(선택)</span>
+                  </Label>
+                  <button
+                    type="button"
+                    onClick={() => setReferences((prev) => [...prev, createReferenceField()])}
+                    className="min-h-11 px-1 text-sm text-ocean-blue transition-colors hover:text-deep-ocean"
+                  >
+                    + 참조 추가
+                  </button>
+                </div>
+                {references.map((reference, index) => (
+                  <div key={reference.id} className="flex items-start gap-2">
+                    <div className="flex-1 space-y-2">
+                      <input
+                        type="text"
+                        inputMode="url"
+                        name={`references[${index}][url]`}
+                        value={reference.url}
+                        onChange={(e) => {
+                          const next = [...references];
+                          next[index] = { ...next[index], url: e.target.value };
+                          setReferences(next);
+                        }}
+                        placeholder="https://example.com"
+                        className="w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm text-text-primary placeholder:text-text-tertiary focus:border-ocean-blue focus:outline-none focus:ring-2 focus:ring-ocean-blue/20"
+                      />
+                      <input
+                        type="text"
+                        name={`references[${index}][title]`}
+                        value={reference.title}
+                        onChange={(e) => {
+                          const next = [...references];
+                          next[index] = { ...next[index], title: e.target.value };
+                          setReferences(next);
+                        }}
+                        placeholder="제목 (선택)"
+                        className="w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm text-text-primary placeholder:text-text-tertiary focus:border-ocean-blue focus:outline-none focus:ring-2 focus:ring-ocean-blue/20"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setReferences((prev) => prev.filter((item) => item.id !== reference.id))}
+                      className="mt-2.5 min-h-11 min-w-11 p-1 text-text-tertiary transition-colors hover:text-text-primary"
+                      aria-label="참조 삭제"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
               </div>
             </div>
           </details>

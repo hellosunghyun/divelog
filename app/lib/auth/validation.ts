@@ -86,6 +86,22 @@ export const createNoteSchema = z.object({
   stageId: z.string().optional(),
   captureQuestion: z.string().optional(),
   captureDirection: z.enum(["inward", "outward", "next_stage"]).default("inward"),
+  originalUrl: z.preprocess(
+    normalizeUrl,
+    z.string().url().max(2048).optional().or(z.literal(""))
+  ),
+  references: z.array(
+    z.object({
+      url: z.preprocess(normalizeUrl, z.string().url().max(2048)),
+      title: z.string().max(200).optional().or(z.literal("")),
+    })
+  ).max(50).optional().default([]).refine(
+    (refs) => {
+      const urls = refs.map((r) => r.url);
+      return urls.length === new Set(urls).size;
+    },
+    { message: "참조 링크에 중복된 URL이 있습니다" }
+  ),
 });
 
 export type CreateNoteInput = z.infer<typeof createNoteSchema>;
@@ -161,6 +177,22 @@ export const updateRecordMetadataSchema = z.object({
   questionDirection: z.enum(["outward", "inward", "next_stage"]).optional(),
   responsePreference: z.enum(["open", "question_only", "closed"]).optional(),
   tagIds: z.array(z.string()).optional(),
+  originalUrl: z.preprocess(
+    normalizeUrl,
+    z.string().url().max(2048).optional().or(z.literal(""))
+  ),
+  references: z.array(
+    z.object({
+      url: z.preprocess(normalizeUrl, z.string().url().max(2048)),
+      title: z.string().max(200).optional().or(z.literal("")),
+    })
+  ).max(50).optional().default([]).refine(
+    (refs) => {
+      const urls = refs.map((r) => r.url);
+      return urls.length === new Set(urls).size;
+    },
+    { message: "참조 링크에 중복된 URL이 있습니다" }
+  ),
 });
 
 export const createQuestionSchema = z.object({
