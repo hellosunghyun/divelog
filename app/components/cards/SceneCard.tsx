@@ -4,6 +4,12 @@ import { motion } from "~/lib/motion/motion";
 
 import { cn } from "~/lib/utils/cn";
 
+interface Participant {
+  displayName: string | null;
+  profilePhotoUrl: string | null;
+  role: string;
+}
+
 interface SceneCardProps {
   record: {
     slug: string;
@@ -24,6 +30,7 @@ interface SceneCardProps {
     name: string;
     type: string;
   };
+  participants?: Participant[];
   hasQuestions?: boolean;
   hasSelfAnswers?: boolean;
   hasLinkedRecord?: boolean;
@@ -76,6 +83,7 @@ export default function SceneCard({
   contentSnippet,
   author,
   stage,
+  participants,
   hasQuestions,
   hasSelfAnswers,
   hasLinkedRecord,
@@ -144,22 +152,55 @@ export default function SceneCard({
         </p>
 
         <div className="flex items-center justify-between mt-2 border-t border-border-subtle pt-4">
-          <div className="flex flex-col gap-1">
-            {author && (
-              author.slug ? (
-                <Link
-                  to={`/learners/${author.slug}`}
-                  prefetch="viewport"
-                  className="text-meta text-text-secondary no-underline hover:text-ocean-blue transition-colors"
-                >
-                  {author.displayName}
-                </Link>
-              ) : (
-                <span className="text-meta text-text-secondary">{author.displayName}</span>
-              )
-            )}
-            {record.updatedAt && (
-              <EditedIndicator createdAt={record.createdAt} updatedAt={record.updatedAt} />
+          <div className="flex items-center gap-3">
+            <div className="flex flex-col gap-1">
+              {author && (
+                author.slug ? (
+                  <Link
+                    to={`/learners/${author.slug}`}
+                    prefetch="viewport"
+                    className="text-meta text-text-secondary no-underline hover:text-ocean-blue transition-colors"
+                  >
+                    {author.displayName}
+                  </Link>
+                ) : (
+                  <span className="text-meta text-text-secondary">{author.displayName}</span>
+                )
+              )}
+              {record.updatedAt && (
+                <EditedIndicator createdAt={record.createdAt} updatedAt={record.updatedAt} />
+              )}
+            </div>
+
+            {participants && participants.length > 0 && (
+              <div className="flex items-center">
+                <div className="flex -space-x-2">
+                  {participants.slice(0, 3).map((participant) => (
+                    <div
+                      key={`${participant.displayName ?? "unknown"}-${participant.role}`}
+                      className="relative w-6 h-6 rounded-full ring-2 ring-surface overflow-hidden bg-surface-secondary flex items-center justify-center flex-shrink-0"
+                      title={participant.displayName ?? "참여자"}
+                    >
+                      {participant.profilePhotoUrl ? (
+                        <img
+                          src={participant.profilePhotoUrl}
+                          alt={participant.displayName ?? "참여자"}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-[10px] font-medium text-text-secondary">
+                          {participant.displayName?.[0] ?? "?"}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                {participants.length > 3 && (
+                  <span className="ml-1.5 text-caption text-text-tertiary">
+                    +{participants.length - 3}명
+                  </span>
+                )}
+              </div>
             )}
           </div>
 

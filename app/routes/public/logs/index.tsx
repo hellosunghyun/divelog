@@ -12,6 +12,7 @@ import EmptyState from "~/components/feedback/EmptyState";
 import { Button } from "~/components/ui/button";
 import { db } from "~/db/client.server";
 import { learnerProfiles, records, stages } from "~/db/schema.server";
+import { getParticipantsBatch } from "~/db/queries/records/participants.server";
 import { getPlainText } from "~/lib/content/content.server";
 import { normalizeContentFormat } from "~/lib/content/editor-extensions";
 import { createLogger } from "~/lib/infra/logger.server";
@@ -152,6 +153,15 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const totalCount = totalCountResult[0]?.count ?? 0;
   const totalPages = shouldLoadAllRecords ? 1 : Math.ceil(totalCount / pageSize);
 
+  const recordIds = filteredRecords.map((r) => r.id);
+  const participantsRaw = await getParticipantsBatch(context.cloudflare.env.DB, recordIds);
+  const participantsByRecordId = new Map<string, typeof participantsRaw>();
+  for (const p of participantsRaw) {
+    const existing = participantsByRecordId.get(p.recordId) ?? [];
+    existing.push(p);
+    participantsByRecordId.set(p.recordId, existing);
+  }
+
   const recordsWithSnippets = filteredRecords.map((record) => {
     const plainTextContent = getPlainText(record.content, normalizeContentFormat(record.format));
 
@@ -177,6 +187,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     totalPages,
     filters: { stageId, format, type, rhythm, sort, view, month: month.value },
     metaDescription,
+    participantsByRecordId: Object.fromEntries(participantsByRecordId),
   };
 }
 
@@ -221,7 +232,7 @@ const FILTER_OPTIONS = [
 ];
 
 export default function LogsPage({ loaderData }: Route.ComponentProps) {
-  const { records: filteredRecords, allStages, page, totalPages, filters } = loaderData;
+  const { records: filteredRecords, allStages, page, totalPages, filters, participantsByRecordId } = loaderData;
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
@@ -320,6 +331,7 @@ export default function LogsPage({ loaderData }: Route.ComponentProps) {
                     }
                   : undefined
               }
+              participants={participantsByRecordId[record.id]}
               isRead={record.format === "article" && isRead(record.id)}
             />
           </div>
