@@ -1,4 +1,4 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, count, desc, eq } from "drizzle-orm";
 
 import { nanoid } from "../../../lib/utils/utils.server";
 import { db } from "../../client.server";
@@ -60,11 +60,11 @@ export async function markAllAsRead(d1: D1Database, recipientId: string) {
 export async function getUnreadCount(d1: D1Database, recipientId: string) {
   const database = db(d1);
   const result = await database
-    .select({ id: notifications.id })
+    .select({ count: count() })
     .from(notifications)
     .where(and(eq(notifications.recipientId, recipientId), eq(notifications.isRead, false)));
 
-  return result.length;
+  return result[0]?.count ?? 0;
 }
 
 export async function createNotification(

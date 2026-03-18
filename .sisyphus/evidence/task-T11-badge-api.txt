@@ -1,0 +1,145 @@
+# T11: API, Inbox, and GlobalNav Unread Badge Correctness
+
+## Task Summary
+Fix the `/api/notifications` route to use COUNT-based unread queries, add canonical `recordSlug` to notification payloads, and ensure GlobalNav badge polling works correctly.
+
+## Changes Made
+
+### 1. notifications.server.ts - COUNT-based getUnreadCount()
+
+**Before:**
+```typescript
+export async function getUnreadCount(d1: D1Database, recipientId: string) {
+  const database = db(d1);
+  const result = await database
+    .select({ id: notifications.id })
+    .from(notifications)
+    .where(and(eq(notifications.recipientId, recipientId), eq(notifications.isRead, false)));
+
+  return result.length;
+}
+```
+
+**After:**
+```typescript
+import { and, count, desc, eq } from "drizzle-orm";
+
+export async function getUnreadCount(d1: D1Database, recipientId: string) {
+  const database = db(d1);
+  const result = await database
+    .select({ count: count() })
+    .from(notifications)
+    .where(and(eq(notifications.recipientId, recipientId), eq(notifications.isRead, false)));
+
+  return result[0]?.count ?? 0;
+}
+```
+
+**Impact:** Uses SQL COUNT() instead of fetching all rows and counting in JS. More efficient for large notification counts.
+
+### 2. /api/notifications.tsx - Added recordSlug to payload
+
+**Before:** Notifications only included `recordId`, requiring navigation to `/logs/${recordId}` which would fail.
+
+**After:**
+```typescript
+const [notifs, unreadCount] = await Promise.all([
+  database
+    .select({
+      id: notifications.id,
+      type: notifications.type,
+      title: notifications.title,
+      content: notifications.content,
+      recordId: notifications.recordId,
+      recordSlug: records.slug,  // NEW: Joined from records table
+      questionId: notifications.questionId,
+      isRead: notifications.isRead,
+      createdAt: notifications.createdAt,
+    })
+    .from(notifications)
+    .leftJoin(records, eq(notifications.recordId, records.id))
+    .where(eq(notifications.recipientId, auth.user.id))
+    .orderBy(desc(notifications.createdAt))
+    .limit(8),
+  getUnreadCount(context.cloudflare.env.DB, auth.user.id),
+]);
+```
+
+**Impact:** API now returns canonical `recordSlug` for navigation.
+
+### 3. GlobalNav.tsx - Fixed useEffect dependencies and added polling
+
+**Changes:**
+1. Added `recordSlug` to `NotificationItem` interface
+2. Fixed useEffect for URL tracking (now uses `location` properly)
+3. Fixed useEffect for menu close on route change (now uses `location.pathname`)
+4. Added 30-second polling for notification count
+5. Updated notification link to use `recordSlug` instead of `recordId`
+
+**Polling Implementation:**
+```typescript
+useEffect(() => {
+  if (!data?.isAuthenticated) return;
+
+  notifFetcher.load("/api/notifications");
+
+  const intervalId = setInterval(() => {
+    notifFetcher.load("/api/notifications");
+  }, 30000);  // 30 seconds
+
+  return () => clearInterval(intervalId);
+}, [data?.isAuthenticated, notifFetcher]);
+```
+
+**Badge Display (already implemented):**
+```typescript
+{unreadCount > 0 && (
+  <span className="...">
+    {unreadCount > 9 ? "9+" : unreadCount}
+  </span>
+)}
+```
+
+### 4. inbox.tsx - No changes needed
+
+The inbox already correctly:
+- Joins records table to get `recordSlug`
+- Uses `recordSlug` for navigation links (`/logs/${n.recordSlug}`)
+
+## LSP Diagnostics
+
+All modified files pass LSP diagnostics:
+- `app/db/queries/social/notifications.server.ts` - No errors
+- `app/routes/api/notifications.tsx` - No errors
+- `app/components/layout/GlobalNav.tsx` - No errors
+- `app/routes/public/inbox.tsx` - No errors
+
+## API Contract
+
+**GET /api/notifications Response:**
+```typescript
+{
+  notifications: Array<{
+    id: string;
+    type: string;
+    title: string;
+    content: string | null;
+    recordId: string | null;
+    recordSlug: string | null;  // NEW
+    questionId: string | null;
+    isRead: boolean;
+    createdAt: number;
+  }>;
+  unreadCount: number;  // Now from COUNT() query
+}
+```
+
+## Verification Checklist
+
+- [x] `getUnreadCount()` uses `COUNT(*)` SQL instead of fetching all rows
+- [x] `/api/notifications` loader returns `unreadCount` (number) and each notification includes `recordSlug`
+- [x] GlobalNav badge shows `9+` for counts >= 10 (already implemented)
+- [x] Polling interval is 30 seconds (>= 30s requirement met)
+- [x] useEffect dependencies fixed
+- [x] Notification links use canonical `recordSlug` for navigation
+- [x] LSP diagnostics clean on all modified files
