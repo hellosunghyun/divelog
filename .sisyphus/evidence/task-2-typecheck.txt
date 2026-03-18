@@ -1,0 +1,50 @@
+    Type '{ readonly brand: "Table"; readonly config: { name: "questions"; schema: undefined; columns: { id: SQLiteColumn<{ name: "id"; tableName: "questions"; dataType: "string"; columnType: "SQLiteText"; data: string; driverParam: string; ... 8 more ...; generated: undefined; }, {}, { ...; }>; ... 6 more ...; closedAt: SQLi...' is not assignable to type 'SQL<unknown> | Aliased<unknown> | Subquery<string, Record<string, unknown>> | SQLiteColumn<ColumnBaseConfig<ColumnDataType, string>, {}, {}> | SQLiteTable<...> | SelectedFieldsFlat<...>'.
+      Type '{ readonly brand: "Table"; readonly config: { name: "questions"; schema: undefined; columns: { id: SQLiteColumn<{ name: "id"; tableName: "questions"; dataType: "string"; columnType: "SQLiteText"; data: string; driverParam: string; ... 8 more ...; generated: undefined; }, {}, { ...; }>; ... 6 more ...; closedAt: SQLi...' is not assignable to type 'SelectedFieldsFlat<SQLiteColumn<ColumnBaseConfig<ColumnDataType, string>, {}, {}>>'.
+        Property 'brand' is incompatible with index signature.
+          Type 'string' is not assignable to type 'SQL<unknown> | Aliased<unknown> | Subquery<string, Record<string, unknown>> | SQLiteColumn<ColumnBaseConfig<ColumnDataType, string>, {}, {}>'.
+app/db/queries/dialogue/responses.server.ts(71,3): error TS2322: Type '({ [x: string]: unknown; } | { [x: string]: unknown; })[]' is not assignable to type 'RecentlyRespondedRecord[]'.
+  Type '{ [x: string]: unknown; } | { [x: string]: unknown; }' is not assignable to type 'RecentlyRespondedRecord'.
+    Type '{ [x: string]: unknown; }' is not assignable to type 'RecentlyRespondedRecord'.
+      Type '{ [x: string]: unknown; }' is missing the following properties from type '{ stageId: string | null; challengeId: string | null; type: string; title: string; content: string; id: string; slug: string; cohort: string | null; createdAt: number; updatedAt: number; authorId: string; ... 12 more ...; recordedEndAt: number | null; }': stageId, challengeId, type, title, and 20 more.
+app/db/queries/dialogue/responses.server.ts(72,13): error TS2345: Argument of type '{ recentResponseCount: SQL.Aliased<number>; lastResponseAt: SQL.Aliased<number>; _: { readonly brand: "Table"; readonly config: { name: "records"; schema: undefined; columns: { id: SQLiteColumn<{ name: "id"; ... 13 more ...; generated: undefined; }, {}, { ...; }>; ... 22 more ...; updatedAt: SQLiteColumn<...>; }; di...' is not assignable to parameter of type 'SelectedFields'.
+  Property '_' is incompatible with index signature.
+    Type '{ readonly brand: "Table"; readonly config: { name: "records"; schema: undefined; columns: { id: SQLiteColumn<{ name: "id"; tableName: "records"; dataType: "string"; columnType: "SQLiteText"; data: string; driverParam: string; ... 8 more ...; generated: undefined; }, {}, { ...; }>; ... 22 more ...; updatedAt: SQLite...' is not assignable to type 'SQL<unknown> | Aliased<unknown> | Subquery<string, Record<string, unknown>> | SQLiteColumn<ColumnBaseConfig<ColumnDataType, string>, {}, {}> | SQLiteTable<...> | SelectedFieldsFlat<...>'.
+      Type '{ readonly brand: "Table"; readonly config: { name: "records"; schema: undefined; columns: { id: SQLiteColumn<{ name: "id"; tableName: "records"; dataType: "string"; columnType: "SQLiteText"; data: string; driverParam: string; ... 8 more ...; generated: undefined; }, {}, { ...; }>; ... 22 more ...; updatedAt: SQLite...' is not assignable to type 'SelectedFieldsFlat<SQLiteColumn<ColumnBaseConfig<ColumnDataType, string>, {}, {}>>'.
+        Property 'brand' is incompatible with index signature.
+          Type 'string' is not assignable to type 'SQL<unknown> | Aliased<unknown> | Subquery<string, Record<string, unknown>> | SQLiteColumn<ColumnBaseConfig<ColumnDataType, string>, {}, {}>'.
+app/db/queries/records/references.server.ts(2,24): error TS2307: Cannot find module 'nanoid' or its corresponding type declarations.
+app/db/queries/records/references.server.ts(3,33): error TS2307: Cannot find module '@cloudflare/workers-types' or its corresponding type declarations.
+app/db/schema.server.ts(153,14): error TS7022: 'responses' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+app/db/schema.server.ts(162,59): error TS7024: Function implicitly has return type 'any' because it does not have a return type annotation and is referenced directly or indirectly in one of its return expressions.
+app/lib/auth/auth.middleware.ts(27,64): error TS2339: Property 'ADAKRPOS_API_KEY' does not exist on type 'Env'.
+app/lib/auth/auth.middleware.ts(40,62): error TS2339: Property 'ADAKRPOS_API_KEY' does not exist on type 'Env'.
+app/lib/auth/auth.middleware.ts(50,45): error TS2339: Property 'ADAKRPOS_API_KEY' does not exist on type 'Env'.
+app/lib/auth/auth.middleware.ts(60,45): error TS2339: Property 'ADAKRPOS_API_KEY' does not exist on type 'Env'.
+app/routes/_admin.tsx(43,10): error TS2741: Property 'title' is missing in type '{}' but required in type 'AdminContextBarProps'.
+app/routes/_public.tsx(18,62): error TS2339: Property 'ADAKRPOS_API_KEY' does not exist on type 'Env'.
+app/routes/admin/analytics.tsx(122,35): error TS2339: Property 'weekNumber' does not exist on type '{ id: string; name: string; slug: string; type: string; status: string; description: string | null; accentTone: string | null; order: number; startDate: number | null; endDate: number | null; ... 4 more ...; updatedAt: number; }'.
+app/routes/admin/analytics.tsx(128,35): error TS2339: Property 'phase' does not exist on type '{ id: string; name: string; slug: string; type: string; status: string; description: string | null; accentTone: string | null; order: number; startDate: number | null; endDate: number | null; ... 4 more ...; updatedAt: number; }'.
+app/routes/admin/curation.tsx(23,28): error TS2304: Cannot find name 'curationSlots'.
+app/routes/admin/index.tsx(24,29): error TS2304: Cannot find name 'records'.
+app/routes/admin/index.tsx(26,18): error TS2304: Cannot find name 'records'.
+app/routes/admin/roles.tsx(102,16): error TS2304: Cannot find name 'userRoles'.
+app/routes/admin/settings.tsx(13,26): error TS2304: Cannot find name 'settings'.
+app/routes/admin/tags.tsx(33,84): error TS2339: Property 'TagWithUsage' does not exist on type 'typeof import("/Users/hellosunghyun/Documents/Github/divelog-article-links/app/db/queries/records/tags.server")'.
+app/routes/admin/tags.tsx(45,84): error TS2339: Property 'TagWithUsage' does not exist on type 'typeof import("/Users/hellosunghyun/Documents/Github/divelog-article-links/app/db/queries/records/tags.server")'.
+app/routes/admin/tags.tsx(284,42): error TS2304: Cannot find name 'TagWithUsage'.
+app/routes/api/__tests__/autosave.test.ts(66,42): error TS2345: Argument of type '{ isAuthenticated: boolean; user: { id: string; isVerified: boolean; }; session: null; }' is not assignable to parameter of type 'AuthContext'.
+  Type '{ isAuthenticated: boolean; user: { id: string; isVerified: boolean; }; session: null; }' is not assignable to type 'AdakrposUnauthContext'.
+    Types of property 'user' are incompatible.
+      Type '{ id: string; isVerified: boolean; }' is not assignable to type 'null'.
+app/routes/api/__tests__/autosave.test.ts(85,42): error TS2345: Argument of type '{ isAuthenticated: boolean; user: { id: string; isVerified: boolean; }; session: null; }' is not assignable to parameter of type 'AuthContext'.
+  Type '{ isAuthenticated: boolean; user: { id: string; isVerified: boolean; }; session: null; }' is not assignable to type 'AdakrposUnauthContext'.
+    Types of property 'user' are incompatible.
+      Type '{ id: string; isVerified: boolean; }' is not assignable to type 'null'.
+app/routes/api/__tests__/autosave.test.ts(114,42): error TS2345: Argument of type '{ isAuthenticated: boolean; user: { id: string; isVerified: boolean; }; session: null; }' is not assignable to parameter of type 'AuthContext'.
+  Type '{ isAuthenticated: boolean; user: { id: string; isVerified: boolean; }; session: null; }' is not assignable to type 'AdakrposUnauthContext'.
+    Types of property 'user' are incompatible.
+      Type '{ id: string; isVerified: boolean; }' is not assignable to type 'null'.
+app/routes/api/autosave.tsx(36,62): error TS2339: Property 'ADAKRPOS_API_KEY' does not exist on type 'Env'.
+app/routes/api/upload.tsx(20,62): error TS2339: Property 'ADAKRPOS_API_KEY' does not exist on type 'Env'.
+app/routes/public/me.tsx(442,25): error TS2740: Type '{ [x: string]: any; }' is missing the following properties from type '{ id: string; type: string; content: string; createdAt: number; updatedAt: number; authorId: string; moderationStatus?: string | undefined; }': id, type, content, createdAt, and 2 more.
+ ELIFECYCLE  Command failed with exit code 1.

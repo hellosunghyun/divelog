@@ -1,0 +1,66 @@
+# Task 1: DB Schema + Relations + Migration + Queries - Evidence
+
+## Completed Actions
+
+### 1. Schema Modifications (app/db/schema.server.ts)
+✅ Added `originalUrl` column to `records` table
+✅ Created new `recordReferences` table with:
+   - id (text, primary key)
+   - recordId (text, foreign key to records.id with cascade delete)
+   - url (text, required)
+   - title (text, nullable)
+   - sortOrder (integer, default 0)
+   - createdAt (integer, default unixepoch())
+
+### 2. Relations Modifications (app/db/relations.server.ts)
+✅ Added `recordReferences` import
+✅ Added `references: many(recordReferences)` to recordsRelations
+✅ Created new `recordReferencesRelations` with one-to-many relationship to records
+
+### 3. Migration File (drizzle/migrations/0011_add_record_references.sql)
+✅ Created migration file with:
+   - ALTER TABLE records ADD original_url text
+   - CREATE TABLE record_references with proper schema and foreign key
+
+### 4. Migration Journal (drizzle/migrations/meta/_journal.json)
+✅ Updated journal with entries for migrations 0008-0011
+
+### 5. Query Module (app/db/queries/records/references.server.ts)
+✅ Created new module with:
+   - getRecordReferences(d1, recordId): Fetch references for a record
+   - syncRecordReferences(d1, recordId, references): Delete-all → re-insert pattern
+
+## Verification Results
+
+### Migration Application
+✅ All 12 migrations applied successfully (0000-0011)
+✅ 0011_add_record_references.sql executed without errors
+
+### Table Verification
+✅ record_references table exists with correct schema:
+   CREATE TABLE `record_references` (
+     `id` text PRIMARY KEY NOT NULL,
+     `record_id` text NOT NULL,
+     `url` text NOT NULL,
+     `title` text,
+     `sort_order` integer NOT NULL DEFAULT 0,
+     `created_at` integer NOT NULL DEFAULT (unixepoch()),
+     FOREIGN KEY (`record_id`) REFERENCES `records`(`id`) ON UPDATE no action ON DELETE cascade
+   )
+
+### Column Verification
+✅ original_url column exists in records table:
+   - cid: 23
+   - name: original_url
+   - type: TEXT
+   - notnull: 0 (nullable)
+
+## Files Modified
+1. /Users/hellosunghyun/Documents/Github/divelog-article-links/app/db/schema.server.ts
+2. /Users/hellosunghyun/Documents/Github/divelog-article-links/app/db/relations.server.ts
+3. /Users/hellosunghyun/Documents/Github/divelog-article-links/drizzle/migrations/0011_add_record_references.sql (NEW)
+4. /Users/hellosunghyun/Documents/Github/divelog-article-links/drizzle/migrations/meta/_journal.json
+5. /Users/hellosunghyun/Documents/Github/divelog-article-links/app/db/queries/records/references.server.ts (NEW)
+
+## Status
+✅ TASK COMPLETE - All requirements met

@@ -1,0 +1,20 @@
+Task 4 verification - Article edit links
+Date: 2026-03-18
+Worktree: /Users/hellosunghyun/Documents/Github/divelog-article-links
+
+1) npx react-router build
+Status: FAILED
+Relevant output:
+- Client build completed successfully.
+- SSR build failed with: Rollup failed to resolve import "nanoid" from `/Users/hellosunghyun/Documents/Github/divelog-article-links/app/db/queries/records/references.server.ts`.
+- This failure is pre-existing in the worktree and is not caused by `app/routes/public/logs/$recordSlug.edit.tsx`.
+
+2) pnpm exec tsc --noEmit
+Status: PASSED
+Relevant output:
+- Command completed with no TypeScript errors.
+
+3) lsp_diagnostics
+Status: PASSED
+Relevant output:
+- No diagnostics found for `app/routes/public/logs/$recordSlug.edit.tsx`.

@@ -1,0 +1,22 @@
+Must Have [12/12] | Must NOT Have [3/3] | VERDICT: REJECT
+
+plan_file: /Users/hellosunghyun/Documents/Github/divelog-people-tag/.sisyphus/plans/people-tag-system.md (missing)
+
+Must Have checks:
+- [PASS] schema recordParticipants/record_participants :: app/db/schema.server.ts :: count=2
+- [PASS] participants query module exists :: app/db/queries/records/participants.server.ts :: exists
+- [PASS] TagSelector exists :: app/components/TagSelector.tsx :: exists
+- [PASS] PersonSearch exists :: app/components/PersonSearch.tsx :: exists
+- [PASS] migration exists :: drizzle/migrations/0010_add_record_participants.sql :: exists
+- [PASS] note write participants wiring :: app/routes/public/write/note.tsx :: count=6
+- [PASS] article write participants wiring :: app/routes/public/write/article.tsx :: count=6
+- [PASS] note write tags wiring :: app/routes/public/write/note.tsx :: count=7
+- [PASS] record detail server participants/mentions :: app/routes/public/logs/$recordSlug.server.ts :: count=6
+- [PASS] record detail UI 함께한/언급된 :: app/routes/public/logs/$recordSlug.tsx :: count=2
+- [PASS] learner detail UI 함께한/언급된 :: app/routes/public/learners/$learnerSlug.tsx :: count=2
+- [PASS] logs index participants batch :: app/routes/public/logs/index.tsx :: count=14
+
+Must NOT Have checks:
+- [PASS] no as any in PersonSearch/TagSelector :: app/components/PersonSearch.tsx, app/components/TagSelector.tsx :: count=0
+- [PASS] no WebSocket/EventSource in app ts/tsx :: app :: count=0
+- [PASS] no leaderboard/ranking/인기순 in app tsx :: app :: count=0

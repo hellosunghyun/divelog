@@ -1,0 +1,47 @@
+=== TASK 16: record_participants 샘플 데이터 추가 ===
+
+## 마이그레이션 적용
+✅ wrangler d1 migrations apply DB --local
+   Result: No migrations to apply (이미 적용됨)
+
+## 시드 데이터 실행
+✅ wrangler d1 execute DB --local --file=seeds/seed.sql
+   Result: 60 commands executed successfully
+
+## 데이터 검증
+✅ record_participants 테이블 데이터 확인
+
+### 삽입된 데이터 (6건)
+1. record-005 (minjun의 팀 탐구 기록)
+   - jiwon (coauthor)
+   - soyeon (coauthor)
+
+2. record-022 (minjun의 팀 탐구 전환점)
+   - jiwon (companion)
+   - soyeon (companion)
+   - hyunjin (companion)
+
+3. record-010 (minjun의 팀 탐구 두 번째 기록)
+   - jaemin (mentor)
+
+### 역할별 분산
+- coauthor: 2건 ✅
+- companion: 3건 ✅
+- mentor: 1건 ✅
+- 총합: 6건 ✅
+
+### 제약사항 준수
+✅ 작성자 본인(minjun) 제외
+✅ 기존 시드 데이터 변경 없음
+✅ INSERT OR IGNORE로 중복 방지
+✅ FK 참조 유효성 확인 (records, learner_profiles)
+
+## Git 커밋
+✅ chore(seed): 참여자 샘플 데이터 + 마이그레이션 검증
+   Commit: 66f08a8
+   Files: seeds/seed.sql (+10 lines)
+
+## 결론
+✅ 모든 요구사항 충족
+✅ 마이그레이션 + 시드 적용 검증 완료
+✅ 데이터 무결성 확인
