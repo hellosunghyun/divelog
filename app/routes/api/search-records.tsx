@@ -17,6 +17,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   const url = new URL(request.url);
   const q = url.searchParams.get("q")?.trim() ?? "";
+  const includeOwn = url.searchParams.get("includeOwn") === "true";
+  const currentUserId = auth.isAuthenticated ? auth.user.id : null;
 
   logger.info("search_query", { query: q || "(empty)" });
 
@@ -34,12 +36,16 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       .from(records)
       .leftJoin(learnerProfiles, sql`${records.authorId} = ${learnerProfiles.userId}`);
 
+    const visibilityFilter = includeOwn && currentUserId
+      ? sql`(${records.visibility} IN ('cohort', 'public') OR ${records.authorId} = ${currentUserId})`
+      : sql`${records.visibility} IN ('cohort', 'public')`;
+
     const results = q.length > 0
       ? await baseQuery.where(and(
-          sql`${records.visibility} IN ('cohort', 'public')`,
+          visibilityFilter,
           sql`(${records.title} LIKE ${"%" + q + "%"} OR ${records.contentText} LIKE ${"%" + q + "%"})`,
         )).limit(8)
-      : await baseQuery.where(sql`${records.visibility} IN ('cohort', 'public')`).orderBy(sql`${records.createdAt} DESC`).limit(8);
+      : await baseQuery.where(visibilityFilter).orderBy(sql`${records.createdAt} DESC`).limit(8);
 
     logger.info("search_results", { count: results.length });
     return Response.json({ results });

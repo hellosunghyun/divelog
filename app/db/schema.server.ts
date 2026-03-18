@@ -106,6 +106,8 @@ export const records = sqliteTable("records", {
   collaborationUnitId: text("collaboration_unit_id").references(() => collaborationUnits.id),
   linkedRecordId: text("linked_record_id"),
   originalUrl: text("original_url"),
+  originalTitle: text("original_title"),
+  originalDescription: text("original_description"),
   title: text("title").notNull(),
   content: text("content").notNull(),
   contentText: text("content_text").default(""),

@@ -166,7 +166,24 @@ INSERT INTO tags (id, name, slug, description, color, created_by, created_at, up
   ('tag-004', '질문', 'question', '오래 붙드는 질문과 탐구', '#F59E0B', 'jiwon', unixepoch() - 86400 * 25, unixepoch() - 86400 * 25),
   ('tag-005', '기록의 의미', 'meaning-of-writing', '기록을 남기는 이유와 역할', '#10B981', 'soyeon', unixepoch() - 86400 * 22, unixepoch() - 86400 * 22),
   ('tag-006', '전환', 'transition', '구간의 전환과 변화', '#8B5CF6', 'hyunjin', unixepoch() - 86400 * 20, unixepoch() - 86400 * 20),
-  ('tag-007', '학습', 'learning', '학습의 과정과 의미', '#06B6D4', 'jaemin', unixepoch() - 86400 * 18, unixepoch() - 86400 * 18);
+  ('tag-007', '학습', 'learning', '학습의 과정과 의미', '#06B6D4', 'jaemin', unixepoch() - 86400 * 18, unixepoch() - 86400 * 18),
+  ('tag-008', 'CBL', 'cbl', 'Challenge-Based Learning 경험', '#146C94', 'system', unixepoch(), unixepoch()),
+  ('tag-009', '프로토타입', 'prototype', '프로토타입 제작과 실험', '#146C94', 'system', unixepoch(), unixepoch()),
+  ('tag-010', '디자인', 'design', '디자인 탐구와 실험', '#146C94', 'system', unixepoch(), unixepoch()),
+  ('tag-011', '발표', 'presentation', '발표와 공유 경험', '#146C94', 'system', unixepoch(), unixepoch()),
+  ('tag-012', '코드', 'code', '코드 작성과 개발 탐구', '#146C94', 'system', unixepoch(), unixepoch()),
+  ('tag-013', '리서치', 'research', '조사와 탐구 과정', '#146C94', 'system', unixepoch(), unixepoch()),
+  ('tag-014', '멘토링', 'mentoring', '멘토링 경험과 배움', '#146C94', 'system', unixepoch(), unixepoch()),
+  ('tag-015', '피드백', 'feedback', '피드백을 주고받은 경험', '#146C94', 'system', unixepoch(), unixepoch()),
+  ('tag-016', '성장', 'growth', '성장을 실감한 순간', '#7C3AED', 'system', unixepoch(), unixepoch()),
+  ('tag-017', '고민', 'concern', '아직 답이 없는 고민', '#7C3AED', 'system', unixepoch(), unixepoch()),
+  ('tag-018', '돌파', 'breakthrough', '막혀있던 것이 뚫린 순간', '#7C3AED', 'system', unixepoch(), unixepoch()),
+  ('tag-019', '감사', 'gratitude', '고마웠던 사람과 순간', '#7C3AED', 'system', unixepoch(), unixepoch()),
+  ('tag-020', '깨달음', 'insight', '새롭게 알게 된 것', '#7C3AED', 'system', unixepoch(), unixepoch()),
+  ('tag-021', '불확실성', 'uncertainty', '확실하지 않은 것과 함께 가기', '#7C3AED', 'system', unixepoch(), unixepoch()),
+  ('tag-022', '일상', 'daily-life', '아카데미 안팎의 일상', '#10B981', 'system', unixepoch(), unixepoch()),
+  ('tag-023', '취미', 'hobby', '개인적 관심사와 취미', '#10B981', 'system', unixepoch(), unixepoch()),
+  ('tag-024', '건강', 'health', '몸과 마음의 건강', '#10B981', 'system', unixepoch(), unixepoch());
 
 INSERT INTO record_tags (record_id, tag_id, created_at) VALUES
   ('record-002', 'tag-001', unixepoch() - 86400 * 7),

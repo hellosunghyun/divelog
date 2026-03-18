@@ -194,3 +194,57 @@ export async function getTagsByRecord(d1: D1Database, recordId: string) {
 
   return result;
 }
+
+export async function findOrCreateTag(
+  d1: D1Database,
+  name: string,
+  createdBy?: string
+): Promise<{ id: string; name: string; slug: string; isNew: boolean }> {
+  const trimmedName = name.trim();
+  if (!trimmedName) throw new Error("Tag name cannot be empty");
+
+  const existing = await getTagByName(d1, trimmedName);
+  if (existing) {
+    return { id: existing.id, name: existing.name, slug: existing.slug, isNew: false };
+  }
+
+  const { nanoid } = await import("../../../lib/utils/utils.server");
+  const slug = `tag-${nanoid(8)}`;
+
+  try {
+    const created = await createTag(d1, {
+      name: trimmedName,
+      slug,
+      createdBy,
+    });
+    if (!created) throw new Error("Tag creation returned null");
+    return { id: created.id, name: created.name, slug: created.slug, isNew: true };
+  } catch (err: unknown) {
+    const errMsg = err instanceof Error ? err.message : String(err);
+    if (errMsg.includes("UNIQUE") || errMsg.includes("unique")) {
+      const retry = await getTagByName(d1, trimmedName);
+      if (retry) return { id: retry.id, name: retry.name, slug: retry.slug, isNew: false };
+    }
+    throw err;
+  }
+}
+
+export async function syncTagsForRecord(
+  d1: D1Database,
+  recordId: string,
+  tagIds: string[]
+): Promise<void> {
+  const database = db(d1);
+  await database.delete(recordTags).where(eq(recordTags.recordId, recordId));
+
+  if (tagIds.length === 0) return;
+
+  const now = Math.floor(Date.now() / 1000);
+  for (const tagId of tagIds) {
+    await database.insert(recordTags).values({
+      recordId,
+      tagId,
+      createdAt: now,
+    });
+  }
+}
