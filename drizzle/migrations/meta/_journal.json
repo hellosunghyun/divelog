@@ -57,6 +57,13 @@
       "when": 1741000000000,
       "tag": "0007_add_record_revisions",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1773817448462,
+      "tag": "0008_friendly_darkhawk",
+      "breakpoints": true
     }
   ]
 }
