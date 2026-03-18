@@ -27,15 +27,45 @@ export async function syncAllMentionsForRecord(
   const extractedUserIds = extractedMentions.map((m) => m.userId);
 
   // Merge explicit and extracted mentions using Set to remove duplicates
-  const allUserIds = Array.from(new Set([...explicitUserIds, ...extractedUserIds]));
+  const allIds = Array.from(new Set([...explicitUserIds, ...extractedUserIds]));
 
   // Delete all existing mentions for this record
   await database.delete(mentions).where(eq(mentions.recordId, recordId));
 
-  // Insert new mentions
-  if (allUserIds.length > 0) {
+  if (allIds.length === 0) return;
+
+  // Mention nodes may store slugs instead of user IDs — resolve before FK insert
+  const resolvedUserIds: string[] = [];
+
+  const existingProfiles = await database
+    .select({ userId: learnerProfiles.userId })
+    .from(learnerProfiles)
+    .where(inArray(learnerProfiles.userId, allIds));
+  const validUserIds = new Set(existingProfiles.map((p) => p.userId));
+
+  const potentialSlugs: string[] = [];
+  for (const id of allIds) {
+    if (validUserIds.has(id)) {
+      resolvedUserIds.push(id);
+    } else {
+      potentialSlugs.push(id);
+    }
+  }
+
+  if (potentialSlugs.length > 0) {
+    const slugProfiles = await database
+      .select({ userId: learnerProfiles.userId })
+      .from(learnerProfiles)
+      .where(inArray(learnerProfiles.slug, potentialSlugs));
+    for (const profile of slugProfiles) {
+      resolvedUserIds.push(profile.userId);
+    }
+  }
+
+  if (resolvedUserIds.length > 0) {
     const now = Math.floor(Date.now() / 1000);
-    const mentionValues = allUserIds.map((userId) => ({
+    const uniqueUserIds = Array.from(new Set(resolvedUserIds));
+    const mentionValues = uniqueUserIds.map((userId) => ({
       id: nanoid(),
       recordId,
       mentionedUserId: userId,

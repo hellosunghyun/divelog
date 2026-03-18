@@ -129,6 +129,7 @@ export async function action({ params, request, context }: Route.ActionArgs) {
     throw data({ error: "기록을 찾을 수 없습니다." }, { status: 404 });
   }
 
+  const database = db(context.cloudflare.env.DB);
   const formData = await request.formData();
   const recordData = await getRecordBySlug(context.cloudflare.env.DB, recordSlug, auth.user.id);
 
@@ -216,8 +217,6 @@ export async function action({ params, request, context }: Route.ActionArgs) {
     participants,
     auth.user.id,
   );
-
-  const database = db(context.cloudflare.env.DB);
 
   await database.delete(recordReferences).where(eq(recordReferences.recordId, recordData.record.id));
 

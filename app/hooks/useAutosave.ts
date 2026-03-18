@@ -64,7 +64,7 @@ export function useAutosave(options: UseAutosaveOptions): AutosaveState {
     const currentContent = formData.content;
 
     // Don't save empty content
-    if (!currentContent || currentContent.trim() === "") {
+    if (!currentContent || typeof currentContent !== "string" || currentContent.trim() === "") {
       if (timeoutRef.current) {
           clearTimeout(timeoutRef.current);
           timeoutRef.current = null;
@@ -110,7 +110,7 @@ export function useAutosave(options: UseAutosaveOptions): AutosaveState {
       const latestFormData = getFormData();
 
       // Double-check content is not empty before submitting
-      if (!latestFormData.content || latestFormData.content.trim() === "") {
+      if (!latestFormData.content || typeof latestFormData.content !== "string" || latestFormData.content.trim() === "") {
         return;
       }
 

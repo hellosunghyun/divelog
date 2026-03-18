@@ -31,7 +31,7 @@ export function saveDraftToLocal(
 ): void {
   try {
     // Ignore empty drafts
-    if (!data.content || data.content.trim() === '') {
+    if (!data.content || typeof data.content !== 'string' || data.content.trim() === '') {
       return;
     }
 
@@ -71,7 +71,7 @@ export function loadDraftFromLocal(format: 'note' | 'article'): DraftData | null
     }
 
     // Validate content is not empty
-    if (!draft.content || draft.content.trim() === '') {
+    if (!draft.content || typeof draft.content !== 'string' || draft.content.trim() === '') {
       return null;
     }
 
