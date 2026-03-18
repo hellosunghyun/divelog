@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { deliverMentionNotifications } from "../mention-delivery.server";
-import { notify } from "../notify.server";
+import { publishNotification } from "../publish.server";
 import { extractMentionUserIdsFromContent } from "~/db/queries/dialogue/mentions.server";
 
-vi.mock("../notify.server", () => ({
-  notify: vi.fn(),
+vi.mock("../publish.server", () => ({
+  publishNotification: vi.fn(),
 }));
 
 vi.mock("~/db/queries/dialogue/mentions.server", () => ({
@@ -14,6 +14,7 @@ vi.mock("~/db/queries/dialogue/mentions.server", () => ({
 
 describe("deliverMentionNotifications", () => {
   const d1 = {} as D1Database;
+  const queue = {} as Queue;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -25,10 +26,14 @@ describe("deliverMentionNotifications", () => {
       "user-2",
       "user-1",
     ]);
-    vi.mocked(notify).mockResolvedValue({ success: true });
+    vi.mocked(publishNotification).mockResolvedValue({
+      success: true,
+      enqueued: true,
+    });
 
     await deliverMentionNotifications({
       d1,
+      queue,
       actorId: "author-1",
       actorName: "작성자",
       content: '{"type":"doc"}',
@@ -36,25 +41,33 @@ describe("deliverMentionNotifications", () => {
       visibility: "cohort",
     });
 
-    expect(notify).toHaveBeenCalledTimes(2);
-    expect(notify).toHaveBeenNthCalledWith(1, {
+    expect(publishNotification).toHaveBeenCalledTimes(2);
+    expect(publishNotification).toHaveBeenNthCalledWith(
+      1,
+      queue,
+      {
+        actorId: "author-1",
+        recipientId: "user-1",
+        type: "mention",
+        title: "작성자님이 회원님을 언급했습니다",
+        recordId: "record-1",
+        visibility: "cohort",
+      },
       d1,
-      actorId: "author-1",
-      recipientId: "user-1",
-      type: "mention",
-      title: "작성자님이 회원님을 언급했습니다",
-      recordId: "record-1",
-      visibility: "cohort",
-    });
-    expect(notify).toHaveBeenNthCalledWith(2, {
+    );
+    expect(publishNotification).toHaveBeenNthCalledWith(
+      2,
+      queue,
+      {
+        actorId: "author-1",
+        recipientId: "user-2",
+        type: "mention",
+        title: "작성자님이 회원님을 언급했습니다",
+        recordId: "record-1",
+        visibility: "cohort",
+      },
       d1,
-      actorId: "author-1",
-      recipientId: "user-2",
-      type: "mention",
-      title: "작성자님이 회원님을 언급했습니다",
-      recordId: "record-1",
-      visibility: "cohort",
-    });
+    );
   });
 
   it("returns early when no mentions are present", async () => {
@@ -62,6 +75,7 @@ describe("deliverMentionNotifications", () => {
 
     await deliverMentionNotifications({
       d1,
+      queue,
       actorId: "author-1",
       actorName: "작성자",
       content: '{"type":"doc"}',
@@ -69,16 +83,17 @@ describe("deliverMentionNotifications", () => {
       visibility: "public",
     });
 
-    expect(notify).not.toHaveBeenCalled();
+    expect(publishNotification).not.toHaveBeenCalled();
   });
 
   it("swallows notify failures so the caller can continue", async () => {
     vi.mocked(extractMentionUserIdsFromContent).mockReturnValue(["user-1"]);
-    vi.mocked(notify).mockRejectedValue(new Error("boom"));
+    vi.mocked(publishNotification).mockRejectedValue(new Error("boom"));
 
     await expect(
       deliverMentionNotifications({
         d1,
+        queue,
         actorId: "author-1",
         actorName: "작성자",
         content: '{"type":"doc"}',

@@ -30,8 +30,8 @@ import {
   sentences,
   userRoles,
 } from "~/db/schema.server";
-import { notify } from "~/lib/notifications/notify.server";
 import { deliverMentionNotifications } from "~/lib/notifications/mention-delivery.server";
+import { publishNotification } from "~/lib/notifications/publish.server";
 import { updateResponse, deleteResponse, getResponseById } from "~/db/queries/dialogue/responses.server";
 
 export async function loader({ params, context, request }: Route.LoaderArgs) {
@@ -303,6 +303,7 @@ export async function action({ request, context }: Route.ActionArgs) {
       context.cloudflare.ctx.waitUntil(
         deliverMentionNotifications({
           d1: context.cloudflare.env.DB,
+          queue: context.cloudflare.env.QUEUE,
           actorId: currentUserId,
           actorName: authorName,
           content: parsed.data.content,
@@ -317,15 +318,18 @@ export async function action({ request, context }: Route.ActionArgs) {
         const parentAuthorId = parentResponse?.authorId;
 
         if (parentAuthorId && parentAuthorId !== currentUserId) {
-          const result = await notify({
-            d1: context.cloudflare.env.DB,
-            actorId: currentUserId,
-            recipientId: parentAuthorId,
-            type: "reply",
-            title: `${authorName}님이 답글을 남겼습니다`,
-            recordId: parsed.data.recordId,
-            visibility: recordVisibility,
-          });
+          const result = await publishNotification(
+            context.cloudflare.env.QUEUE,
+            {
+              actorId: currentUserId,
+              recipientId: parentAuthorId,
+              type: "reply",
+              title: `${authorName}님이 답글을 남겼습니다`,
+              recordId: parsed.data.recordId,
+              visibility: recordVisibility,
+            },
+            context.cloudflare.env.DB,
+          );
 
           if (!result.success) {
             logger.warn("notification_create_failed", {
@@ -337,15 +341,18 @@ export async function action({ request, context }: Route.ActionArgs) {
 
         // 기록 작성자가 부모 응답 작성자와 다르고, 현재 사용자가 기록 작성자가 아닐 때 추가 알림
         if (recordAuthorId !== parentAuthorId && recordAuthorId !== currentUserId) {
-          const result = await notify({
-            d1: context.cloudflare.env.DB,
-            actorId: currentUserId,
-            recipientId: recordAuthorId,
-            type: "response",
-            title: `${authorName}님이 ${typeLabel}을 남겼습니다`,
-            recordId: parsed.data.recordId,
-            visibility: recordVisibility,
-          });
+          const result = await publishNotification(
+            context.cloudflare.env.QUEUE,
+            {
+              actorId: currentUserId,
+              recipientId: recordAuthorId,
+              type: "response",
+              title: `${authorName}님이 ${typeLabel}을 남겼습니다`,
+              recordId: parsed.data.recordId,
+              visibility: recordVisibility,
+            },
+            context.cloudflare.env.DB,
+          );
 
           if (!result.success) {
             logger.warn("notification_create_failed", {
@@ -357,15 +364,18 @@ export async function action({ request, context }: Route.ActionArgs) {
       } else {
         // 일반 응답 알림: 기록 작성자에게
         if (currentUserId !== recordAuthorId) {
-          const result = await notify({
-            d1: context.cloudflare.env.DB,
-            actorId: currentUserId,
-            recipientId: recordAuthorId,
-            type: "response",
-            title: `${authorName}님이 ${typeLabel}을 남겼습니다`,
-            recordId: parsed.data.recordId,
-            visibility: recordVisibility,
-          });
+          const result = await publishNotification(
+            context.cloudflare.env.QUEUE,
+            {
+              actorId: currentUserId,
+              recipientId: recordAuthorId,
+              type: "response",
+              title: `${authorName}님이 ${typeLabel}을 남겼습니다`,
+              recordId: parsed.data.recordId,
+              visibility: recordVisibility,
+            },
+            context.cloudflare.env.DB,
+          );
 
           if (!result.success) {
             logger.warn("notification_create_failed", {

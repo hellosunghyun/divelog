@@ -1,6 +1,8 @@
 import { createRequestHandler } from "react-router";
 import { wrapRequestHandler } from "@sentry/cloudflare";
 import { createLogger } from "../app/lib/infra/logger.server";
+import { notify } from "../app/lib/notifications/notify.server";
+import type { NotificationQueueMessage } from "../app/lib/notifications/publish.server";
 
 declare module "react-router" {
   export interface AppLoadContext {
@@ -119,6 +121,34 @@ export default {
         durationMs: Date.now() - startMs,
       });
       throw thrown;
+    }
+  },
+  async queue(
+    batch: MessageBatch<NotificationQueueMessage>,
+    env: Env,
+    _ctx: ExecutionContext,
+  ) {
+    for (const message of batch.messages) {
+      try {
+        const result = await notify({
+          d1: env.DB,
+          ...message.body,
+        });
+
+        if (!result.success) {
+          console.warn("queue_notification_delivery_failed", {
+            recipientId: message.body.recipientId,
+            type: message.body.type,
+            error: result.error ?? "알림 생성에 실패했습니다.",
+          });
+        }
+      } catch (error) {
+        console.error("queue_notification_delivery_failed", {
+          recipientId: message.body.recipientId,
+          type: message.body.type,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
     }
   },
 } satisfies ExportedHandler<Env>;

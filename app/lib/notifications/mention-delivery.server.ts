@@ -1,10 +1,11 @@
 import { extractMentionUserIdsFromContent } from "~/db/queries/dialogue/mentions.server";
 
 import { createModuleLogger } from "../infra/logger.server";
-import { notify } from "./notify.server";
+import { publishNotification } from "./publish.server";
 
 interface DeliverMentionNotificationsParams {
   d1: D1Database;
+  queue: Queue;
   actorId: string;
   actorName: string;
   content: string | null | undefined;
@@ -30,15 +31,18 @@ export async function deliverMentionNotifications(
   await Promise.all(
     recipientIds.map(async (recipientId) => {
       try {
-        const result = await notify({
-          d1: params.d1,
+        const result = await publishNotification(
+          params.queue,
+          {
           actorId: params.actorId,
           recipientId,
           type: "mention",
           title: `${params.actorName}님이 회원님을 언급했습니다`,
           recordId: params.recordId,
           visibility: params.visibility,
-        });
+          },
+          params.d1,
+        );
 
         if (!result.success) {
           logger.warn("mention_notification_failed", {
