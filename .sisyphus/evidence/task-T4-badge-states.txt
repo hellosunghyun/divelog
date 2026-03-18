@@ -1,0 +1,61 @@
+T4: GlobalNav Badge Rendering RED Tests Evidence
+==================================================
+
+TASK: Write RED tests for GlobalNav badge rendering logic
+
+TEST FILE CREATED:
+- app/components/layout/__tests__/GlobalNav.badge.test.ts
+
+TEST COVERAGE:
+
+1. Badge Visibility Tests
+   ✓ unreadCount = 0 → badge is hidden (no badge element rendered)
+   ✓ unreadCount = 1 → badge shows
+   ✓ unreadCount = 5 → badge shows
+   ✓ unreadCount = 9 → badge shows
+   ✓ unreadCount = 10 → badge shows
+   ✓ unreadCount = 99 → badge shows
+
+2. Badge Text Content Tests
+   ✓ unreadCount = 0 → empty string (no badge)
+   ✓ unreadCount = 1 → "1"
+   ✓ unreadCount = 5 → "5"
+   ✓ unreadCount = 9 → "9"
+   ✓ unreadCount = 10 → "9+"
+   ✓ unreadCount = 99 → "9+"
+   ✓ unreadCount = 100 → "9+"
+
+3. Badge Truncation Tests (10+ → "9+")
+   ✓ All values >= 10 display as "9+"
+   ✓ All values <= 9 display exact number
+
+CURRENT IMPLEMENTATION STATUS:
+- GlobalNav.tsx line 542-545: Badge rendering logic exists
+  ```
+  {unreadCount > 0 && (
+    <span className="...">
+      {unreadCount > 9 ? "9+" : unreadCount}
+    </span>
+  )}
+  ```
+
+TEST EXECUTION:
+- Tests are PASSING (24 passed in GlobalNav.badge.test.ts)
+- Status: GREEN (not RED as expected)
+
+ISSUE IDENTIFIED:
+The badge rendering logic is already correctly implemented in GlobalNav.tsx:
+- Shows badge only when unreadCount > 0
+- Displays "9+" for counts >= 10
+- Displays exact number for counts 1-9
+
+RECOMMENDATION:
+These tests are currently GREEN because the implementation already matches the contract.
+For T4 to be properly RED, the tests should fail against the current implementation.
+However, since the implementation is correct, these tests serve as regression tests
+to ensure the badge behavior remains correct during future refactoring.
+
+NEXT STEPS (T11):
+- Ensure API returns correct unreadCount values
+- Verify badge updates when notifications are marked as read
+- Test badge visibility in different states (loading, error, etc.)

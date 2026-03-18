@@ -1,0 +1,99 @@
+
+> divelog@ typecheck /Users/hellosunghyun/Documents/Github/divelog-notification-delivery
+> npm run cf-typegen && react-router typegen && tsc -b
+
+npm warn Unknown env config "npm-globalconfig". This will stop working in the next major version of npm.
+npm warn Unknown env config "verify-deps-before-run". This will stop working in the next major version of npm.
+npm warn Unknown env config "_jsr-registry". This will stop working in the next major version of npm.
+
+> cf-typegen
+> wrangler types
+
+
+ ⛅️ wrangler 4.73.0 (update available 4.75.0)
+─────────────────────────────────────────────
+Generating project types...
+
+declare namespace Cloudflare {
+	interface GlobalProps {
+		mainModule: typeof import("./workers/app");
+	}
+	interface Env {
+		R2: R2Bucket;
+		DB: D1Database;
+		QUEUE: Queue;
+		ADMIN_USER_ID: "usr_placeholder_replace_with_real_admin_id";
+		ADMIN_EMAILS: "sunkima26@pos.idserve.net";
+		LOG_LEVEL: "INFO";
+	}
+}
+interface Env extends Cloudflare.Env {}
+
+Generating runtime types...
+
+Runtime types generated.
+
+
+✨ Types written to worker-configuration.d.ts
+
+📖 Read about runtime types
+https://developers.cloudflare.com/workers/languages/typescript/#generate-types
+📣 Remember to rerun 'wrangler types' after you change your wrangler.toml file.
+
+[sentry-vite-plugin] Info: Sending telemetry data on issues and performance to Sentry. To disable telemetry, set `options.telemetry` to `false`.
+app/db/queries/dialogue/responses.server.ts(71,3): error TS2322: Type '({ [x: string]: unknown; } | { [x: string]: unknown; })[]' is not assignable to type 'RecentlyRespondedRecord[]'.
+  Type '{ [x: string]: unknown; } | { [x: string]: unknown; }' is not assignable to type 'RecentlyRespondedRecord'.
+    Type '{ [x: string]: unknown; }' is not assignable to type 'RecentlyRespondedRecord'.
+      Type '{ [x: string]: unknown; }' is missing the following properties from type '{ type: string; title: string; content: string; id: string; slug: string; cohort: string | null; createdAt: number; updatedAt: number; challengeId: string | null; authorId: string; collaborationUnitId: string | null; ... 13 more ...; recordedEndAt: number | null; }': type, title, content, id, and 21 more.
+app/db/queries/dialogue/responses.server.ts(72,13): error TS2345: Argument of type '{ recentResponseCount: SQL.Aliased<number>; lastResponseAt: SQL.Aliased<number>; _: { readonly brand: "Table"; readonly config: { name: "records"; schema: undefined; columns: { id: SQLiteColumn<{ name: "id"; ... 13 more ...; generated: undefined; }, {}, { ...; }>; ... 23 more ...; updatedAt: SQLiteColumn<...>; }; di...' is not assignable to parameter of type 'SelectedFields'.
+  Property '_' is incompatible with index signature.
+    Type '{ readonly brand: "Table"; readonly config: { name: "records"; schema: undefined; columns: { id: SQLiteColumn<{ name: "id"; tableName: "records"; dataType: "string"; columnType: "SQLiteText"; data: string; driverParam: string; ... 8 more ...; generated: undefined; }, {}, { ...; }>; ... 23 more ...; updatedAt: SQLite...' is not assignable to type 'SQL<unknown> | Aliased<unknown> | Subquery<string, Record<string, unknown>> | SQLiteColumn<ColumnBaseConfig<ColumnDataType, string>, {}, {}> | SQLiteTable<...> | SelectedFieldsFlat<...>'.
+      Type '{ readonly brand: "Table"; readonly config: { name: "records"; schema: undefined; columns: { id: SQLiteColumn<{ name: "id"; tableName: "records"; dataType: "string"; columnType: "SQLiteText"; data: string; driverParam: string; ... 8 more ...; generated: undefined; }, {}, { ...; }>; ... 23 more ...; updatedAt: SQLite...' is not assignable to type 'SelectedFieldsFlat<SQLiteColumn<ColumnBaseConfig<ColumnDataType, string>, {}, {}>>'.
+        Property 'brand' is incompatible with index signature.
+          Type 'string' is not assignable to type 'SQL<unknown> | Aliased<unknown> | Subquery<string, Record<string, unknown>> | SQLiteColumn<ColumnBaseConfig<ColumnDataType, string>, {}, {}>'.
+app/db/queries/records/references.server.ts(3,33): error TS2307: Cannot find module '@cloudflare/workers-types' or its corresponding type declarations.
+app/db/schema.server.ts(142,14): error TS7022: 'responses' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+app/db/schema.server.ts(151,59): error TS7024: Function implicitly has return type 'any' because it does not have a return type annotation and is referenced directly or indirectly in one of its return expressions.
+app/lib/auth/auth.middleware.ts(27,64): error TS2339: Property 'ADAKRPOS_API_KEY' does not exist on type 'Env'.
+app/lib/auth/auth.middleware.ts(40,62): error TS2339: Property 'ADAKRPOS_API_KEY' does not exist on type 'Env'.
+app/lib/auth/auth.middleware.ts(50,45): error TS2339: Property 'ADAKRPOS_API_KEY' does not exist on type 'Env'.
+app/lib/auth/auth.middleware.ts(60,45): error TS2339: Property 'ADAKRPOS_API_KEY' does not exist on type 'Env'.
+app/routes/_admin.tsx(43,10): error TS2741: Property 'title' is missing in type '{}' but required in type 'AdminContextBarProps'.
+app/routes/_public.tsx(18,62): error TS2339: Property 'ADAKRPOS_API_KEY' does not exist on type 'Env'.
+app/routes/admin/curation.tsx(25,28): error TS2304: Cannot find name 'curationSlots'.
+app/routes/admin/index.tsx(24,29): error TS2304: Cannot find name 'records'.
+app/routes/admin/index.tsx(26,18): error TS2304: Cannot find name 'records'.
+app/routes/admin/memories/$stageId.tsx(2,28): error TS2307: Cannot find module './+types/$stageId' or its corresponding type declarations.
+app/routes/admin/memories/$stageId.tsx(16,11): error TS2339: Property 'collectiveMemories' does not exist on type 'typeof import("/Users/hellosunghyun/Documents/Github/divelog-notification-delivery/app/db/schema.server")'.
+app/routes/admin/memories/$stageId.tsx(27,11): error TS2339: Property 'collectiveMemories' does not exist on type 'typeof import("/Users/hellosunghyun/Documents/Github/divelog-notification-delivery/app/db/schema.server")'.
+app/routes/admin/memories/index.tsx(1,28): error TS2307: Cannot find module './+types/index' or its corresponding type declarations.
+app/routes/admin/memories/index.tsx(19,11): error TS2339: Property 'collectiveMemories' does not exist on type 'typeof import("/Users/hellosunghyun/Documents/Github/divelog-notification-delivery/app/db/schema.server")'.
+app/routes/admin/memories/index.tsx(46,41): error TS7031: Binding element 'memory' implicitly has an 'any' type.
+app/routes/admin/memories/index.tsx(46,49): error TS7031: Binding element 'stage' implicitly has an 'any' type.
+app/routes/admin/roles.tsx(103,16): error TS2304: Cannot find name 'userRoles'.
+app/routes/admin/settings.tsx(15,26): error TS2304: Cannot find name 'settings'.
+app/routes/api/__tests__/autosave.test.ts(66,42): error TS2345: Argument of type '{ isAuthenticated: boolean; user: { id: string; isVerified: boolean; }; session: null; }' is not assignable to parameter of type 'AuthContext'.
+  Type '{ isAuthenticated: boolean; user: { id: string; isVerified: boolean; }; session: null; }' is not assignable to type 'AdakrposUnauthContext'.
+    Types of property 'user' are incompatible.
+      Type '{ id: string; isVerified: boolean; }' is not assignable to type 'null'.
+app/routes/api/__tests__/autosave.test.ts(85,42): error TS2345: Argument of type '{ isAuthenticated: boolean; user: { id: string; isVerified: boolean; }; session: null; }' is not assignable to parameter of type 'AuthContext'.
+  Type '{ isAuthenticated: boolean; user: { id: string; isVerified: boolean; }; session: null; }' is not assignable to type 'AdakrposUnauthContext'.
+    Types of property 'user' are incompatible.
+      Type '{ id: string; isVerified: boolean; }' is not assignable to type 'null'.
+app/routes/api/__tests__/autosave.test.ts(114,42): error TS2345: Argument of type '{ isAuthenticated: boolean; user: { id: string; isVerified: boolean; }; session: null; }' is not assignable to parameter of type 'AuthContext'.
+  Type '{ isAuthenticated: boolean; user: { id: string; isVerified: boolean; }; session: null; }' is not assignable to type 'AdakrposUnauthContext'.
+    Types of property 'user' are incompatible.
+      Type '{ id: string; isVerified: boolean; }' is not assignable to type 'null'.
+app/routes/api/autosave.tsx(33,62): error TS2339: Property 'ADAKRPOS_API_KEY' does not exist on type 'Env'.
+app/routes/api/upload.tsx(20,62): error TS2339: Property 'ADAKRPOS_API_KEY' does not exist on type 'Env'.
+app/routes/public/journey/$stageSlug.server.ts(3,28): error TS2307: Cannot find module './+types/$stageSlug' or its corresponding type declarations.
+app/routes/public/journey/$stageSlug.tsx(1,28): error TS2307: Cannot find module './+types/$stageSlug' or its corresponding type declarations.
+app/routes/public/memories/$stageSlug.tsx(2,28): error TS2307: Cannot find module './+types/$stageSlug' or its corresponding type declarations.
+app/routes/public/memories/$stageSlug.tsx(11,3): error TS2305: Module '"~/db/schema.server"' has no exported member 'collectiveMemories'.
+app/routes/public/memories/$stageSlug.tsx(13,3): error TS2305: Module '"~/db/schema.server"' has no exported member 'memoryQuestions'.
+app/routes/public/memories/$stageSlug.tsx(14,3): error TS2305: Module '"~/db/schema.server"' has no exported member 'memoryRecords'.
+app/routes/public/memories/$stageSlug.tsx(15,3): error TS2305: Module '"~/db/schema.server"' has no exported member 'memorySentences'.
+app/routes/public/memories/$stageSlug.tsx(117,34): error TS7031: Binding element 'question' implicitly has an 'any' type.
+app/routes/public/memories/$stageSlug.tsx(128,34): error TS7031: Binding element 'sentence' implicitly has an 'any' type.
+app/routes/public/memories/$stageSlug.tsx(153,35): error TS7031: Binding element 'record' implicitly has an 'any' type.
+ ELIFECYCLE  Command failed with exit code 2.

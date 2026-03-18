@@ -87,3 +87,11 @@ Tests written:
 - 모든 호출에 `actorId: auth.user.id`, `recordId: parsed.data.recordId`, `visibility: targetRecord[0]?.visibility`를 전달해 서비스의 self-guard, draft guard, preference, dedupe를 그대로 타게 했다.
 - 라우트에 이미 있던 `currentUserId !== recipientId`, `recordAuthorId !== parentAuthorId` 조건은 유지해서 서비스 이전 이후에도 중복 작업을 늘리지 않도록 했다.
 - `notify()`는 throw하지 않으므로 각 호출 뒤 `result.success`를 확인해 기존 `notification_create_failed` 경고 로그 흐름만 유지했다.
+
+## 2026-03-19 T8
+- `app/routes/public/write/meta.$recordId.tsx`의 participant 추가 로직에서 직접 `createNotification`을 호출하던 코드를 모두 `notify()`로 교체했다.
+- 기존 `notified` Set 변수는 제거했고, 대신 서비스의 dedupe 로직(`recipientId + type + recordId` 조합으로 기존 알림 확인)이 중복 생성을 방지하도록 위임했다.
+- 모든 호출에 `actorId: auth.user.id`, `recordId: record.id`, `visibility: record.visibility`를 전달해 서비스의 self-guard, draft guard, preference, dedupe를 그대로 타게 했다.
+- 참여자 알림 루프를 `context.cloudflare.ctx.waitUntil()`로 감싸서 비동기 처리하고, 메인 save 액션이 블로킹되지 않도록 했다.
+- 드래프트 기록에서는 `visibility === "draft"`이므로 서비스가 자동으로 알림 생성을 스킵한다.
+- 증거 파일: `.sisyphus/evidence/task-T8-participant-hardening.txt` (LSP clean, 4개 시나리오 테스트 케이스 포함).

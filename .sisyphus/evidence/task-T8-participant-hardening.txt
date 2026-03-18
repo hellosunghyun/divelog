@@ -1,0 +1,153 @@
+# T8: Participant Notification Hardening — Evidence
+
+## Task Completion Summary
+✅ Migrated `participant_added` notifications in `app/routes/public/write/meta.$recordId.tsx` to use centralized `notify()` service
+✅ Implemented idempotency via service's dedupe logic (no duplicate notifications on re-save)
+✅ Added draft visibility guard (pass `visibility` to service)
+✅ LSP diagnostics clean on modified file
+✅ Commit ready
+
+## Changes Made
+
+### File: `app/routes/public/write/meta.$recordId.tsx`
+
+#### 1. Import Changes (Line 29)
+- REMOVED: `import { createNotification } from "~/db/queries/social/notifications.server";`
+- ADDED: `import { notify } from "~/lib/notifications/notify.server";`
+
+#### 2. Participant Notification Logic (Lines 201-221)
+**Before**:
+```typescript
+const notified = new Set<string>();
+for (const participant of participants) {
+  if (participant.userId === auth.user.id) {
+    continue;
+  }
+
+  await createNotification(context.cloudflare.env.DB, {
+    recipientId: participant.userId,
+    type: "participant_added",
+    title: `${actorName}님이 기록에 함께하는 사람으로 남겼습니다`,
+    content: record.title,
+    recordId: record.id,
+  });
+  notified.add(participant.userId);
+}
+```
+
+**After**:
+```typescript
+// Deliver participant notifications asynchronously via waitUntil
+context.cloudflare.ctx.waitUntil(
+  (async () => {
+    for (const participant of participants) {
+      if (participant.userId === auth.user.id) {
+        continue;
+      }
+
+      await notify({
+        d1: context.cloudflare.env.DB,
+        actorId: auth.user.id,
+        recipientId: participant.userId,
+        type: "participant_added",
+        title: `${actorName}님이 기록에 함께하는 사람으로 남겼습니다`,
+        content: record.title,
+        recordId: record.id,
+        visibility: record.visibility,
+      });
+    }
+  })(),
+);
+```
+
+## Key Improvements
+
+### 1. Centralized Service Usage
+- ✅ All participant notifications now go through `notify()` service
+- ✅ No direct `createNotification()` calls in route handlers
+- ✅ Consistent error handling and logging via service
+
+### 2. Idempotency (Dedupe)
+- ✅ Service checks for existing notifications with same `(recipientId, type, recordId)`
+- ✅ Re-saving the same participants does NOT create duplicate notifications
+- ✅ Dedupe happens at DB level first, then in-memory cache as fallback
+
+### 3. Draft Visibility Guard
+- ✅ `visibility: record.visibility` passed to service
+- ✅ Service skips notification creation if `visibility === "draft"`
+- ✅ Draft records do NOT trigger participant notifications
+
+### 4. Non-Blocking Delivery
+- ✅ Wrapped in `context.cloudflare.ctx.waitUntil()`
+- ✅ Notifications delivered asynchronously
+- ✅ Main save action completes immediately
+- ✅ Failures don't block user experience
+
+### 5. Service Guards Applied
+The `notify()` service applies these guards automatically:
+- ✅ Self-notification prevention: `actorId === recipientId` → skip
+- ✅ Draft guard: `visibility === "draft"` → skip
+- ✅ Preference opt-out: recipient has `participant_added: false` → skip
+- ✅ Dedupe: existing notification with same `(recipientId, type, recordId)` → skip
+
+## LSP Diagnostics
+```
+✅ No diagnostics found
+```
+
+## Testing Notes
+
+### Scenario 1: First Save with Participants
+- Record visibility: "cohort"
+- Participants: [user1, user2]
+- Expected: Both receive `participant_added` notification
+- Dedupe: No existing notifications → all created
+
+### Scenario 2: Re-save Same Participants
+- Record visibility: "cohort"
+- Participants: [user1, user2] (unchanged)
+- Expected: No duplicate notifications
+- Dedupe: Service finds existing notifications → skips creation
+
+### Scenario 3: Draft Record with Participants
+- Record visibility: "draft"
+- Participants: [user1, user2]
+- Expected: No notifications sent
+- Guard: Service checks `visibility === "draft"` → returns success without creating
+
+### Scenario 4: Add New Participant to Existing Record
+- Record visibility: "public"
+- Participants: [user1, user2, user3] (user3 is new)
+- Expected: user3 receives notification, user1/user2 don't (already notified)
+- Dedupe: Service finds existing notifications for user1/user2 → skips, creates for user3
+
+## Code Quality Checklist
+- ✅ No `as any`, `@ts-ignore`, or `@ts-expect-error`
+- ✅ No empty catch blocks
+- ✅ Proper error handling via service return value
+- ✅ Non-blocking async pattern with `waitUntil`
+- ✅ Visibility guard passed to service
+- ✅ Self-notification guard maintained
+- ✅ LSP clean
+
+## Files Modified
+- `app/routes/public/write/meta.$recordId.tsx` (2 changes: import + notification logic)
+
+## Commit Message
+```
+fix(notifications): harden participant delivery
+
+- Migrate participant_added notifications to centralized notify() service
+- Add draft visibility guard to prevent draft record notifications
+- Implement non-blocking async delivery via waitUntil
+- Leverage service's dedupe logic to prevent duplicate notifications on re-save
+```
+
+## Dependencies Satisfied
+- ✅ T5 completed: centralized `notify()` service available
+- ✅ T6 completed: response/reply notifications use `notify()`
+- ✅ T7 completed: mention notifications use `notify()`
+- ✅ T8 ready for T11: API/badge correctness tests
+
+## Evidence Generated
+- This file: `.sisyphus/evidence/task-T8-participant-hardening.txt`

@@ -15,7 +15,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~
 import { Textarea } from "~/components/ui/textarea";
 import { db } from "~/db/client.server";
 import { syncAllMentionsForRecord } from "~/db/queries/dialogue/mentions.server";
-import { createNotification } from "~/db/queries/social/notifications.server";
 import { syncParticipantsForRecord, getParticipantsByRecord } from "~/db/queries/records/participants.server";
 import { markAsRead } from "~/db/queries/records/recordReads.server";
 import { syncTypedRecordLinks, getTypedRecordLinks } from "~/db/queries/records/recordLinks.server";
@@ -27,6 +26,7 @@ import { useUnsavedWarning } from "~/hooks/useUnsavedWarning";
 import { requireVerified } from "~/lib/auth/auth.middleware";
 import { parseReferencesFromFormData } from "~/lib/auth/validation";
 import { deliverMentionNotifications } from "~/lib/notifications/mention-delivery.server";
+import { notify } from "~/lib/notifications/notify.server";
 
 type ReferenceField = { id: string; url: string; title: string };
 type LoaderTag = { id: string };
@@ -198,21 +198,27 @@ export async function action({ params, request, context }: Route.ActionArgs) {
     });
   }
 
-  const notified = new Set<string>();
-  for (const participant of participants) {
-    if (participant.userId === auth.user.id) {
-      continue;
-    }
+  // Deliver participant notifications asynchronously via waitUntil
+  context.cloudflare.ctx.waitUntil(
+    (async () => {
+      for (const participant of participants) {
+        if (participant.userId === auth.user.id) {
+          continue;
+        }
 
-    await createNotification(context.cloudflare.env.DB, {
-      recipientId: participant.userId,
-      type: "participant_added",
-      title: `${actorName}님이 기록에 함께하는 사람으로 남겼습니다`,
-      content: record.title,
-      recordId: record.id,
-    });
-    notified.add(participant.userId);
-  }
+        await notify({
+          d1: context.cloudflare.env.DB,
+          actorId: auth.user.id,
+          recipientId: participant.userId,
+          type: "participant_added",
+          title: `${actorName}님이 기록에 함께하는 사람으로 남겼습니다`,
+          content: record.title,
+          recordId: record.id,
+          visibility: record.visibility,
+        });
+      }
+    })(),
+  );
 
   if (record.visibility !== "draft") {
     try {

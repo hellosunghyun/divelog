@@ -1,0 +1,66 @@
+# Task T2: Notification Preference Query Layer — Evidence
+
+## File Created
+✓ app/db/queries/social/notificationPreferences.server.ts
+
+## Implementation Summary
+
+### Exports
+1. **NOTIFICATION_TYPES** (const array)
+   - Values: ["response", "mention", "participant_added", "reminder", "reread_reminder"]
+   - Type: readonly array matching NotificationType union
+
+2. **NotificationType** (type)
+   - Union of all valid notification types
+   - Derived from NOTIFICATION_TYPES array
+
+3. **getNotificationPreferences(d1, learnerId)**
+   - Returns: Record<NotificationType, boolean>
+   - Default behavior: All types default to true (enabled) if not found in DB
+   - Query: SELECT type, enabled FROM notification_preferences WHERE learnerId = ?
+
+4. **upsertNotificationPreferences(d1, learnerId, preferences)**
+   - Input: Partial<Record<NotificationType, boolean>>
+   - Behavior: INSERT OR REPLACE with UNIQUE constraint on (learnerId, type)
+   - Updates: enabled, updatedAt fields
+
+5. **isNotificationTypeEnabled(d1, learnerId, type)**
+   - Returns: boolean
+   - Default: true if preference not found
+
+6. **resetNotificationPreferences(d1, learnerId)**
+   - Deletes all preferences for learner (resets to defaults)
+
+## LSP Diagnostics
+✓ CLEAN — No errors in notificationPreferences.server.ts
+
+## Type Safety
+✓ All functions properly typed
+✓ No `as any`, `@ts-ignore`, or `@ts-expect-error`
+✓ Drizzle ORM patterns match notifications.server.ts style
+✓ D1Database parameter consistent with other query modules
+
+## Database Schema Alignment
+✓ References notificationPreferences table from schema.server.ts
+✓ FK: learnerId → learner_profiles.user_id (correct per T1)
+✓ UNIQUE constraint: (learnerId, type)
+✓ enabled field: integer with mode: "boolean"
+✓ updatedAt field: integer (unix timestamp)
+
+## Code Quality
+✓ Follows existing query module patterns
+✓ Uses nanoid() for ID generation (imported from utils.server)
+✓ Uses db() factory pattern (imported from client.server)
+✓ Drizzle ORM imports: and, eq, inArray
+✓ No N+1 queries
+✓ No global DB instances
+
+## Testing Ready
+✓ Module can be imported and tested
+✓ All functions are async and properly awaited
+✓ Mock-friendly design (db parameter injection)
+
+## Integration Points
+- Used by: T5 (notification service) for preference checking
+- Depends on: T1 (notificationPreferences table schema)
+- Follows: notifications.server.ts query patterns
