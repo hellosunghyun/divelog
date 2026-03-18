@@ -4,6 +4,7 @@ import { Await } from "react-router";
 import { Link } from "~/components/content/SmartLink";
 import { eq, desc, and, sql, count } from "drizzle-orm";
 import { db } from "~/db/client.server";
+import { getStages } from "~/db/queries/journey/stages.server";
 import { records, questions, sentences, learnerProfiles } from "~/db/schema.server";
 import { getRecentActivity } from "~/db/queries/social/activity.server";
 import { getPlainText } from "~/lib/content/content.server";
@@ -52,7 +53,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 
   const learnerCount = learnerCountResult[0]?.total ?? 0;
 
-  const [recentRecords, recentSentences] = await Promise.all([
+  const [recentRecords, recentSentences, allStages] = await Promise.all([
     database
       .select({
         id: records.id,
@@ -94,7 +95,10 @@ export async function loader({ request, context }: Route.LoaderArgs) {
       .where(sql`${records.visibility} IN ('cohort', 'public')`)
       .orderBy(desc(sentences.createdAt))
       .limit(4),
+    getStages(context.cloudflare.env.DB),
   ]);
+
+  const currentStage = allStages.find((stage) => stage.isCurrent) ?? null;
 
   const recentActivityPromise = getRecentActivity(context.cloudflare.env.DB, {
     limit: 8,
@@ -124,6 +128,8 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     recentSentences,
     spotlightLearners,
     learnerCount,
+    stages: allStages,
+    currentStage,
     recentActivity: recentActivityPromise,
   };
 }
@@ -155,7 +161,14 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 export default function HomePage({ loaderData }: Route.ComponentProps) {
-  const { recentRecords, recentSentences, spotlightLearners, learnerCount } = loaderData;
+  const {
+    recentRecords,
+    recentSentences,
+    spotlightLearners,
+    learnerCount,
+    stages,
+    currentStage,
+  } = loaderData;
 
   return (
     <div>
@@ -172,6 +185,92 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
           기록 남기기
         </Link>
       </HeroSection>
+
+      {stages.length > 0 ? (
+        <section
+          className="bg-bg pt-8 pb-12 md:py-16"
+          data-testid="journey-timeline-section"
+        >
+          <div className="mx-auto max-w-[1200px] px-6">
+            <div className="relative overflow-hidden rounded-[32px] border border-white/80 bg-white/60 p-8 shadow-sm backdrop-blur-xl">
+              <div className="absolute left-0 top-0 h-full w-1.5 bg-ocean-blue/10" aria-hidden="true" />
+              <div className="flex flex-col items-center gap-10 lg:flex-row">
+                <div className="lg:w-1/4">
+                  <span className="mb-1 block text-xs font-bold uppercase tracking-[0.2em] text-ocean-blue/60">
+                    코호트 여정
+                  </span>
+                  <h2 className="mb-3 text-3xl font-semibold tracking-tight text-deep-ocean md:text-4xl">
+                    아홉 달의 여정
+                  </h2>
+                  {currentStage ? (
+                    <div className="rounded-2xl border border-ocean-blue/10 bg-ocean-blue/5 p-4">
+                      <div className="mb-2 flex items-center gap-2">
+                        <svg
+                          className="h-4 w-4 text-ocean-blue"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          aria-hidden="true"
+                        >
+                          <circle cx="12" cy="12" r="10" />
+                          <path d="M12 6v6l4 2" />
+                        </svg>
+                        <span className="text-xs font-bold text-ocean-blue">현재 구간</span>
+                      </div>
+                      <p className="text-[13px] leading-snug text-text-secondary">{currentStage.name}</p>
+                    </div>
+                  ) : null}
+                </div>
+
+                <div className="w-full overflow-x-auto px-4 py-8 lg:w-3/4">
+                  <div className="relative flex min-w-max items-start justify-between gap-4">
+                    <div
+                      className="pointer-events-none absolute top-[7px] z-0 h-0.5 bg-border"
+                      style={{ left: "1rem", right: "2rem" }}
+                      aria-hidden="true"
+                    />
+                    {stages.map((stage) => {
+                      const isCurrent = Boolean(stage.isCurrent) || stage.slug === currentStage?.slug;
+                      const isPast = Boolean(currentStage) && stage.order < currentStage.order;
+
+                      return (
+                        <Link
+                          key={stage.id}
+                          to="/journey"
+                          className="relative z-10 flex flex-col items-center gap-2 no-underline group"
+                          aria-current={isCurrent ? "page" : undefined}
+                        >
+                          <div
+                            className={[
+                              "h-4 w-4 rounded-full transition-all group-hover:scale-110",
+                              isCurrent
+                                ? "bg-ocean-blue outline outline-4 outline-ocean-blue/20"
+                                : isPast
+                                  ? "bg-border"
+                                  : "border-2 border-border bg-surface-secondary",
+                            ].join(" ")}
+                            role="img"
+                            aria-label={`${stage.name}${isCurrent ? " (현재)" : ""}`}
+                          />
+                          <span
+                            className={[
+                              "whitespace-nowrap text-xs font-medium",
+                              isCurrent ? "font-bold text-ocean-blue" : "text-text-tertiary",
+                            ].join(" ")}
+                          >
+                            {stage.name}
+                          </span>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       <section
         
