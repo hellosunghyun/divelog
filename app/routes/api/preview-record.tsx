@@ -1,7 +1,7 @@
 import { eq, sql } from "drizzle-orm";
 import type { LoaderFunctionArgs } from "react-router";
 import { db } from "~/db/client.server";
-import { records, learnerProfiles, stages } from "~/db/schema.server";
+import { records, learnerProfiles } from "~/db/schema.server";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const url = new URL(request.url);
@@ -25,7 +25,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     authorDisplayName: learnerProfiles.displayName,
     authorSlug: learnerProfiles.slug,
     authorPhotoUrl: learnerProfiles.profilePhotoUrl,
-    stageId: records.stageId,
   };
 
   let result = await database
@@ -49,16 +48,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     return Response.json({ error: "not found" }, { status: 404 });
   }
 
-  let stageName: string | null = null;
-  if (record.stageId) {
-    const stageResult = await database
-      .select({ name: stages.name })
-      .from(stages)
-      .where(eq(stages.id, record.stageId))
-      .limit(1);
-    stageName = stageResult[0]?.name ?? null;
-  }
-
   const excerpt = record.contentText
     ? record.contentText.trim().length > 120
       ? `${record.contentText.trim().slice(0, 120).trimEnd()}…`
@@ -76,7 +65,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     authorDisplayName: record.authorDisplayName,
     authorSlug: record.authorSlug,
     authorPhotoUrl: record.authorPhotoUrl,
-    stageName,
   }, {
     headers: { "Cache-Control": "private, max-age=60" },
   });

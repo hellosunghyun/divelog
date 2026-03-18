@@ -10,7 +10,6 @@ export interface UseAutosaveOptions {
     content: string;
     title?: string;
     contentJson?: string;
-    stageId?: string | null;
     rhythm?: string;
     visibility?: string;
     responsePreference?: string;
@@ -80,7 +79,6 @@ export function useAutosave(options: UseAutosaveOptions): AutosaveState {
       title: formData.title ?? "",
       content: currentContent,
       contentJson: formData.contentJson ?? "",
-      stageId: formData.stageId ?? null,
       rhythm: formData.rhythm ?? "free",
       visibility: formData.visibility ?? "public",
       responsePreference: formData.responsePreference ?? "open",
@@ -102,7 +100,6 @@ export function useAutosave(options: UseAutosaveOptions): AutosaveState {
       title: formData.title,
       content: currentContent,
       contentJson: formData.contentJson,
-      stageId: formData.stageId,
       rhythm: formData.rhythm,
       visibility: (formData.visibility as "draft" | "cohort" | "public") || "public",
       responsePreference: (formData.responsePreference as "open" | "question_only" | "closed") || "open",
@@ -123,7 +120,6 @@ export function useAutosave(options: UseAutosaveOptions): AutosaveState {
           title: latestFormData.title || "",
           content: latestFormData.content,
           contentJson: latestFormData.contentJson || "",
-          stageId: latestFormData.stageId || "",
           rhythm: latestFormData.rhythm || "",
           visibility: latestFormData.visibility || "public",
           responsePreference: latestFormData.responsePreference || "open",

@@ -10,10 +10,6 @@ export type RecordItem = {
     slug: string | null;
     profilePhotoUrl?: string | null;
   } | null;
-  stage?: {
-    name: string | null;
-    type: string | null;
-  } | null;
 };
 
 export type CalendarDay = {

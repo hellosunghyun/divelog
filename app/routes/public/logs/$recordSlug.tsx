@@ -396,7 +396,6 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
   const {
     record,
     author,
-    stage,
     questions: recordQuestions,
     responses: recordResponses,
     sentences: recordSentences,
@@ -690,16 +689,6 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
               기록
             </Link>
           </li>
-          {stage && (
-            <>
-              <li aria-hidden="true" className="text-text-tertiary">/</li>
-              <li>
-                <Link to={`/journey/${stage.slug}`} className="hover:text-ocean-blue transition-colors no-underline">
-                  {stage.name}
-                </Link>
-              </li>
-            </>
-          )}
           <li aria-hidden="true" className="text-text-tertiary">/</li>
           <li className="text-text-primary truncate max-w-[200px]" aria-current="page">
             {record.title}
@@ -709,11 +698,6 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
 
       <header className="mb-12">
         <div className="flex gap-2 mb-5 flex-wrap">
-          {stage && (
-            <Link to={`/journey/${stage.slug}`} className="text-caption px-3 py-1 rounded-full bg-mist-blue/30 text-ocean-blue font-medium no-underline hover:bg-mist-blue transition-colors">
-              {stage.name}
-            </Link>
-          )}
           <span className="text-caption px-3 py-1 rounded-full border border-border bg-surface text-text-secondary">
             {record.format === "note" ? "노트" : "글"}
           </span>

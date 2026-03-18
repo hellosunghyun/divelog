@@ -33,11 +33,6 @@ export async function action({ params, request, context }: Route.ActionArgs) {
   logger.info("action_start", { intent });
 
   if (intent === "delete") {
-    const { records } = await import("~/db/schema.server");
-    const [result] = await db(context.cloudflare.env.DB).select({ cnt: count() }).from(records).where(eq(records.stageId, params.stageId));
-    if (result.cnt > 0) {
-      return data({ error: `이 Stage에 연결된 기록이 ${result.cnt}개 있어 삭제할 수 없습니다. 먼저 기록의 Stage를 변경하세요.` }, { status: 400 });
-    }
     await db(context.cloudflare.env.DB).delete(stages).where(eq(stages.id, params.stageId));
     logger.info("admin_delete_stage", { stageId: params.stageId });
     throw redirect("/admin/stages");

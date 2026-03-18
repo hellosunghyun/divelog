@@ -1,21 +1,14 @@
-DELETE FROM memory_questions;
-DELETE FROM memory_sentences;
-DELETE FROM memory_records;
 DELETE FROM question_reminders;
-DELETE FROM question_carry_overs;
 DELETE FROM saved_records;
-DELETE FROM personal_stage_reflections;
 DELETE FROM drafts;
 DELETE FROM notifications;
 DELETE FROM responses;
 DELETE FROM self_answers;
 DELETE FROM questions;
 DELETE FROM sentences;
-DELETE FROM challenge_stages;
 DELETE FROM collaboration_members;
 DELETE FROM curation_slots;
 DELETE FROM audit_logs;
-DELETE FROM collective_memories;
 DELETE FROM record_tags;
 DELETE FROM record_links;
 DELETE FROM mentions;
@@ -85,17 +78,11 @@ INSERT INTO challenges (
   ('challenge-solo', '나만의 탐구 여정', 'solo-challenge', '혼자서 오래 붙들고 싶은 문제를 정하고 기록으로 밀도를 높입니다.', '지금 나 혼자서 가장 깊게 들여다보고 싶은 것은 무엇인가요?', '개인 기록과 자기 질문을 중심으로 이어가는 단독 챌린지입니다.', 'active', 'cohort-2026', unixepoch() - 86400 * 18, unixepoch() - 86400 * 2),
   ('challenge-writing', '기록의 의미 탐구', 'writing-challenge', '기록이 학습과 성찰을 어떻게 바꾸는지 돌아봅니다.', '나는 왜 기록을 남기고 있는가?', '기록을 남기는 행위 자체를 탐구 대상으로 삼는 챌린지입니다.', 'completed', 'cohort-2026', unixepoch() - 86400 * 55, unixepoch() - 86400 * 22);
 
-INSERT INTO challenge_stages (challenge_id, stage_id) VALUES
-  ('challenge-team', 'stage-challenge-1'),
-  ('challenge-solo', 'stage-challenge-1'),
-  ('challenge-writing', 'stage-bridge-1');
-
 INSERT INTO collaboration_units (
   id,
   name,
   slug,
   challenge_id,
-  stage_id,
   status,
   current_question,
   description,
@@ -103,7 +90,7 @@ INSERT INTO collaboration_units (
   created_at,
   updated_at
 ) VALUES
-  ('collab-unit-alpha', '알파 팀', 'collab-alpha', 'challenge-team', 'stage-challenge-1', 'active', '우리가 함께 탐구하는 질문을 어떻게 모두의 언어로 바꿀 수 있을까요?', '세 명의 학습자가 각자의 기록을 모아 하나의 흐름으로 정리하는 협업 유닛입니다.', 'cohort-2026', unixepoch() - 86400 * 12, unixepoch() - 86400 * 1);
+  ('collab-unit-alpha', '알파 팀', 'collab-alpha', 'challenge-team', 'active', '우리가 함께 탐구하는 질문을 어떻게 모두의 언어로 바꿀 수 있을까요?', '세 명의 학습자가 각자의 기록을 모아 하나의 흐름으로 정리하는 협업 유닛입니다.', 'cohort-2026', unixepoch() - 86400 * 12, unixepoch() - 86400 * 1);
 
 INSERT INTO collaboration_members (unit_id, learner_id, role, joined_at) VALUES
   ('collab-unit-alpha', 'minjun', 'lead', unixepoch() - 86400 * 12),
@@ -114,7 +101,6 @@ INSERT INTO records (
   id,
   slug,
   author_id,
-  stage_id,
   challenge_id,
   collaboration_unit_id,
   linked_record_id,
@@ -132,32 +118,32 @@ INSERT INTO records (
   created_at,
   updated_at
 ) VALUES
-  ('record-001', 'first-note', 'hana', 'stage-challenge-1', NULL, NULL, NULL, '탐색의 첫 번째 노트', '처음 이곳에 왔을 때 나는 무엇을 원하는지 또렷하게 말할 수 없었습니다. 다만 막연한 답답함이 있었고, 그 답답함을 따라가 보자는 마음이 생겼습니다. 기록을 시작하자 완성된 문장이 없어도 질문은 자랄 수 있다는 사실을 조금씩 알게 되었습니다.', '처음 이곳에 왔을 때 나는 무엇을 원하는지 또렷하게 말할 수 없었습니다. 다만 막연한 답답함이 있었고, 그 답답함을 따라가 보자는 마음이 생겼습니다. 기록을 시작하자 완성된 문장이 없어도 질문은 자랄 수 있다는 사실을 조금씩 알게 되었습니다.', 'note', 'personal', 'free', 'public', 'open', 1, 'clean', 'cohort-2026', unixepoch() - 86400 * 9, unixepoch() - 86400 * 1),
-   ('record-002', 'challenge-article', 'hana', 'stage-challenge-1', 'challenge-solo', NULL, 'record-001', '챌린지를 시작하며', '{"type":"doc","content":[{"type":"heading","attrs":{"level":2},"content":[{"type":"text","text":"혼자서 탐구를 이어가기"}]},{"type":"paragraph","content":[{"type":"text","text":"혼자서 탐구를 이어가는 일은 처음에는 외롭게 느껴졌습니다. 그런데 기록을 남기다 보니 내 생각이 흩어지는 대신 한곳으로 모이기 시작했습니다."}]},{"type":"paragraph","content":[{"type":"text","text":"누군가와 바로 대화하지 않아도 기록이 나를 다시 불러 세운다는 사실이 든든했습니다. 이번 주에는 그 든든함을 더 깊이 느껴 보고 싶습니다."}]}]}', '혼자서 탐구를 이어가기 혼자서 탐구를 이어가는 일은 처음에는 외롭게 느껴졌습니다. 그런데 기록을 남기다 보니 내 생각이 흩어지는 대신 한곳으로 모이기 시작했습니다. 누군가와 바로 대화하지 않아도 기록이 나를 다시 불러 세운다는 사실이 든든했습니다. 이번 주에는 그 든든함을 더 깊이 느껴 보고 싶습니다.', 'article', 'challenge', 'weekly', 'cohort', 'open', 1, 'clean', 'cohort-2026', unixepoch() - 86400 * 7, unixepoch() - 86400 * 7),
-  ('record-003', 'hana-weekly-1', 'hana', 'stage-challenge-1', NULL, NULL, NULL, '이번 주 메모: 질문을 찾아서', '이번 주에는 진짜 궁금한 것이 무엇인지 알아보려 했습니다. 아직 한 문장으로 정리되지는 않았지만, 내가 오래 머무는 장면과 자꾸 돌아보는 문장은 분명해졌습니다. 질문은 갑자기 떠오르기보다 천천히 드러난다는 사실을 배웠습니다.', '이번 주에는 진짜 궁금한 것이 무엇인지 알아보려 했습니다. 아직 한 문장으로 정리되지는 않았지만, 내가 오래 머무는 장면과 자꾸 돌아보는 문장은 분명해졌습니다. 질문은 갑자기 떠오르기보다 천천히 드러난다는 사실을 배웠습니다.', 'note', 'personal', 'weekly', 'cohort', 'open', 0, 'clean', 'cohort-2026', unixepoch() - 86400 * 5, unixepoch() - 86400 * 5),
-  ('record-004', 'jiwon-first', 'jiwon', 'stage-challenge-1', NULL, NULL, NULL, '나의 탐색 시작점', '모든 것이 낯설지만 그 낯섦이 오히려 나를 움직이게 합니다. 익숙한 답을 반복하는 대신 아직 잘 모르는 감각을 따라가 보고 싶습니다. 이번 기록은 그 첫 번째 표시입니다.', '모든 것이 낯설지만 그 낯섦이 오히려 나를 움직이게 합니다. 익숙한 답을 반복하는 대신 아직 잘 모르는 감각을 따라가 보고 싶습니다. 이번 기록은 그 첫 번째 표시입니다.', 'note', 'personal', 'free', 'cohort', 'question_only', 0, 'clean', 'cohort-2026', unixepoch() - 86400 * 11, unixepoch() - 86400 * 11),
-   ('record-005', 'minjun-collab', 'minjun', 'stage-challenge-1', 'challenge-team', 'collab-unit-alpha', NULL, '팀과 함께 발견한 것들', '{"type":"doc","content":[{"type":"heading","attrs":{"level":2},"content":[{"type":"text","text":"다른 시선이 모일 때"}]},{"type":"paragraph","content":[{"type":"text","text":"혼자서는 지나쳤을 문장을 팀과 함께 읽으니 전혀 다른 의미가 보였습니다."}]},{"type":"paragraph","content":[{"type":"text","text":"누군가는 질문을 붙들고, 누군가는 장면을 떠올리고, 누군가는 흐름을 정리했습니다. 각자의 역할이 자연스럽게 나타났습니다."}]},{"type":"paragraph","content":[{"type":"text","text":"다른 시선이 모일수록 탐구가 더 넓어질 수 있다는 사실을 체감했습니다. 이것이 팀 탐구의 가장 큰 선물입니다."}]}]}', '다른 시선이 모일 때 혼자서는 지나쳤을 문장을 팀과 함께 읽으니 전혀 다른 의미가 보였습니다. 누군가는 질문을 붙들고, 누군가는 장면을 떠올리고, 누군가는 흐름을 정리했습니다. 각자의 역할이 자연스럽게 나타났습니다. 다른 시선이 모일수록 탐구가 더 넓어질 수 있다는 사실을 체감했습니다. 이것이 팀 탐구의 가장 큰 선물입니다.', 'article', 'collaboration', 'weekly', 'cohort', 'open', 1, 'clean', 'cohort-2026', unixepoch() - 86400 * 4, unixepoch() - 86400 * 2),
-  ('record-006', 'soyeon-question', 'soyeon', 'stage-challenge-1', NULL, NULL, NULL, '지금 나에게 남겨진 질문', '이번 구간에서 가장 오래 붙잡힌 문장은 학습이 결국 무엇을 바꾸는가라는 질문이었습니다. 지식을 더하는 일인지, 태도를 바꾸는 일인지, 나를 대하는 방식을 바꾸는 일인지 아직 말하기 어렵습니다. 그래서 당분간은 이 질문을 정답 없이 들고 다니려 합니다.', '이번 구간에서 가장 오래 붙잡힌 문장은 학습이 결국 무엇을 바꾸는가라는 질문이었습니다. 지식을 더하는 일인지, 태도를 바꾸는 일인지, 나를 대하는 방식을 바꾸는 일인지 아직 말하기 어렵습니다. 그래서 당분간은 이 질문을 정답 없이 들고 다니려 합니다.', 'note', 'personal', 'free', 'public', 'question_only', 0, 'clean', 'cohort-2026', unixepoch() - 86400 * 3, unixepoch() - 86400 * 3),
-  ('record-007', 'hyunjin-sprint', 'hyunjin', 'stage-challenge-1', 'challenge-team', 'collab-unit-alpha', NULL, '스프린트 기록: 첫 주', '팀 챌린지의 첫 주는 분명하지 않은 상태를 버티는 시간에 가까웠습니다. 우리는 아직 같은 결론에 도달하지 못했지만, 서로가 무엇을 중요하게 여기는지는 조금씩 보이기 시작했습니다. 그 차이를 서둘러 없애지 않는 것이 중요하다고 느꼈습니다.', '팀 챌린지의 첫 주는 분명하지 않은 상태를 버티는 시간에 가까웠습니다. 우리는 아직 같은 결론에 도달하지 못했지만, 서로가 무엇을 중요하게 여기는지는 조금씩 보이기 시작했습니다. 그 차이를 서둘러 없애지 않는 것이 중요하다고 느꼈습니다.', 'note', 'collaboration', 'sprint', 'cohort', 'open', 0, 'clean', 'cohort-2026', unixepoch() - 86400 * 8, unixepoch() - 86400 * 8),
-   ('record-008', 'hana-reflection', 'hana', 'stage-bridge-1', NULL, NULL, NULL, '전환점에서 돌아보기', '{"type":"doc","content":[{"type":"heading","attrs":{"level":2},"content":[{"type":"text","text":"막막함을 읽는 방법"}]},{"type":"paragraph","content":[{"type":"text","text":"처음의 막막함은 사라지지 않았지만, 이제는 그 막막함을 읽는 방법을 조금 알게 되었습니다."}]},{"type":"paragraph","content":[{"type":"text","text":"무엇을 모르고 있는지 말할 수 있게 되자 다음 질문도 자연스럽게 따라왔습니다. 모름이 질문의 시작이 될 수 있다는 깨달음이 가장 컸습니다."}]},{"type":"paragraph","content":[{"type":"text","text":"전환은 갑작스러운 도약보다 서서히 바뀌는 시선에 더 가까웠습니다. 그 변화를 기록으로 남길 수 있어서 다행입니다."}]}]}', '막막함을 읽는 방법 처음의 막막함은 사라지지 않았지만, 이제는 그 막막함을 읽는 방법을 조금 알게 되었습니다. 무엇을 모르고 있는지 말할 수 있게 되자 다음 질문도 자연스럽게 따라왔습니다. 모름이 질문의 시작이 될 수 있다는 깨달음이 가장 컸습니다. 전환은 갑작스러운 도약보다 서서히 바뀌는 시선에 더 가까웠습니다. 그 변화를 기록으로 남길 수 있어서 다행입니다.', 'article', 'personal', 'monthly', 'public', 'open', 1, 'clean', 'cohort-2026', unixepoch() - 86400 * 31, unixepoch() - 86400 * 31),
-  ('record-009', 'jiwon-deep', 'jiwon', 'stage-challenge-1', NULL, NULL, NULL, '깊어지는 탐구', '표면적인 질문에서 더 깊은 질문으로 내려간다는 것은 답을 줄이는 일이 아니라 모르는 지점을 더 선명하게 보는 일이었습니다. 조급함은 여전히 남아 있지만, 그 조급함도 기록에 남기면 탐구의 일부가 된다는 것을 배웠습니다.', '표면적인 질문에서 더 깊은 질문으로 내려간다는 것은 답을 줄이는 일이 아니라 모르는 지점을 더 선명하게 보는 일이었습니다. 조급함은 여전히 남아 있지만, 그 조급함도 기록에 남기면 탐구의 일부가 된다는 것을 배웠습니다.', 'note', 'personal', 'free', 'cohort', 'open', 0, 'clean', 'cohort-2026', unixepoch() - 86400 * 13, unixepoch() - 86400 * 13),
-  ('record-010', 'minjun-team-2', 'minjun', 'stage-challenge-1', 'challenge-team', 'collab-unit-alpha', 'record-005', '팀 탐구 두 번째 기록', '오늘 팀 미팅에서는 우리가 결과를 너무 빨리 정리하려 했다는 사실을 함께 확인했습니다. 질문이 충분히 열려 있지 않으면 기록도 얇아진다는 이야기가 나왔고, 그 말이 오래 남았습니다. 잠시 멈춰서 질문을 다시 적어 보는 시간이 필요했습니다.', '오늘 팀 미팅에서는 우리가 결과를 너무 빨리 정리하려 했다는 사실을 함께 확인했습니다. 질문이 충분히 열려 있지 않으면 기록도 얇아진다는 이야기가 나왔고, 그 말이 오래 남았습니다. 잠시 멈춰서 질문을 다시 적어 보는 시간이 필요했습니다.', 'note', 'collaboration', 'free', 'cohort', 'open', 0, 'clean', 'cohort-2026', unixepoch() - 86400 * 2, unixepoch() - 86400 * 2),
-  ('record-011', 'jaemin-start', 'jaemin', 'stage-challenge-1', NULL, NULL, NULL, '시작하는 마음', '무엇을 써야 할지 모르겠지만 일단 시작해 보기로 했습니다. 작은 기록이라도 남겨 두면 다음 문장이 조금 더 쉬워질 것 같았습니다. 오늘의 기록은 그 마음을 잊지 않기 위한 표시입니다.', '무엇을 써야 할지 모르겠지만 일단 시작해 보기로 했습니다. 작은 기록이라도 남겨 두면 다음 문장이 조금 더 쉬워질 것 같았습니다. 오늘의 기록은 그 마음을 잊지 않기 위한 표시입니다.', 'note', 'personal', 'free', 'cohort', 'open', 0, 'clean', 'cohort-2026', unixepoch() - 86400 * 1, unixepoch() - 86400 * 1),
-   ('record-012', 'hyunjin-solo', 'hyunjin', 'stage-challenge-1', 'challenge-solo', NULL, NULL, '나만의 탐구: 기록의 힘', '{"type":"doc","content":[{"type":"heading","attrs":{"level":2},"content":[{"type":"text","text":"기록은 거울이다"}]},{"type":"paragraph","content":[{"type":"text","text":"혼자서 탐구할 때 기록은 내가 지나온 생각을 다시 비추는 거울이 됩니다."}]},{"type":"paragraph","content":[{"type":"text","text":"쓰는 순간에는 알지 못했던 감정과 망설임이 나중에 읽을 때 더 선명하게 보입니다. 그 선명함이 다음 탐구를 열어줍니다."}]},{"type":"paragraph","content":[{"type":"text","text":"그래서 기록은 결과물이 아니라 다시 생각하게 만드는 장치라고 느낍니다. 이것이 나만의 탐구를 계속하게 하는 힘입니다."}]}]}', '기록은 거울이다 혼자서 탐구할 때 기록은 내가 지나온 생각을 다시 비추는 거울이 됩니다. 쓰는 순간에는 알지 못했던 감정과 망설임이 나중에 읽을 때 더 선명하게 보입니다. 그 선명함이 다음 탐구를 열어줍니다. 그래서 기록은 결과물이 아니라 다시 생각하게 만드는 장치라고 느낍니다. 이것이 나만의 탐구를 계속하게 하는 힘입니다.', 'article', 'challenge', 'weekly', 'public', 'open', 0, 'clean', 'cohort-2026', unixepoch() - 86400 * 15, unixepoch() - 86400 * 15),
-  ('record-013', 'soyeon-bridge', 'soyeon', 'stage-bridge-1', NULL, NULL, NULL, '전환의 시기에 쓰는 메모', '이 시기가 불편한 이유를 곰곰이 적어 보니 변화 그 자체보다 방향을 놓칠까 봐 두려운 마음이 컸습니다. 두려움을 없애는 대신 문장으로 적어 두니 내가 무엇을 지키고 싶은지 조금 더 보였습니다.', '이 시기가 불편한 이유를 곰곰이 적어 보니 변화 그 자체보다 방향을 놓칠까 봐 두려운 마음이 컸습니다. 두려움을 없애는 대신 문장으로 적어 두니 내가 무엇을 지키고 싶은지 조금 더 보였습니다.', 'note', 'personal', 'free', 'cohort', 'question_only', 0, 'clean', 'cohort-2026', unixepoch() - 86400 * 26, unixepoch() - 86400 * 26),
-  ('record-014', 'hana-question-record', 'hana', 'stage-challenge-1', NULL, NULL, NULL, '남겨두고 싶은 질문들', '탐색을 이어가면서 답보다 질문을 잘 간직하는 일이 더 중요하다는 생각이 커졌습니다. 질문은 곧바로 해결되지 않아도 나를 다시 움직이게 합니다. 그래서 이 기록은 해결 목록이 아니라 오래 남길 질문 목록에 가깝습니다.', '탐색을 이어가면서 답보다 질문을 잘 간직하는 일이 더 중요하다는 생각이 커졌습니다. 질문은 곧바로 해결되지 않아도 나를 다시 움직이게 합니다. 그래서 이 기록은 해결 목록이 아니라 오래 남길 질문 목록에 가깝습니다.', 'note', 'personal', 'free', 'public', 'open', 0, 'clean', 'cohort-2026', unixepoch() - 86400 * 12, unixepoch() - 86400 * 12),
-  ('record-015', 'jiwon-collab', 'jiwon', 'stage-challenge-1', 'challenge-team', 'collab-unit-alpha', NULL, '팀 챌린지에 합류하며', '처음에는 각자가 다른 방향을 보고 있어서 조금 조심스러웠습니다. 하지만 서로의 기록을 읽고 질문을 주고받는 사이에 공통의 관심사가 보이기 시작했습니다. 다름을 바로 맞추기보다 먼저 듣는 태도가 중요하다는 것을 느꼈습니다.', '처음에는 각자가 다른 방향을 보고 있어서 조금 조심스러웠습니다. 하지만 서로의 기록을 읽고 질문을 주고받는 사이에 공통의 관심사가 보이기 시작했습니다. 다름을 바로 맞추기보다 먼저 듣는 태도가 중요하다는 것을 느꼈습니다.', 'note', 'collaboration', 'free', 'cohort', 'open', 0, 'clean', 'cohort-2026', unixepoch() - 86400 * 6, unixepoch() - 86400 * 6),
-  ('record-016', 'minjun-solo', 'minjun', 'stage-challenge-1', NULL, NULL, NULL, '혼자서 생각한 것들', '팀 기록과는 별개로 혼자 있을 때 떠오르는 질문들을 따로 모아 보았습니다. 같이 탐구하는 시간과 혼자 생각하는 시간이 서로를 보완한다는 사실이 흥미로웠습니다.', '팀 기록과는 별개로 혼자 있을 때 떠오르는 질문들을 따로 모아 보았습니다. 같이 탐구하는 시간과 혼자 생각하는 시간이 서로를 보완한다는 사실이 흥미로웠습니다.', 'note', 'personal', 'free', 'cohort', 'open', 0, 'clean', 'cohort-2026', unixepoch() - 86400 * 14, unixepoch() - 86400 * 14),
-   ('record-017', 'soyeon-writing', 'soyeon', 'stage-challenge-1', 'challenge-writing', NULL, NULL, '기록이란 무엇인가', '{"type":"doc","content":[{"type":"heading","attrs":{"level":2},"content":[{"type":"text","text":"기록의 세 가지 역할"}]},{"type":"paragraph","content":[{"type":"text","text":"이 챌린지를 하면서 기록은 과거를 저장하는 일만은 아니라는 생각이 들었습니다."}]},{"type":"paragraph","content":[{"type":"text","text":"기록은 다음의 나에게 말을 거는 방식이기도 하고, 아직 이름 붙이지 못한 감정을 붙잡아 두는 방식이기도 했습니다."}]},{"type":"paragraph","content":[{"type":"text","text":"그리고 기록은 나 혼자만의 것이 아니라 누군가와 나누는 대화의 시작이 될 수도 있습니다. 이 깨달음이 가장 소중합니다."}]}]}', '기록의 세 가지 역할 이 챌린지를 하면서 기록은 과거를 저장하는 일만은 아니라는 생각이 들었습니다. 기록은 다음의 나에게 말을 거는 방식이기도 하고, 아직 이름 붙이지 못한 감정을 붙잡아 두는 방식이기도 했습니다. 그리고 기록은 나 혼자만의 것이 아니라 누군가와 나누는 대화의 시작이 될 수도 있습니다. 이 깨달음이 가장 소중합니다.', 'article', 'challenge', 'monthly', 'public', 'open', 0, 'clean', 'cohort-2026', unixepoch() - 86400 * 21, unixepoch() - 86400 * 21),
-  ('record-018', 'hyunjin-reflection', 'hyunjin', 'stage-bridge-1', NULL, NULL, NULL, '중간 회고', '여기까지 오면서 내가 모른다고 말하는 방식이 달라졌습니다. 예전에는 모름이 막막함으로만 남았지만, 지금은 다음 질문의 출발점으로 남습니다. 그 변화를 기록으로 남겨 두고 싶었습니다.', '여기까지 오면서 내가 모른다고 말하는 방식이 달라졌습니다. 예전에는 모름이 막막함으로만 남았지만, 지금은 다음 질문의 출발점으로 남습니다. 그 변화를 기록으로 남겨 두고 싶었습니다.', 'article', 'personal', 'monthly', 'cohort', 'open', 0, 'clean', 'cohort-2026', unixepoch() - 86400 * 36, unixepoch() - 86400 * 36),
-  ('record-019', 'jaemin-week1', 'jaemin', 'stage-challenge-1', NULL, NULL, NULL, '첫 주 메모', '첫 주가 지나고 나니 기록이 생각보다 부담스럽지 않다는 사실을 알게 되었습니다. 길게 쓰지 않아도 그날의 생각을 붙잡아 두는 것만으로 충분했습니다.', '첫 주가 지나고 나니 기록이 생각보다 부담스럽지 않다는 사실을 알게 되었습니다. 길게 쓰지 않아도 그날의 생각을 붙잡아 두는 것만으로 충분했습니다.', 'note', 'personal', 'weekly', 'cohort', 'open', 0, 'clean', 'cohort-2026', unixepoch() - 86400 * 7, unixepoch() - 86400 * 7),
-  ('record-020', 'hana-draft', 'hana', 'stage-challenge-1', NULL, NULL, NULL, '[초안] 아직 정리되지 않은 생각', '문장이 아직 매끄럽지 않지만 지금의 흐릿함도 남겨 두고 싶었습니다. 나중에 다시 읽으면 어디에서 머뭇거렸는지 더 잘 보일 것 같습니다.', '문장이 아직 매끄럽지 않지만 지금의 흐릿함도 남겨 두고 싶었습니다. 나중에 다시 읽으면 어디에서 머뭇거렸는지 더 잘 보일 것 같습니다.', 'note', 'personal', 'free', 'draft', 'closed', 0, 'clean', 'cohort-2026', unixepoch() - 3600 * 12, unixepoch() - 3600 * 12),
-  ('record-026', 'jiwon-private', 'jiwon', 'stage-challenge-1', NULL, NULL, NULL, '나만 간직하는 기록', '아직 누구에게 보여줄 준비는 안 되었지만 이 생각은 분명히 중요한 것 같습니다. 나중에 다시 꺼내 볼 수 있도록 여기에 남겨 둡니다. 완성된 문장은 아니어도 지금의 감각을 잊고 싶지 않았습니다.', '아직 누구에게 보여줄 준비는 안 되었지만 이 생각은 분명히 중요한 것 같습니다. 나중에 다시 꺼내 볼 수 있도록 여기에 남겨 둡니다. 완성된 문장은 아니어도 지금의 감각을 잊고 싶지 않았습니다.', 'note', 'personal', 'free', 'private', 'closed', 0, 'clean', 'cohort-2026', unixepoch() - 86400 * 4, unixepoch() - 86400 * 4),
-  ('record-021', 'soyeon-short', 'soyeon', 'stage-challenge-1', NULL, NULL, NULL, '오늘의 한 줄', '탐구는 정답을 서둘러 고르는 일이 아니라 더 오래 남는 질문을 찾는 일에 가깝다.', '탐구는 정답을 서둘러 고르는 일이 아니라 더 오래 남는 질문을 찾는 일에 가깝다.', 'note', 'personal', 'sprint', 'cohort', 'open', 0, 'clean', 'cohort-2026', unixepoch() - 86400 * 2, unixepoch() - 86400 * 2),
-   ('record-022', 'minjun-article', 'minjun', 'stage-challenge-1', 'challenge-team', 'collab-unit-alpha', 'record-010', '팀 탐구의 전환점', '{"type":"doc","content":[{"type":"heading","attrs":{"level":2},"content":[{"type":"text","text":"다름을 자원으로 읽기"}]},{"type":"paragraph","content":[{"type":"text","text":"세 번의 팀 미팅을 지나며 각자의 다름이 걸림돌이 아니라 자원이라는 사실을 더 분명히 알게 되었습니다."}]},{"type":"paragraph","content":[{"type":"text","text":"누군가의 메모가 다른 사람의 질문을 열고, 그 질문이 다시 다음 기록을 만들었습니다. 이 순환이 팀 탐구의 생명력입니다."}]},{"type":"paragraph","content":[{"type":"text","text":"함께 쓰는 탐구는 한 사람의 확신보다 여러 사람의 망설임을 견디는 일에 가까웠습니다. 그 망설임 속에서 가장 깊은 질문이 나타났습니다."}]}]}', '다름을 자원으로 읽기 세 번의 팀 미팅을 지나며 각자의 다름이 걸림돌이 아니라 자원이라는 사실을 더 분명히 알게 되었습니다. 누군가의 메모가 다른 사람의 질문을 열고, 그 질문이 다시 다음 기록을 만들었습니다. 이 순환이 팀 탐구의 생명력입니다. 함께 쓰는 탐구는 한 사람의 확신보다 여러 사람의 망설임을 견디는 일에 가까웠습니다. 그 망설임 속에서 가장 깊은 질문이 나타났습니다.', 'article', 'collaboration', 'monthly', 'public', 'open', 1, 'clean', 'cohort-2026', unixepoch() - 86400 * 16, unixepoch() - 86400 * 16),
-  ('record-023', 'jiwon-question', 'jiwon', 'stage-challenge-1', NULL, NULL, NULL, '질문이 생겼습니다', '이번 주에는 학습에서 실패가 어떤 역할을 하는지 계속 마음에 남았습니다. 실패를 피해야 하는 일로만 보면 놓치는 것이 있는 것 같습니다. 실패를 다시 읽는 방식이 필요하다는 생각이 들었습니다.', '이번 주에는 학습에서 실패가 어떤 역할을 하는지 계속 마음에 남았습니다. 실패를 피해야 하는 일로만 보면 놓치는 것이 있는 것 같습니다. 실패를 다시 읽는 방식이 필요하다는 생각이 들었습니다.', 'note', 'personal', 'free', 'public', 'question_only', 0, 'clean', 'cohort-2026', unixepoch() - 86400 * 10, unixepoch() - 86400 * 10),
-  ('record-024', 'hyunjin-sprint2', 'hyunjin', 'stage-challenge-1', 'challenge-team', 'collab-unit-alpha', 'record-007', '스프린트 기록: 두 번째 주', '두 번째 주에도 여전히 불확실함은 남아 있었지만, 그 불확실함을 설명하는 말이 조금 더 늘어났습니다. 우리는 방향을 정하기 전에 서로가 어디에 서 있는지 먼저 확인하기로 했습니다.', '두 번째 주에도 여전히 불확실함은 남아 있었지만, 그 불확실함을 설명하는 말이 조금 더 늘어났습니다. 우리는 방향을 정하기 전에 서로가 어디에 서 있는지 먼저 확인하기로 했습니다.', 'note', 'collaboration', 'sprint', 'cohort', 'open', 0, 'clean', 'cohort-2026', unixepoch() - 86400 * 11, unixepoch() - 86400 * 11),
-   ('record-025', 'hana-prelude-end', 'hana', 'stage-challenge-1', NULL, NULL, 'record-003', '탐색의 시작을 마치며', '{"type":"doc","content":[{"type":"heading","attrs":{"level":2},"content":[{"type":"text","text":"질문의 변화"}]},{"type":"paragraph","content":[{"type":"text","text":"처음의 질문과 지금의 질문은 많이 달라졌습니다."}]},{"type":"paragraph","content":[{"type":"text","text":"예전에는 잘하고 싶다는 막연한 마음뿐이었다면, 이제는 무엇을 왜 오래 들여다보고 싶은지 조금 더 말할 수 있습니다."}]},{"type":"paragraph","content":[{"type":"text","text":"질문의 변화 자체가 이 구간에서 내가 얻은 가장 큰 흔적입니다. 다음 구간에서는 이 질문을 더 깊이 탐구하고 싶습니다."}]}]}', '질문의 변화 처음의 질문과 지금의 질문은 많이 달라졌습니다. 예전에는 잘하고 싶다는 막연한 마음뿐이었다면, 이제는 무엇을 왜 오래 들여다보고 싶은지 조금 더 말할 수 있습니다. 질문의 변화 자체가 이 구간에서 내가 얻은 가장 큰 흔적입니다. 다음 구간에서는 이 질문을 더 깊이 탐구하고 싶습니다.', 'article', 'personal', 'monthly', 'public', 'open', 1, 'clean', 'cohort-2026', unixepoch() - 86400 * 61, unixepoch() - 86400 * 61);
+  ('record-001', 'first-note', 'hana', NULL, NULL, NULL, '탐색의 첫 번째 노트', '처음 이곳에 왔을 때 나는 무엇을 원하는지 또렷하게 말할 수 없었습니다. 다만 막연한 답답함이 있었고, 그 답답함을 따라가 보자는 마음이 생겼습니다. 기록을 시작하자 완성된 문장이 없어도 질문은 자랄 수 있다는 사실을 조금씩 알게 되었습니다.', '처음 이곳에 왔을 때 나는 무엇을 원하는지 또렷하게 말할 수 없었습니다. 다만 막연한 답답함이 있었고, 그 답답함을 따라가 보자는 마음이 생겼습니다. 기록을 시작하자 완성된 문장이 없어도 질문은 자랄 수 있다는 사실을 조금씩 알게 되었습니다.', 'note', 'personal', 'free', 'public', 'open', 1, 'clean', 'cohort-2026', unixepoch() - 86400 * 9, unixepoch() - 86400 * 1),
+   ('record-002', 'challenge-article', 'hana', 'challenge-solo', NULL, 'record-001', '챌린지를 시작하며', '{"type":"doc","content":[{"type":"heading","attrs":{"level":2},"content":[{"type":"text","text":"혼자서 탐구를 이어가기"}]},{"type":"paragraph","content":[{"type":"text","text":"혼자서 탐구를 이어가는 일은 처음에는 외롭게 느껴졌습니다. 그런데 기록을 남기다 보니 내 생각이 흩어지는 대신 한곳으로 모이기 시작했습니다."}]},{"type":"paragraph","content":[{"type":"text","text":"누군가와 바로 대화하지 않아도 기록이 나를 다시 불러 세운다는 사실이 든든했습니다. 이번 주에는 그 든든함을 더 깊이 느껴 보고 싶습니다."}]}]}', '혼자서 탐구를 이어가기 혼자서 탐구를 이어가는 일은 처음에는 외롭게 느껴졌습니다. 그런데 기록을 남기다 보니 내 생각이 흩어지는 대신 한곳으로 모이기 시작했습니다. 누군가와 바로 대화하지 않아도 기록이 나를 다시 불러 세운다는 사실이 든든했습니다. 이번 주에는 그 든든함을 더 깊이 느껴 보고 싶습니다.', 'article', 'challenge', 'weekly', 'cohort', 'open', 1, 'clean', 'cohort-2026', unixepoch() - 86400 * 7, unixepoch() - 86400 * 7),
+  ('record-003', 'hana-weekly-1', 'hana', NULL, NULL, NULL, '이번 주 메모: 질문을 찾아서', '이번 주에는 진짜 궁금한 것이 무엇인지 알아보려 했습니다. 아직 한 문장으로 정리되지는 않았지만, 내가 오래 머무는 장면과 자꾸 돌아보는 문장은 분명해졌습니다. 질문은 갑자기 떠오르기보다 천천히 드러난다는 사실을 배웠습니다.', '이번 주에는 진짜 궁금한 것이 무엇인지 알아보려 했습니다. 아직 한 문장으로 정리되지는 않았지만, 내가 오래 머무는 장면과 자꾸 돌아보는 문장은 분명해졌습니다. 질문은 갑자기 떠오르기보다 천천히 드러난다는 사실을 배웠습니다.', 'note', 'personal', 'weekly', 'cohort', 'open', 0, 'clean', 'cohort-2026', unixepoch() - 86400 * 5, unixepoch() - 86400 * 5),
+  ('record-004', 'jiwon-first', 'jiwon', NULL, NULL, NULL, '나의 탐색 시작점', '모든 것이 낯설지만 그 낯섦이 오히려 나를 움직이게 합니다. 익숙한 답을 반복하는 대신 아직 잘 모르는 감각을 따라가 보고 싶습니다. 이번 기록은 그 첫 번째 표시입니다.', '모든 것이 낯설지만 그 낯섦이 오히려 나를 움직이게 합니다. 익숙한 답을 반복하는 대신 아직 잘 모르는 감각을 따라가 보고 싶습니다. 이번 기록은 그 첫 번째 표시입니다.', 'note', 'personal', 'free', 'cohort', 'question_only', 0, 'clean', 'cohort-2026', unixepoch() - 86400 * 11, unixepoch() - 86400 * 11),
+   ('record-005', 'minjun-collab', 'minjun', 'challenge-team', 'collab-unit-alpha', NULL, '팀과 함께 발견한 것들', '{"type":"doc","content":[{"type":"heading","attrs":{"level":2},"content":[{"type":"text","text":"다른 시선이 모일 때"}]},{"type":"paragraph","content":[{"type":"text","text":"혼자서는 지나쳤을 문장을 팀과 함께 읽으니 전혀 다른 의미가 보였습니다."}]},{"type":"paragraph","content":[{"type":"text","text":"누군가는 질문을 붙들고, 누군가는 장면을 떠올리고, 누군가는 흐름을 정리했습니다. 각자의 역할이 자연스럽게 나타났습니다."}]},{"type":"paragraph","content":[{"type":"text","text":"다른 시선이 모일수록 탐구가 더 넓어질 수 있다는 사실을 체감했습니다. 이것이 팀 탐구의 가장 큰 선물입니다."}]}]}', '다른 시선이 모일 때 혼자서는 지나쳤을 문장을 팀과 함께 읽으니 전혀 다른 의미가 보였습니다. 누군가는 질문을 붙들고, 누군가는 장면을 떠올리고, 누군가는 흐름을 정리했습니다. 각자의 역할이 자연스럽게 나타났습니다. 다른 시선이 모일수록 탐구가 더 넓어질 수 있다는 사실을 체감했습니다. 이것이 팀 탐구의 가장 큰 선물입니다.', 'article', 'collaboration', 'weekly', 'cohort', 'open', 1, 'clean', 'cohort-2026', unixepoch() - 86400 * 4, unixepoch() - 86400 * 2),
+  ('record-006', 'soyeon-question', 'soyeon', NULL, NULL, NULL, '지금 나에게 남겨진 질문', '이번 구간에서 가장 오래 붙잡힌 문장은 학습이 결국 무엇을 바꾸는가라는 질문이었습니다. 지식을 더하는 일인지, 태도를 바꾸는 일인지, 나를 대하는 방식을 바꾸는 일인지 아직 말하기 어렵습니다. 그래서 당분간은 이 질문을 정답 없이 들고 다니려 합니다.', '이번 구간에서 가장 오래 붙잡힌 문장은 학습이 결국 무엇을 바꾸는가라는 질문이었습니다. 지식을 더하는 일인지, 태도를 바꾸는 일인지, 나를 대하는 방식을 바꾸는 일인지 아직 말하기 어렵습니다. 그래서 당분간은 이 질문을 정답 없이 들고 다니려 합니다.', 'note', 'personal', 'free', 'public', 'question_only', 0, 'clean', 'cohort-2026', unixepoch() - 86400 * 3, unixepoch() - 86400 * 3),
+  ('record-007', 'hyunjin-sprint', 'hyunjin', 'challenge-team', 'collab-unit-alpha', NULL, '스프린트 기록: 첫 주', '팀 챌린지의 첫 주는 분명하지 않은 상태를 버티는 시간에 가까웠습니다. 우리는 아직 같은 결론에 도달하지 못했지만, 서로가 무엇을 중요하게 여기는지는 조금씩 보이기 시작했습니다. 그 차이를 서둘러 없애지 않는 것이 중요하다고 느꼈습니다.', '팀 챌린지의 첫 주는 분명하지 않은 상태를 버티는 시간에 가까웠습니다. 우리는 아직 같은 결론에 도달하지 못했지만, 서로가 무엇을 중요하게 여기는지는 조금씩 보이기 시작했습니다. 그 차이를 서둘러 없애지 않는 것이 중요하다고 느꼈습니다.', 'note', 'collaboration', 'sprint', 'cohort', 'open', 0, 'clean', 'cohort-2026', unixepoch() - 86400 * 8, unixepoch() - 86400 * 8),
+   ('record-008', 'hana-reflection', 'hana', NULL, NULL, NULL, '전환점에서 돌아보기', '{"type":"doc","content":[{"type":"heading","attrs":{"level":2},"content":[{"type":"text","text":"막막함을 읽는 방법"}]},{"type":"paragraph","content":[{"type":"text","text":"처음의 막막함은 사라지지 않았지만, 이제는 그 막막함을 읽는 방법을 조금 알게 되었습니다."}]},{"type":"paragraph","content":[{"type":"text","text":"무엇을 모르고 있는지 말할 수 있게 되자 다음 질문도 자연스럽게 따라왔습니다. 모름이 질문의 시작이 될 수 있다는 깨달음이 가장 컸습니다."}]},{"type":"paragraph","content":[{"type":"text","text":"전환은 갑작스러운 도약보다 서서히 바뀌는 시선에 더 가까웠습니다. 그 변화를 기록으로 남길 수 있어서 다행입니다."}]}]}', '막막함을 읽는 방법 처음의 막막함은 사라지지 않았지만, 이제는 그 막막함을 읽는 방법을 조금 알게 되었습니다. 무엇을 모르고 있는지 말할 수 있게 되자 다음 질문도 자연스럽게 따라왔습니다. 모름이 질문의 시작이 될 수 있다는 깨달음이 가장 컸습니다. 전환은 갑작스러운 도약보다 서서히 바뀌는 시선에 더 가까웠습니다. 그 변화를 기록으로 남길 수 있어서 다행입니다.', 'article', 'personal', 'monthly', 'public', 'open', 1, 'clean', 'cohort-2026', unixepoch() - 86400 * 31, unixepoch() - 86400 * 31),
+  ('record-009', 'jiwon-deep', 'jiwon', NULL, NULL, NULL, '깊어지는 탐구', '표면적인 질문에서 더 깊은 질문으로 내려간다는 것은 답을 줄이는 일이 아니라 모르는 지점을 더 선명하게 보는 일이었습니다. 조급함은 여전히 남아 있지만, 그 조급함도 기록에 남기면 탐구의 일부가 된다는 것을 배웠습니다.', '표면적인 질문에서 더 깊은 질문으로 내려간다는 것은 답을 줄이는 일이 아니라 모르는 지점을 더 선명하게 보는 일이었습니다. 조급함은 여전히 남아 있지만, 그 조급함도 기록에 남기면 탐구의 일부가 된다는 것을 배웠습니다.', 'note', 'personal', 'free', 'cohort', 'open', 0, 'clean', 'cohort-2026', unixepoch() - 86400 * 13, unixepoch() - 86400 * 13),
+  ('record-010', 'minjun-team-2', 'minjun', 'challenge-team', 'collab-unit-alpha', 'record-005', '팀 탐구 두 번째 기록', '오늘 팀 미팅에서는 우리가 결과를 너무 빨리 정리하려 했다는 사실을 함께 확인했습니다. 질문이 충분히 열려 있지 않으면 기록도 얇아진다는 이야기가 나왔고, 그 말이 오래 남았습니다. 잠시 멈춰서 질문을 다시 적어 보는 시간이 필요했습니다.', '오늘 팀 미팅에서는 우리가 결과를 너무 빨리 정리하려 했다는 사실을 함께 확인했습니다. 질문이 충분히 열려 있지 않으면 기록도 얇아진다는 이야기가 나왔고, 그 말이 오래 남았습니다. 잠시 멈춰서 질문을 다시 적어 보는 시간이 필요했습니다.', 'note', 'collaboration', 'free', 'cohort', 'open', 0, 'clean', 'cohort-2026', unixepoch() - 86400 * 2, unixepoch() - 86400 * 2),
+  ('record-011', 'jaemin-start', 'jaemin', NULL, NULL, NULL, '시작하는 마음', '무엇을 써야 할지 모르겠지만 일단 시작해 보기로 했습니다. 작은 기록이라도 남겨 두면 다음 문장이 조금 더 쉬워질 것 같았습니다. 오늘의 기록은 그 마음을 잊지 않기 위한 표시입니다.', '무엇을 써야 할지 모르겠지만 일단 시작해 보기로 했습니다. 작은 기록이라도 남겨 두면 다음 문장이 조금 더 쉬워질 것 같았습니다. 오늘의 기록은 그 마음을 잊지 않기 위한 표시입니다.', 'note', 'personal', 'free', 'cohort', 'open', 0, 'clean', 'cohort-2026', unixepoch() - 86400 * 1, unixepoch() - 86400 * 1),
+   ('record-012', 'hyunjin-solo', 'hyunjin', 'challenge-solo', NULL, NULL, '나만의 탐구: 기록의 힘', '{"type":"doc","content":[{"type":"heading","attrs":{"level":2},"content":[{"type":"text","text":"기록은 거울이다"}]},{"type":"paragraph","content":[{"type":"text","text":"혼자서 탐구할 때 기록은 내가 지나온 생각을 다시 비추는 거울이 됩니다."}]},{"type":"paragraph","content":[{"type":"text","text":"쓰는 순간에는 알지 못했던 감정과 망설임이 나중에 읽을 때 더 선명하게 보입니다. 그 선명함이 다음 탐구를 열어줍니다."}]},{"type":"paragraph","content":[{"type":"text","text":"그래서 기록은 결과물이 아니라 다시 생각하게 만드는 장치라고 느낍니다. 이것이 나만의 탐구를 계속하게 하는 힘입니다."}]}]}', '기록은 거울이다 혼자서 탐구할 때 기록은 내가 지나온 생각을 다시 비추는 거울이 됩니다. 쓰는 순간에는 알지 못했던 감정과 망설임이 나중에 읽을 때 더 선명하게 보입니다. 그 선명함이 다음 탐구를 열어줍니다. 그래서 기록은 결과물이 아니라 다시 생각하게 만드는 장치라고 느낍니다. 이것이 나만의 탐구를 계속하게 하는 힘입니다.', 'article', 'challenge', 'weekly', 'public', 'open', 0, 'clean', 'cohort-2026', unixepoch() - 86400 * 15, unixepoch() - 86400 * 15),
+  ('record-013', 'soyeon-bridge', 'soyeon', NULL, NULL, NULL, '전환의 시기에 쓰는 메모', '이 시기가 불편한 이유를 곰곰이 적어 보니 변화 그 자체보다 방향을 놓칠까 봐 두려운 마음이 컸습니다. 두려움을 없애는 대신 문장으로 적어 두니 내가 무엇을 지키고 싶은지 조금 더 보였습니다.', '이 시기가 불편한 이유를 곰곰이 적어 보니 변화 그 자체보다 방향을 놓칠까 봐 두려운 마음이 컸습니다. 두려움을 없애는 대신 문장으로 적어 두니 내가 무엇을 지키고 싶은지 조금 더 보였습니다.', 'note', 'personal', 'free', 'cohort', 'question_only', 0, 'clean', 'cohort-2026', unixepoch() - 86400 * 26, unixepoch() - 86400 * 26),
+  ('record-014', 'hana-question-record', 'hana', NULL, NULL, NULL, '남겨두고 싶은 질문들', '탐색을 이어가면서 답보다 질문을 잘 간직하는 일이 더 중요하다는 생각이 커졌습니다. 질문은 곧바로 해결되지 않아도 나를 다시 움직이게 합니다. 그래서 이 기록은 해결 목록이 아니라 오래 남길 질문 목록에 가깝습니다.', '탐색을 이어가면서 답보다 질문을 잘 간직하는 일이 더 중요하다는 생각이 커졌습니다. 질문은 곧바로 해결되지 않아도 나를 다시 움직이게 합니다. 그래서 이 기록은 해결 목록이 아니라 오래 남길 질문 목록에 가깝습니다.', 'note', 'personal', 'free', 'public', 'open', 0, 'clean', 'cohort-2026', unixepoch() - 86400 * 12, unixepoch() - 86400 * 12),
+  ('record-015', 'jiwon-collab', 'jiwon', 'challenge-team', 'collab-unit-alpha', NULL, '팀 챌린지에 합류하며', '처음에는 각자가 다른 방향을 보고 있어서 조금 조심스러웠습니다. 하지만 서로의 기록을 읽고 질문을 주고받는 사이에 공통의 관심사가 보이기 시작했습니다. 다름을 바로 맞추기보다 먼저 듣는 태도가 중요하다는 것을 느꼈습니다.', '처음에는 각자가 다른 방향을 보고 있어서 조금 조심스러웠습니다. 하지만 서로의 기록을 읽고 질문을 주고받는 사이에 공통의 관심사가 보이기 시작했습니다. 다름을 바로 맞추기보다 먼저 듣는 태도가 중요하다는 것을 느꼈습니다.', 'note', 'collaboration', 'free', 'cohort', 'open', 0, 'clean', 'cohort-2026', unixepoch() - 86400 * 6, unixepoch() - 86400 * 6),
+  ('record-016', 'minjun-solo', 'minjun', NULL, NULL, NULL, '혼자서 생각한 것들', '팀 기록과는 별개로 혼자 있을 때 떠오르는 질문들을 따로 모아 보았습니다. 같이 탐구하는 시간과 혼자 생각하는 시간이 서로를 보완한다는 사실이 흥미로웠습니다.', '팀 기록과는 별개로 혼자 있을 때 떠오르는 질문들을 따로 모아 보았습니다. 같이 탐구하는 시간과 혼자 생각하는 시간이 서로를 보완한다는 사실이 흥미로웠습니다.', 'note', 'personal', 'free', 'cohort', 'open', 0, 'clean', 'cohort-2026', unixepoch() - 86400 * 14, unixepoch() - 86400 * 14),
+   ('record-017', 'soyeon-writing', 'soyeon', 'challenge-writing', NULL, NULL, '기록이란 무엇인가', '{"type":"doc","content":[{"type":"heading","attrs":{"level":2},"content":[{"type":"text","text":"기록의 세 가지 역할"}]},{"type":"paragraph","content":[{"type":"text","text":"이 챌린지를 하면서 기록은 과거를 저장하는 일만은 아니라는 생각이 들었습니다."}]},{"type":"paragraph","content":[{"type":"text","text":"기록은 다음의 나에게 말을 거는 방식이기도 하고, 아직 이름 붙이지 못한 감정을 붙잡아 두는 방식이기도 했습니다."}]},{"type":"paragraph","content":[{"type":"text","text":"그리고 기록은 나 혼자만의 것이 아니라 누군가와 나누는 대화의 시작이 될 수도 있습니다. 이 깨달음이 가장 소중합니다."}]}]}', '기록의 세 가지 역할 이 챌린지를 하면서 기록은 과거를 저장하는 일만은 아니라는 생각이 들었습니다. 기록은 다음의 나에게 말을 거는 방식이기도 하고, 아직 이름 붙이지 못한 감정을 붙잡아 두는 방식이기도 했습니다. 그리고 기록은 나 혼자만의 것이 아니라 누군가와 나누는 대화의 시작이 될 수도 있습니다. 이 깨달음이 가장 소중합니다.', 'article', 'challenge', 'monthly', 'public', 'open', 0, 'clean', 'cohort-2026', unixepoch() - 86400 * 21, unixepoch() - 86400 * 21),
+  ('record-018', 'hyunjin-reflection', 'hyunjin', NULL, NULL, NULL, '중간 회고', '여기까지 오면서 내가 모른다고 말하는 방식이 달라졌습니다. 예전에는 모름이 막막함으로만 남았지만, 지금은 다음 질문의 출발점으로 남습니다. 그 변화를 기록으로 남겨 두고 싶었습니다.', '여기까지 오면서 내가 모른다고 말하는 방식이 달라졌습니다. 예전에는 모름이 막막함으로만 남았지만, 지금은 다음 질문의 출발점으로 남습니다. 그 변화를 기록으로 남겨 두고 싶었습니다.', 'article', 'personal', 'monthly', 'cohort', 'open', 0, 'clean', 'cohort-2026', unixepoch() - 86400 * 36, unixepoch() - 86400 * 36),
+  ('record-019', 'jaemin-week1', 'jaemin', NULL, NULL, NULL, '첫 주 메모', '첫 주가 지나고 나니 기록이 생각보다 부담스럽지 않다는 사실을 알게 되었습니다. 길게 쓰지 않아도 그날의 생각을 붙잡아 두는 것만으로 충분했습니다.', '첫 주가 지나고 나니 기록이 생각보다 부담스럽지 않다는 사실을 알게 되었습니다. 길게 쓰지 않아도 그날의 생각을 붙잡아 두는 것만으로 충분했습니다.', 'note', 'personal', 'weekly', 'cohort', 'open', 0, 'clean', 'cohort-2026', unixepoch() - 86400 * 7, unixepoch() - 86400 * 7),
+  ('record-020', 'hana-draft', 'hana', NULL, NULL, NULL, '[초안] 아직 정리되지 않은 생각', '문장이 아직 매끄럽지 않지만 지금의 흐릿함도 남겨 두고 싶었습니다. 나중에 다시 읽으면 어디에서 머뭇거렸는지 더 잘 보일 것 같습니다.', '문장이 아직 매끄럽지 않지만 지금의 흐릿함도 남겨 두고 싶었습니다. 나중에 다시 읽으면 어디에서 머뭇거렸는지 더 잘 보일 것 같습니다.', 'note', 'personal', 'free', 'draft', 'closed', 0, 'clean', 'cohort-2026', unixepoch() - 3600 * 12, unixepoch() - 3600 * 12),
+  ('record-026', 'jiwon-private', 'jiwon', NULL, NULL, NULL, '나만 간직하는 기록', '아직 누구에게 보여줄 준비는 안 되었지만 이 생각은 분명히 중요한 것 같습니다. 나중에 다시 꺼내 볼 수 있도록 여기에 남겨 둡니다. 완성된 문장은 아니어도 지금의 감각을 잊고 싶지 않았습니다.', '아직 누구에게 보여줄 준비는 안 되었지만 이 생각은 분명히 중요한 것 같습니다. 나중에 다시 꺼내 볼 수 있도록 여기에 남겨 둡니다. 완성된 문장은 아니어도 지금의 감각을 잊고 싶지 않았습니다.', 'note', 'personal', 'free', 'private', 'closed', 0, 'clean', 'cohort-2026', unixepoch() - 86400 * 4, unixepoch() - 86400 * 4),
+  ('record-021', 'soyeon-short', 'soyeon', NULL, NULL, NULL, '오늘의 한 줄', '탐구는 정답을 서둘러 고르는 일이 아니라 더 오래 남는 질문을 찾는 일에 가깝다.', '탐구는 정답을 서둘러 고르는 일이 아니라 더 오래 남는 질문을 찾는 일에 가깝다.', 'note', 'personal', 'sprint', 'cohort', 'open', 0, 'clean', 'cohort-2026', unixepoch() - 86400 * 2, unixepoch() - 86400 * 2),
+   ('record-022', 'minjun-article', 'minjun', 'challenge-team', 'collab-unit-alpha', 'record-010', '팀 탐구의 전환점', '{"type":"doc","content":[{"type":"heading","attrs":{"level":2},"content":[{"type":"text","text":"다름을 자원으로 읽기"}]},{"type":"paragraph","content":[{"type":"text","text":"세 번의 팀 미팅을 지나며 각자의 다름이 걸림돌이 아니라 자원이라는 사실을 더 분명히 알게 되었습니다."}]},{"type":"paragraph","content":[{"type":"text","text":"누군가의 메모가 다른 사람의 질문을 열고, 그 질문이 다시 다음 기록을 만들었습니다. 이 순환이 팀 탐구의 생명력입니다."}]},{"type":"paragraph","content":[{"type":"text","text":"함께 쓰는 탐구는 한 사람의 확신보다 여러 사람의 망설임을 견디는 일에 가까웠습니다. 그 망설임 속에서 가장 깊은 질문이 나타났습니다."}]}]}', '다름을 자원으로 읽기 세 번의 팀 미팅을 지나며 각자의 다름이 걸림돌이 아니라 자원이라는 사실을 더 분명히 알게 되었습니다. 누군가의 메모가 다른 사람의 질문을 열고, 그 질문이 다시 다음 기록을 만들었습니다. 이 순환이 팀 탐구의 생명력입니다. 함께 쓰는 탐구는 한 사람의 확신보다 여러 사람의 망설임을 견디는 일에 가까웠습니다. 그 망설임 속에서 가장 깊은 질문이 나타났습니다.', 'article', 'collaboration', 'monthly', 'public', 'open', 1, 'clean', 'cohort-2026', unixepoch() - 86400 * 16, unixepoch() - 86400 * 16),
+  ('record-023', 'jiwon-question', 'jiwon', NULL, NULL, NULL, '질문이 생겼습니다', '이번 주에는 학습에서 실패가 어떤 역할을 하는지 계속 마음에 남았습니다. 실패를 피해야 하는 일로만 보면 놓치는 것이 있는 것 같습니다. 실패를 다시 읽는 방식이 필요하다는 생각이 들었습니다.', '이번 주에는 학습에서 실패가 어떤 역할을 하는지 계속 마음에 남았습니다. 실패를 피해야 하는 일로만 보면 놓치는 것이 있는 것 같습니다. 실패를 다시 읽는 방식이 필요하다는 생각이 들었습니다.', 'note', 'personal', 'free', 'public', 'question_only', 0, 'clean', 'cohort-2026', unixepoch() - 86400 * 10, unixepoch() - 86400 * 10),
+  ('record-024', 'hyunjin-sprint2', 'hyunjin', 'challenge-team', 'collab-unit-alpha', 'record-007', '스프린트 기록: 두 번째 주', '두 번째 주에도 여전히 불확실함은 남아 있었지만, 그 불확실함을 설명하는 말이 조금 더 늘어났습니다. 우리는 방향을 정하기 전에 서로가 어디에 서 있는지 먼저 확인하기로 했습니다.', '두 번째 주에도 여전히 불확실함은 남아 있었지만, 그 불확실함을 설명하는 말이 조금 더 늘어났습니다. 우리는 방향을 정하기 전에 서로가 어디에 서 있는지 먼저 확인하기로 했습니다.', 'note', 'collaboration', 'sprint', 'cohort', 'open', 0, 'clean', 'cohort-2026', unixepoch() - 86400 * 11, unixepoch() - 86400 * 11),
+   ('record-025', 'hana-prelude-end', 'hana', NULL, NULL, 'record-003', '탐색의 시작을 마치며', '{"type":"doc","content":[{"type":"heading","attrs":{"level":2},"content":[{"type":"text","text":"질문의 변화"}]},{"type":"paragraph","content":[{"type":"text","text":"처음의 질문과 지금의 질문은 많이 달라졌습니다."}]},{"type":"paragraph","content":[{"type":"text","text":"예전에는 잘하고 싶다는 막연한 마음뿐이었다면, 이제는 무엇을 왜 오래 들여다보고 싶은지 조금 더 말할 수 있습니다."}]},{"type":"paragraph","content":[{"type":"text","text":"질문의 변화 자체가 이 구간에서 내가 얻은 가장 큰 흔적입니다. 다음 구간에서는 이 질문을 더 깊이 탐구하고 싶습니다."}]}]}', '질문의 변화 처음의 질문과 지금의 질문은 많이 달라졌습니다. 예전에는 잘하고 싶다는 막연한 마음뿐이었다면, 이제는 무엇을 왜 오래 들여다보고 싶은지 조금 더 말할 수 있습니다. 질문의 변화 자체가 이 구간에서 내가 얻은 가장 큰 흔적입니다. 다음 구간에서는 이 질문을 더 깊이 탐구하고 싶습니다.', 'article', 'personal', 'monthly', 'public', 'open', 1, 'clean', 'cohort-2026', unixepoch() - 86400 * 61, unixepoch() - 86400 * 61);
 
 INSERT INTO tags (id, name, slug, description, color, created_by, created_at, updated_at) VALUES
   ('tag-001', '기술', 'tech', '기술 관련 기록과 탐구', '#146C94', 'hana', unixepoch() - 86400 * 30, unixepoch() - 86400 * 30),
@@ -268,47 +254,18 @@ INSERT INTO templates (
   context,
   form,
   rhythm,
-  stage_kind,
   active,
   created_at,
   updated_at
 ) VALUES
-  ('tmpl-001', '오늘의 한 줄', '오늘 가장 오래 남은 문장을 한 줄로 적는 템플릿입니다.', '오늘 탐구에서 가장 오래 남은 문장을 한 줄로 적어 보세요.', 'personal', 'note', 'sprint', 'prelude', 1, unixepoch() - 86400 * 30, unixepoch() - 86400 * 30),
-  ('tmpl-002', '이번 주 메모', '한 주 동안의 탐구 흐름을 자유롭게 정리하는 템플릿입니다.', '이번 주에 발견한 것, 오래 남은 질문, 다음에 더 보고 싶은 장면을 적어 보세요.', 'personal', 'note', 'weekly', NULL, 1, unixepoch() - 86400 * 30, unixepoch() - 86400 * 30),
-  ('tmpl-003', '스프린트 기록', '짧은 탐구 기간의 흐름을 남기는 템플릿입니다.', '이번 스프린트에서 시도한 것, 흔들린 지점, 다음에 이어갈 질문을 적어 보세요.', 'personal', 'note', 'sprint', NULL, 1, unixepoch() - 86400 * 30, unixepoch() - 86400 * 30),
-  ('tmpl-004', '구간 회고', '구간을 마무리하며 질문의 변화를 돌아보는 템플릿입니다.', '이 구간을 마치며 처음 질문과 지금 질문이 어떻게 달라졌는지, 가장 크게 남은 장면은 무엇인지 적어 보세요.', 'personal', 'article', 'monthly', NULL, 1, unixepoch() - 86400 * 30, unixepoch() - 86400 * 30),
-  ('tmpl-005', '개인 회고', '나만의 탐구를 길게 돌아보는 글 템플릿입니다.', '이 기간 동안 무엇을 탐구했고 무엇을 놓쳤으며 다음에는 무엇을 붙들고 싶은지 적어 보세요.', 'personal', 'article', 'monthly', NULL, 1, unixepoch() - 86400 * 30, unixepoch() - 86400 * 30),
-  ('tmpl-006', '함께하는 탐색 기록', '협업 유닛이 공동의 흐름을 남길 때 사용하는 템플릿입니다.', '함께 본 장면, 서로 다른 관점, 지금 함께 붙드는 질문, 다음에 확인할 것을 적어 보세요.', 'collaboration', 'note', 'free', NULL, 1, unixepoch() - 86400 * 30, unixepoch() - 86400 * 30),
-  ('tmpl-007', '자유 형식', '형식 없이 떠오르는 생각을 적는 템플릿입니다.', '정리되지 않은 생각이어도 괜찮습니다. 지금 마음에 남아 있는 것을 자유롭게 적어 보세요.', 'personal', 'note', 'free', NULL, 1, unixepoch() - 86400 * 30, unixepoch() - 86400 * 30),
-  ('tmpl-008', '챌린지 일지', '챌린지 과정에서 생기는 질문과 시도를 기록하는 템플릿입니다.', '오늘 챌린지에서 시도한 것, 예상과 달랐던 점, 새롭게 생긴 질문을 적어 보세요.', 'challenge', 'note', 'sprint', 'challenge', 1, unixepoch() - 86400 * 30, unixepoch() - 86400 * 30);
-
-INSERT INTO collective_memories (
-  id,
-  stage_id,
-  summary,
-  carry_forward_question,
-  status,
-  cohort,
-  created_at,
-  updated_at
-) VALUES
-  ('memory-bridge-1', 'stage-bridge-1', '첫 번째 전환 구간에서 학습자들은 막막함을 없애기보다 읽는 법을 배우기 시작했습니다. 많은 기록이 완성보다 질문의 지속을 더 중요하게 다루었고, 모른다는 상태가 다음 탐구의 출발점이 될 수 있다는 감각을 나누었습니다. 이 구간의 공통된 결은 더 좋은 질문을 오래 붙드는 태도였습니다.', '다음 구간에서 우리는 어떤 질문을 함께 더 오래 붙들고 싶나요?', 'published', 'cohort-2026', unixepoch() - 86400 * 20, unixepoch() - 86400 * 20),
-  ('memory-prelude-1', 'stage-prelude', '탐색의 시작 구간은 아직 진행 중이지만, 학습자들은 이미 질문을 서둘러 정리하지 않는 태도를 익혀 가고 있습니다. 작은 메모와 짧은 문장이 각자의 시작을 지탱하고 있습니다.', NULL, 'draft', 'cohort-2026', unixepoch() - 86400 * 4, unixepoch() - 86400 * 4);
-
-INSERT INTO memory_questions (memory_id, question_id, position) VALUES
-  ('memory-bridge-1', 'q-005', 0),
-  ('memory-bridge-1', 'q-011', 1);
-
-INSERT INTO memory_sentences (memory_id, sentence_id, position) VALUES
-  ('memory-bridge-1', 'sent-004', 0),
-  ('memory-bridge-1', 'sent-008', 1),
-  ('memory-bridge-1', 'sent-011', 2);
-
-INSERT INTO memory_records (memory_id, record_id, position) VALUES
-  ('memory-bridge-1', 'record-008', 0),
-  ('memory-bridge-1', 'record-013', 1),
-  ('memory-bridge-1', 'record-018', 2),
-  ('memory-bridge-1', 'record-025', 3);
+  ('tmpl-001', '오늘의 한 줄', '오늘 가장 오래 남은 문장을 한 줄로 적는 템플릿입니다.', '오늘 탐구에서 가장 오래 남은 문장을 한 줄로 적어 보세요.', 'personal', 'note', 'sprint', 1, unixepoch() - 86400 * 30, unixepoch() - 86400 * 30),
+  ('tmpl-002', '이번 주 메모', '한 주 동안의 탐구 흐름을 자유롭게 정리하는 템플릿입니다.', '이번 주에 발견한 것, 오래 남은 질문, 다음에 더 보고 싶은 장면을 적어 보세요.', 'personal', 'note', 'weekly', 1, unixepoch() - 86400 * 30, unixepoch() - 86400 * 30),
+  ('tmpl-003', '스프린트 기록', '짧은 탐구 기간의 흐름을 남기는 템플릿입니다.', '이번 스프린트에서 시도한 것, 흔들린 지점, 다음에 이어갈 질문을 적어 보세요.', 'personal', 'note', 'sprint', 1, unixepoch() - 86400 * 30, unixepoch() - 86400 * 30),
+  ('tmpl-004', '구간 회고', '구간을 마무리하며 질문의 변화를 돌아보는 템플릿입니다.', '이 구간을 마치며 처음 질문과 지금 질문이 어떻게 달라졌는지, 가장 크게 남은 장면은 무엇인지 적어 보세요.', 'personal', 'article', 'monthly', 1, unixepoch() - 86400 * 30, unixepoch() - 86400 * 30),
+  ('tmpl-005', '개인 회고', '나만의 탐구를 길게 돌아보는 글 템플릿입니다.', '이 기간 동안 무엇을 탐구했고 무엇을 놓쳤으며 다음에는 무엇을 붙들고 싶은지 적어 보세요.', 'personal', 'article', 'monthly', 1, unixepoch() - 86400 * 30, unixepoch() - 86400 * 30),
+  ('tmpl-006', '함께하는 탐색 기록', '협업 유닛이 공동의 흐름을 남길 때 사용하는 템플릿입니다.', '함께 본 장면, 서로 다른 관점, 지금 함께 붙드는 질문, 다음에 확인할 것을 적어 보세요.', 'collaboration', 'note', 'free', 1, unixepoch() - 86400 * 30, unixepoch() - 86400 * 30),
+  ('tmpl-007', '자유 형식', '형식 없이 떠오르는 생각을 적는 템플릿입니다.', '정리되지 않은 생각이어도 괜찮습니다. 지금 마음에 남아 있는 것을 자유롭게 적어 보세요.', 'personal', 'note', 'free', 1, unixepoch() - 86400 * 30, unixepoch() - 86400 * 30),
+  ('tmpl-008', '챌린지 일지', '챌린지 과정에서 생기는 질문과 시도를 기록하는 템플릿입니다.', '오늘 챌린지에서 시도한 것, 예상과 달랐던 점, 새롭게 생긴 질문을 적어 보세요.', 'challenge', 'note', 'sprint', 1, unixepoch() - 86400 * 30, unixepoch() - 86400 * 30);
 
 -- record_references 초기화 (멱등성)
 DELETE FROM record_references;
@@ -414,7 +371,6 @@ INSERT INTO records (
   id,
   slug,
   author_id,
-  stage_id,
   challenge_id,
   collaboration_unit_id,
   linked_record_id,
@@ -435,7 +391,6 @@ INSERT INTO records (
   'record-test-timeline',
   'test-record-with-timeline',
   'hana',
-  'stage-test-closed',
   NULL,
   NULL,
   NULL,
@@ -525,22 +480,6 @@ INSERT INTO record_links (id, source_record_id, target_record_id, link_type, quo
     '혼자서 탐구를 이어가기',
     unixepoch() - 2400
   );
-
-INSERT INTO question_carry_overs (
-  id,
-  original_question_id,
-  new_question_id,
-  from_stage_id,
-  to_stage_id,
-  carried_at
-) VALUES (
-  'co-test-timeline-001',
-  'q-test-timeline-001',
-  NULL,
-  'stage-challenge-1',
-  'stage-test-closed',
-  unixepoch() - 2000
-);
 
 -- record_participants 샘플 데이터
 -- 협업 기록에 참여자 추가 (작성자 본인 제외)

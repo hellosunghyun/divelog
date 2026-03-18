@@ -99,7 +99,6 @@ export default function LearnerDetailPage({ loaderData }: Route.ComponentProps) 
   const learnerRecords = typedData.learnerRecords;
   const learnerQuestions = typedData.learnerQuestions;
   const learnerSentences = typedData.learnerSentences;
-  const recordsByStage = typedData.recordsByStage;
   const participatedRecords = typedData.participatedRecords ?? [];
   const mentionedRecords = typedData.mentionedRecords ?? [];
   const participantsByRecordId = typedData.participantsByRecordId ?? {};
@@ -309,30 +308,6 @@ export default function LearnerDetailPage({ loaderData }: Route.ComponentProps) 
                 </div>
               );
             })}
-          </div>
-        </section>
-      )}
-
-      {recordsByStage.length > 0 && (
-        <section className="max-w-content mx-auto px-6 py-12">
-          <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-8">
-            기록 아카이브
-          </h2>
-          <div className="flex flex-col">
-            {recordsByStage.map((stage) => (
-              <Link
-                key={stage.stageId ?? "no-stage"}
-                to={stage.stageSlug ? `/journey/${stage.stageSlug}` : "/journey"}
-                className="flex justify-between items-center border-b border-border py-3 no-underline hover:bg-surface-secondary transition-colors"
-              >
-                <span className="text-text-primary font-medium">
-                  {stage.stageName ?? "Stage 없음"}
-                </span>
-                <span className="text-meta text-text-secondary">
-                  {stage.count}개의 기록
-                </span>
-              </Link>
-            ))}
           </div>
         </section>
       )}

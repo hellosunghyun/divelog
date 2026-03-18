@@ -9,9 +9,7 @@ export type NotificationType =
   | "mention"
   | "participant_added"
   | "reminder"
-  | "reread_reminder"
-  | "carry_over"
-  | "stage_closing";
+  | "reread_reminder";
 
 export interface CreateNotificationInput {
   recipientId: string;

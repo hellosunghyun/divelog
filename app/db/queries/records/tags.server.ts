@@ -135,16 +135,12 @@ export type TaggedRecord = {
     slug: string | null;
     profilePhotoUrl: string | null;
   } | null;
-  stage: {
-    name: string | null;
-    type: string | null;
-  } | null;
 };
 
 export async function getRecordsByTag(d1: D1Database, tagId: string): Promise<TaggedRecord[]> {
   const database = db(d1);
 
-  const { records, stages, learnerProfiles } = await import("../../schema.server");
+  const { records, learnerProfiles } = await import("../../schema.server");
   const { desc, and, eq, sql } = await import("drizzle-orm");
 
   const result = await database
@@ -164,15 +160,10 @@ export async function getRecordsByTag(d1: D1Database, tagId: string): Promise<Ta
         slug: learnerProfiles.slug,
         profilePhotoUrl: learnerProfiles.profilePhotoUrl,
       },
-      stage: {
-        name: stages.name,
-        type: stages.type,
-      },
     })
     .from(recordTags)
     .innerJoin(records, eq(recordTags.recordId, records.id))
     .leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
-    .leftJoin(stages, eq(records.stageId, stages.id))
     .where(and(eq(recordTags.tagId, tagId), sql`${records.visibility} IN ('cohort', 'public')`))
     .orderBy(desc(records.createdAt));
 

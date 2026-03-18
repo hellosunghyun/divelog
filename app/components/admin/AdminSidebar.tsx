@@ -8,7 +8,6 @@ import {
   Users,
   ChatTeardrop,
   Selection,
-  Brain,
   Files,
   Tag,
   ChartBar,
@@ -57,7 +56,6 @@ const NAV_GROUPS: NavGroup[] = [
     label: "큐레이션",
     items: [
       { label: "큐레이션", href: "/admin/curation", icon: Selection },
-      { label: "Collective Memory", href: "/admin/memories", icon: Brain },
     ],
   },
   {

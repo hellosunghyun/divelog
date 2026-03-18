@@ -21,7 +21,7 @@ import {
 import { RhythmDateInput } from "~/components/record/RhythmDateInput";
 import { db } from "~/db/client.server";
 import { syncRecordLinksForRecord } from "~/db/queries/records/recordLinks.server";
-import { learnerProfiles, records, stages } from "~/db/schema.server";
+import { learnerProfiles, records } from "~/db/schema.server";
 import { useUnsavedWarning } from "~/hooks/useUnsavedWarning";
 import { requireVerified } from "~/lib/auth/auth.middleware";
 import { createArticleSchema } from "~/lib/auth/validation";
@@ -31,15 +31,12 @@ import { cn } from "~/lib/utils/cn";
 import { getNextRecordSlug } from "~/db/queries/records/records.server";
 import { nanoid } from "~/lib/utils/utils.server";
 
-const NO_STAGE_VALUE = "__none__";
-
 const RHYTHM_OPTIONS = [
   { value: "free", label: "자유" },
   { value: "moment", label: "순간" },
   { value: "sprint", label: "스프린트" },
   { value: "weekly", label: "주간" },
   { value: "monthly", label: "월간" },
-  { value: "stage", label: "구간" },
 ] as const;
 
 function parseDateToUnix(dateStr: string | undefined): number | null {
@@ -57,16 +54,14 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const auth = await requireVerified(request, context);
 
   const database = db(context.cloudflare.env.DB);
-  const [currentStageResult, allStages, learnerResult] = await database.batch([
-    database.select().from(stages).where(eq(stages.isCurrent, true)).limit(1),
-    database.select({ id: stages.id, name: stages.name, isCurrent: stages.isCurrent, startDate: stages.startDate, endDate: stages.endDate }).from(stages).orderBy(stages.order),
-    database.select().from(learnerProfiles).where(eq(learnerProfiles.userId, auth.user.id)).limit(1),
-  ]);
+  const learnerResult = await database
+    .select()
+    .from(learnerProfiles)
+    .where(eq(learnerProfiles.userId, auth.user.id))
+    .limit(1);
   const learner = learnerResult[0] ?? null;
 
   return {
-    currentStage: currentStageResult[0] ?? null,
-    stages: allStages,
     learnerDefaults: {
       defaultVisibility: learner?.defaultVisibility ?? "public",
       defaultResponsePreference: learner?.defaultResponsePreference ?? "open",
@@ -99,7 +94,6 @@ export async function action({ request, context }: Route.ActionArgs) {
     content,
     rhythm: formData.get("rhythm") || "free",
     visibility: formData.get("visibility") || "public",
-    stageId: formData.get("stageId") || undefined,
     recordedAt: typeof recordedAtRaw === "string" && recordedAtRaw ? recordedAtRaw : undefined,
     recordedEndAt: typeof recordedEndAtRaw === "string" && recordedEndAtRaw ? recordedEndAtRaw : undefined,
   });
@@ -128,7 +122,6 @@ export async function action({ request, context }: Route.ActionArgs) {
     rhythm: parsed.data.rhythm,
     visibility: parsed.data.visibility,
     responsePreference,
-    stageId: parsed.data.stageId ?? null,
     challengeId: null,
     collaborationUnitId: null,
     recordedAt,
@@ -148,12 +141,11 @@ export async function action({ request, context }: Route.ActionArgs) {
 }
 
 export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
-   const { currentStage, stages: availableStages, learnerDefaults } = loaderData;
+   const { learnerDefaults } = loaderData;
    const actionData = useActionData<typeof action>();
    const [title, setTitle] = useState("");
    const [articleContent, setArticleContent] = useState("");
    const [rhythm, setRhythm] = useState("free");
-   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
    const errors = actionData?.errors;
   const titleError = errors && "title" in errors ? errors.title?.[0] : undefined;
   const contentError = errors && "content" in errors ? errors.content?.[0] : undefined;
@@ -209,10 +201,6 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
               </Select>
             </div>
 
-            {rhythm !== "stage" && (
-              <input type="hidden" name="stageId" value="" />
-            )}
-
             <input
               type="hidden"
               name="responsePreference"
@@ -247,7 +235,7 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
             </div>
           </div>
 
-          <RhythmDateInput rhythm={rhythm} stages={availableStages} />
+          <RhythmDateInput rhythm={rhythm} />
 
           <div>
             <Label htmlFor="title" className="mb-2 block text-meta font-medium text-text-secondary">

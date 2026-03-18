@@ -20,7 +20,7 @@ interface QuestionCardProps {
 
 const DIRECTION_LABELS: Record<string, string> = {
   inward: "스스로에게 묻다",
-  next_stage: "다음 구간으로 가져갈 질문",
+  next_stage: "다음 탐구로 가져갈 질문",
   outward: "함께 생각해볼 질문",
 };
 

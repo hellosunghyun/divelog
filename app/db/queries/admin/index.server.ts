@@ -4,7 +4,6 @@ export * from "./insights/audit.server";
 export * from "./ops/curation.server";
 export * from "./ops/dialogue.server";
 export * from "./data/learners.server";
-export * from "./data/memories.server";
 export * from "./data/records.server";
 export * from "./ops/roles.server";
 export * from "./ops/settings.server";

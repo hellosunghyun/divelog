@@ -4,7 +4,7 @@ import type { Route } from "./+types/$learnerSlug";
 import { getRecordsWithMention } from "~/db/queries/dialogue/mentions.server";
 import { getRecordsWithParticipant, getParticipantsBatch } from "~/db/queries/records/participants.server";
 import { db } from "~/db/client.server";
-import { learnerProfiles, questions, records, sentences, stages } from "~/db/schema.server";
+import { learnerProfiles, questions, records, sentences } from "~/db/schema.server";
 import { createLogger } from "~/lib/infra/logger.server";
 
 export async function loader({ params, request, context }: Route.LoaderArgs) {
@@ -52,40 +52,12 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
     participantsByRecordId.set(p.recordId, existing);
   }
 
-  const recordsWithStage = await database
-    .select({
-      stageId: records.stageId,
-      stageName: stages.name,
-      stageSlug: stages.slug,
-    })
-    .from(records)
-    .leftJoin(stages, eq(records.stageId, stages.id))
-    .where(and(eq(records.authorId, learner.userId), sql`${records.visibility} IN ('cohort', 'public')`));
-
-  const stageCountMap = new Map<string, { stageId: string | null; stageName: string | null; stageSlug: string | null; count: number }>();
-  for (const row of recordsWithStage) {
-    const key = row.stageId ?? "no-stage";
-    const existing = stageCountMap.get(key);
-    if (existing) {
-      existing.count++;
-    } else {
-      stageCountMap.set(key, {
-        stageId: row.stageId,
-        stageName: row.stageName,
-        stageSlug: row.stageSlug,
-        count: 1,
-      });
-    }
-  }
-  const recordsByStage = Array.from(stageCountMap.values());
-
   logger.info("loader_end");
   return {
     learner,
     learnerRecords,
     learnerQuestions,
     learnerSentences,
-    recordsByStage,
     collaborationUnits: [] as never[],
     participatedRecords,
     mentionedRecords,

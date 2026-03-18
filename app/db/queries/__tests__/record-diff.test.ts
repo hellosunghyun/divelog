@@ -152,9 +152,9 @@ describe("record-diff utilities", () => {
     });
 
     it("handles null/undefined values", () => {
-      const result = formatFieldChange("stageId", null, "stage-123");
+      const result = formatFieldChange("challengeId", null, "challenge-123");
 
-      expect(result.label).toBe("스테이지");
+      expect(result.label).toBe("챌린지");
       expect(result.summary).toContain("없음");
     });
   });

@@ -7,7 +7,6 @@ export interface DraftData {
   title?: string;
   content: string;
   contentJson?: string;
-  stageId?: string | null;
   rhythm?: string;
   visibility?: 'draft' | 'private' | 'cohort' | 'public';
   responsePreference?: 'open' | 'question_only' | 'closed';

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createNotification, type NotificationType } from "../social/notifications.server";
+import { createNotification } from "../social/notifications.server";
 import { db } from "../../client.server";
 
 vi.mock("../../client.server", () => ({
@@ -106,33 +106,6 @@ describe("notifications query", () => {
     });
 
     expect(result.type).toBe("reread_reminder");
-  });
-
-  it("createNotification으로 carry_over 타입 알림을 생성한다", async () => {
-    const mockDb = createDatabaseMock({ type: "carry_over" });
-    vi.mocked(db).mockReturnValue(mockDb as never);
-
-    const result = await createNotification(d1, {
-      recipientId: "learner-005",
-      type: "carry_over",
-      title: "이월 알림",
-      questionId: "question-002",
-    });
-
-    expect(result.type).toBe("carry_over");
-  });
-
-  it("createNotification으로 stage_closing 타입 알림을 생성한다", async () => {
-    const mockDb = createDatabaseMock({ type: "stage_closing" });
-    vi.mocked(db).mockReturnValue(mockDb as never);
-
-    const result = await createNotification(d1, {
-      recipientId: "learner-006",
-      type: "stage_closing",
-      title: "스테이지 종료 알림",
-    });
-
-    expect(result.type).toBe("stage_closing");
   });
 
   it("createNotification은 isRead를 false로 기본값 설정한다", async () => {

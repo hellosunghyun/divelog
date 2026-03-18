@@ -63,7 +63,7 @@ const NOTIF_TYPE_LABEL: Record<string, string> = {
   reminder: "알림",
   reread_reminder: "다시 읽기",
   carry_over: "이어가기",
-  stage_closing: "Stage 마무리",
+  stage_closing: "마무리 알림",
 };
 
 const navLinks = [

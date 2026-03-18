@@ -26,7 +26,7 @@ export function meta(_: Route.MetaArgs) {
 export async function loader({ request, context }: Route.LoaderArgs) {
   const { db } = await import("~/db/client.server");
   const { createLogger } = await import("~/lib/infra/logger.server");
-  const { records, learnerProfiles, stages } = await import("~/db/schema.server");
+  const { records, learnerProfiles } = await import("~/db/schema.server");
 
   const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.records" });
   logger.info("loader_start");
@@ -34,7 +34,6 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const url = new URL(request.url);
   const moderationFilter = (url.searchParams.get("moderation") ?? "all") as ModerationFilter;
   const visibilityFilter = (url.searchParams.get("visibility") ?? "all") as VisibilityFilter;
-  const stageFilter = url.searchParams.get("stage");
 
   const database = db(context.cloudflare.env.DB);
 
@@ -52,25 +51,19 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     .select({
       record: records,
       author: { displayName: learnerProfiles.displayName, slug: learnerProfiles.slug },
-      stage: { name: stages.name, slug: stages.slug },
     })
     .from(records)
     .leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
-    .leftJoin(stages, eq(records.stageId, stages.id))
     .where(conditions.length > 0 ? and(...conditions) : undefined)
     .orderBy(desc(records.createdAt))
     .limit(100);
-
-  const allStages = await database.select().from(stages).orderBy(desc(stages.order));
 
   return {
     records: result,
     filters: {
       moderation: moderationFilter,
       visibility: visibilityFilter,
-      stage: stageFilter,
     },
-    stages: allStages,
   };
 }
 
@@ -107,7 +100,7 @@ const getVisibilityBadgeVariant = (
 };
 
 export default function AdminRecordsPage({ loaderData }: Route.ComponentProps) {
-  const { records: recordList, filters, stages } = loaderData;
+  const { records: recordList, filters } = loaderData;
 
   const buildFilterUrl = (key: string, value: string) => {
     const params = new URLSearchParams();
@@ -178,9 +171,6 @@ export default function AdminRecordsPage({ loaderData }: Route.ComponentProps) {
                   작성자
                 </TableHead>
                 <TableHead className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-admin-text-secondary">
-                  Stage
-                </TableHead>
-                <TableHead className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-admin-text-secondary">
                   형식
                 </TableHead>
                 <TableHead className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-admin-text-secondary">
@@ -195,7 +185,7 @@ export default function AdminRecordsPage({ loaderData }: Route.ComponentProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {recordList.map(({ record, author, stage }) => (
+              {recordList.map(({ record, author }) => (
                 <TableRow key={record.id} className="hover:bg-admin-bg transition-colors">
                   <TableCell className="px-4 py-3">
                     <span className="text-sm text-admin-text truncate block max-w-[200px]">
@@ -217,20 +207,15 @@ export default function AdminRecordsPage({ loaderData }: Route.ComponentProps) {
                     )}
                   </TableCell>
                   <TableCell className="px-4 py-3">
-                    <span className="text-sm text-admin-text-secondary">
-                      {stage?.name ?? "-"}
-                    </span>
-                  </TableCell>
-                  <TableCell className="px-4 py-3">
                     <Badge variant="outline" className="text-xs">
                       {record.format}
                     </Badge>
                   </TableCell>
                    <TableCell className="px-4 py-3">
-                     <Badge variant={getVisibilityBadgeVariant(record.visibility)} className="text-xs">
-                       {VISIBILITY_LABELS[record.visibility] ?? record.visibility}
-                     </Badge>
-                   </TableCell>
+                      <Badge variant={getVisibilityBadgeVariant(record.visibility)} className="text-xs">
+                        {VISIBILITY_LABELS[record.visibility] ?? record.visibility}
+                      </Badge>
+                    </TableCell>
                   <TableCell className="px-4 py-3">
                     <Badge variant={getModerationBadgeVariant(record.moderationStatus)} className="text-xs">
                       {record.moderationStatus}

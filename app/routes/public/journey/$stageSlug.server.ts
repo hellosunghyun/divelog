@@ -1,10 +1,9 @@
-import { and, desc, eq, sql } from "drizzle-orm";
+import { desc, eq, sql } from "drizzle-orm";
 import { data } from "react-router";
 import type { Route } from "./+types/$stageSlug";
 import { db } from "~/db/client.server";
 import { getStageBySlug, getStages } from "~/db/queries/journey/stages.server";
-import { getRecords } from "~/db/queries/records/records.server";
-import { collectiveMemories, questions, records } from "~/db/schema.server";
+import { questions, records } from "~/db/schema.server";
 import { createLogger } from "~/lib/infra/logger.server";
 
 export async function loader({ params, request, context }: Route.LoaderArgs) {
@@ -21,29 +20,18 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
 
   const allStages = await getStages(context.cloudflare.env.DB);
 
-  const stageRecords = await getRecords(context.cloudflare.env.DB, { stage: stage.id, page: 1 });
-
-  const [stageQuestions, collectiveMemoryResult] = await database.batch([
-    database
-      .select({
-        question: questions,
-        recordSlug: records.slug,
-        recordTitle: records.title,
-      })
-      .from(questions)
-      .leftJoin(records, eq(questions.recordId, records.id))
-      .where(and(eq(records.stageId, stage.id), eq(questions.isOpen, true), sql`${records.visibility} IN ('cohort', 'public')`))
-      .orderBy(desc(questions.createdAt))
-      .limit(5),
-    database
-      .select()
-      .from(collectiveMemories)
-      .where(and(eq(collectiveMemories.stageId, stage.id), eq(collectiveMemories.status, "published")))
-      .limit(1),
-  ]);
-  const stageCollaborations: never[] = [];
-  const collectiveMemory = collectiveMemoryResult[0] ?? null;
+  const stageQuestions = await database
+    .select({
+      question: questions,
+      recordSlug: records.slug,
+      recordTitle: records.title,
+    })
+    .from(questions)
+    .leftJoin(records, eq(questions.recordId, records.id))
+    .where(sql`${questions.isOpen} = 1 AND ${records.visibility} IN ('cohort', 'public')`)
+    .orderBy(desc(questions.createdAt))
+    .limit(10);
 
   logger.info("loader_end");
-  return { stage, allStages, stageRecords, stageQuestions, stageCollaborations, collectiveMemory };
+  return { stage, allStages, stageQuestions };
 }

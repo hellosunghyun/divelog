@@ -3,7 +3,6 @@ import { ko } from "date-fns/locale";
 import { useEffect, useRef, useState } from "react";
 
 import { MonthPicker } from "~/components/record/MonthPicker";
-import { StageDatePicker } from "~/components/record/StageDatePicker";
 import { WeekPicker } from "~/components/record/WeekPicker";
 import { Button } from "~/components/ui/button";
 import { Calendar } from "~/components/ui/calendar";
@@ -15,21 +14,11 @@ import {
 } from "~/components/ui/popover";
 import { cn } from "~/lib/utils/utils";
 
-interface Stage {
-  id: string;
-  name: string;
-  isCurrent: boolean;
-  startDate?: number | null;
-  endDate?: number | null;
-}
-
 interface RhythmDateInputProps {
   rhythm: string;
-  stages?: Stage[];
   initialValues?: {
     recordedAt?: string;
     recordedEndAt?: string;
-    stageId?: string;
   };
 }
 
@@ -71,7 +60,6 @@ function parseDate(value?: string): Date | undefined {
 
 export function RhythmDateInput({
   rhythm,
-  stages = [],
   initialValues,
 }: RhythmDateInputProps) {
   const initialRecordedAt = parseDate(initialValues?.recordedAt);
@@ -92,15 +80,6 @@ export function RhythmDateInput({
         }
       : undefined,
   );
-  const [stageDateValue, setStageDateValue] = useState<{
-    recordedAt?: string;
-    recordedEndAt?: string;
-    stageId?: string;
-  }>({
-    recordedAt: initialValues?.recordedAt,
-    recordedEndAt: initialValues?.recordedEndAt,
-    stageId: initialValues?.stageId,
-  });
   const prevRhythmRef = useRef(rhythm);
 
   useEffect(() => {
@@ -111,7 +90,6 @@ export function RhythmDateInput({
     prevRhythmRef.current = rhythm;
     setSelectedDate(undefined);
     setDateRange(undefined);
-    setStageDateValue({});
   }, [rhythm]);
 
   const monthlySelection =
@@ -131,8 +109,6 @@ export function RhythmDateInput({
       case "weekly":
       case "monthly":
         return dateRange?.from ? format(dateRange.from, "yyyy-MM-dd") : "";
-      case "stage":
-        return stageDateValue.recordedAt ?? "";
       case "moment":
       default:
         return "";
@@ -144,8 +120,6 @@ export function RhythmDateInput({
       case "weekly":
       case "monthly":
         return dateRange?.to ? format(dateRange.to, "yyyy-MM-dd") : "";
-      case "stage":
-        return stageDateValue.recordedEndAt ?? "";
       default:
         return "";
     }
@@ -219,24 +193,8 @@ export function RhythmDateInput({
         </div>
       )}
 
-      {rhythm === "stage" && (
-        <div>
-          <Label className="mb-2 block text-meta font-medium text-text-secondary">
-            기간 선택
-          </Label>
-          <StageDatePicker
-            stages={stages}
-            value={stageDateValue}
-            onSelect={(value) => setStageDateValue(value)}
-          />
-        </div>
-      )}
-
       <input type="hidden" name="recordedAt" value={recordedAtValue} />
       <input type="hidden" name="recordedEndAt" value={recordedEndAtValue} />
-      {rhythm === "stage" && (
-        <input type="hidden" name="stageId" value={stageDateValue.stageId ?? ""} />
-      )}
     </>
   );
 }

@@ -49,7 +49,7 @@ function formatRelativeTime(timestamp: number): string {
 
 function getDirectionLabel(direction: string): string {
   if (direction === "inward") return "스스로에게 묻다";
-  if (direction === "next_stage") return "다음 구간으로 가져갈 질문";
+  if (direction === "next_stage") return "다음 탐구로 가져갈 질문";
   return "함께 생각해볼 질문";
 }
 

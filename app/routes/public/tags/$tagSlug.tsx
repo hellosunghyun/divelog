@@ -67,7 +67,7 @@ export default function TagDetailPage({ loaderData }: Route.ComponentProps) {
   return (
     <div>
       <HeroSection
-        variant="stage"
+        variant="home"
         title={
           <span>
             <Link to="/tags" className="text-text-tertiary hover:text-text-primary transition-colors no-underline">

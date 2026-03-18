@@ -1,9 +1,7 @@
 import type { Route } from "./+types/$stageSlug";
 import { Link } from "~/components/content/SmartLink";
 import HeroSection from "~/components/sections/HeroSection";
-import SceneCard from "~/components/cards/SceneCard";
 import QuestionCard from "~/components/cards/QuestionCard";
-// [COLLAB_DISABLED] import CollaborationUnitCard from "~/components/cards/CollaborationUnitCard";
 import EmptyState from "~/components/feedback/EmptyState";
 import StageStrip from "~/components/sections/StageStrip";
 
@@ -73,7 +71,7 @@ export function shouldRevalidate({
 }
 
 export default function StageDetailPage({ loaderData }: Route.ComponentProps) {
-  const { stage, allStages, stageRecords, stageQuestions, stageCollaborations, collectiveMemory } = loaderData as LoaderData;
+  const { stage, allStages, stageQuestions } = loaderData as LoaderData;
 
   return (
     <div>
@@ -125,68 +123,23 @@ export default function StageDetailPage({ loaderData }: Route.ComponentProps) {
           </section>
         )}
 
-        {/* [COLLAB_DISABLED] collaboration section removed */}
-
         <section>
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-xl font-semibold text-text-primary tracking-tight">
               기록
             </h2>
             <Link
-              to={`/logs?stage=${stage.id}`}
+              to="/logs"
               className="text-sm text-text-tertiary hover:text-ocean-blue transition-colors no-underline"
             >
               전체 보기 →
             </Link>
           </div>
-          {stageRecords.length === 0 ? (
-            <EmptyState
-              variant="records"
-              action={{ label: "이 Stage에 기록하기", href: "/write" }}
-            />
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {stageRecords.map((item: any) => {
-                const { record, author } = item;
-                return (
-                  <SceneCard
-                    key={record.id}
-                    record={{
-                      slug: record.slug,
-                      title: record.title,
-                      content: record.content,
-                      format: record.format as "note" | "article",
-                      type: record.type as "personal" | "challenge" | "collaboration",
-                      rhythm: record.rhythm ?? undefined,
-                      createdAt: record.createdAt,
-                      recordedAt: record.recordedAt ?? undefined,
-                    }}
-                    author={author?.displayName ? { displayName: author.displayName, slug: author.slug ?? "" } : undefined}
-                  />
-                );
-              })}
-            </div>
-          )}
+          <EmptyState
+            variant="records"
+            action={{ label: "기록 남기기", href: "/write" }}
+          />
         </section>
-
-        {collectiveMemory && (
-          <section className="mt-12">
-            <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-8">
-              Collective Memory
-            </h2>
-            <div className="p-6 bg-surface rounded-2xl border border-border">
-              <p className="text-text-secondary mb-4">
-                이 Stage의 Collective Memory가 발행되었습니다
-              </p>
-              <Link
-                to={`/memories/${stage.slug}`}
-                className="inline-block text-sm font-medium text-ocean-blue hover:text-deep-ocean transition-colors no-underline"
-              >
-                보러 가기 →
-              </Link>
-            </div>
-          </section>
-        )}
       </div>
     </div>
   );

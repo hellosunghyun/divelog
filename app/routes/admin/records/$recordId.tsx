@@ -18,7 +18,7 @@ import { eq, desc } from "drizzle-orm";
 export async function loader({ params, request, context }: Route.LoaderArgs) {
   const { db } = await import("~/db/client.server");
   const { createLogger } = await import("~/lib/infra/logger.server");
-  const { records, learnerProfiles, stages, challenges, questions, responses } = await import("~/db/schema.server");
+  const { records, learnerProfiles, challenges, questions, responses } = await import("~/db/schema.server");
   const { getPlainText } = await import("~/lib/content/content.server");
 
   const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.records.$recordId" });
@@ -35,12 +35,9 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
     throw data("Record not found", { status: 404 });
   }
 
-  const [author, stage, challenge, relatedQuestions, relatedResponses] = await Promise.all([
+  const [author, challenge, relatedQuestions, relatedResponses] = await Promise.all([
     record[0].authorId
       ? database.select().from(learnerProfiles).where(eq(learnerProfiles.userId, record[0].authorId)).limit(1)
-      : [],
-    record[0].stageId
-      ? database.select().from(stages).where(eq(stages.id, record[0].stageId)).limit(1)
       : [],
     record[0].challengeId
       ? database.select().from(challenges).where(eq(challenges.id, record[0].challengeId)).limit(1)
@@ -57,7 +54,6 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
   return {
     record: record[0],
     author: author[0] ?? null,
-    stage: stage[0] ?? null,
     challenge: challenge[0] ?? null,
     questions: relatedQuestions,
     responses: relatedResponses,
@@ -70,7 +66,7 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
 export async function action({ params, request, context }: Route.ActionArgs) {
   const { db } = await import("~/db/client.server");
   const { createLogger } = await import("~/lib/infra/logger.server");
-  const { records, learnerProfiles, stages, challenges, questions, responses } = await import("~/db/schema.server");
+  const { records, learnerProfiles, challenges, questions, responses } = await import("~/db/schema.server");
   const { getPlainText } = await import("~/lib/content/content.server");
 
   const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.records.$recordId" });
@@ -120,7 +116,7 @@ const getModerationBadgeVariant = (
 };
 
 export default function AdminRecordDetailPage({ loaderData }: Route.ComponentProps) {
-  const { record, author, stage, challenge, questions, responses, plainTextPreview, revisions, revisionCount } = loaderData;
+  const { record, author, challenge, questions, responses, plainTextPreview, revisions, revisionCount } = loaderData;
   const navigation = useNavigation();
   const isDeleting = navigation.state === "submitting" && navigation.formData?.get("intent") === "delete";
 
@@ -147,10 +143,6 @@ export default function AdminRecordDetailPage({ loaderData }: Route.ComponentPro
               <div>
                 <span className="text-admin-text-secondary">작성자:</span>
                 <span className="ml-2 text-admin-text">{author?.displayName ?? "-"}</span>
-              </div>
-              <div>
-                <span className="text-admin-text-secondary">Stage:</span>
-                <span className="ml-2 text-admin-text">{stage?.name ?? "-"}</span>
               </div>
               <div>
                 <span className="text-admin-text-secondary">형식:</span>

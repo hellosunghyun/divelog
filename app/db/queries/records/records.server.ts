@@ -7,7 +7,7 @@ import { nanoid } from "../../../lib/utils/utils.server";
 import { createAuditLog } from "../admin/insights/audit-helpers.server";
 import { createRevision, getLatestRevisionNumber } from "./revisions.server";
 import { db } from "../../client.server";
-import { learnerProfiles, records, stages } from "../../schema.server";
+import { learnerProfiles, records } from "../../schema.server";
 
 export async function getNextRecordSlug(d1: D1Database): Promise<string> {
   const database = db(d1);
@@ -27,10 +27,6 @@ function parseDateToUnix(dateStr: string | undefined | null): number | null {
 export async function getRecords(d1: D1Database, filters: RecordFilterInput = { page: 1 }) {
   const database = db(d1);
   const conditions = [];
-
-  if (filters.stage) {
-    conditions.push(eq(records.stageId, filters.stage));
-  }
 
   if (filters.format) {
     conditions.push(eq(records.format, filters.format));
@@ -52,12 +48,7 @@ export async function getRecords(d1: D1Database, filters: RecordFilterInput = { 
 
   const pageSize = 20;
   const offset = (filters.page - 1) * pageSize;
-  const orderBy =
-    filters.sort === "stage"
-      ? [asc(stages.order), desc(records.createdAt)]
-      : filters.sort === "oldest"
-        ? [asc(records.createdAt)]
-        : [desc(records.createdAt)];
+  const orderBy = filters.sort === "oldest" ? [asc(records.createdAt)] : [desc(records.createdAt)];
 
   return database
     .select({
@@ -70,7 +61,6 @@ export async function getRecords(d1: D1Database, filters: RecordFilterInput = { 
     })
     .from(records)
     .leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
-    .leftJoin(stages, eq(records.stageId, stages.id))
     .where(and(...conditions))
     .orderBy(...orderBy)
     .limit(pageSize)
@@ -137,7 +127,6 @@ export async function createRecord(d1: D1Database, authorId: string, data: Creat
     rhythm: data.rhythm ?? "free",
     visibility: data.visibility ?? "public",
     responsePreference: data.responsePreference ?? "open",
-    stageId: data.stageId ?? null,
     challengeId: data.challengeId ?? null,
     collaborationUnitId: data.collaborationUnitId ?? null,
     createdAt: now,

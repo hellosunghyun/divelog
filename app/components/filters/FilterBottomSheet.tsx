@@ -1,18 +1,10 @@
 import { useNavigate, useSearchParams } from "react-router";
 import { Checkbox } from "~/components/ui/checkbox";
 import { Label } from "~/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "~/components/ui/select";
 
 interface FilterBottomSheetProps {
   isOpen: boolean;
   onClose: () => void;
-  stages: { id: string; name: string }[];
 }
 
 const RHYTHM_OPTIONS = [
@@ -30,15 +22,12 @@ const TYPE_OPTIONS = [
   // [COLLAB_DISABLED] { value: "collaboration", label: "협업" },
 ];
 
-const ALL_STAGE_VALUE = "__all__";
-
-export function FilterBottomSheet({ isOpen, onClose, stages }: FilterBottomSheetProps) {
+export function FilterBottomSheet({ isOpen, onClose }: FilterBottomSheetProps) {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
   const currentRhythm = searchParams.get("rhythm") ?? "";
   const currentType = searchParams.get("type") ?? "";
-  const currentStage = searchParams.get("stage") ?? "";
   const currentHasQuestion = searchParams.get("hasQuestion") ?? "";
   const currentHasSelfAnswer = searchParams.get("hasSelfAnswer") ?? "";
 
@@ -85,31 +74,6 @@ export function FilterBottomSheet({ isOpen, onClose, stages }: FilterBottomSheet
         </div>
 
         <div className="px-5 py-4 space-y-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
-          <div>
-            <label htmlFor="filter-stage-mobile" className="block text-sm font-medium text-[--color-text-secondary] mb-2">
-              Stage
-            </label>
-            <Select
-              value={currentStage === "" ? ALL_STAGE_VALUE : currentStage}
-              onValueChange={(value: string) => updateFilter("stage", value === ALL_STAGE_VALUE ? "" : value)}
-            >
-              <SelectTrigger
-                id="filter-stage-mobile"
-                className="w-full text-base h-auto px-4 py-3 rounded-xl border-[--color-border] bg-[--color-surface] text-[--color-text-primary]"
-              >
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={ALL_STAGE_VALUE}>전체</SelectItem>
-                {stages.map((stage) => (
-                  <SelectItem key={stage.id} value={stage.id}>
-                    {stage.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
           <div>
             <span className="block text-sm font-medium text-[--color-text-secondary] mb-2">
               유형

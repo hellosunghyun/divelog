@@ -36,7 +36,7 @@ import {
 import { syncRecordLinksForRecord } from "~/db/queries/records/recordLinks.server";
 import { getRecordBySlug, updateRecord } from "~/db/queries/records/records.server";
 import { getAllTags, getTagsByRecord, findOrCreateTag, syncTagsForRecord } from "~/db/queries/records/tags.server";
-import { recordReferences, stages, templates } from "~/db/schema.server";
+import { recordReferences, templates } from "~/db/schema.server";
 import { requireVerified } from "~/lib/auth/auth.middleware";
 import { createRecordSchema, parseReferencesFromFormData } from "~/lib/auth/validation";
 import { getPlainText } from "~/lib/content/content.server";
@@ -54,7 +54,6 @@ const RHYTHM_OPTIONS = [
   { value: "sprint", label: "스프린트" },
   { value: "weekly", label: "주간" },
   { value: "monthly", label: "월간" },
-  { value: "stage", label: "구간" },
 ] as const;
 
 type TagOption = { id: string; name: string };
@@ -85,19 +84,8 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
     throw new Response("Forbidden", { status: 403 });
   }
 
-  const [[activeTemplates, currentStageResult, allStages], allTags, currentTags, existingParticipants, existingMentions, references] = await Promise.all([
-    database.batch([
-      database.select().from(templates).where(eq(templates.active, true)),
-      database.select().from(stages).where(eq(stages.isCurrent, true)).limit(1),
-      database.select({
-        id: stages.id,
-        name: stages.name,
-        isCurrent: stages.isCurrent,
-        startDate: stages.startDate,
-        endDate: stages.endDate,
-      }).from(stages).orderBy(stages.order),
-      // [COLLAB_DISABLED] collaboration query removed
-    ]),
+  const [activeTemplates, allTags, currentTags, existingParticipants, existingMentions, references] = await Promise.all([
+    database.select().from(templates).where(eq(templates.active, true)),
     getAllTags(context.cloudflare.env.DB),
     getTagsByRecord(context.cloudflare.env.DB, recordData.record.id),
     getParticipantsByRecord(context.cloudflare.env.DB, recordData.record.id).catch(() =>
@@ -116,8 +104,6 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
   return {
     record: recordData.record,
     templates: activeTemplates,
-    currentStage: currentStageResult[0] ?? null,
-    stages: allStages,
     collaborations: [] as never[], // [COLLAB_DISABLED]
     tags: allTags,
     currentTags,
@@ -179,7 +165,6 @@ export async function action({ params, request, context }: Route.ActionArgs) {
     rhythm: formData.get("rhythm"),
     visibility: formData.get("visibility"),
     responsePreference: formData.get("responsePreference"),
-    stageId: formData.get("stageId") || undefined,
     challengeId: formData.get("challengeId") || undefined,
     collaborationUnitId: formData.get("collaborationUnitId") || undefined,
     recordedAt:
@@ -213,7 +198,6 @@ export async function action({ params, request, context }: Route.ActionArgs) {
     rhythm: parsed.data.rhythm,
     visibility: parsed.data.visibility,
     responsePreference: parsed.data.responsePreference,
-    stageId: parsed.data.stageId,
     challengeId: parsed.data.challengeId,
     collaborationUnitId: parsed.data.collaborationUnitId,
     recordedAt: parsed.data.recordedAt,
@@ -299,9 +283,7 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
   const {
     record,
     templates: availableTemplates,
-    currentStage,
     collaborations,
-    stages,
     tags,
     currentTags,
     references: initialReferences,
@@ -420,7 +402,6 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
 
             <RhythmDateInput
               rhythm={rhythm}
-              stages={stages}
               initialValues={{
                 recordedAt: record.recordedAt
                   ? format(new Date(record.recordedAt * 1000), "yyyy-MM-dd")
@@ -428,7 +409,6 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
                 recordedEndAt: record.recordedEndAt
                   ? format(new Date(record.recordedEndAt * 1000), "yyyy-MM-dd")
                   : undefined,
-                stageId: record.stageId ?? undefined,
               }}
             />
           </div>
@@ -447,7 +427,6 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
                 <SelectItem value="sprint">스프린트</SelectItem>
                 <SelectItem value="weekly">주간</SelectItem>
                 <SelectItem value="monthly">월간</SelectItem>
-                <SelectItem value="stage">구간</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -474,10 +453,6 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
             </Select>
           </div>
         ) : null}
-
-        {(!isArticleRecord || rhythm !== "stage") && (
-          <input type="hidden" name="stageId" value={record.stageId ?? currentStage?.id ?? ""} />
-        )}
 
         {/* [COLLAB_DISABLED] collaboration selector removed */}
 

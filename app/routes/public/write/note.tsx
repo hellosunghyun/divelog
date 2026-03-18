@@ -87,7 +87,6 @@ export async function action({ request, context }: Route.ActionArgs) {
     rhythm: "free",
     visibility: parsed.data.visibility,
     responsePreference,
-    stageId: null,
     challengeId: null,
     collaborationUnitId: null,
     originalUrl: null,

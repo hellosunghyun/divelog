@@ -3,7 +3,7 @@ import { and, desc, eq, getTableColumns, sql } from "drizzle-orm";
 import type { CreateQuestionInput } from "../../../lib/auth/validation";
 import { nanoid } from "../../../lib/utils/utils.server";
 import { db } from "../../client.server";
-import { learnerProfiles, questionCarryOvers, questions, records, responses, selfAnswers } from "../../schema.server";
+import { learnerProfiles, questions, records, responses, selfAnswers } from "../../schema.server";
 
 export interface OpenQuestionListItem {
   id: string;
@@ -17,7 +17,7 @@ export interface OpenQuestionListItem {
   type: "personal" | "challenge";
   selfAnswerCount: number;
   responseCount: number;
-  isCarryOver: boolean;
+  isCarryOver: false;
 }
 
 export async function getQuestionsByRecord(d1: D1Database, recordId: string) {
@@ -48,15 +48,6 @@ export async function getOpenQuestions(d1: D1Database, cohort?: string) {
     .groupBy(responses.questionId)
     .as("response_counts");
 
-  const carryOverQuestions = database
-    .select({
-      questionId: questionCarryOvers.newQuestionId,
-    })
-    .from(questionCarryOvers)
-    .where(sql`${questionCarryOvers.newQuestionId} is not null`)
-    .groupBy(questionCarryOvers.newQuestionId)
-    .as("carry_over_questions");
-
   const rows = await database
     .select({
       id: questions.id,
@@ -70,14 +61,12 @@ export async function getOpenQuestions(d1: D1Database, cohort?: string) {
       type: sql<"personal" | "challenge">`case when ${records.challengeId} is not null then 'challenge' else 'personal' end`.as("type"),
       selfAnswerCount: sql<number>`coalesce(${selfAnswerCounts.count}, 0)`.as("self_answer_count"),
       responseCount: sql<number>`coalesce(${responseCounts.count}, 0)`.as("response_count"),
-      isCarryOver: sql<number>`case when ${carryOverQuestions.questionId} is not null then 1 else 0 end`.as("is_carry_over"),
     })
     .from(questions)
     .leftJoin(records, eq(questions.recordId, records.id))
     .leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
     .leftJoin(selfAnswerCounts, eq(questions.id, selfAnswerCounts.questionId))
     .leftJoin(responseCounts, eq(questions.id, responseCounts.questionId))
-    .leftJoin(carryOverQuestions, eq(questions.id, carryOverQuestions.questionId))
     .where(
       and(
         eq(questions.isOpen, true),
@@ -91,76 +80,7 @@ export async function getOpenQuestions(d1: D1Database, cohort?: string) {
   return rows.map((row): OpenQuestionListItem => ({
     ...row,
     authorName: row.authorName ?? "익명",
-    isCarryOver: row.isCarryOver > 0,
-  }));
-}
-
-export async function getOpenQuestionsForStage(d1: D1Database, stageId: string, limit = 5): Promise<OpenQuestionListItem[]> {
-  const database = db(d1);
-
-  const selfAnswerCounts = database
-    .select({
-      questionId: selfAnswers.questionId,
-      count: sql<number>`count(*)`.as("count"),
-    })
-    .from(selfAnswers)
-    .groupBy(selfAnswers.questionId)
-    .as("self_answer_counts");
-
-  const responseCounts = database
-    .select({
-      questionId: responses.questionId,
-      count: sql<number>`count(*)`.as("count"),
-    })
-    .from(responses)
-    .where(and(sql`${responses.questionId} is not null`, sql`${responses.type} != 'self_answer'`))
-    .groupBy(responses.questionId)
-    .as("response_counts");
-
-  const carryOverQuestions = database
-    .select({
-      questionId: questionCarryOvers.newQuestionId,
-    })
-    .from(questionCarryOvers)
-    .where(sql`${questionCarryOvers.newQuestionId} is not null`)
-    .groupBy(questionCarryOvers.newQuestionId)
-    .as("carry_over_questions");
-
-  const rows = await database
-    .select({
-      id: questions.id,
-      content: questions.content,
-      direction: questions.direction,
-      isOpen: questions.isOpen,
-      recordSlug: records.slug,
-      recordTitle: records.title,
-      authorName: learnerProfiles.displayName,
-      createdAt: questions.createdAt,
-      type: sql<"personal" | "challenge">`case when ${records.challengeId} is not null then 'challenge' else 'personal' end`.as("type"),
-      selfAnswerCount: sql<number>`coalesce(${selfAnswerCounts.count}, 0)`.as("self_answer_count"),
-      responseCount: sql<number>`coalesce(${responseCounts.count}, 0)`.as("response_count"),
-      isCarryOver: sql<number>`case when ${carryOverQuestions.questionId} is not null then 1 else 0 end`.as("is_carry_over"),
-    })
-    .from(questions)
-    .innerJoin(records, eq(questions.recordId, records.id))
-    .leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
-    .leftJoin(selfAnswerCounts, eq(questions.id, selfAnswerCounts.questionId))
-    .leftJoin(responseCounts, eq(questions.id, responseCounts.questionId))
-    .leftJoin(carryOverQuestions, eq(questions.id, carryOverQuestions.questionId))
-    .where(
-      and(
-        eq(records.stageId, stageId),
-        eq(questions.isOpen, true),
-        sql`${records.visibility} IN ('cohort', 'public')`,
-      ),
-    )
-    .orderBy(desc(questions.createdAt))
-    .limit(limit);
-
-  return rows.map((row): OpenQuestionListItem => ({
-    ...row,
-    authorName: row.authorName ?? "익명",
-    isCarryOver: row.isCarryOver > 0,
+    isCarryOver: false,
   }));
 }
 

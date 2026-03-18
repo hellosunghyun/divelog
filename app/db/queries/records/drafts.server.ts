@@ -13,7 +13,6 @@ export interface DraftInput {
   title?: string | null;
   content?: string;
   contentJson?: string | null;
-  stageId?: string | null;
   challengeId?: string | null;
   rhythm?: string;
   visibility?: "draft" | "private" | "cohort" | "public";
@@ -33,7 +32,6 @@ export async function upsertDraft(d1: D1Database, input: DraftInput): Promise<Dr
         title: input.title ?? null,
         content: input.content ?? "",
         contentJson: input.contentJson ?? null,
-        stageId: input.stageId ?? null,
         challengeId: input.challengeId ?? null,
         rhythm: input.rhythm ?? "free",
         visibility: input.visibility ?? "public",
@@ -57,7 +55,6 @@ export async function upsertDraft(d1: D1Database, input: DraftInput): Promise<Dr
     title: input.title ?? null,
     content: input.content ?? "",
     contentJson: input.contentJson ?? null,
-    stageId: input.stageId ?? null,
     challengeId: input.challengeId ?? null,
     rhythm: input.rhythm ?? "free",
     visibility: input.visibility ?? "public",

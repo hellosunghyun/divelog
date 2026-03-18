@@ -10,14 +10,14 @@ import CalendarView from "~/components/views/CalendarView";
 import EmptyState from "~/components/feedback/EmptyState";
 import { Button } from "~/components/ui/button";
 import { db } from "~/db/client.server";
-import { learnerProfiles, records, stages } from "~/db/schema.server";
+import { learnerProfiles, records } from "~/db/schema.server";
 import { getParticipantsBatch } from "~/db/queries/records/participants.server";
 import { getPlainText } from "~/lib/content/content.server";
 import { normalizeContentFormat } from "~/lib/content/editor-extensions";
 import { createLogger } from "~/lib/infra/logger.server";
 import { useReadState } from "~/hooks/useReadState";
 
-type LogSort = "recent" | "oldest" | "stage";
+type LogSort = "recent" | "oldest";
 
 function getDefaultMonthValue(referenceDate = new Date()): string {
   const year = referenceDate.getFullYear();
@@ -35,7 +35,7 @@ function parseViewParam(value: string | null): RecordView {
 }
 
 function parseSortParam(value: string | null): LogSort {
-  if (value === "oldest" || value === "stage") {
+  if (value === "oldest") {
     return value;
   }
 
@@ -68,7 +68,6 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const logger = createLogger(request, context.cloudflare.env).child({ route: "logs" });
   logger.info("loader_start");
   const url = new URL(request.url);
-  const stageId = url.searchParams.get("stage") ?? undefined;
   const format = url.searchParams.get("format") ?? undefined;
   const type = url.searchParams.get("type") ?? undefined;
   const rhythm = url.searchParams.get("rhythm") ?? undefined;
@@ -81,7 +80,6 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const database = db(context.cloudflare.env.DB);
 
   const conditions = [sql`${records.visibility} IN ('cohort', 'public')`];
-  if (stageId) conditions.push(eq(records.stageId, stageId));
   if (format && (format === "note" || format === "article")) {
     conditions.push(eq(records.format, format));
   }
@@ -99,14 +97,9 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const pageSize = shouldLoadAllRecords ? 200 : 20;
   const offset = (page - 1) * pageSize;
 
-  const orderBy =
-    sort === "stage"
-      ? [asc(stages.order), desc(records.createdAt)]
-      : sort === "oldest"
-        ? [asc(records.createdAt)]
-        : [desc(records.createdAt)];
+  const orderBy = sort === "oldest" ? [asc(records.createdAt)] : [desc(records.createdAt)];
 
-  const [filteredRecords, allStages, totalCountResult] = await Promise.all([
+  const [filteredRecords, totalCountResult] = await Promise.all([
     database
       .select({
         id: records.id,
@@ -118,30 +111,19 @@ export async function loader({ request, context }: Route.LoaderArgs) {
         rhythm: records.rhythm,
         createdAt: records.createdAt,
         recordedAt: records.recordedAt,
-        stageId: records.stageId,
         authorId: records.authorId,
         author: {
           displayName: learnerProfiles.displayName,
           slug: learnerProfiles.slug,
           profilePhotoUrl: learnerProfiles.profilePhotoUrl,
         },
-        stage: {
-          name: stages.name,
-          type: stages.type,
-          order: stages.order,
-        },
       })
       .from(records)
       .leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
-      .leftJoin(stages, eq(records.stageId, stages.id))
       .where(and(...conditions))
       .orderBy(...orderBy)
       .limit(pageSize)
       .offset(offset),
-    database
-      .select({ id: stages.id, name: stages.name, type: stages.type, order: stages.order })
-      .from(stages)
-      .orderBy(asc(stages.order)),
     database
       .select({ count: count() })
       .from(records)
@@ -185,10 +167,9 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   logger.info("loader_end");
   return {
     records: recordsWithSnippets,
-    allStages,
     page,
     totalPages,
-    filters: { stageId, format, type, rhythm, sort, view, month: month.value },
+    filters: { format, type, rhythm, sort, view, month: month.value },
     metaDescription,
     participantsByRecordId: Object.fromEntries(participantsByRecordId),
   };
@@ -234,7 +215,7 @@ const FILTER_OPTIONS = [
 ];
 
 export default function LogsPage({ loaderData }: Route.ComponentProps) {
-  const { records: filteredRecords, allStages, page, totalPages, filters, participantsByRecordId } = loaderData;
+  const { records: filteredRecords, page, totalPages, filters, participantsByRecordId } = loaderData;
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
@@ -269,12 +250,7 @@ export default function LogsPage({ loaderData }: Route.ComponentProps) {
     navigate(`/logs?${newParams.toString()}`);
   }
 
-  const stageFilterOptions = allStages.map((s: { id: string; name: string }) => ({ value: s.id, label: s.name }));
-
-  const allFilters = [
-    { key: "stage", label: "Stage", values: stageFilterOptions },
-    ...FILTER_OPTIONS,
-  ];
+  const allFilters = FILTER_OPTIONS;
 
   const recordsContent =
     filteredRecords.length === 0 ? (
@@ -358,7 +334,6 @@ export default function LogsPage({ loaderData }: Route.ComponentProps) {
               options={[
                 { value: "recent", label: "최근 기록" },
                 { value: "oldest", label: "오래된 기록" },
-                { value: "stage", label: "기간순" },
               ]}
             />
             <ViewToggle currentView={currentView} />

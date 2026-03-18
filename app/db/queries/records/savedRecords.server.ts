@@ -1,7 +1,7 @@
 import { and, desc, eq } from "drizzle-orm";
 
 import { db } from "../../client.server";
-import { learnerProfiles, records, savedRecords, stages } from "../../schema.server";
+import { learnerProfiles, records, savedRecords } from "../../schema.server";
 
 export type SavedRecord = typeof savedRecords.$inferSelect;
 
@@ -72,15 +72,10 @@ export async function getSavedRecordsWithDetails(d1: D1Database, learnerId: stri
         displayName: learnerProfiles.displayName,
         slug: learnerProfiles.slug,
       },
-      stage: {
-        name: stages.name,
-        type: stages.type,
-      },
     })
     .from(savedRecords)
     .innerJoin(records, eq(savedRecords.recordId, records.id))
     .leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
-    .leftJoin(stages, eq(records.stageId, stages.id))
     .where(eq(savedRecords.learnerId, learnerId))
     .orderBy(desc(savedRecords.savedAt));
 }

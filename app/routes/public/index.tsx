@@ -4,7 +4,7 @@ import { Await } from "react-router";
 import { Link } from "~/components/content/SmartLink";
 import { eq, desc, and, sql, count } from "drizzle-orm";
 import { db } from "~/db/client.server";
-import { stages, records, questions, sentences, learnerProfiles } from "~/db/schema.server";
+import { records, questions, sentences, learnerProfiles } from "~/db/schema.server";
 import { getRecentActivity } from "~/db/queries/social/activity.server";
 import { getPlainText } from "~/lib/content/content.server";
 import { createLogger } from "~/lib/infra/logger.server";
@@ -28,9 +28,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 
   // D1 batch()에서 slug 같은 동명 컬럼이 있는 JOIN 쿼리는 컬럼 매핑이 꼬이므로
   // JOIN이 있는 쿼리는 별도 실행, 단순 쿼리만 batch로 묶는다
-  const [allStages, currentStageResult, openQuestions, spotlightLearners, learnerCountResult] = await database.batch([
-    database.select().from(stages).orderBy(stages.order),
-    database.select().from(stages).where(eq(stages.isCurrent, true)).limit(1),
+  const [openQuestions, spotlightLearners, learnerCountResult] = await database.batch([
     database
       .select({
         questionId: questions.id,
@@ -52,7 +50,6 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     database.select({ total: count() }).from(learnerProfiles),
   ]);
 
-  const currentStage = currentStageResult[0] ?? null;
   const learnerCount = learnerCountResult[0]?.total ?? 0;
 
   const [recentRecords, recentSentences] = await Promise.all([
@@ -65,7 +62,6 @@ export async function loader({ request, context }: Route.LoaderArgs) {
         format: records.format,
         type: records.type,
         rhythm: records.rhythm,
-        stageId: records.stageId,
         createdAt: records.createdAt,
         author: {
           displayName: learnerProfiles.displayName,
@@ -102,7 +98,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 
   const recentActivityPromise = getRecentActivity(context.cloudflare.env.DB, {
     limit: 8,
-    cohort: currentStage?.cohort ?? null,
+    cohort: null,
   });
 
   // Pre-compute plain text snippets and relative times on server to avoid hydration mismatch
@@ -123,8 +119,6 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 
   logger.info("loader_end");
   return {
-    allStages,
-    currentStage,
     recentRecords: recentRecordsWithSnippets,
     openQuestions: openQuestionsWithTime,
     recentSentences,
@@ -161,7 +155,7 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 export default function HomePage({ loaderData }: Route.ComponentProps) {
-  const { allStages, currentStage, recentRecords, openQuestions, recentSentences, spotlightLearners, learnerCount } = loaderData;
+  const { recentRecords, recentSentences, spotlightLearners, learnerCount } = loaderData;
 
   return (
     <div>
@@ -188,76 +182,6 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
           기록 남기기
         </Link>
       </HeroSection>
-
-      {allStages.length > 0 && (
-        <section
-          
-
-          className="bg-bg pt-8 pb-12 md:py-16"
-          data-testid="journey-timeline-section"
-        >
-          <div className="max-w-[1200px] mx-auto px-6">
-            <div
-             
-              className="bg-white/60 backdrop-blur-xl rounded-[32px] p-8 border border-white/80 shadow-sm relative overflow-hidden"
-            >
-              <div className="absolute top-0 left-0 w-1.5 h-full bg-ocean-blue/10" aria-hidden="true" />
-              <div className="flex flex-col lg:flex-row items-center gap-10">
-                <div className="lg:w-1/4">
-                  <span className="text-xs font-bold uppercase tracking-[0.2em] text-ocean-blue/60 block mb-1">코호트 여정</span>
-                  <h2 className="text-3xl md:text-4xl font-semibold tracking-tight text-deep-ocean mb-3">아홉 달의 여정</h2>
-                  {currentStage && (
-                    <div className="bg-ocean-blue/5 border border-ocean-blue/10 rounded-2xl p-4">
-                      <div className="flex items-center gap-2 mb-2">
-                        <svg className="w-4 h-4 text-ocean-blue" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-                          <circle cx="12" cy="12" r="10" />
-                          <path d="M12 6v6l4 2" />
-                        </svg>
-                        <span className="text-xs font-bold text-ocean-blue">현재 구간</span>
-                      </div>
-                      <p className="text-[13px] text-text-secondary leading-snug">{currentStage.name}</p>
-                    </div>
-                  )}
-                </div>
-                <div className="lg:w-3/4 w-full py-8 px-4 overflow-x-auto">
-                  <div className="flex items-start justify-between gap-4 min-w-max relative">
-                    <div className="absolute h-0.5 bg-border top-[7px] pointer-events-none z-0" style={{ left: "1rem", right: "2rem" }} aria-hidden="true" />
-                    {allStages.map((stage: typeof allStages[number], _index: number) => {
-                      const isCurrent = stage.isCurrent || stage.slug === currentStage?.slug;
-                      const isPast = currentStage && stage.order < currentStage.order;
-                      return (
-                        <div key={stage.id}>
-                          <Link
-                            to={`/journey/${stage.slug}`}
-                            className="relative flex flex-col items-center gap-2 z-10 no-underline group"
-                          >
-                            <div
-                              className={`w-4 h-4 rounded-full transition-all ${
-                                isCurrent
-                                  ? "bg-ocean-blue outline outline-4 outline-ocean-blue/20"
-                                  : isPast
-                                  ? "bg-border"
-                                  : "bg-surface-secondary border-2 border-border"
-                              } group-hover:scale-110`}
-                              role="img"
-                              aria-label={`${stage.name}${isCurrent ? " (현재)" : ""}`}
-                            />
-                            <span className={`text-xs font-medium whitespace-nowrap ${
-                              isCurrent ? "text-ocean-blue font-bold" : "text-text-tertiary"
-                            }`}>
-                              {stage.name}
-                            </span>
-                          </Link>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
 
       <section
         
@@ -289,99 +213,6 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
         </div>
       </section>
 
-      {currentStage && (
-        <section
-          
-
-          className="max-w-[1200px] mx-auto px-6 py-16 md:py-24"
-          data-testid="questions-section"
-        >
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
-            <div className="lg:col-span-4 lg:sticky lg:top-24">
-              <div className="quiet-depth-card p-10 rounded-[40px]">
-                <span className="text-ocean-blue font-bold text-xs tracking-[0.2em] uppercase mb-4 block">현재 구간</span>
-                <h3 className="text-3xl md:text-4xl font-semibold tracking-tight text-deep-ocean mb-6">{currentStage.name}</h3>
-                {currentStage.description && (
-                  <p className="text-text-secondary text-[17px] leading-relaxed mb-8 font-normal italic">
-                    &ldquo;{currentStage.description}&rdquo;
-                  </p>
-                )}
-                {learnerCount > 0 && (
-                  <div className="flex items-center gap-4 pt-8 border-t border-border-subtle">
-                    <div className="flex -space-x-3">
-                      {spotlightLearners.slice(0, 2).map((l: typeof spotlightLearners[number]) => (
-                        l.profilePhotoUrl ? (
-                          <img key={l.userId} src={l.profilePhotoUrl} alt={`${l.displayName}의 프로필 사진`} className="w-9 h-9 rounded-full border-2 border-white object-cover" />
-                        ) : (
-                          <div key={l.userId} className="w-9 h-9 rounded-full border-2 border-white bg-mist-blue flex items-center justify-center text-xs font-bold text-ocean-blue">
-                            {l.displayName[0]}
-                          </div>
-                        )
-                      ))}
-                      {learnerCount > 2 && (
-                        <div className="w-9 h-9 rounded-full border-2 border-white bg-ocean-blue flex items-center justify-center text-xs text-white font-bold">
-                          +{learnerCount - 2}
-                        </div>
-                      )}
-                    </div>
-                    <span className="text-[13px] font-medium text-text-secondary">{learnerCount}명의 러너가 함께 다이빙하는 중</span>
-                  </div>
-                )}
-                <div className="mt-6 pt-6 border-t border-border-subtle">
-                  <p className="text-xs text-text-tertiary leading-relaxed">지금은 개인 다이빙 중심입니다. 협업이 시작되면 이곳에 함께 나타납니다.</p>
-                </div>
-              </div>
-            </div>
-            <div className="lg:col-span-8">
-              <div className="flex items-center justify-between mb-8">
-                <h2 className="text-3xl md:text-4xl font-semibold tracking-tight flex items-center gap-3 text-deep-ocean">
-                    <svg className="w-7 h-7 text-ocean-blue" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
-                    이번 구간의 열린 질문들
-                  </h2>
-                <Link to="/journey" className="text-ocean-blue font-bold hover:underline text-[13px] no-underline">모두 보기</Link>
-              </div>
-              {openQuestions.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {openQuestions.map((row: typeof openQuestions[number], idx: number) => (
-                    <article
-                      key={row.questionId}
-                     
-                      className="quiet-depth-card p-5 rounded-2xl group cursor-pointer hover:border-ocean-blue/30"
-                    >
-                      <span className="text-xs font-bold text-ocean-blue tracking-widest mb-2 block">질문 {String(idx + 1).padStart(2, "0")}</span>
-                    <p className="text-[15px] font-bold leading-tight group-hover:text-ocean-blue transition-colors text-text-primary">
-                      {row.questionContent}
-                    </p>
-                    <div className="flex items-center justify-between mt-4">
-                      <span className="text-xs text-text-tertiary font-medium">
-                        {row.authorDisplayName} • {row.relativeTime}
-                      </span>
-                      <Link
-                        to={row.recordSlug ? `/logs/${row.recordSlug}` : "/logs"}
-                        className="text-ocean-blue text-xs font-bold px-4 py-2 rounded-lg border border-ocean-blue/20 hover:bg-ocean-blue hover:text-white transition-all no-underline"
-                      >
-                        응답하기
-                      </Link>
-                    </div>
-                  </article>
-                ))}
-                </div>
-              ) : (
-                <article className="quiet-depth-card p-8 rounded-3xl">
-                  <p className="text-base text-text-secondary mb-6">이 구간의 첫 질문을 남겨보세요.</p>
-                  <Link
-                    to="/write"
-                    className="inline-flex items-center gap-2 bg-deep-ocean text-white px-6 py-3 rounded-full text-sm font-semibold hover:bg-ocean-blue transition-all no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
-                  >
-                    질문 남기기
-                  </Link>
-                </article>
-              )}
-            </div>
-          </div>
-        </section>
-      )}
-
       <section
         
 
@@ -401,7 +232,6 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {recentRecords.map((row: typeof recentRecords[number]) => {
                    const initial = row.author?.displayName ? row.author.displayName[0] : "?";
-                   const stage = row.stageId ? allStages.find((s: typeof allStages[number]) => s.id === row.stageId) : null;
                   return (
                     <article
                       key={row.id}
@@ -416,14 +246,6 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
                           <span className="bg-mist-blue text-ocean-blue text-xs font-semibold px-2.5 py-0.5 rounded-full">
                             {TYPE_LABELS[row.type] ?? row.type}
                           </span>
-                          {stage && (
-                            <Link
-                              to={`/journey/${stage.slug}`}
-                              className="bg-surface-secondary text-text-secondary text-xs font-semibold px-2.5 py-0.5 rounded-full no-underline hover:text-ocean-blue transition-colors"
-                            >
-                              {stage.name}
-                            </Link>
-                          )}
                         </div>
                         <span className="text-xs text-text-tertiary font-medium">{row.relativeTime}</span>
                       </div>

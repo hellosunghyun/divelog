@@ -8,7 +8,6 @@ import {
   responses,
   selfAnswers,
   sentences,
-  stages,
 } from "../../schema.server";
 
 export interface DigestItem {
@@ -29,7 +28,6 @@ export interface ActivityItem {
 
 interface DigestQueryOptions {
   limit?: number;
-  stageId?: string;
   cohort?: string | null;
 }
 
@@ -75,28 +73,6 @@ function getQuestionPreview(content: string): string {
   return `${trimmed.slice(0, 44).trimEnd()}...`;
 }
 
-async function resolveStageCohort(
-  database: ReturnType<typeof db>,
-  stageId?: string,
-): Promise<string | null> {
-  if (stageId) {
-    const [stage] = await database
-      .select({ cohort: stages.cohort })
-      .from(stages)
-      .where(eq(stages.id, stageId))
-      .limit(1);
-    return stage?.cohort ?? null;
-  }
-
-  const [currentStage] = await database
-    .select({ cohort: stages.cohort })
-    .from(stages)
-    .where(eq(stages.isCurrent, true))
-    .limit(1);
-
-  return currentStage?.cohort ?? null;
-}
-
 export async function getNarrativeDigest(
   d1: D1Database,
   options: DigestQueryOptions = {},
@@ -104,8 +80,7 @@ export async function getNarrativeDigest(
   const database = db(d1);
   const limit = options.limit ?? 8;
   const twoWeeksAgo = Math.floor(Date.now() / 1000) - 14 * 24 * 60 * 60;
-  const stageCohort =
-    options.cohort !== undefined ? options.cohort : await resolveStageCohort(database, options.stageId);
+  const stageCohort = options.cohort;
 
   const recordWhere = stageCohort
     ? and(

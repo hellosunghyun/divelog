@@ -40,7 +40,6 @@ describe("draft-storage", () => {
         title: "Test Note",
         content: "This is test content",
         contentJson: '{"type":"doc"}',
-        stageId: "stage-123",
         rhythm: "daily",
         visibility: "cohort" as const,
         responsePreference: "open" as const,
@@ -53,7 +52,6 @@ describe("draft-storage", () => {
       expect(loaded?.title).toBe("Test Note");
       expect(loaded?.content).toBe("This is test content");
       expect(loaded?.contentJson).toBe('{"type":"doc"}');
-      expect(loaded?.stageId).toBe("stage-123");
       expect(loaded?.rhythm).toBe("daily");
       expect(loaded?.visibility).toBe("cohort");
       expect(loaded?.responsePreference).toBe("open");

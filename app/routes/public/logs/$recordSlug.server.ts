@@ -27,7 +27,6 @@ import {
   records,
   responses,
   sentences,
-  stages,
   userRoles,
 } from "~/db/schema.server";
 import { createNotification } from "~/db/queries/social/notifications.server";
@@ -48,18 +47,12 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
       profilePhotoUrl: learnerProfiles.profilePhotoUrl,
       userId: learnerProfiles.userId,
     },
-    stage: {
-      id: stages.id,
-      name: stages.name,
-      slug: stages.slug,
-    },
   };
 
   let recordResult = await database
     .select(selectFields)
     .from(records)
     .leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
-    .leftJoin(stages, eq(records.stageId, stages.id))
     .where(eq(records.slug, recordSlug))
     .limit(1);
 
@@ -68,7 +61,6 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
       .select(selectFields)
       .from(records)
       .leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
-      .leftJoin(stages, eq(records.stageId, stages.id))
       .where(eq(records.id, recordSlug))
       .limit(1);
   }
@@ -178,7 +170,6 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
   return {
     record: recordData.record,
     author: recordData.author,
-    stage: recordData.stage,
     questions: recordQuestions,
     responses: recordResponses,
     sentences: recordSentences,

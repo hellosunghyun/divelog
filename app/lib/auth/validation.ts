@@ -19,7 +19,6 @@ export const createRecordSchema = z
     rhythm: z.enum(["moment", "sprint", "weekly", "monthly", "stage", "reflection", "free"]).default("free"),
     visibility: z.enum(["draft", "private", "cohort", "public"]).default("public"),
     responsePreference: z.enum(["open", "question_only", "closed"]).default("open"),
-    stageId: z.string().optional(),
     challengeId: z.string().optional(),
     collaborationUnitId: z.string().optional(),
     recordedAt: z.string().optional(),
@@ -66,7 +65,6 @@ export const autosaveDraftSchema = z.object({
   title: z.string().optional(),
   content: z.string().default(""),
   contentJson: z.string().optional(),
-  stageId: z.string().optional().nullable(),
   rhythm: z.string().default("free"),
   visibility: z.enum(["draft", "private", "cohort", "public"]).default("public"),
   responsePreference: z.enum(["open", "question_only", "closed"]).default("open"),
@@ -83,7 +81,6 @@ export const createNoteSchema = z.object({
   rhythm: z.enum(["moment", "sprint", "weekly", "monthly", "stage", "reflection", "free"]).default("free"),
   visibility: z.enum(["draft", "private", "cohort", "public"]).default("public"),
   responsePreference: z.enum(["open", "question_only", "closed"]).default("open"),
-  stageId: z.string().optional(),
   captureQuestion: z.string().optional(),
   captureDirection: z.enum(["inward", "outward", "next_stage"]).default("inward"),
   originalUrl: z.preprocess(
@@ -122,7 +119,6 @@ export const createArticleSchema = z
     content: z.string().min(1, "내용을 입력해주세요").max(50000),
     rhythm: z.enum(["moment", "sprint", "weekly", "monthly", "stage", "reflection", "free"]).default("free"),
     visibility: z.enum(["draft", "private", "cohort", "public"]).default("public"),
-    stageId: z.string().optional(),
     recordedAt: z.string().optional(),
     recordedEndAt: z.string().optional(),
     templateId: z.string().optional(),
@@ -233,7 +229,6 @@ export const saveSentenceSchema = z.object({
 export type SaveSentenceInput = z.infer<typeof saveSentenceSchema>;
 
 export const personalReflectionSchema = z.object({
-  stageId: z.string().min(1),
   letGo: z.string().optional().nullable(),
   carryQuestion: z.string().optional().nullable(),
   lastingSentence: z.string().optional().nullable(),
@@ -258,13 +253,12 @@ export const searchSchema = z.object({
 export type SearchInput = z.infer<typeof searchSchema>;
 
 export const recordFilterSchema = z.object({
-  stage: z.string().optional(),
   format: z.enum(["note", "article"]).optional(),
   type: z.enum(["personal", "challenge", "collaboration"]).optional(),
   rhythm: z.enum(["moment", "sprint", "weekly", "monthly", "stage", "reflection", "free"]).optional(),
   visibility: z.enum(["draft", "private", "cohort", "public"]).optional(),
   cohort: z.string().optional(),
-  sort: z.enum(["recent", "oldest", "stage"]).optional(),
+  sort: z.enum(["recent", "oldest"]).optional(),
   page: z.coerce.number().int().positive().default(1),
 });
 

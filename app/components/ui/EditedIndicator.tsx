@@ -33,7 +33,6 @@ const FIELD_LABELS: Record<string, string> = {
   rhythm: "리듬",
   visibility: "공개 범위",
   responsePreference: "응답 선호",
-  stageId: "구간",
   challengeId: "챌린지",
   tags: "태그",
 };

@@ -44,7 +44,6 @@ const RHYTHM_LABELS: Record<string, string> = {
   sprint: "스프린트",
   weekly: "주간",
   monthly: "월간",
-  stage: "구간 회고",
   reflection: "개인 회고",
   free: "자유",
 };
@@ -111,7 +110,7 @@ export default function SceneCard({
     snippet = text.substring(0, 120) + (text.length > 120 ? "…" : "");
   }
 
-  const rhythmLabel = record.rhythm ? (RHYTHM_LABELS[record.rhythm] ?? record.rhythm) : null;
+  const rhythmLabel = record.rhythm ? (RHYTHM_LABELS[record.rhythm] ?? null) : null;
   const showRecordedAt = record.recordedAt && record.recordedAt !== record.createdAt;
 
   return (

@@ -118,7 +118,6 @@ describe("records query", () => {
       rhythm: "free",
       visibility: "cohort",
       responsePreference: "open",
-      stageId: null,
       challengeId: null,
       collaborationUnitId: null,
       createdAt: 1700000000,

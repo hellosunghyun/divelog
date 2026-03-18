@@ -14,14 +14,11 @@ function readString(value: FormDataEntryValue | null): string | undefined {
 }
 
 function parseFormData(formData: FormData) {
-  const stageIdRaw = readString(formData.get("stageId"));
-
   return {
     format: readString(formData.get("format")),
     title: readString(formData.get("title")),
     content: readString(formData.get("content")),
     contentJson: readString(formData.get("contentJson")),
-    stageId: stageIdRaw === "" ? null : stageIdRaw,
     rhythm: readString(formData.get("rhythm")),
     visibility: readString(formData.get("visibility")),
     responsePreference: readString(formData.get("responsePreference")),

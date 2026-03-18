@@ -53,25 +53,13 @@ export const challenges = sqliteTable("challenges", {
   updatedAt: integer("updated_at").notNull().default(now()),
 });
 
-export const challengeStages = sqliteTable(
-  "challenge_stages",
-  {
-    challengeId: text("challenge_id")
-      .notNull()
-      .references(() => challenges.id, { onDelete: "cascade" }),
-    stageId: text("stage_id")
-      .notNull()
-      .references(() => stages.id, { onDelete: "cascade" }),
-  },
-  (table) => [primaryKey({ columns: [table.challengeId, table.stageId] })],
-);
+
 
 export const collaborationUnits = sqliteTable("collaboration_units", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   slug: text("slug").notNull().unique(),
   challengeId: text("challenge_id").references(() => challenges.id),
-  stageId: text("stage_id").references(() => stages.id),
   status: text("status").notNull().default("forming"),
   currentQuestion: text("current_question"),
   description: text("description"),
@@ -101,7 +89,6 @@ export const records = sqliteTable("records", {
   authorId: text("author_id")
     .notNull()
     .references(() => learnerProfiles.userId),
-  stageId: text("stage_id").references(() => stages.id),
   challengeId: text("challenge_id").references(() => challenges.id),
   collaborationUnitId: text("collaboration_unit_id").references(() => collaborationUnits.id),
   linkedRecordId: text("linked_record_id"),
@@ -198,60 +185,7 @@ export const notifications = sqliteTable("notifications", {
   createdAt: integer("created_at").notNull().default(now()),
 });
 
-export const collectiveMemories = sqliteTable("collective_memories", {
-  id: text("id").primaryKey(),
-  stageId: text("stage_id")
-    .notNull()
-    .references(() => stages.id),
-  summary: text("summary"),
-  carryForwardQuestion: text("carry_forward_question"),
-  status: text("status").notNull().default("draft"),
-  cohort: text("cohort"),
-  createdAt: integer("created_at").notNull().default(now()),
-  updatedAt: integer("updated_at").notNull().default(now()),
-});
 
-export const memoryQuestions = sqliteTable(
-  "memory_questions",
-  {
-    memoryId: text("memory_id")
-      .notNull()
-      .references(() => collectiveMemories.id, { onDelete: "cascade" }),
-    questionId: text("question_id")
-      .notNull()
-      .references(() => questions.id, { onDelete: "cascade" }),
-    position: integer("position").notNull().default(0),
-  },
-  (table) => [primaryKey({ columns: [table.memoryId, table.questionId] })],
-);
-
-export const memorySentences = sqliteTable(
-  "memory_sentences",
-  {
-    memoryId: text("memory_id")
-      .notNull()
-      .references(() => collectiveMemories.id, { onDelete: "cascade" }),
-    sentenceId: text("sentence_id")
-      .notNull()
-      .references(() => sentences.id, { onDelete: "cascade" }),
-    position: integer("position").notNull().default(0),
-  },
-  (table) => [primaryKey({ columns: [table.memoryId, table.sentenceId] })],
-);
-
-export const memoryRecords = sqliteTable(
-  "memory_records",
-  {
-    memoryId: text("memory_id")
-      .notNull()
-      .references(() => collectiveMemories.id, { onDelete: "cascade" }),
-    recordId: text("record_id")
-      .notNull()
-      .references(() => records.id, { onDelete: "cascade" }),
-    position: integer("position").notNull().default(0),
-  },
-  (table) => [primaryKey({ columns: [table.memoryId, table.recordId] })],
-);
 
 export const templates = sqliteTable("templates", {
   id: text("id").primaryKey(),
@@ -261,7 +195,6 @@ export const templates = sqliteTable("templates", {
   context: text("context"),
   form: text("form"),
   rhythm: text("rhythm"),
-  stageKind: text("stage_kind"),
   active: integer("active", { mode: "boolean" }).notNull().default(true),
   createdAt: integer("created_at").notNull().default(now()),
   updatedAt: integer("updated_at").notNull().default(now()),
@@ -397,7 +330,6 @@ export const drafts = sqliteTable(
     title: text("title"),
     content: text("content").notNull().default(""),
     contentJson: text("content_json"),
-    stageId: text("stage_id").references(() => stages.id),
     challengeId: text("challenge_id").references(() => challenges.id),
     rhythm: text("rhythm").notNull().default("free"),
     visibility: text("visibility").notNull().default("public"),
@@ -425,20 +357,7 @@ export const questionReminders = sqliteTable(
   (table) => [index("idx_reminders_learner").on(table.learnerId, table.sentAt)],
 );
 
-export const questionCarryOvers = sqliteTable("question_carry_overs", {
-  id: text("id").primaryKey().notNull(),
-  originalQuestionId: text("original_question_id")
-    .notNull()
-    .references(() => questions.id, { onDelete: "cascade" }),
-  newQuestionId: text("new_question_id").references(() => questions.id, { onDelete: "set null" }),
-  fromStageId: text("from_stage_id")
-    .notNull()
-    .references(() => stages.id),
-  toStageId: text("to_stage_id")
-    .notNull()
-    .references(() => stages.id),
-  carriedAt: integer("carried_at").notNull().default(now()),
-});
+
 
 export const savedRecords = sqliteTable(
   "saved_records",
@@ -486,21 +405,4 @@ export const recordParticipants = sqliteTable(
   (table) => [primaryKey({ columns: [table.recordId, table.participantUserId] })],
 );
 
-export const personalStageReflections = sqliteTable(
-  "personal_stage_reflections",
-  {
-    id: text("id").primaryKey().notNull(),
-    stageId: text("stage_id")
-      .notNull()
-      .references(() => stages.id),
-    learnerId: text("learner_id")
-      .notNull()
-      .references(() => learnerProfiles.userId, { onDelete: "cascade" }),
-    letGo: text("let_go"),
-    carryQuestion: text("carry_question"),
-    lastingSentence: text("lasting_sentence"),
-    createdAt: integer("created_at").notNull().default(now()),
-    updatedAt: integer("updated_at").notNull().default(now()),
-  },
-  (table) => [uniqueIndex("idx_reflections_stage_learner").on(table.stageId, table.learnerId)],
-);
+

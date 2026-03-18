@@ -39,7 +39,7 @@ export default function TagsPage({ loaderData }: Route.ComponentProps) {
   return (
     <div>
       <HeroSection
-        variant="stage"
+        variant="home"
         title="태그"
         subtitle="태그별로 기록을 탐색합니다"
       />

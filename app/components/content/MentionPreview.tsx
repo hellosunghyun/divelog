@@ -15,7 +15,6 @@ interface LearnerPreviewData {
   cohort: string | null;
   bio: string | null;
   currentQuestion: string | null;
-  stageName: string | null;
 }
 
 interface RecordPreviewData {
@@ -29,7 +28,6 @@ interface RecordPreviewData {
   authorDisplayName: string | null;
   authorSlug: string | null;
   authorPhotoUrl: string | null;
-  stageName: string | null;
 }
 
 const previewCache = new Map<string, LearnerPreviewData | RecordPreviewData>();
@@ -306,7 +304,7 @@ function PreviewSkeleton() {
 }
 
 function LearnerPreviewCard({ data }: { data: LearnerPreviewData }) {
-  const meta = [data.cohort, data.stageName].filter(Boolean).join(" · ");
+  const meta = [data.cohort].filter(Boolean).join(" · ");
 
   return (
     <div className="p-5">
@@ -359,7 +357,7 @@ const FORMAT_LABEL: Record<string, string> = {
 
 function RecordPreviewCard({ data }: { data: RecordPreviewData }) {
   const formatLabel = FORMAT_LABEL[data.format] ?? data.format;
-  const meta = [formatLabel, data.stageName].filter(Boolean).join(" · ");
+  const meta = [formatLabel].filter(Boolean).join(" · ");
   const dateStr = new Date(data.createdAt * 1000).toLocaleDateString("ko-KR", {
     month: "short",
     day: "numeric",
