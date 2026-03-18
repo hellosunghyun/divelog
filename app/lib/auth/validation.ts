@@ -142,6 +142,7 @@ export const createResponseSchema = z.object({
   visibility: z.enum(["cohort", "public"]).default("public"),
   recordId: z.string().min(1),
   questionId: z.string().optional(),
+  parentResponseId: z.string().optional(),
 });
 
 export type CreateResponseInput = z.infer<typeof createResponseSchema>;

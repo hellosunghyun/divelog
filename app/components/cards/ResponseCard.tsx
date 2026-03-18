@@ -28,6 +28,7 @@ interface ResponseCardProps {
     createdAt: number;
     updatedAt: number;
     authorId: string;
+    moderationStatus?: string;
   };
   author?: {
     displayName: string;
@@ -36,6 +37,7 @@ interface ResponseCardProps {
   currentUserId?: string | null;
   onEdit?: (responseId: string) => void;
   onDelete?: (responseId: string) => void;
+  onReply?: (responseId: string) => void;
   isSelfAnswer?: boolean;
   className?: string;
 }
@@ -69,6 +71,7 @@ export default function ResponseCard({
   currentUserId,
   onEdit,
   onDelete,
+  onReply,
   isSelfAnswer,
   className,
 }: ResponseCardProps) {
@@ -116,44 +119,55 @@ export default function ResponseCard({
         )}
       </div>
 
-      {isOwner && (
-        <div className="flex items-center gap-3 mt-4 pt-4 border-t border-border/50">
+      <div className="flex items-center gap-3 mt-4 pt-4 border-t border-border/50">
+        {onReply && response.moderationStatus !== "tombstone" && (
           <button
             type="button"
-            onClick={() => onEdit?.(response.id)}
+            onClick={() => onReply(response.id)}
             className="text-xs text-text-tertiary hover:text-text-secondary transition-colors"
           >
-            수정
+            답글
           </button>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <button
-                type="button"
-                className="text-xs text-red-600/70 hover:text-red-600 transition-colors"
-              >
-                삭제
-              </button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>응답을 삭제하시겠습니까?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  삭제된 응답은 복구할 수 없습니다.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>취소</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={() => onDelete?.(response.id)}
-                  className="bg-red-600 text-white hover:bg-red-700"
+        )}
+        {isOwner && (
+          <>
+            <button
+              type="button"
+              onClick={() => onEdit?.(response.id)}
+              className="text-xs text-text-tertiary hover:text-text-secondary transition-colors"
+            >
+              수정
+            </button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <button
+                  type="button"
+                  className="text-xs text-red-600/70 hover:text-red-600 transition-colors"
                 >
                   삭제
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </div>
-      )}
+                </button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>응답을 삭제하시겠습니까?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    삭제된 응답은 복구할 수 없습니다.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>취소</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => onDelete?.(response.id)}
+                    className="bg-red-600 text-white hover:bg-red-700"
+                  >
+                    삭제
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </>
+        )}
+      </div>
     </article>
   );
 }

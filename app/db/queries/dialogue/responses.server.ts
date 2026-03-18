@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, sql } from "drizzle-orm";
 
 import type { CreateResponseInput, UpdateResponseInput } from "../../../lib/auth/validation";
 import { nanoid } from "../../../lib/utils/utils.server";
@@ -19,8 +19,8 @@ export async function getResponsesByRecord(d1: D1Database, recordId: string) {
     })
     .from(responses)
     .leftJoin(learnerProfiles, eq(responses.authorId, learnerProfiles.userId))
-    .where(and(eq(responses.recordId, recordId), eq(responses.moderationStatus, "clean")))
-    .orderBy(desc(responses.createdAt));
+    .where(and(eq(responses.recordId, recordId), inArray(responses.moderationStatus, ["clean", "tombstone"])))
+    .orderBy(asc(responses.createdAt));
 }
 
 export async function createResponse(d1: D1Database, authorId: string, data: CreateResponseInput) {
@@ -32,6 +32,7 @@ export async function createResponse(d1: D1Database, authorId: string, data: Cre
     id,
     recordId: data.recordId,
     questionId: data.questionId ?? null,
+    parentResponseId: data.parentResponseId ?? null,
     authorId,
     type: data.type,
     content: data.content,
@@ -151,7 +152,25 @@ export async function deleteResponse(d1: D1Database, responseId: string, authorI
     return false;
   }
 
-  await database.delete(responses).where(eq(responses.id, responseId));
+  // Check if response has children
+  const childCount = await database
+    .select({ count: sql<number>`count(*)` })
+    .from(responses)
+    .where(eq(responses.parentResponseId, responseId));
+
+  const hasChildren = (childCount[0]?.count ?? 0) > 0;
+
+  if (hasChildren) {
+    // Tombstone: replace content and mark as tombstone
+    const now = Math.floor(Date.now() / 1000);
+    await database
+      .update(responses)
+      .set({ content: "[삭제된 응답]", moderationStatus: "tombstone", updatedAt: now })
+      .where(eq(responses.id, responseId));
+  } else {
+    // Hard delete if no children
+    await database.delete(responses).where(eq(responses.id, responseId));
+  }
 
   return true;
 }

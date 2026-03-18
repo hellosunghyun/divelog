@@ -166,7 +166,7 @@ export const selfAnswersRelations = relations(selfAnswers, ({ one }) => ({
   }),
 }));
 
-export const responsesRelations = relations(responses, ({ one }) => ({
+export const responsesRelations = relations(responses, ({ one, many }) => ({
   record: one(records, {
     fields: [responses.recordId],
     references: [records.id],
@@ -178,6 +178,14 @@ export const responsesRelations = relations(responses, ({ one }) => ({
   author: one(learnerProfiles, {
     fields: [responses.authorId],
     references: [learnerProfiles.userId],
+  }),
+  parentResponse: one(responses, {
+    fields: [responses.parentResponseId],
+    references: [responses.id],
+    relationName: "response_replies",
+  }),
+  childResponses: many(responses, {
+    relationName: "response_replies",
   }),
 }));
 

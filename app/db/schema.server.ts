@@ -158,6 +158,7 @@ export const responses = sqliteTable("responses", {
   authorId: text("author_id")
     .notNull()
     .references(() => learnerProfiles.userId),
+  parentResponseId: text("parent_response_id").references(() => responses.id),
   type: text("type").notNull(),
   content: text("content").notNull(),
   visibility: text("visibility").notNull().default("public"),
