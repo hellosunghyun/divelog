@@ -59,7 +59,7 @@ function CalendarCell({
   if (!day.isCurrentMonth) {
     return (
       <div className="min-h-[60px] md:min-h-[80px] p-1.5 border-r border-b border-border bg-surface-secondary/30">
-        <span className="text-sm text-tertiary opacity-50">{day.day}</span>
+        <span className="text-sm text-text-tertiary opacity-50">{day.day}</span>
       </div>
     );
   }
@@ -78,7 +78,7 @@ function CalendarCell({
             {day.day}
           </span>
         ) : (
-          <span className="text-sm text-primary">{day.day}</span>
+          <span className="text-sm text-text-primary">{day.day}</span>
         )}
       </div>
 
@@ -92,7 +92,7 @@ function CalendarCell({
             />
           ))}
           {remainingCount > 0 && (
-            <span className="text-[10px] text-tertiary">+{remainingCount}</span>
+            <span className="text-[10px] text-text-tertiary">+{remainingCount}</span>
           )}
         </div>
       )}
@@ -147,27 +147,27 @@ function CalendarCell({
                 className="block py-2 px-2 rounded-md no-underline hover:bg-surface-secondary transition-colors"
               >
                 <div className="flex items-center gap-2 mb-1">
-                  <span
-                    className={cn(
-                      "text-[11px] font-medium",
-                      record.format === "note" ? "text-ocean-blue" : "text-secondary"
-                    )}
-                  >
-                    {FORMAT_LABELS[record.format]}
-                  </span>
+                    <span
+                      className={cn(
+                        "text-[11px] font-medium",
+                        record.format === "note" ? "text-ocean-blue" : "text-text-secondary"
+                      )}
+                    >
+                      {FORMAT_LABELS[record.format]}
+                    </span>
                 </div>
-                <div className="text-sm font-semibold text-primary line-clamp-1">
+                <div className="text-sm font-semibold text-text-primary line-clamp-1">
                   {record.title}
                 </div>
                 {record.contentSnippet && (
-                  <div className="text-xs text-secondary line-clamp-2 mt-0.5">
+                  <div className="text-xs text-text-secondary line-clamp-2 mt-0.5">
                     {record.contentSnippet}
                   </div>
                 )}
               </Link>
             ))}
             {recordsForDay.length > 5 && (
-              <div className="text-xs text-tertiary text-center py-1">
+              <div className="text-xs text-text-tertiary text-center py-1">
                 외 {recordsForDay.length - 5}개
               </div>
             )}
@@ -226,8 +226,8 @@ export default function CalendarView({ records, month }: CalendarViewProps) {
           type="button"
           onClick={handlePrevMonth}
           className={cn(
-            "px-3 py-2 text-sm font-medium text-secondary",
-            "hover:text-primary hover:bg-surface-secondary rounded-lg",
+            "px-3 py-2 text-sm font-medium text-text-secondary",
+            "hover:text-text-primary hover:bg-surface-secondary rounded-lg",
             "transition-colors focus-visible:outline-none focus-visible:ring-2",
             "focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
           )}
@@ -235,15 +235,15 @@ export default function CalendarView({ records, month }: CalendarViewProps) {
         >
           ← 이전
         </button>
-        <h2 className="text-xl font-semibold text-primary">
+        <h2 className="text-xl font-semibold text-text-primary">
           {formatMonthLabel(year, monthIndex)}
         </h2>
         <button
           type="button"
           onClick={handleNextMonth}
           className={cn(
-            "px-3 py-2 text-sm font-medium text-secondary",
-            "hover:text-primary hover:bg-surface-secondary rounded-lg",
+            "px-3 py-2 text-sm font-medium text-text-secondary",
+            "hover:text-text-primary hover:bg-surface-secondary rounded-lg",
             "transition-colors focus-visible:outline-none focus-visible:ring-2",
             "focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
           )}
@@ -257,7 +257,7 @@ export default function CalendarView({ records, month }: CalendarViewProps) {
         {DAY_LABELS.map((day) => (
           <div
             key={day}
-            className="text-center text-caption text-tertiary py-2 text-sm font-medium"
+            className="text-center text-caption text-text-tertiary py-2 text-sm font-medium"
           >
             {day}
           </div>
@@ -279,7 +279,7 @@ export default function CalendarView({ records, month }: CalendarViewProps) {
 
       {expandedDayRecords && expandedDayRecords.length > 0 && (
         <div className="md:hidden mt-4 space-y-2">
-          <div className="text-sm font-medium text-secondary mb-2">
+          <div className="text-sm font-medium text-text-secondary mb-2">
             {monthIndex + 1}월 {expandedDay}일 기록
           </div>
           {expandedDayRecords.map((record) => (
@@ -294,17 +294,17 @@ export default function CalendarView({ records, month }: CalendarViewProps) {
                     "text-[11px] font-medium px-1.5 py-0.5 rounded",
                     record.format === "note"
                       ? "bg-mist-blue/60 text-ocean-blue"
-                      : "bg-surface-secondary text-secondary"
+                      : "bg-surface-secondary text-text-secondary"
                   )}
                 >
                   {FORMAT_LABELS[record.format]}
                 </span>
               </div>
-              <div className="text-sm font-semibold text-primary line-clamp-1">
+              <div className="text-sm font-semibold text-text-primary line-clamp-1">
                 {record.title}
               </div>
               {record.contentSnippet && (
-                <div className="text-xs text-secondary line-clamp-2 mt-0.5">
+                <div className="text-xs text-text-secondary line-clamp-2 mt-0.5">
                   {record.contentSnippet}
                 </div>
               )}
@@ -315,7 +315,7 @@ export default function CalendarView({ records, month }: CalendarViewProps) {
 
       {recordsByDay.size === 0 && (
         <div className="mt-8 text-center py-12">
-          <p className="text-sm text-tertiary">이 달에 기록이 없습니다.</p>
+          <p className="text-sm text-text-tertiary">이 달에 기록이 없습니다.</p>
         </div>
       )}
     </div>
