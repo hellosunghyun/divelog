@@ -92,3 +92,57 @@ export async function getIncomingLinks(d1: D1Database, targetRecordId: string) {
       ),
     );
 }
+
+export async function syncTypedRecordLinks(
+  d1: D1Database,
+  sourceRecordId: string,
+  targetRecordIds: string[],
+  linkType: string,
+): Promise<void> {
+  const database = db(d1);
+  // linkType별로 스코프 삭제 (다른 linkType은 보존)
+  await database.delete(recordLinks).where(
+    and(
+      eq(recordLinks.sourceRecordId, sourceRecordId),
+      eq(recordLinks.linkType, linkType),
+    )
+  );
+
+  if (targetRecordIds.length === 0) return;
+
+  const now = Math.floor(Date.now() / 1000);
+  for (const targetId of targetRecordIds) {
+    await database.insert(recordLinks).values({
+      id: nanoid(),
+      sourceRecordId,
+      targetRecordId: targetId,
+      linkType,
+      quotedText: null,
+      createdAt: now,
+    });
+  }
+}
+
+export async function getTypedRecordLinks(
+  d1: D1Database,
+  sourceRecordId: string,
+  linkType: string,
+) {
+  const database = db(d1);
+  return database
+    .select({
+      targetRecordId: recordLinks.targetRecordId,
+      targetTitle: records.title,
+      targetSlug: records.slug,
+      authorDisplayName: learnerProfiles.displayName,
+    })
+    .from(recordLinks)
+    .leftJoin(records, eq(recordLinks.targetRecordId, records.id))
+    .leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
+    .where(
+      and(
+        eq(recordLinks.sourceRecordId, sourceRecordId),
+        eq(recordLinks.linkType, linkType),
+      )
+    );
+}

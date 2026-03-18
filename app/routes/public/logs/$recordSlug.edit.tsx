@@ -34,8 +34,8 @@ import {
 } from "~/db/queries/records/participants.server";
 import { syncRecordLinksForRecord } from "~/db/queries/records/recordLinks.server";
 import { getRecordBySlug, updateRecord } from "~/db/queries/records/records.server";
-import { getAllTags, getTagsByRecord } from "~/db/queries/records/tags.server";
-import { recordReferences, recordTags, stages, templates } from "~/db/schema.server";
+import { getAllTags, getTagsByRecord, findOrCreateTag, syncTagsForRecord } from "~/db/queries/records/tags.server";
+import { recordReferences, stages, templates } from "~/db/schema.server";
 import { requireVerified } from "~/lib/auth/auth.middleware";
 import { createRecordSchema, parseReferencesFromFormData } from "~/lib/auth/validation";
 import { getPlainText } from "~/lib/content/content.server";
@@ -278,20 +278,18 @@ export async function action({ params, request, context }: Route.ActionArgs) {
     );
   }
 
-  const tagIds = formData.getAll("tagIds") as string[];
-  
-  await database.delete(recordTags).where(eq(recordTags.recordId, recordData.record.id));
-  
-  if (tagIds.length > 0) {
-    const now = Math.floor(Date.now() / 1000);
-    for (const tagId of tagIds) {
-      await database.insert(recordTags).values({
-        recordId: recordData.record.id,
-        tagId,
-        createdAt: now,
-      });
-    }
+  const newTagNames = formData.getAll("newTagName") as string[];
+  const createdTagIds: string[] = [];
+  for (const tagName of newTagNames) {
+    const trimmed = tagName.trim();
+    if (!trimmed) continue;
+    const tag = await findOrCreateTag(context.cloudflare.env.DB, trimmed, auth.user.id);
+    createdTagIds.push(tag.id);
   }
+
+  const tagIds = formData.getAll("tagIds") as string[];
+  const allTagIds = [...new Set([...tagIds, ...createdTagIds])];
+  await syncTagsForRecord(context.cloudflare.env.DB, recordData.record.id, allTagIds);
 
   return redirect(`/logs/${recordSlug}`);
 }
@@ -622,47 +620,13 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
           </Select>
         </div>
 
-        {tags.length > 0 && (
-          <fieldset className="border-0 m-0 p-0">
-            <legend className="block text-meta font-medium text-text-secondary mb-3">
-              태그 (선택)
-            </legend>
-            <div className="flex flex-wrap gap-2">
-               {tags.map((tag: TagOption) => (
-                 <label
-                   key={tag.id}
-                   className="cursor-pointer"
-                >
-                  <input
-                    type="checkbox"
-                    name="tagIds"
-                    value={tag.id}
-                    checked={selectedTags.has(tag.id)}
-                    onChange={(e) => {
-                      const newTags = new Set(selectedTags);
-                      if (e.target.checked) {
-                        newTags.add(tag.id);
-                      } else {
-                        newTags.delete(tag.id);
-                      }
-                      setSelectedTags(newTags);
-                    }}
-                    className="hidden"
-                  />
-                  <span
-                    className={`inline-block px-3 py-1 rounded-full text-sm border transition-colors ${
-                      selectedTags.has(tag.id)
-                        ? "border-ocean-blue bg-mist-blue text-ocean-blue"
-                        : "border-border bg-surface text-text-secondary hover:border-ocean-blue"
-                    }`}
-                  >
-                    {tag.name}
-                  </span>
-                </label>
-              ))}
-            </div>
-          </fieldset>
-        )}
+        <TagSelector
+          tags={tags}
+          selectedTagIds={Array.from(selectedTags)}
+          onChange={(ids: string[]) => setSelectedTags(new Set(ids))}
+          allowCreate={true}
+          maxTags={10}
+        />
 
         <div>
           <Label htmlFor="visibility" className="mb-2 block text-meta font-medium text-text-secondary">

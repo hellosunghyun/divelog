@@ -13,6 +13,7 @@ export default [
     route("write", "routes/public/write/index.tsx"),
     route("write/note", "routes/public/write/note.tsx"),
     route("write/article", "routes/public/write/article.tsx"),
+    route("write/meta/:recordId", "routes/public/write/meta.$recordId.tsx"),
     route("logs/:recordSlug/details", "routes/public/logs/$recordSlug.details.tsx"),
     route("learners", "routes/public/learners/index.tsx"),
     route("learners/:learnerSlug", "routes/public/learners/$learnerSlug.tsx"),

@@ -1,0 +1,437 @@
+import { useState } from "react";
+import { Form, redirect, useNavigation } from "react-router";
+import type { Route } from "./+types/meta.$recordId";
+
+import { Link } from "~/components/content/SmartLink";
+import PersonSearch from "~/components/PersonSearch";
+import RecordSearch from "~/components/RecordSearch";
+import { TagSelector } from "~/components/TagSelector";
+import { NavigationBlockerDialog } from "~/components/feedback/NavigationBlockerDialog";
+import { Button } from "~/components/ui/button";
+import { syncAllMentionsForRecord } from "~/db/queries/dialogue/mentions.server";
+import { getMentionsByRecord } from "~/db/queries/dialogue/mentions.server";
+import { createNotification } from "~/db/queries/social/notifications.server";
+import { syncParticipantsForRecord, getParticipantsByRecord } from "~/db/queries/records/participants.server";
+import { markAsRead } from "~/db/queries/records/recordReads.server";
+import { syncTypedRecordLinks, getTypedRecordLinks } from "~/db/queries/records/recordLinks.server";
+import { getRecordById, updateRecordOriginalMeta } from "~/db/queries/records/records.server";
+import { getRecordReferences, syncRecordReferences } from "~/db/queries/records/references.server";
+import { findOrCreateTag, getAllTags, getTagsByRecord, syncTagsForRecord } from "~/db/queries/records/tags.server";
+import { useUnsavedWarning } from "~/hooks/useUnsavedWarning";
+import { requireVerified } from "~/lib/auth/auth.middleware";
+import { parseReferencesFromFormData } from "~/lib/auth/validation";
+
+type ReferenceField = { id: string; url: string; title: string };
+type LoaderTag = { id: string };
+type LoaderReference = { url: string; title: string | null };
+type LoaderParticipant = { userId: string; displayName: string | null; profilePhotoUrl: string | null };
+type LoaderMention = { userId: string; displayName: string | null; profilePhotoUrl: string | null };
+type LoaderRecordLink = {
+  targetRecordId: string;
+  targetTitle: string | null;
+  authorDisplayName: string | null;
+};
+
+export function meta(_args: Route.MetaArgs) {
+  return [{ title: "추가 정보 — DiveLog" }];
+}
+
+export async function loader({ params, request, context }: Route.LoaderArgs) {
+  const auth = await requireVerified(request, context);
+  const recordId = params.recordId;
+  if (!recordId) {
+    throw new Response("Not Found", { status: 404 });
+  }
+
+  const record = await getRecordById(context.cloudflare.env.DB, recordId);
+  if (!record) {
+    throw new Response("Not Found", { status: 404 });
+  }
+
+  if (record.authorId !== auth.user.id) {
+    throw new Response("Forbidden", { status: 403 });
+  }
+
+  const [allTags, currentTags, participants, mentions, mentionedLinks, usefulLinks, references] =
+    await Promise.all([
+      getAllTags(context.cloudflare.env.DB),
+      getTagsByRecord(context.cloudflare.env.DB, record.id),
+      getParticipantsByRecord(context.cloudflare.env.DB, record.id).catch(() => []),
+      getMentionsByRecord(context.cloudflare.env.DB, record.id).catch(() => []),
+      getTypedRecordLinks(context.cloudflare.env.DB, record.id, "mentioned"),
+      getTypedRecordLinks(context.cloudflare.env.DB, record.id, "useful"),
+      getRecordReferences(context.cloudflare.env.DB, record.id).catch(() => []),
+    ]);
+
+  return {
+    record: {
+      id: record.id,
+      slug: record.slug,
+      format: record.format,
+      title: record.title,
+      originalUrl: record.originalUrl ?? "",
+      originalTitle: record.originalTitle ?? "",
+      originalDescription: record.originalDescription ?? "",
+    },
+    tags: allTags,
+    currentTags,
+    participants,
+    mentions,
+    mentionedLinks,
+    usefulLinks,
+    references,
+    currentUserId: auth.user.id,
+  };
+}
+
+export async function action({ params, request, context }: Route.ActionArgs) {
+  const auth = await requireVerified(request, context);
+  const recordId = params.recordId;
+  if (!recordId) {
+    throw new Response("Not Found", { status: 404 });
+  }
+
+  const record = await getRecordById(context.cloudflare.env.DB, recordId);
+  if (!record || record.authorId !== auth.user.id) {
+    throw new Response("Forbidden", { status: 403 });
+  }
+
+  const formData = await request.formData();
+  const actorName = auth.user.nickname ?? auth.user.name ?? "누군가";
+
+  const newTagNames = formData.getAll("newTagName") as string[];
+  const createdTagIds: string[] = [];
+  for (const tagName of newTagNames) {
+    const trimmed = tagName.trim();
+    if (!trimmed) {
+      continue;
+    }
+
+    const tag = await findOrCreateTag(context.cloudflare.env.DB, trimmed, auth.user.id);
+    createdTagIds.push(tag.id);
+  }
+
+  const selectedTagIds = formData.getAll("tagIds") as string[];
+  const allTagIds = [...new Set([...selectedTagIds, ...createdTagIds])];
+  await syncTagsForRecord(context.cloudflare.env.DB, record.id, allTagIds);
+
+  const participantsJson = formData.get("participantsJson")?.toString() ?? "[]";
+  const mentionUserIdsJson = formData.get("mentionUserIds")?.toString() ?? "[]";
+  const participants = JSON.parse(participantsJson) as { userId: string; role: string }[];
+  const mentionUserIds = JSON.parse(mentionUserIdsJson) as string[];
+
+  await syncParticipantsForRecord(context.cloudflare.env.DB, record.id, participants, auth.user.id);
+  await syncAllMentionsForRecord(context.cloudflare.env.DB, record.id, mentionUserIds, record.content ?? "", auth.user.id);
+
+  const mentionedRecordIds = JSON.parse(formData.get("mentionedRecordIds")?.toString() ?? "[]") as string[];
+  const usefulRecordIds = JSON.parse(formData.get("usefulRecordIds")?.toString() ?? "[]") as string[];
+  await syncTypedRecordLinks(context.cloudflare.env.DB, record.id, mentionedRecordIds, "mentioned");
+  await syncTypedRecordLinks(context.cloudflare.env.DB, record.id, usefulRecordIds, "useful");
+
+  if (record.format === "article") {
+    const references = parseReferencesFromFormData(formData);
+    await syncRecordReferences(context.cloudflare.env.DB, record.id, references);
+
+    const originalUrl = formData.get("originalUrl")?.toString() || null;
+    const originalTitle = formData.get("originalTitle")?.toString() || null;
+    const originalDescription = formData.get("originalDescription")?.toString() || null;
+    await updateRecordOriginalMeta(context.cloudflare.env.DB, record.id, {
+      originalUrl,
+      originalTitle,
+      originalDescription,
+    });
+  }
+
+  const notified = new Set<string>();
+  for (const participant of participants) {
+    if (participant.userId === auth.user.id) {
+      continue;
+    }
+
+    await createNotification(context.cloudflare.env.DB, {
+      recipientId: participant.userId,
+      type: "participant_added",
+      title: `${actorName}님이 기록에 함께하는 사람으로 남겼습니다`,
+      content: record.title,
+      recordId: record.id,
+    });
+    notified.add(participant.userId);
+  }
+
+  for (const userId of mentionUserIds) {
+    if (userId === auth.user.id || notified.has(userId)) {
+      continue;
+    }
+
+    await createNotification(context.cloudflare.env.DB, {
+      recipientId: userId,
+      type: "mention",
+      title: `${actorName}님이 기록에서 당신을 언급했습니다`,
+      content: record.title,
+      recordId: record.id,
+    });
+  }
+
+  if (record.visibility !== "draft") {
+    try {
+      await markAsRead(context.cloudflare.env.DB, auth.user.id, record.id);
+    } catch {
+      // silent fail — 읽음 처리 실패가 저장을 막지 않음
+    }
+  }
+
+  const detailPath = record.format === "article" ? `/logs/${record.slug}/details` : `/logs/${record.slug}`;
+  throw redirect(detailPath);
+}
+
+export default function WriteMetaPage({ loaderData }: Route.ComponentProps) {
+  const {
+    record,
+    tags,
+    currentTags,
+    participants,
+    mentions,
+    mentionedLinks,
+    usefulLinks,
+    references: initialReferences,
+    currentUserId,
+  } = loaderData;
+
+  const navigation = useNavigation();
+  const isSubmitting = navigation.state === "submitting";
+
+  const [selectedTags, setSelectedTags] = useState<Set<string>>(
+    new Set(currentTags.map((tag: LoaderTag) => tag.id)),
+  );
+  const [originalUrl, setOriginalUrl] = useState(record.originalUrl);
+  const [originalTitle, setOriginalTitle] = useState(record.originalTitle);
+  const [originalDescription, setOriginalDescription] = useState(record.originalDescription);
+  const [refList, setRefList] = useState<ReferenceField[]>(
+    initialReferences.map((reference: LoaderReference) => ({
+      id: crypto.randomUUID(),
+      url: reference.url,
+      title: reference.title ?? "",
+    })),
+  );
+
+  const initialParticipants = participants.map((participant: LoaderParticipant) => ({
+    userId: participant.userId,
+    displayName: participant.displayName ?? "",
+    profilePhotoUrl: participant.profilePhotoUrl ?? null,
+  }));
+
+  const initialMentions = mentions.map((mention: LoaderMention) => ({
+    userId: mention.userId,
+    displayName: mention.displayName ?? "",
+    profilePhotoUrl: mention.profilePhotoUrl ?? null,
+  }));
+
+  const initialMentionedRecords = mentionedLinks.map((link: LoaderRecordLink) => ({
+    recordId: link.targetRecordId,
+    title: link.targetTitle ?? "",
+    authorDisplayName: link.authorDisplayName ?? null,
+  }));
+
+  const initialUsefulRecords = usefulLinks.map((link: LoaderRecordLink) => ({
+    recordId: link.targetRecordId,
+    title: link.targetTitle ?? "",
+    authorDisplayName: link.authorDisplayName ?? null,
+  }));
+
+  const blocker = useUnsavedWarning(false);
+  const skipUrl = record.format === "article" ? `/logs/${record.slug}/details` : `/logs/${record.slug}`;
+
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="mx-auto max-w-[720px] px-6 py-16">
+        <Form method="post" className="flex flex-col gap-8">
+          <div className="flex flex-col gap-4">
+            <Link
+              to={`/logs/${record.slug}`}
+              className="w-fit text-sm text-text-tertiary no-underline hover:text-text-secondary"
+            >
+              ← 기록으로 돌아가기
+            </Link>
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="m-0 text-lg font-semibold text-text-primary">추가 정보</h1>
+                <p className="mt-0.5 text-sm text-text-tertiary">태그, 사람, 참조 게시글을 선택하세요</p>
+              </div>
+              <div className="flex items-center gap-3">
+                <Link
+                  to={skipUrl}
+                  className="inline-flex items-center justify-center rounded-md border border-border px-4 py-2 text-sm font-medium text-text-secondary no-underline transition-colors hover:bg-surface-secondary"
+                >
+                  건너뛰기
+                </Link>
+                <Button type="submit" disabled={isSubmitting} className="h-auto rounded-md px-4 py-2 text-sm font-medium">
+                  {isSubmitting ? "저장 중..." : "저장"}
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          <section className="flex flex-col gap-3">
+            <TagSelector
+              tags={tags}
+              selectedTagIds={Array.from(selectedTags)}
+              onChange={(ids: string[]) => setSelectedTags(new Set(ids))}
+              allowCreate={true}
+              maxTags={10}
+            />
+          </section>
+
+          <section className="flex flex-col gap-4">
+            <PersonSearch
+              label="함께하는 사람"
+              name="participantsJson"
+              selectedPeople={initialParticipants}
+              excludeUserId={currentUserId}
+              roleOptions={[
+                { value: "coauthor", label: "공동작성" },
+                { value: "companion", label: "함께활동" },
+                { value: "mentor", label: "멘토" },
+              ]}
+            />
+            <PersonSearch
+              label="언급된 사람"
+              name="mentionUserIds"
+              selectedPeople={initialMentions}
+              excludeUserId={currentUserId}
+            />
+          </section>
+
+          <section className="flex flex-col gap-4">
+            <RecordSearch
+              label="언급한 게시글"
+              name="mentionedRecordIds"
+              selectedRecords={initialMentionedRecords}
+              excludeRecordId={record.id}
+            />
+            <RecordSearch
+              label="유용했던 게시글"
+              name="usefulRecordIds"
+              selectedRecords={initialUsefulRecords}
+              excludeRecordId={record.id}
+            />
+          </section>
+
+          {record.format === "article" ? (
+            <>
+              <section className="flex flex-col gap-3">
+                <div>
+                  <p className="mb-1 text-meta font-medium text-text-secondary">
+                    원문 링크 <span className="text-xs font-normal text-text-tertiary">(선택)</span>
+                  </p>
+                  <p className="mb-3 text-xs text-text-tertiary">이 기록의 원본이 다른 곳에 있다면 링크를 남겨두세요</p>
+                </div>
+                <div className="flex flex-col gap-3 rounded-xl border border-border bg-surface-secondary p-4">
+                  <div>
+                    <label htmlFor="originalUrl" className="mb-1.5 block text-xs font-medium text-text-secondary">
+                      URL
+                    </label>
+                    <input
+                      type="text"
+                      inputMode="url"
+                      id="originalUrl"
+                      name="originalUrl"
+                      value={originalUrl}
+                      onChange={(event) => setOriginalUrl(event.target.value)}
+                      placeholder="https://example.com/my-post"
+                      className="w-full rounded-lg border border-border bg-surface px-3 py-2.5 text-sm text-text-primary placeholder:text-text-tertiary focus:border-ocean-blue focus:outline-none focus:ring-2 focus:ring-ocean-blue/20"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="originalTitle" className="mb-1.5 block text-xs font-medium text-text-secondary">
+                      원문 제목 <span className="font-normal text-text-tertiary">(선택)</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="originalTitle"
+                      name="originalTitle"
+                      value={originalTitle}
+                      onChange={(event) => setOriginalTitle(event.target.value)}
+                      placeholder="SwiftUI에서 MVVM 패턴 적용기"
+                      className="w-full rounded-lg border border-border bg-surface px-3 py-2.5 text-sm text-text-primary placeholder:text-text-tertiary focus:border-ocean-blue focus:outline-none focus:ring-2 focus:ring-ocean-blue/20"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="originalDescription" className="mb-1.5 block text-xs font-medium text-text-secondary">
+                      설명 <span className="font-normal text-text-tertiary">(선택)</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="originalDescription"
+                      name="originalDescription"
+                      value={originalDescription}
+                      onChange={(event) => setOriginalDescription(event.target.value)}
+                      placeholder="개인 블로그에 먼저 올린 글의 DiveLog 버전입니다"
+                      className="w-full rounded-lg border border-border bg-surface px-3 py-2.5 text-sm text-text-primary placeholder:text-text-tertiary focus:border-ocean-blue focus:outline-none focus:ring-2 focus:ring-ocean-blue/20"
+                    />
+                  </div>
+                </div>
+              </section>
+
+              <section className="flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-meta font-medium text-text-secondary">
+                    참조 및 출처 <span className="text-xs font-normal text-text-tertiary">(선택)</span>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setRefList((previous) => [...previous, { id: crypto.randomUUID(), url: "", title: "" }])
+                    }
+                    className="min-h-11 px-1 text-sm text-ocean-blue transition-colors hover:text-deep-ocean"
+                  >
+                    + 참조 추가
+                  </button>
+                </div>
+                {refList.map((reference, index) => (
+                  <div key={reference.id} className="flex items-start gap-2">
+                    <div className="flex-1 space-y-2">
+                      <input
+                        type="text"
+                        inputMode="url"
+                        name={`references[${index}][url]`}
+                        value={reference.url}
+                        onChange={(event) => {
+                          const next = [...refList];
+                          next[index] = { ...next[index], url: event.target.value };
+                          setRefList(next);
+                        }}
+                        placeholder="https://example.com"
+                        className="w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm text-text-primary placeholder:text-text-tertiary focus:border-ocean-blue focus:outline-none focus:ring-2 focus:ring-ocean-blue/20"
+                      />
+                      <input
+                        type="text"
+                        name={`references[${index}][title]`}
+                        value={reference.title}
+                        onChange={(event) => {
+                          const next = [...refList];
+                          next[index] = { ...next[index], title: event.target.value };
+                          setRefList(next);
+                        }}
+                        placeholder="제목 (선택)"
+                        className="w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm text-text-primary placeholder:text-text-tertiary focus:border-ocean-blue focus:outline-none focus:ring-2 focus:ring-ocean-blue/20"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setRefList((previous) => previous.filter((_, currentIndex) => currentIndex !== index))}
+                      className="mt-2.5 min-h-11 min-w-11 p-1 text-text-tertiary transition-colors hover:text-text-primary"
+                      aria-label="참조 삭제"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </section>
+            </>
+          ) : null}
+        </Form>
+        <NavigationBlockerDialog blocker={blocker} />
+      </div>
+    </div>
+  );
+}

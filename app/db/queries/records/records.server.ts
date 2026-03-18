@@ -395,3 +395,34 @@ export async function getLinkedRecords(
 
   return results;
 }
+
+export async function getRecordById(d1: D1Database, id: string) {
+  const database = db(d1);
+  const result = await database
+    .select()
+    .from(records)
+    .where(eq(records.id, id))
+    .limit(1);
+  return result[0] ?? null;
+}
+
+export async function updateRecordOriginalMeta(
+  d1: D1Database,
+  recordId: string,
+  meta: {
+    originalUrl: string | null;
+    originalTitle: string | null;
+    originalDescription: string | null;
+  }
+): Promise<void> {
+  const database = db(d1);
+  await database
+    .update(records)
+    .set({
+      originalUrl: meta.originalUrl,
+      originalTitle: meta.originalTitle,
+      originalDescription: meta.originalDescription,
+      updatedAt: Math.floor(Date.now() / 1000),
+    })
+    .where(eq(records.id, recordId));
+}
