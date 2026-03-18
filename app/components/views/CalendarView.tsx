@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import { Link } from "~/components/content/SmartLink";
 import { Popover, PopoverTrigger, PopoverContent } from "~/components/ui/popover";
@@ -70,6 +70,20 @@ function CalendarCell({
   isExpanded: boolean;
 }) {
   const [isHoverOpen, setIsHoverOpen] = useState(false);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const openHover = useCallback(() => {
+    if (closeTimer.current) {
+      clearTimeout(closeTimer.current);
+      closeTimer.current = null;
+    }
+    setIsHoverOpen(true);
+  }, []);
+
+  const closeHover = useCallback(() => {
+    closeTimer.current = setTimeout(() => setIsHoverOpen(false), 150);
+  }, []);
+
   const hasRecords = recordsForDay.length > 0;
   const maxVisible = isMobile ? MAX_VISIBLE_MOBILE : MAX_VISIBLE_DESKTOP;
   const displayRecords = recordsForDay.slice(0, maxVisible);
@@ -140,8 +154,8 @@ function CalendarCell({
         <PopoverTrigger asChild>
           <button
             type="button"
-            onMouseEnter={() => setIsHoverOpen(true)}
-            onMouseLeave={() => setIsHoverOpen(false)}
+            onMouseEnter={openHover}
+            onMouseLeave={closeHover}
             className={cn(
               "w-full text-left appearance-none",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-inset",
@@ -151,8 +165,8 @@ function CalendarCell({
           </button>
         </PopoverTrigger>
         <PopoverContent
-          onMouseEnter={() => setIsHoverOpen(true)}
-          onMouseLeave={() => setIsHoverOpen(false)}
+          onMouseEnter={openHover}
+          onMouseLeave={closeHover}
           className="w-72 p-2 max-h-80 overflow-y-auto"
           align="start"
           side="right"
