@@ -1,5 +1,4 @@
-import { useRef, useEffect } from "react";
-import { useNavigate } from "react-router";
+import { useRef } from "react";
 import type { ContentFormat } from "../../lib/content/editor-extensions";
 import { useMentionPreview, MentionPreviewCard } from "./MentionPreview";
 
@@ -36,29 +35,9 @@ const ARTICLE_CLASS_NAME = [
   "[&_hr]:my-8 [&_hr]:border-border",
 ].join(" ");
 
-const MENTION_LINK_SELECTOR = ".user-mention, .record-ref";
-
 export function ContentRenderer({ contentHtml, format, className }: ContentRendererProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const navigate = useNavigate();
   const { preview, open, pos, cardRef, onCardEnter, onCardLeave } = useMentionPreview(containerRef);
-
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    function onClick(e: MouseEvent) {
-      const anchor = (e.target as HTMLElement).closest<HTMLAnchorElement>(MENTION_LINK_SELECTOR);
-      if (!anchor || !container!.contains(anchor)) return;
-      const href = anchor.getAttribute("href");
-      if (!href) return;
-      e.preventDefault();
-      navigate(href);
-    }
-
-    container.addEventListener("click", onClick);
-    return () => container.removeEventListener("click", onClick);
-  }, [navigate]);
 
   const combinedClassName = [
     format === "note" ? NOTE_CLASS_NAME : ARTICLE_CLASS_NAME,
