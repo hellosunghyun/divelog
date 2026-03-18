@@ -18,15 +18,18 @@ type CalendarViewProps = {
 
 const DAY_LABELS = ["일", "월", "화", "수", "목", "금", "토"];
 
-const FORMAT_DOT_COLORS: Record<"note" | "article", string> = {
-  note: "bg-reef-cyan",
-  article: "bg-ocean-blue",
+const FORMAT_BAR_COLORS: Record<"note" | "article", string> = {
+  note: "border-l-reef-cyan",
+  article: "border-l-ocean-blue",
 };
 
 const FORMAT_LABELS: Record<"note" | "article", string> = {
   note: "노트",
   article: "글",
 };
+
+const MAX_VISIBLE_DESKTOP = 3;
+const MAX_VISIBLE_MOBILE = 2;
 
 function parseMonthString(monthStr: string): { year: number; month: number } {
   const [year, month] = monthStr.split("-").map(Number);
@@ -36,6 +39,21 @@ function parseMonthString(monthStr: string): { year: number; month: number } {
 function formatMonthPath(year: number, month: number): string {
   const monthStr = String(month + 1).padStart(2, "0");
   return `${year}-${monthStr}`;
+}
+
+function RecordLine({ record }: { record: RecordItem }) {
+  return (
+    <div
+      className={cn(
+        "border-l-2 pl-1.5 py-px rounded-r-sm truncate",
+        "text-[11px] leading-tight text-text-primary",
+        FORMAT_BAR_COLORS[record.format],
+      )}
+      title={record.title}
+    >
+      {record.title}
+    </div>
+  );
 }
 
 function CalendarCell({
@@ -53,13 +71,16 @@ function CalendarCell({
 }) {
   const [isHoverOpen, setIsHoverOpen] = useState(false);
   const hasRecords = recordsForDay.length > 0;
-  const displayRecords = recordsForDay.slice(0, 3);
-  const remainingCount = recordsForDay.length - 3;
+  const maxVisible = isMobile ? MAX_VISIBLE_MOBILE : MAX_VISIBLE_DESKTOP;
+  const displayRecords = recordsForDay.slice(0, maxVisible);
+  const remainingCount = recordsForDay.length - maxVisible;
 
   if (!day.isCurrentMonth) {
     return (
-      <div className="min-h-[60px] md:min-h-[80px] p-1.5 border-r border-b border-border bg-surface-secondary/30">
-        <span className="text-sm text-text-tertiary opacity-50">{day.day}</span>
+      <div className="min-h-[80px] md:min-h-[110px] p-1.5 border-r border-b border-border bg-surface-secondary/30">
+        <div className="flex justify-end">
+          <span className="text-xs text-text-tertiary opacity-40">{day.day}</span>
+        </div>
       </div>
     );
   }
@@ -67,32 +88,30 @@ function CalendarCell({
   const cellContent = (
     <div
       className={cn(
-        "min-h-[60px] md:min-h-[80px] p-1.5 border-r border-b border-border relative",
+        "min-h-[80px] md:min-h-[110px] p-1.5 border-r border-b border-border relative",
         "bg-surface hover:bg-surface-secondary/50 transition-colors",
-        isExpanded && "bg-surface-secondary"
+        isExpanded && "bg-surface-secondary",
       )}
     >
       <div className="flex justify-end mb-1">
         {day.isToday ? (
-          <span className="w-6 h-6 flex items-center justify-center text-sm font-medium bg-ocean-blue text-white rounded-full">
+          <span className="w-6 h-6 flex items-center justify-center text-xs font-semibold bg-ocean-blue text-white rounded-full">
             {day.day}
           </span>
         ) : (
-          <span className="text-sm text-text-primary">{day.day}</span>
+          <span className="text-xs font-medium text-text-secondary">{day.day}</span>
         )}
       </div>
 
       {hasRecords && (
-        <div className="flex flex-wrap gap-1 items-center">
+        <div className="flex flex-col gap-0.5">
           {displayRecords.map((record) => (
-            <span
-              key={record.id}
-              className={cn("w-2 h-2 rounded-full", FORMAT_DOT_COLORS[record.format])}
-              aria-hidden="true"
-            />
+            <RecordLine key={record.id} record={record} />
           ))}
           {remainingCount > 0 && (
-            <span className="text-[10px] text-text-tertiary">+{remainingCount}</span>
+            <span className="text-[10px] text-text-tertiary pl-1.5">
+              +{remainingCount}개
+            </span>
           )}
         </div>
       )}
@@ -106,7 +125,7 @@ function CalendarCell({
         onClick={onCellClick}
         className={cn(
           "w-full text-left appearance-none",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-inset"
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-inset",
         )}
         aria-expanded={isExpanded}
       >
@@ -125,7 +144,7 @@ function CalendarCell({
             onMouseLeave={() => setIsHoverOpen(false)}
             className={cn(
               "w-full text-left appearance-none",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-inset"
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-inset",
             )}
           >
             {cellContent}
@@ -140,21 +159,27 @@ function CalendarCell({
           sideOffset={8}
         >
           <div className="space-y-1">
-            {recordsForDay.slice(0, 5).map((record) => (
+            {recordsForDay.map((record) => (
               <Link
                 key={record.id}
                 to={`/logs/${record.slug}`}
                 className="block py-2 px-2 rounded-md no-underline hover:bg-surface-secondary transition-colors"
               >
                 <div className="flex items-center gap-2 mb-1">
-                    <span
-                      className={cn(
-                        "text-[11px] font-medium",
-                        record.format === "note" ? "text-ocean-blue" : "text-text-secondary"
-                      )}
-                    >
-                      {FORMAT_LABELS[record.format]}
-                    </span>
+                  <span
+                    className={cn(
+                      "w-1.5 h-1.5 rounded-full shrink-0",
+                      record.format === "note" ? "bg-reef-cyan" : "bg-ocean-blue",
+                    )}
+                  />
+                  <span
+                    className={cn(
+                      "text-[11px] font-medium",
+                      record.format === "note" ? "text-ocean-blue" : "text-text-secondary",
+                    )}
+                  >
+                    {FORMAT_LABELS[record.format]}
+                  </span>
                 </div>
                 <div className="text-sm font-semibold text-text-primary line-clamp-1">
                   {record.title}
@@ -166,11 +191,6 @@ function CalendarCell({
                 )}
               </Link>
             ))}
-            {recordsForDay.length > 5 && (
-              <div className="text-xs text-text-tertiary text-center py-1">
-                외 {recordsForDay.length - 5}개
-              </div>
-            )}
           </div>
         </PopoverContent>
       </Popover>
