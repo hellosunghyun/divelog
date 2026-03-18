@@ -81,7 +81,7 @@ function CalendarCell({
   }, []);
 
   const closeHover = useCallback(() => {
-    closeTimer.current = setTimeout(() => setIsHoverOpen(false), 150);
+    closeTimer.current = setTimeout(() => setIsHoverOpen(false), 300);
   }, []);
 
   const hasRecords = recordsForDay.length > 0;
@@ -150,7 +150,13 @@ function CalendarCell({
 
   if (!isMobile && hasRecords) {
     return (
-      <Popover open={isHoverOpen} onOpenChange={setIsHoverOpen}>
+      <Popover open={isHoverOpen} onOpenChange={(open) => {
+          if (open) {
+            openHover();
+          } else {
+            closeHover();
+          }
+        }}>
         <PopoverTrigger asChild>
           <button
             type="button"
