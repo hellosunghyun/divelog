@@ -2,7 +2,7 @@ import { useRouteLoaderData, useLocation, useNavigate, useFetcher } from "react-
 import { Link } from "~/components/content/SmartLink";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, memo, useMemo } from "react";
 import { User, Envelope, GearSix, ArrowSquareOut, SignOut } from "@phosphor-icons/react";
 import { AnimatePresence, motion } from "~/lib/motion/motion";
 import { staggerContainer, staggerItem } from "~/lib/motion/motion-utils";
@@ -92,7 +92,7 @@ const dropdownMotion = {
   transition: { duration: 0.2, ease: [0.32, 0.72, 0, 1] as [number, number, number, number] },
 } as const;
 
-export default function GlobalNav() {
+function GlobalNav() {
   const data = useRouteLoaderData("routes/_public") as PublicLoaderData | undefined;
   const location = useLocation();
   const navigate = useNavigate();
@@ -257,7 +257,7 @@ export default function GlobalNav() {
 
   return (
     <>
-      <header className="right-scroll-bar-position fixed top-0 left-0 right-0 z-50 pt-3 px-4 pointer-events-none">
+      <header className="right-scroll-bar-position fixed top-0 left-0 right-0 z-50 pt-3 px-4 pointer-events-none isolate">
         <nav
           aria-label="주요 내비게이션"
           className={cn(
@@ -266,7 +266,8 @@ export default function GlobalNav() {
             "ring-1 ring-border/60 shadow-tinted-sm",
             "pointer-events-auto",
             "px-3 sm:px-5 py-2 sm:py-2.5",
-            "flex items-center justify-between gap-3 sm:gap-4"
+            "flex items-center justify-between gap-3 sm:gap-4",
+            "[transform:translateZ(0)] [backface-visibility:hidden]"
           )}
         >
           {/* Logo + Nav Links */}
@@ -279,6 +280,8 @@ export default function GlobalNav() {
                 src="/icon.svg"
                 alt=""
                 aria-hidden="true"
+                loading="eager"
+                decoding="sync"
                 className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg shadow-lg shadow-ocean-blue/20"
               />
               <span className="text-base sm:text-lg font-bold tracking-tight text-deep-ocean whitespace-nowrap">
@@ -707,6 +710,8 @@ export default function GlobalNav() {
                       <img
                         src={data.user.profilePhotoUrl}
                         alt={data.user.name}
+                        loading="eager"
+                        decoding="sync"
                         className="w-8 h-8 rounded-full object-cover"
                       />
                     ) : (
@@ -731,6 +736,8 @@ export default function GlobalNav() {
                               <img
                                 src={data.user.profilePhotoUrl}
                                 alt={data.user.name}
+                                loading="eager"
+                                decoding="sync"
                                 className="w-10 h-10 rounded-full object-cover ring-1 ring-border"
                               />
                             ) : (
@@ -1115,6 +1122,8 @@ export default function GlobalNav() {
                     <img
                       src={data.user.profilePhotoUrl}
                       alt={data.user.name}
+                      loading="eager"
+                      decoding="sync"
                       className="w-9 h-9 rounded-full object-cover ring-1 ring-border"
                     />
                   ) : (
@@ -1214,3 +1223,5 @@ export default function GlobalNav() {
     </>
   );
 }
+
+export default memo(GlobalNav);
