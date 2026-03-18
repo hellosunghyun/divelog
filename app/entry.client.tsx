@@ -8,28 +8,7 @@ Sentry.init({
   dsn: "https://eb0588c8197661ea070258e9aca009e4@o4509761661304832.ingest.us.sentry.io/4511052944572416",
   sendDefaultPii: true,
 
-  integrations: [
-    Sentry.reactRouterTracingIntegration(),
-    Sentry.feedbackIntegration({
-      colorScheme: "system",
-      showBranding: false,
-      triggerLabel: "제보 및 건의",
-      formTitle: "제보 및 건의",
-      submitButtonLabel: "제출",
-      cancelButtonLabel: "취소",
-      confirmButtonLabel: "확인",
-      addScreenshotButtonLabel: "스크린샷 첨부",
-      removeScreenshotButtonLabel: "스크린샷 제거",
-      nameLabel: "이름",
-      namePlaceholder: "이름",
-      emailLabel: "이메일",
-      emailPlaceholder: "email@example.com",
-      isRequiredLabel: "(필수)",
-      messageLabel: "설명",
-      messagePlaceholder: "어떤 문제가 있었나요? 자세히 알려주세요.",
-      successMessageText: "소중한 제보 감사합니다!",
-    }),
-  ],
+  integrations: [Sentry.reactRouterTracingIntegration()],
 
   tracesSampleRate: 0.1,
   tracePropagationTargets: [/^\//, /^https:\/\/divelog\.ada-kr-pos\.com/],
@@ -60,8 +39,31 @@ function reloadAfterSentryDrain() {
 
 window.addEventListener("load", () => {
   setTimeout(async () => {
-    const { replayIntegration } = await import("@sentry/react-router/cloudflare");
+    const { replayIntegration, feedbackIntegration } = await import(
+      "@sentry/react-router/cloudflare"
+    );
     Sentry.addIntegration(replayIntegration());
+    Sentry.addIntegration(
+      feedbackIntegration({
+        colorScheme: "system",
+        showBranding: false,
+        triggerLabel: "제보 및 건의",
+        formTitle: "제보 및 건의",
+        submitButtonLabel: "제출",
+        cancelButtonLabel: "취소",
+        confirmButtonLabel: "확인",
+        addScreenshotButtonLabel: "스크린샷 첨부",
+        removeScreenshotButtonLabel: "스크린샷 제거",
+        nameLabel: "이름",
+        namePlaceholder: "이름",
+        emailLabel: "이메일",
+        emailPlaceholder: "email@example.com",
+        isRequiredLabel: "(필수)",
+        messageLabel: "설명",
+        messagePlaceholder: "어떤 문제가 있었나요? 자세히 알려주세요.",
+        successMessageText: "소중한 제보 감사합니다!",
+      }),
+    );
   }, 2000);
 });
 
