@@ -29,6 +29,7 @@ import {
   getMentionsByRecord,
   syncAllMentionsForRecord,
 } from "~/db/queries/dialogue/mentions.server";
+import { getStages } from "~/db/queries/journey/stages.server";
 import {
   getParticipantsByRecord,
   syncParticipantsForRecord,
@@ -51,9 +52,11 @@ const NO_SELECTION_VALUE = "__none__";
 const RHYTHM_OPTIONS = [
   { value: "free", label: "자유" },
   { value: "moment", label: "순간" },
+  { value: "reflection", label: "회고" },
   { value: "sprint", label: "스프린트" },
   { value: "weekly", label: "주간" },
   { value: "monthly", label: "월간" },
+  { value: "stage", label: "구간" },
 ] as const;
 
 type TagOption = { id: string; name: string };
@@ -84,7 +87,7 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
     throw new Response("Forbidden", { status: 403 });
   }
 
-  const [activeTemplates, allTags, currentTags, existingParticipants, existingMentions, references] = await Promise.all([
+  const [activeTemplates, allTags, currentTags, existingParticipants, existingMentions, references, stages] = await Promise.all([
     database.select().from(templates).where(eq(templates.active, true)),
     getAllTags(context.cloudflare.env.DB),
     getTagsByRecord(context.cloudflare.env.DB, recordData.record.id),
@@ -99,6 +102,7 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
       .from(recordReferences)
       .where(eq(recordReferences.recordId, recordData.record.id))
       .orderBy(asc(recordReferences.sortOrder)),
+    getStages(context.cloudflare.env.DB),
   ]);
 
   return {
@@ -111,6 +115,7 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
     existingMentions,
     currentUserId: auth.user?.id ?? null,
     references,
+    stages,
   };
 }
 
@@ -287,6 +292,7 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
     tags,
     currentTags,
     references: initialReferences,
+    stages,
   } = loaderData;
   const actionData = useActionData<typeof action>();
 
@@ -402,6 +408,7 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
 
             <RhythmDateInput
               rhythm={rhythm}
+              stages={stages}
               initialValues={{
                 recordedAt: record.recordedAt
                   ? format(new Date(record.recordedAt * 1000), "yyyy-MM-dd")
