@@ -80,3 +80,10 @@ Tests written:
 - `actorId`가 `null`/`undefined`여도 시스템 알림으로 생성되도록 `createNotification` 입력에서 actor를 요구하지 않는 방식 유지.
 - 전체 로직을 try/catch로 감싸고 실패 시 throw하지 않고 `{ success: false, error }`를 반환한다. 에러 로그는 `createModuleLogger("notifications.notify")`로 기록하여 `console.log` 직접 사용을 피했다.
 - 증거 파일: `.sisyphus/evidence/task-T5-service-green.txt` (`pnpm exec vitest run app/lib/notifications/__tests__/notify.test.ts` 기준 12 passing).
+
+## 2026-03-19 T6
+- `app/routes/public/logs/$recordSlug.server.ts`의 응답/답글 트리거에서 직접 `createNotification`을 호출하던 코드를 모두 `notify()`로 교체했다.
+- 일반 응답은 기록 작성자에게 `type: "response"`로 보내고, 답글은 부모 응답 작성자에게 `type: "reply"`로 보낸 뒤 기록 작성자가 다를 때만 추가로 `type: "response"`를 보낸다.
+- 모든 호출에 `actorId: auth.user.id`, `recordId: parsed.data.recordId`, `visibility: targetRecord[0]?.visibility`를 전달해 서비스의 self-guard, draft guard, preference, dedupe를 그대로 타게 했다.
+- 라우트에 이미 있던 `currentUserId !== recipientId`, `recordAuthorId !== parentAuthorId` 조건은 유지해서 서비스 이전 이후에도 중복 작업을 늘리지 않도록 했다.
+- `notify()`는 throw하지 않으므로 각 호출 뒤 `result.success`를 확인해 기존 `notification_create_failed` 경고 로그 흐름만 유지했다.
