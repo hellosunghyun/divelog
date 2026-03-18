@@ -64,6 +64,27 @@
       "when": 1773817448462,
       "tag": "0008_friendly_darkhawk",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1773900000000,
+      "tag": "0009_add_visibility_private",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1773986400000,
+      "tag": "0010_add_parent_response_id",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "6",
+      "when": 1742285724939,
+      "tag": "0011_add_record_references",
+      "breakpoints": true
     }
   ]
 }

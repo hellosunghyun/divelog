@@ -105,6 +105,7 @@ export const records = sqliteTable("records", {
   challengeId: text("challenge_id").references(() => challenges.id),
   collaborationUnitId: text("collaboration_unit_id").references(() => collaborationUnits.id),
   linkedRecordId: text("linked_record_id"),
+  originalUrl: text("original_url"),
   title: text("title").notNull(),
   content: text("content").notNull(),
   contentText: text("content_text").default(""),
@@ -371,6 +372,17 @@ export const recordLinks = sqliteTable(
     createdAt: integer("created_at").notNull().default(now()),
   },
 );
+
+export const recordReferences = sqliteTable("record_references", {
+  id: text("id").primaryKey(),
+  recordId: text("record_id")
+    .notNull()
+    .references(() => records.id, { onDelete: "cascade" }),
+  url: text("url").notNull(),
+  title: text("title"),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: integer("created_at").notNull().default(now()),
+});
 
 export const drafts = sqliteTable(
   "drafts",
