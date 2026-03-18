@@ -217,6 +217,8 @@ export function MentionPreviewCard({
     return () => { cancelled = true; };
   }, [preview, data]);
 
+  if (typeof document === "undefined") return null;
+
   return createPortal(
     <div
       ref={cardRef}
