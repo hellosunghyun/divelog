@@ -20,10 +20,12 @@ import { clearAllReads } from "~/db/queries/records/recordReads.server";
 import {
   getNotificationPreferences,
   upsertNotificationPreferences,
-  NOTIFICATION_TYPES,
-  type NotificationType,
 } from "~/db/queries/social/notificationPreferences.server";
 import { learnerProfiles } from "~/db/schema.server";
+import {
+  NOTIFICATION_TYPES,
+  type NotificationType,
+} from "~/lib/constants/notificationTypes";
 import { clearLocalReads } from "~/lib/infra/read-storage";
 import { createLogger } from "~/lib/infra/logger.server";
 

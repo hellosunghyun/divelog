@@ -1,24 +1,12 @@
 import { and, eq, inArray } from "drizzle-orm";
 
+import {
+  NOTIFICATION_TYPES,
+  type NotificationType,
+} from "../../../lib/constants/notificationTypes";
 import { nanoid } from "../../../lib/utils/utils.server";
 import { db } from "../../client.server";
 import { notificationPreferences } from "../../schema.server";
-
-/**
- * All notification types that can have user preferences.
- * Must match the types created in notifications.server.ts
- */
-export const NOTIFICATION_TYPES = [
-  "response",
-  "reply",
-  "mention",
-  "participant_added",
-  "reminder",
-  "reread_reminder",
-  "stage_transition",
-] as const;
-
-export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
 
 /**
  * Get notification preferences for a learner.

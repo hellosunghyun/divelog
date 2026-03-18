@@ -95,3 +95,14 @@ Tests written:
 - 참여자 알림 루프를 `context.cloudflare.ctx.waitUntil()`로 감싸서 비동기 처리하고, 메인 save 액션이 블로킹되지 않도록 했다.
 - 드래프트 기록에서는 `visibility === "draft"`이므로 서비스가 자동으로 알림 생성을 스킵한다.
 - 증거 파일: `.sisyphus/evidence/task-T8-participant-hardening.txt` (LSP clean, 4개 시나리오 테스트 케이스 포함).
+
+## 2026-03-19 F1 plan compliance audit
+- `notification-delivery-stabilization` 구현 감사 결과는 APPROVE. `notify()` 중앙 서비스가 self-notification, draft visibility, per-type preference, safe-failure를 모두 담당하고 실제 알림 생성은 `app/lib/notifications/notify.server.ts` 한 곳으로 수렴한다.
+- 호출 경로는 라우트 직접 `notify()`(`app/routes/public/write/meta.$recordId.tsx`) 또는 `publishNotification()`/queue consumer(`app/lib/notifications/publish.server.ts`, `workers/app.ts`)로 나뉘지만 최종 생성 경로는 동일하다.
+- 금지 항목 검색에서는 `createNotification`의 route 사용, `WebSocket`/`EventSource`/`pushManager`, `nodemailer`/`sendEmail`, 알림 delete/archive UI가 확인되지 않았다. 설정 페이지에는 한국어 per-type toggle이 있고 이메일은 발송 구현 없이 선호도 필드만 남아 있다.
+- 감사 산출물은 `.sisyphus/evidence/final-f1-plan-compliance.txt`에 저장했다.
+
+## 2026-03-19 Build fix for shared notification types
+- `NOTIFICATION_TYPES`와 `NotificationType`을 `app/lib/constants/notificationTypes.ts`로 이동해 `settings.tsx` 같은 client route가 `.server` 모듈을 직접 참조하지 않도록 분리했다.
+- `app/db/queries/social/notificationPreferences.server.ts`와 `app/lib/notifications/notify.server.ts`는 같은 shared 타입을 가져오도록 맞춰서 서버 쿼리와 알림 서비스의 타입 소스를 하나로 고정했다.
+- 검증 결과 `pnpm build`와 `pnpm exec vitest run app/lib/notifications/__tests__/notify.test.ts`가 다시 통과했다.

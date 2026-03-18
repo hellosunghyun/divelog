@@ -1,4 +1,5 @@
-import { getNotificationPreferences, type NotificationType } from "../../db/queries/social/notificationPreferences.server";
+import type { NotificationType } from "../constants/notificationTypes";
+import { getNotificationPreferences } from "../../db/queries/social/notificationPreferences.server";
 import {
   createNotification,
 } from "../../db/queries/social/notifications.server";
