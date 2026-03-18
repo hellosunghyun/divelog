@@ -152,7 +152,7 @@ function getResponseTypeOptions(preference: string) {
   return ALL_RESPONSE_TYPE_OPTIONS;
 }
 
-const MIN_SELECTED_SENTENCE_LENGTH = 10;
+const MIN_SELECTED_SENTENCE_LENGTH = 2;
 const MAX_SELECTED_SENTENCE_LENGTH = 500;
 const FLOATING_BUTTON_OFFSET = 48;
 const FLOATING_BUTTON_EDGE_PADDING = 96;
@@ -230,9 +230,6 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
   const openSentencePopup = useCallback(() => {
     setShowSentenceButton(false);
     setShowSentencePopup(true);
-    if (typeof window !== "undefined") {
-      window.getSelection()?.removeAllRanges();
-    }
   }, []);
 
   const handleArticleMouseUp = useCallback(() => {
