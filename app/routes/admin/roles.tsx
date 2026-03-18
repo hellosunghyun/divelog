@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { redirect, useNavigation } from "react-router";
 import type { Route } from "./+types/roles";
+import { requireRole } from "~/lib/auth/auth.middleware";
 import { asc, eq } from "drizzle-orm";
 import { Spinner } from "~/components/feedback/Spinner";
 import {
@@ -61,6 +62,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
+  await requireRole(request, context, "admin");
   const { db } = await import("~/db/client.server");
   const { createLogger } = await import("~/lib/infra/logger.server");
   const { userRoles, learnerProfiles } = await import("~/db/schema.server");

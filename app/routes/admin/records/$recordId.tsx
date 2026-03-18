@@ -1,6 +1,7 @@
 import { data, redirect } from "react-router";
 import type { Route } from "./+types/$recordId";
 import { useNavigation } from "react-router";
+import { requireRole } from "~/lib/auth/auth.middleware";
 import { Link } from "~/components/content/SmartLink";
 import { Button } from "~/components/ui/button";
 import { VISIBILITY_LABELS } from "~/lib/constants/visibility";
@@ -64,6 +65,7 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
 }
 
 export async function action({ params, request, context }: Route.ActionArgs) {
+  await requireRole(request, context, "admin");
   const { db } = await import("~/db/client.server");
   const { createLogger } = await import("~/lib/infra/logger.server");
   const { records, learnerProfiles, challenges, questions, responses } = await import("~/db/schema.server");
