@@ -179,16 +179,18 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 }
 
 export function shouldRevalidate({
-  formMethod,
+  currentUrl,
+  nextUrl,
   defaultShouldRevalidate,
 }: {
-  formMethod?: string;
+  currentUrl: URL;
+  nextUrl: URL;
   defaultShouldRevalidate: boolean;
 }): boolean {
-  if (formMethod && formMethod !== "GET") {
-    return defaultShouldRevalidate;
+  if (currentUrl.search !== nextUrl.search) {
+    return true;
   }
-  return false;
+  return defaultShouldRevalidate;
 }
 
 const FILTER_OPTIONS = [
