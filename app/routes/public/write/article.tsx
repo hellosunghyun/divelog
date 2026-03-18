@@ -237,7 +237,6 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
   const { currentStage, stages: availableStages, tags, learnerDefaults, currentUserId } = loaderData;
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
-  const [stageValue, setStageValue] = useState(currentStage?.id ?? NO_STAGE_VALUE);
   const [title, setTitle] = useState("");
   const [articleContent, setArticleContent] = useState("");
   const [references, setReferences] = useState<ReferenceField[]>([]);
@@ -304,29 +303,7 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
             </div>
 
             {rhythm !== "stage" && (
-              <div>
-                <Label
-                  htmlFor="stageId"
-                  className="mb-1.5 block text-meta font-medium text-text-secondary"
-                >
-                  구간
-                </Label>
-                <input type="hidden" name="stageId" value={stageValue === NO_STAGE_VALUE ? "" : stageValue} />
-                <Select value={stageValue} onValueChange={setStageValue}>
-                  <SelectTrigger id="stageId" className="w-auto min-w-40 bg-surface">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={NO_STAGE_VALUE}>구간 미지정</SelectItem>
-                    {availableStages.map((stage: { id: string; name: string; isCurrent: boolean }) => (
-                      <SelectItem key={stage.id} value={stage.id}>
-                        {stage.name}
-                        {stage.isCurrent ? " (현재)" : ""}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              <input type="hidden" name="stageId" value="" />
             )}
 
             <input
