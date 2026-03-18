@@ -18,6 +18,13 @@ function slugify(title: string): string {
     .substring(0, 80);
 }
 
+function parseDateToUnix(dateStr: string | undefined | null): number | null {
+  if (!dateStr) return null;
+  const date = new Date(`${dateStr}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return null;
+  return Math.floor(date.getTime() / 1000);
+}
+
 export async function getRecords(d1: D1Database, filters: RecordFilterInput = { page: 1 }) {
   const database = db(d1);
   const conditions = [];
@@ -230,9 +237,23 @@ export async function updateRecord(
     console.error("[audit] Failed to create audit log:", err);
   }
 
+  const updateData: Partial<CreateRecordInput> & { updatedAt: number } = {
+    ...data,
+    updatedAt: Math.floor(Date.now() / 1000),
+  };
+
+  // Convert date strings to Unix timestamps
+  const setData: Record<string, unknown> = { ...updateData };
+  if (data.recordedAt !== undefined) {
+    setData.recordedAt = parseDateToUnix(data.recordedAt);
+  }
+  if (data.recordedEndAt !== undefined) {
+    setData.recordedEndAt = parseDateToUnix(data.recordedEndAt);
+  }
+
   await database
     .update(records)
-    .set({ ...data, updatedAt: Math.floor(Date.now() / 1000) })
+    .set(setData)
     .where(and(eq(records.id, id), eq(records.authorId, authorId)));
 
   return { updated: true, revisionCreated };
