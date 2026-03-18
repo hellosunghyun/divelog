@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useCallback, type RefObject } from "react";
 import { createPortal } from "react-dom";
-import { useNavigate } from "react-router";
 
 type PreviewType = "learner" | "record";
 
@@ -212,7 +211,6 @@ export function MentionPreviewCard({
   onCardEnter: () => void;
   onCardLeave: () => void;
 }) {
-  const navigate = useNavigate();
   const [data, setData] = useState<LearnerPreviewData | RecordPreviewData | null>(null);
   const [loading, setLoading] = useState(false);
   const lastKey = useRef<string>("");
@@ -254,7 +252,7 @@ export function MentionPreviewCard({
     const href = preview.type === "learner"
       ? `/learners/${preview.slug}`
       : `/logs/${preview.slug}`;
-    navigate(href);
+    window.location.href = href;
   };
 
   return createPortal(

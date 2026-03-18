@@ -1,6 +1,8 @@
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import type { ContentFormat } from "../../lib/content/editor-extensions";
 import { useMentionPreview, MentionPreviewCard } from "./MentionPreview";
+
+const MENTION_LINK_SELECTOR = ".user-mention, .record-ref";
 
 interface ContentRendererProps {
   contentHtml: string;
@@ -38,6 +40,26 @@ const ARTICLE_CLASS_NAME = [
 export function ContentRenderer({ contentHtml, format, className }: ContentRendererProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const { preview, open, pos, cardRef, onCardEnter, onCardLeave } = useMentionPreview(containerRef);
+
+  // Force full-page navigation for mention/record-ref links.
+  // React Router intercepts <a> clicks for SPA navigation but mishandles
+  // links inside dangerouslySetInnerHTML, causing route mismatch errors.
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    function onClick(e: MouseEvent) {
+      const anchor = (e.target as HTMLElement).closest<HTMLAnchorElement>(MENTION_LINK_SELECTOR);
+      if (!anchor || !container!.contains(anchor)) return;
+      const href = anchor.getAttribute("href");
+      if (!href) return;
+      e.preventDefault();
+      window.location.href = href;
+    }
+
+    container.addEventListener("click", onClick);
+    return () => container.removeEventListener("click", onClick);
+  }, []);
 
   const combinedClassName = [
     format === "note" ? NOTE_CLASS_NAME : ARTICLE_CLASS_NAME,
