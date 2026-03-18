@@ -1,10 +1,5 @@
 import { cn } from "~/lib/utils/cn";
-import {
-  groupRecordsByStage,
-  type StageGroup,
-  type StageListItem,
-  type RecordListItem,
-} from "~/lib/utils/stage-groups";
+import type { StageListItem, RecordListItem } from "~/lib/utils/stage-groups";
 import CompactTimelineCard from "~/components/cards/CompactTimelineCard";
 import EmptyState from "~/components/feedback/EmptyState";
 
@@ -21,132 +16,175 @@ interface TimelineViewProps {
   stages: StageListItem[];
 }
 
-const stageAccentColors: Record<string, string> = {
-  prelude: "#EAF4FA",
-  bridge: "#6CC4D6",
-  challenge: "#0B2447",
-  epilogue: "#E3E8EF",
-  unassigned: "#E3E8EF",
-};
+type TimelineItem =
+  | { kind: "stage"; stageId: string | null; stageName: string; stageType: string }
+  | { kind: "record"; record: TimelineRecord };
 
-const stageBorderColors: Record<string, string> = {
-  prelude: "#EAF4FA",
-  bridge: "#6CC4D6",
-  challenge: "#0B2447",
-  epilogue: "#8C8C91",
-  unassigned: "#E3E8EF",
-};
+function buildItems(records: TimelineRecord[], stages: StageListItem[]): TimelineItem[] {
+  const stageMap = new Map(stages.map((s) => [s.id, s]));
+  const items: TimelineItem[] = [];
+  let prevStageId: string | null | undefined;
 
-function formatDateMarker(timestamp: number): string {
-  return new Intl.DateTimeFormat("ko-KR", {
-    month: "long",
-    day: "numeric",
-  }).format(new Date(timestamp * 1000));
+  for (const record of records) {
+    if (record.stageId !== prevStageId) {
+      const stage = record.stageId ? stageMap.get(record.stageId) : null;
+      items.push({
+        kind: "stage",
+        stageId: record.stageId,
+        stageName: stage?.name ?? "미분류",
+        stageType: stage?.type ?? "unassigned",
+      });
+      prevStageId = record.stageId;
+    }
+    items.push({ kind: "record", record });
+  }
+
+  return items;
 }
 
-function getDayKey(timestamp: number): number {
-  return Math.floor(timestamp / 86400);
-}
+const STAGE_DOT: Record<string, string> = {
+  prelude: "bg-[#2F6C84]",
+  bridge: "bg-reef-cyan",
+  challenge: "bg-deep-ocean",
+  epilogue: "bg-text-tertiary",
+  unassigned: "bg-border",
+};
 
-function StageSection({ group }: { group: StageGroup<TimelineRecord> }) {
-  const { stageName, stageType, allRecords } = group;
-  const accentColor = stageAccentColors[stageType] ?? stageAccentColors.unassigned;
-  const borderColor = stageBorderColors[stageType] ?? stageBorderColors.unassigned;
-  const isUnassigned = stageType === "unassigned";
+const STAGE_TEXT: Record<string, string> = {
+  prelude: "text-[#2F6C84]",
+  bridge: "text-[#0C6E82]",
+  challenge: "text-deep-ocean",
+  epilogue: "text-text-tertiary",
+  unassigned: "text-text-tertiary",
+};
+
+export default function TimelineView({ records, stages }: TimelineViewProps) {
+  if (records.length === 0) {
+    return <EmptyState variant="records" message="조건에 맞는 기록이 없습니다." />;
+  }
+
+  const items = buildItems(records, stages);
 
   return (
-    <section className="mb-12 last:mb-0">
+    <div className="relative mx-auto max-w-4xl">
       <div
-        className={cn(
-          "flex items-center gap-3 mb-6",
-          isUnassigned && "opacity-70"
-        )}
-      >
-        <span
-          className="w-1 h-6 rounded-full flex-shrink-0"
-          style={{ backgroundColor: borderColor }}
-          aria-hidden="true"
-        />
-        <h3
-          className={cn(
-            "text-base font-semibold tracking-tight",
-            isUnassigned ? "text-text-tertiary" : "text-text-primary"
-          )}
-        >
-          {stageName}
-        </h3>
-        <span className="text-sm text-text-tertiary font-medium">
-          ({allRecords.length})
-        </span>
-      </div>
+        className="absolute left-1/2 top-0 bottom-0 w-px -translate-x-1/2 bg-border hidden md:block"
+        aria-hidden="true"
+      />
+      <div
+        className="absolute left-5 top-0 bottom-0 w-px bg-border md:hidden"
+        aria-hidden="true"
+      />
 
-      <div className="relative">
-        <div
-          className="absolute left-5 top-0 bottom-0 w-px bg-gradient-to-b from-border via-border to-transparent"
-          aria-hidden="true"
-        />
-
-        <div className="space-y-4">
-          {allRecords.map((record, index) => {
-            const prevRecord = index > 0 ? allRecords[index - 1] : null;
-            const showDateMarker =
-              prevRecord === null || getDayKey(record.createdAt) !== getDayKey(prevRecord.createdAt);
+      <div className="flex flex-col gap-5 md:gap-6">
+        {items.map((item, idx) => {
+          if (item.kind === "stage") {
+            const dot = STAGE_DOT[item.stageType] ?? STAGE_DOT.unassigned;
+            const txt = STAGE_TEXT[item.stageType] ?? STAGE_TEXT.unassigned;
 
             return (
-              <div key={record.id}>
-                {showDateMarker && (
-                  <div className="flex items-center gap-3 pl-14 mb-3">
-                    <time
-                      className="text-xs font-medium text-text-tertiary uppercase tracking-wide"
-                      suppressHydrationWarning
-                    >
-                      {formatDateMarker(record.createdAt)}
-                    </time>
-                    <div className="flex-1 h-px bg-border-subtle" aria-hidden="true" />
+              <div key={`s-${item.stageId ?? "none"}-${item.stageName}`}>
+                <div className="hidden md:grid md:grid-cols-[1fr_48px_1fr] items-center py-2">
+                  <div className="h-px bg-border" />
+                  <div className="flex flex-col items-center gap-1.5">
+                    <span
+                      className={cn("w-4 h-4 rounded-full ring-4 ring-bg", dot)}
+                      aria-hidden="true"
+                    />
                   </div>
-                )}
+                  <div className="h-px bg-border" />
+                </div>
+                <div className="hidden md:flex justify-center -mt-1">
+                  <span className={cn("text-xs font-semibold", txt)}>
+                    {item.stageName}
+                  </span>
+                </div>
 
-                <div className="relative pl-14">
+                <div className="md:hidden flex items-center gap-3">
                   <span
-                    className="absolute left-[17px] top-5 w-3 h-3 rounded-full ring-2 ring-surface z-10"
-                    style={{ backgroundColor: accentColor }}
+                    className={cn(
+                      "relative z-10 w-3 h-3 rounded-full ring-4 ring-bg shrink-0 ml-[14px]",
+                      dot,
+                    )}
                     aria-hidden="true"
                   />
-                  <CompactTimelineCard
-                    slug={record.slug}
-                    title={record.title}
-                    contentSnippet={record.contentSnippet}
-                    format={record.format}
-                    stageType={record.stageType}
-                    createdAt={record.createdAt}
-                  />
+                  <span className={cn("text-xs font-semibold", txt)}>
+                    {item.stageName}
+                  </span>
+                  <div className="flex-1 h-px bg-border" />
                 </div>
               </div>
             );
-          })}
-        </div>
+          }
+
+          const { record } = item;
+          const isNote = record.format === "note";
+
+          return (
+            <div key={record.id}>
+              <div className="hidden md:grid md:grid-cols-[1fr_48px_1fr] items-start">
+                <div className={cn("flex", isNote ? "justify-end pr-6" : "")}>
+                  {isNote && (
+                    <div className="w-full max-w-sm">
+                      <CompactTimelineCard
+                        slug={record.slug}
+                        title={record.title}
+                        contentSnippet={record.contentSnippet}
+                        format={record.format}
+                        stageType={record.stageType}
+                        createdAt={record.createdAt}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex justify-center pt-5">
+                  <span
+                    className={cn(
+                      "w-2.5 h-2.5 rounded-full ring-2 ring-surface",
+                      isNote ? "bg-reef-cyan" : "bg-ocean-blue",
+                    )}
+                    aria-hidden="true"
+                  />
+                </div>
+
+                <div className={cn("flex", !isNote ? "justify-start pl-6" : "")}>
+                  {!isNote && (
+                    <div className="w-full max-w-sm">
+                      <CompactTimelineCard
+                        slug={record.slug}
+                        title={record.title}
+                        contentSnippet={record.contentSnippet}
+                        format={record.format}
+                        stageType={record.stageType}
+                        createdAt={record.createdAt}
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="md:hidden relative pl-14">
+                <span
+                  className={cn(
+                    "absolute left-[17px] top-5 w-3 h-3 rounded-full ring-2 ring-surface z-10",
+                    isNote ? "bg-reef-cyan" : "bg-ocean-blue",
+                  )}
+                  aria-hidden="true"
+                />
+                <CompactTimelineCard
+                  slug={record.slug}
+                  title={record.title}
+                  contentSnippet={record.contentSnippet}
+                  format={record.format}
+                  stageType={record.stageType}
+                  createdAt={record.createdAt}
+                />
+              </div>
+            </div>
+          );
+        })}
       </div>
-    </section>
-  );
-}
-
-export default function TimelineView({ records, stages }: TimelineViewProps) {
-  const stageGroups = groupRecordsByStage(records, stages);
-
-  if (stageGroups.length === 0) {
-    return (
-      <EmptyState
-        variant="records"
-        message="조건에 맞는 기록이 없습니다."
-      />
-    );
-  }
-
-  return (
-    <div className="relative">
-      {stageGroups.map((group) => (
-        <StageSection key={group.stageId ?? "unassigned"} group={group} />
-      ))}
     </div>
   );
 }
