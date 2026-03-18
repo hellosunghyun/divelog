@@ -326,7 +326,7 @@ function renderResponseThread(
 }
 
 export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
-  const { record, author, stage, questions: recordQuestions, responses: recordResponses, sentences: recordSentences, linkedRecords, incomingLinks, selfAnswers, tags: recordTags, currentUserId, contentHtml, revisions, isAuthorOrAdmin, isSaved: initialIsSaved } = loaderData as LoaderData;
+  const { record, author, stage, questions: recordQuestions, responses: recordResponses, sentences: recordSentences, linkedRecords, incomingLinks, selfAnswers, tags: recordTags, currentUserId, contentHtml, revisions, isAuthorOrAdmin, isSaved: initialIsSaved, references } = loaderData as LoaderData;
   const actionData = useActionData<Action>();
   const navigation = useNavigation();
   const submit = useSubmit();
@@ -699,6 +699,22 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
             );
           })()}
 
+          {record.format === "article" && record.originalUrl ? (
+            <a
+              href={record.originalUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-sm text-[#6E6E73] hover:text-[#146C94] transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                <polyline points="15 3 21 3 21 9" />
+                <line x1="10" y1="14" x2="21" y2="3" />
+              </svg>
+              <span>원문: {(() => { try { return new URL(record.originalUrl).hostname; } catch { return record.originalUrl; } })()}</span>
+            </a>
+          ) : null}
+
           <div className="ml-auto flex items-center gap-2">
               {currentUserId && (
                 <bookmarkFetcher.Form method="post" action="/api/toggle-bookmark">
@@ -772,6 +788,27 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
           </div>
         ) : null}
       </section>
+
+      {isArticleRecord && references.length > 0 ? (
+        <section aria-label="참조 및 출처" className="mb-12 border-t border-[#E3E8EF] pt-8">
+          <h2 className="text-sm font-medium text-[#6E6E73] mb-4">참조 및 출처</h2>
+          <ol className="space-y-2 list-none">
+            {references.map((ref, index) => (
+              <li key={ref.id} className="flex items-start gap-2">
+                <span className="text-xs text-[#8C8C91] mt-0.5 shrink-0 w-5">{index + 1}.</span>
+                <a
+                  href={ref.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-[#1D1D1F] hover:text-[#146C94] transition-colors break-all"
+                >
+                  {ref.title || ref.url}
+                </a>
+              </li>
+            ))}
+          </ol>
+        </section>
+      ) : null}
 
 
 
