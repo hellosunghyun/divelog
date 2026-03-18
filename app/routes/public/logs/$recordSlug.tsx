@@ -23,6 +23,7 @@ import {
 import { Textarea } from "~/components/ui/textarea";
 import { useReadTracking } from "~/hooks/useReadTracking";
 import { normalizeContentFormat } from "~/lib/content/editor-extensions";
+import { buildResponseTree, type ThreadedResponse } from "~/lib/utils/thread-tree";
 
 import type { Route } from "./+types/$recordSlug";
 
@@ -181,6 +182,114 @@ function isSelectionInsideElement(selection: Selection, element: HTMLElement | n
     : range.commonAncestorContainer;
 
   return anchorNode instanceof Node && element.contains(anchorNode);
+}
+
+type ResponseNode = {
+  id: string;
+  type: string;
+  content: string;
+  createdAt: number;
+  updatedAt: number;
+  authorId: string;
+  moderationStatus: string;
+  parentResponseId: string | null;
+  author?: { displayName: string | null; slug: string | null; profilePhotoUrl: string | null } | null;
+  [key: string]: unknown;
+};
+
+type RenderThreadContext = {
+  editingResponseId: string | null;
+  editingContent: string;
+  setEditingContent: (v: string) => void;
+  setEditingResponseId: (v: string | null) => void;
+  isSubmittingResponseEdit: boolean;
+  isSubmittingResponseDelete: boolean;
+  handleEditResponse: (id: string) => void;
+  handleDeleteResponse: (id: string) => void;
+  currentUserId: string | null | undefined;
+  loaderData: LoaderData;
+};
+
+const DEPTH_INDENT_CLASSES: Record<number, string> = {
+  0: "",
+  1: "ml-6",
+  2: "ml-12",
+  3: "ml-18",
+};
+
+function renderResponseThread(
+  node: ThreadedResponse<ResponseNode>,
+  depth: number,
+  ctx: RenderThreadContext
+): React.ReactNode {
+  const cappedDepth = Math.min(depth, 3);
+  const isTombstone = node.moderationStatus === "tombstone";
+  const indentClass = DEPTH_INDENT_CLASSES[cappedDepth] ?? "ml-18";
+  const showDepthPrefix = depth >= 3;
+
+  const authorForCard = node.author?.displayName && node.author?.slug
+    ? { displayName: node.author.displayName, slug: node.author.slug }
+    : undefined;
+
+  return (
+    <div key={node.id} className="flex flex-col">
+      <div
+        className={cn(
+          "relative",
+          indentClass,
+          depth > 0 && "pl-4 border-l border-[#E3E8EF]/60"
+        )}
+      >
+        {showDepthPrefix && (
+          <span className="text-sm text-[#8C8C91] mb-1 block">↳ 답글</span>
+        )}
+
+        {isTombstone ? (
+          <div className="py-3 px-4 text-sm text-[#8C8C91] italic bg-surface-secondary/50 rounded-xl">
+            [삭제된 응답]
+          </div>
+        ) : ctx.editingResponseId === node.id ? (
+          <form method="post" className="flex flex-col gap-4 bg-surface-secondary rounded-xl border border-border p-5">
+            <input type="hidden" name="intent" value="update_response" />
+            <input type="hidden" name="responseId" value={node.id} />
+            <Textarea
+              name="content"
+              value={ctx.editingContent}
+              onChange={(e) => ctx.setEditingContent(e.target.value)}
+              rows={4}
+              required
+              className="w-full bg-surface"
+            />
+            <div className="flex gap-3">
+              <Button type="submit" disabled={ctx.isSubmittingResponseEdit} className="rounded-full bg-deep-ocean text-white px-5 py-2.5 text-sm">
+                {ctx.isSubmittingResponseEdit ? "저장 중..." : "저장"}
+              </Button>
+              <Button type="button" variant="ghost" onClick={() => ctx.setEditingResponseId(null)} className="rounded-full px-5 py-2.5 text-sm border border-border">
+                취소
+              </Button>
+            </div>
+          </form>
+        ) : (
+          <ResponseCard
+            response={node}
+            author={authorForCard}
+            isSelfAnswer={node.type === "self_answer"}
+            currentUserId={ctx.currentUserId}
+            onEdit={ctx.handleEditResponse}
+            onDelete={ctx.handleDeleteResponse}
+          />
+        )}
+      </div>
+
+      {node.children.length > 0 && (
+        <div className="flex flex-col gap-6 mt-6">
+          {node.children.map((child) =>
+            renderResponseThread(child, depth + 1, ctx)
+          )}
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
@@ -830,57 +939,47 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
         </section>
       )}
 
-       <section className="mb-12">
-         <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-8">
-           응답 {recordResponses.length}개
-         </h2>
-         {recordResponses.length > 0 ? (
-           <div className="relative border-l-2 border-mist-blue pl-6 py-2 flex flex-col gap-10">
-             {recordResponses.map(({ response, author: responseAuthor }, i) => (
-               <div 
-                 key={response.id} 
-                 className="animate-in fade-in slide-in-from-bottom-4 relative"
-                 style={{ animationDelay: `${i * 100}ms`, animationFillMode: "both" }}
-               >
-                 <div className="absolute -left-[31px] top-6 w-3 h-3 rounded-full border-2 border-surface bg-reef-cyan shadow-sm z-10" />
-                 {editingResponseId === response.id ? (
-                   <form method="post" className="flex flex-col gap-4 bg-surface-secondary rounded-xl border border-border p-5">
-                     <input type="hidden" name="intent" value="update_response" />
-                     <input type="hidden" name="responseId" value={response.id} />
-                     <Textarea
-                       name="content"
-                       value={editingContent}
-                       onChange={(e) => setEditingContent(e.target.value)}
-                       rows={4}
-                       required
-                       className="w-full bg-surface"
-                     />
-                     <div className="flex gap-3">
-                       <Button type="submit" disabled={isSubmittingResponseEdit} className="rounded-full bg-deep-ocean text-white px-5 py-2.5 text-sm">
-                         {isSubmittingResponseEdit ? "저장 중..." : "저장"}
-                       </Button>
-                       <Button type="button" variant="ghost" onClick={() => setEditingResponseId(null)} className="rounded-full px-5 py-2.5 text-sm border border-border">
-                         취소
-                       </Button>
-                     </div>
-                   </form>
-                 ) : (
-                   <ResponseCard 
-                     response={response} 
-                     author={responseAuthor ?? undefined} 
-                     isSelfAnswer={response.type === "self_answer"}
-                     currentUserId={loaderData.currentUserId}
-                     onEdit={handleEditResponse}
-                     onDelete={handleDeleteResponse}
-                   />
-                 )}
-               </div>
-             ))}
-           </div>
-         ) : (
-           <EmptyState variant="responses" />
-         )}
-       </section>
+        <section className="mb-12">
+          <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-8">
+            응답 {recordResponses.length}개
+          </h2>
+          {recordResponses.length > 0 ? (
+            <div className="flex flex-col gap-6">
+               {(() => {
+                const responseTree = buildResponseTree<ResponseNode>(
+                  recordResponses.map((r): ResponseNode => ({
+                    id: r.response.id,
+                    type: r.response.type,
+                    content: r.response.content,
+                    createdAt: r.response.createdAt,
+                    updatedAt: r.response.updatedAt,
+                    authorId: r.response.authorId,
+                    moderationStatus: r.response.moderationStatus,
+                    parentResponseId: r.response.parentResponseId ?? null,
+                    author: r.author,
+                  }))
+                );
+
+                return responseTree.map((rootNode) =>
+                  renderResponseThread(rootNode, 0, {
+                    editingResponseId,
+                    editingContent,
+                    setEditingContent,
+                    setEditingResponseId,
+                    isSubmittingResponseEdit,
+                    isSubmittingResponseDelete,
+                    handleEditResponse,
+                    handleDeleteResponse,
+                    currentUserId,
+                    loaderData,
+                  })
+                );
+              })()}
+            </div>
+          ) : (
+            <EmptyState variant="responses" />
+          )}
+        </section>
 
       
 
