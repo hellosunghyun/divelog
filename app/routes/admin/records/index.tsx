@@ -1,6 +1,7 @@
 import type { Route } from "./+types/index";
 import { Link } from "~/components/content/SmartLink";
 import { eq, desc, and, inArray, SQL } from "drizzle-orm";
+import { VISIBILITY_LABELS } from "~/lib/constants/visibility";
 import EmptyState from "~/components/feedback/EmptyState";
 import { Badge } from "~/components/ui/badge";
 import {
@@ -15,7 +16,7 @@ import {
 const MODERATION_FILTERS = ["all", "clean", "flagged", "hidden"] as const;
 type ModerationFilter = (typeof MODERATION_FILTERS)[number];
 
-const VISIBILITY_OPTIONS = ["all", "draft", "cohort", "public"] as const;
+const VISIBILITY_OPTIONS = ["all", "draft", "private", "cohort", "public"] as const;
 type VisibilityFilter = (typeof VISIBILITY_OPTIONS)[number];
 
 export function meta(_: Route.MetaArgs) {
@@ -98,6 +99,8 @@ const getVisibilityBadgeVariant = (
       return "secondary";
     case "draft":
       return "outline";
+    case "private":
+      return "outline";
     default:
       return "outline";
   }
@@ -154,7 +157,7 @@ export default function AdminRecordsPage({ loaderData }: Route.ComponentProps) {
                     : "bg-admin-bg text-admin-text-secondary hover:bg-admin-border"
                 }`}
               >
-                {v === "all" ? "전체" : v}
+                  {v === "all" ? "전체" : VISIBILITY_LABELS[v] ?? v}
               </a>
             ))}
           </div>
@@ -223,11 +226,11 @@ export default function AdminRecordsPage({ loaderData }: Route.ComponentProps) {
                       {record.format}
                     </Badge>
                   </TableCell>
-                  <TableCell className="px-4 py-3">
-                    <Badge variant={getVisibilityBadgeVariant(record.visibility)} className="text-xs">
-                      {record.visibility}
-                    </Badge>
-                  </TableCell>
+                   <TableCell className="px-4 py-3">
+                     <Badge variant={getVisibilityBadgeVariant(record.visibility)} className="text-xs">
+                       {VISIBILITY_LABELS[record.visibility] ?? record.visibility}
+                     </Badge>
+                   </TableCell>
                   <TableCell className="px-4 py-3">
                     <Badge variant={getModerationBadgeVariant(record.moderationStatus)} className="text-xs">
                       {record.moderationStatus}

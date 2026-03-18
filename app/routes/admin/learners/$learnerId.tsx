@@ -2,6 +2,7 @@ import { data, redirect } from "react-router";
 import type { Route } from "./+types/$learnerId";
 import { Link } from "~/components/content/SmartLink";
 import { eq, desc } from "drizzle-orm";
+import { VISIBILITY_LABELS } from "~/lib/constants/visibility";
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
 import {
@@ -168,10 +169,10 @@ export default function AdminLearnerDetailPage({ loaderData }: Route.ComponentPr
                 <span className="text-admin-text-secondary">현재 질문:</span>
                 <span className="ml-2 text-admin-text">{learner.currentQuestion ?? "-"}</span>
               </div>
-              <div>
-                <span className="text-admin-text-secondary">기본 공개 범위:</span>
-                <span className="ml-2 text-admin-text">{learner.defaultVisibility}</span>
-              </div>
+               <div>
+                 <span className="text-admin-text-secondary">기본 공개 범위:</span>
+                 <span className="ml-2 text-admin-text">{learner.defaultVisibility ? (VISIBILITY_LABELS[learner.defaultVisibility] ?? learner.defaultVisibility) : "-"}</span>
+               </div>
             </div>
           </div>
 
@@ -200,12 +201,12 @@ export default function AdminLearnerDetailPage({ loaderData }: Route.ComponentPr
             ) : (
               <div className="space-y-2">
                 {lr.slice(0, 5).map((r) => (
-                  <div key={r.id} className="flex gap-3 py-2 border-b border-admin-border last:border-b-0">
-                    <span className="text-sm text-admin-text flex-1 truncate">{r.title}</span>
-                    <Badge variant="outline" className="text-xs shrink-0">
-                      {r.visibility}
-                    </Badge>
-                  </div>
+                   <div key={r.id} className="flex gap-3 py-2 border-b border-admin-border last:border-b-0">
+                     <span className="text-sm text-admin-text flex-1 truncate">{r.title}</span>
+                     <Badge variant="outline" className="text-xs shrink-0">
+                       {VISIBILITY_LABELS[r.visibility] ?? r.visibility}
+                     </Badge>
+                   </div>
                 ))}
               </div>
             )}
