@@ -35,8 +35,8 @@ function createMenuContainer() {
   menu.style.maxWidth = "320px";
   menu.style.padding = "6px";
   menu.style.borderRadius = "4px";
-  menu.style.border = "1px solid #E3E8EF";
-  menu.style.background = "#FFFFFF";
+  menu.style.border = "1px solid var(--border)";
+  menu.style.background = "var(--card)";
   menu.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.08)";
   return menu;
 }

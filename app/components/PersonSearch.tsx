@@ -362,6 +362,7 @@ export default function PersonSearch({
                         <img
                           src={person.profilePhotoUrl}
                           alt=""
+                          aria-hidden="true"
                           className="h-10 w-10 rounded-full object-cover ring-1 ring-border"
                         />
                       ) : (
@@ -393,6 +394,7 @@ export default function PersonSearch({
                 <img
                   src={person.profilePhotoUrl}
                   alt=""
+                  aria-hidden="true"
                   className="h-8 w-8 rounded-full object-cover ring-1 ring-ocean-blue/15"
                 />
               ) : (

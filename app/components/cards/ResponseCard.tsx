@@ -127,7 +127,7 @@ export default function ResponseCard({
           <button
             type="button"
             onClick={() => onReply(response.id)}
-            className="text-xs text-text-tertiary hover:text-text-secondary transition-colors"
+            className="text-xs text-text-tertiary hover:text-text-secondary transition-colors min-h-[44px] px-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-1"
           >
             답글
           </button>
@@ -137,7 +137,7 @@ export default function ResponseCard({
             <button
               type="button"
               onClick={() => onEdit?.(response.id)}
-              className="text-xs text-text-tertiary hover:text-text-secondary transition-colors"
+              className="text-xs text-text-tertiary hover:text-text-secondary transition-colors min-h-[44px] px-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-1"
             >
               수정
             </button>
@@ -146,7 +146,7 @@ export default function ResponseCard({
                 <button
                   type="button"
                   disabled={isDeleting}
-                  className="text-xs text-red-600/70 hover:text-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="text-xs text-red-600/70 hover:text-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] px-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-1"
                 >
                   {isDeleting ? <><Spinner size="sm" /> 삭제 중...</> : "삭제"}
                 </button>

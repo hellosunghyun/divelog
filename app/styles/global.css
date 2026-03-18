@@ -23,6 +23,14 @@
   --input: #E3E8EF;
   --ring: #146C94;              /* Quiet Depth: color-ocean-blue */
   --radius: 0.75rem;            /* 12px — input elements (cards use 20-24px directly) */
+
+  /* Read state colors */
+  --color-read-bg: #ECEEF1;
+  --color-read-ring: #D8DCE3;
+  --color-read-surface: #F0F2F5;
+  --color-read-badge-bg: #E0E3E8;
+  --color-read-badge-text: #8C8F96;
+  --color-read-text: #A0A4AB;
 }
 
 /* Tailwind v4 — map shadcn CSS variables to utility classes (bg-primary, text-foreground, etc.) */
@@ -46,6 +54,12 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-read-bg: var(--color-read-bg);
+  --color-read-ring: var(--color-read-ring);
+  --color-read-surface: var(--color-read-surface);
+  --color-read-badge-bg: var(--color-read-badge-bg);
+  --color-read-badge-text: var(--color-read-badge-text);
+  --color-read-text: var(--color-read-text);
 }
 
 @layer base {
