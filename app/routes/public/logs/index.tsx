@@ -6,7 +6,6 @@ import SceneCard from "~/components/cards/SceneCard";
 import FilterBar from "~/components/filters/FilterBar";
 import SortBar from "~/components/filters/SortBar";
 import ViewToggle, { type RecordView } from "~/components/views/ViewToggle";
-import TimelineView from "~/components/views/TimelineView";
 import CalendarView from "~/components/views/CalendarView";
 import EmptyState from "~/components/feedback/EmptyState";
 import { Button } from "~/components/ui/button";
@@ -28,11 +27,11 @@ function getDefaultMonthValue(referenceDate = new Date()): string {
 }
 
 function parseViewParam(value: string | null): RecordView {
-  if (value === "grid" || value === "timeline" || value === "calendar") {
+  if (value === "grid" || value === "calendar") {
     return value;
   }
 
-  return "timeline";
+  return "grid";
 }
 
 function parseSortParam(value: string | null): LogSort {
@@ -76,7 +75,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const sort = parseSortParam(url.searchParams.get("sort"));
   const view = parseViewParam(url.searchParams.get("view"));
   const month = parseMonthParam(url.searchParams.get("month"));
-  const shouldLoadAllRecords = view === "timeline" || view === "calendar";
+  const shouldLoadAllRecords = view === "calendar";
   const page = shouldLoadAllRecords ? 1 : Math.max(1, Number(url.searchParams.get("page") ?? "1"));
 
   const database = db(context.cloudflare.env.DB);
@@ -100,12 +99,10 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const pageSize = shouldLoadAllRecords ? 200 : 20;
   const offset = (page - 1) * pageSize;
 
-  const effectiveSort = view === "timeline" ? "stage" : sort;
-
   const orderBy =
-    effectiveSort === "stage"
+    sort === "stage"
       ? [asc(stages.order), desc(records.createdAt)]
-      : effectiveSort === "oldest"
+      : sort === "oldest"
         ? [asc(records.createdAt)]
         : [desc(records.createdAt)];
 
@@ -289,20 +286,6 @@ export default function LogsPage({ loaderData }: Route.ComponentProps) {
           contentSnippet: record.contentSnippet ?? undefined,
         }))}
         month={filters.month}
-      />
-    ) : currentView === "timeline" ? (
-      <TimelineView
-        records={filteredRecords.map((record) => ({
-          ...record,
-          format: record.format as "note" | "article",
-          stageType:
-            (record.stage?.type as "prelude" | "bridge" | "challenge" | "epilogue" | null) ?? null,
-        }))}
-        stages={allStages.map((stage) => ({
-          ...stage,
-          type: stage.type as "prelude" | "bridge" | "challenge" | "epilogue",
-        }))}
-        isRead={isRead}
       />
     ) : (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
