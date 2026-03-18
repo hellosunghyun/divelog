@@ -2,6 +2,7 @@ import { and, asc, desc, eq, like, or, sql } from "drizzle-orm";
 import * as Sentry from "@sentry/react-router/cloudflare";
 
 import type { CreateRecordInput, RecordFilterInput } from "../../../lib/auth/validation";
+import { parseDateToUnix } from "../../../lib/utils/date";
 import { compareRecordStates, computeTagDiff, hasActualChanges } from "../../../lib/utils/record-diff";
 import { nanoid } from "../../../lib/utils/utils.server";
 import { createAuditLog } from "../admin/insights/audit-helpers.server";
@@ -15,13 +16,6 @@ export async function getNextRecordSlug(d1: D1Database): Promise<string> {
     .select({ maxNum: sql<number>`COALESCE(MAX(CAST(${records.slug} AS INTEGER)), 0)` })
     .from(records);
   return String((result[0]?.maxNum ?? 0) + 1);
-}
-
-function parseDateToUnix(dateStr: string | undefined | null): number | null {
-  if (!dateStr) return null;
-  const date = new Date(`${dateStr}T00:00:00`);
-  if (Number.isNaN(date.getTime())) return null;
-  return Math.floor(date.getTime() / 1000);
 }
 
 export async function getRecords(d1: D1Database, filters: RecordFilterInput = { page: 1 }) {
@@ -129,6 +123,8 @@ export async function createRecord(d1: D1Database, authorId: string, data: Creat
     responsePreference: data.responsePreference ?? "open",
     challengeId: data.challengeId ?? null,
     collaborationUnitId: data.collaborationUnitId ?? null,
+    recordedAt: parseDateToUnix(data.recordedAt),
+    recordedEndAt: parseDateToUnix(data.recordedEndAt),
     createdAt: now,
     updatedAt: now,
   };
