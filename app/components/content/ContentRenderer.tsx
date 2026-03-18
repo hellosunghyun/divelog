@@ -41,6 +41,12 @@ export function ContentRenderer({ contentHtml, format, className }: ContentRende
   const containerRef = useRef<HTMLDivElement>(null);
   const { preview, open, pos, cardRef, onCardEnter, onCardLeave } = useMentionPreview(containerRef);
 
+  useEffect(() => {
+    if (containerRef.current) {
+      containerRef.current.innerHTML = contentHtml;
+    }
+  }, [contentHtml]);
+
   // Force full-page navigation for mention/record-ref links.
   // React Router intercepts <a> clicks for SPA navigation but mishandles
   // links inside dangerouslySetInnerHTML, causing route mismatch errors.
@@ -54,7 +60,9 @@ export function ContentRenderer({ contentHtml, format, className }: ContentRende
       const href = anchor.getAttribute("href");
       if (!href) return;
       e.preventDefault();
-      window.location.href = href;
+      if (typeof window !== "undefined") {
+        window.location.href = href;
+      }
     }
 
     container.addEventListener("click", onClick);
@@ -70,11 +78,7 @@ export function ContentRenderer({ contentHtml, format, className }: ContentRende
 
   return (
     <>
-      <div
-        ref={containerRef}
-        className={combinedClassName}
-        dangerouslySetInnerHTML={{ __html: contentHtml }}
-      />
+      <div ref={containerRef} className={combinedClassName} />
       <MentionPreviewCard
         preview={preview}
         open={open}

@@ -138,21 +138,20 @@ export default function GlobalNav() {
 
   useEffect(() => {
     setCurrentUrl(window.location.href);
-  }, [location]);
+  }, []);
 
   useEffect(() => {
     setIsMenuOpen(false);
     setOpenDropdown(null);
     setSearchQuery("");
-  }, [location.pathname]);
+  }, []);
 
   // Load notification count on mount (authenticated only)
   useEffect(() => {
     if (data?.isAuthenticated) {
       notifFetcher.load("/api/notifications");
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data?.isAuthenticated]);
+  }, [data?.isAuthenticated, notifFetcher.load]);
 
   // Unified outside-click + Escape handler
   useEffect(() => {
