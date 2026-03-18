@@ -39,6 +39,13 @@ type LoaderRecordLink = {
   authorDisplayName: string | null;
 };
 
+export async function clientAction({ serverAction }: Route.ClientActionArgs) {
+  if (typeof sessionStorage !== "undefined") {
+    sessionStorage.setItem("divelog:invalidate-record-cache", "1");
+  }
+  return await serverAction();
+}
+
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "기록 마무리 — DiveLog" }];
 }

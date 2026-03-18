@@ -25,6 +25,13 @@ import { generateNoteTitle } from "~/lib/utils/title.server";
 import { getNextRecordSlug } from "~/db/queries/records/records.server";
 import { nanoid } from "~/lib/utils/utils.server";
 
+export async function clientAction({ serverAction }: Route.ClientActionArgs) {
+  if (typeof sessionStorage !== "undefined") {
+    sessionStorage.setItem("divelog:invalidate-record-cache", "1");
+  }
+  return await serverAction();
+}
+
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "짧은 기록 — DiveLog" }];
 }
