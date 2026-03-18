@@ -58,8 +58,15 @@ function extractPlainTextFromJson(content: string): string | null {
   try {
     const parsed = JSON.parse(content);
     if (parsed?.type !== "doc") return null;
-    const extract = (node: { type?: string; text?: string; content?: unknown[] }): string => {
+    const extract = (node: { type?: string; text?: string; content?: unknown[]; attrs?: Record<string, unknown> }): string => {
       if (node.type === "text") return node.text ?? "";
+      if (node.type === "userMention" || node.type === "mention") {
+        const label = (node.attrs?.label as string) ?? "";
+        return label ? `@${label}` : "";
+      }
+      if (node.type === "recordRef") {
+        return (node.attrs?.label as string) ?? "";
+      }
       if (!Array.isArray(node.content)) return "";
       const childText = node.content.map((child) => extract(child as typeof node)).join("");
       if (node.type && BLOCK_TYPES.has(node.type) && childText) return childText + " ";

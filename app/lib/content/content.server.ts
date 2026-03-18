@@ -238,6 +238,15 @@ function extractPlainText(node: TiptapNode): string {
     return "\n";
   }
 
+  if (node.type === "userMention" || node.type === "mention") {
+    const label = (node.attrs?.label as string) ?? "";
+    return label ? `@${label}` : "";
+  }
+
+  if (node.type === "recordRef") {
+    return (node.attrs?.label as string) ?? "";
+  }
+
   const childText = (node.content ?? []).map(extractPlainText).join("");
 
   if (childText.length === 0) {
