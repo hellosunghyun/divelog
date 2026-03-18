@@ -189,17 +189,18 @@ export default function LearnerDetailPage({ loaderData }: Route.ComponentProps) 
                   return (
                     <div key={record.id}>
                       <SceneCard
-                        record={{
-                          slug: record.slug,
-                          title: record.title,
-                          content: record.content,
-                          format: record.format as "note" | "article",
-                          type: record.type as "personal" | "challenge" | "collaboration",
-                          rhythm: record.rhythm ?? undefined,
-                          createdAt: record.createdAt,
-                        }}
-                        participants={participantsByRecordId?.[record.id]}
-                      />
+                         record={{
+                           slug: record.slug,
+                           title: record.title,
+                           content: record.content,
+                           format: record.format as "note" | "article",
+                           type: record.type as "personal" | "challenge" | "collaboration",
+                           rhythm: record.rhythm ?? undefined,
+                           createdAt: record.createdAt,
+                           recordedAt: record.recordedAt ?? undefined,
+                         }}
+                         participants={participantsByRecordId?.[record.id]}
+                       />
                     </div>
                   );
                 })}
@@ -214,23 +215,24 @@ export default function LearnerDetailPage({ loaderData }: Route.ComponentProps) 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {visibleParticipatedRecords.map(({ record, author, participantRole, participantAddedAt }) => (
                     <div key={`${record.id}-${participantRole}-${participantAddedAt}`}>
-                      <SceneCard
-                        record={{
-                          slug: record.slug,
-                          title: record.title,
-                          content: record.content,
-                          format: record.format as "note" | "article",
-                          type: record.type as "personal" | "challenge" | "collaboration",
-                          rhythm: record.rhythm ?? undefined,
-                          createdAt: record.createdAt,
-                          updatedAt: record.updatedAt ?? undefined,
-                        }}
-                        author={author?.displayName ? {
-                          displayName: author.displayName,
-                          slug: author.slug ?? "",
-                        } : undefined}
-                        participants={participantsByRecordId?.[record.id]}
-                      />
+                       <SceneCard
+                         record={{
+                           slug: record.slug,
+                           title: record.title,
+                           content: record.content,
+                           format: record.format as "note" | "article",
+                           type: record.type as "personal" | "challenge" | "collaboration",
+                           rhythm: record.rhythm ?? undefined,
+                           createdAt: record.createdAt,
+                           updatedAt: record.updatedAt ?? undefined,
+                           recordedAt: record.recordedAt ?? undefined,
+                         }}
+                         author={author?.displayName ? {
+                           displayName: author.displayName,
+                           slug: author.slug ?? "",
+                         } : undefined}
+                         participants={participantsByRecordId?.[record.id]}
+                       />
                     </div>
                   ))}
                 </div>
@@ -245,22 +247,23 @@ export default function LearnerDetailPage({ loaderData }: Route.ComponentProps) 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {visibleMentionedRecords.map(({ record, author, mentionedAt }) => (
                     <div key={`${record.id}-${mentionedAt}`}>
-                      <SceneCard
-                        record={{
-                          slug: record.slug,
-                          title: record.title,
-                          content: record.content,
-                          format: record.format as "note" | "article",
-                          type: record.type as "personal" | "challenge" | "collaboration",
-                          rhythm: record.rhythm ?? undefined,
-                          createdAt: record.createdAt,
-                          updatedAt: record.updatedAt ?? undefined,
-                        }}
-                        author={author?.displayName ? {
-                          displayName: author.displayName,
-                          slug: author.slug ?? "",
-                        } : undefined}
-                      />
+                       <SceneCard
+                         record={{
+                           slug: record.slug,
+                           title: record.title,
+                           content: record.content,
+                           format: record.format as "note" | "article",
+                           type: record.type as "personal" | "challenge" | "collaboration",
+                           rhythm: record.rhythm ?? undefined,
+                           createdAt: record.createdAt,
+                           updatedAt: record.updatedAt ?? undefined,
+                           recordedAt: record.recordedAt ?? undefined,
+                         }}
+                         author={author?.displayName ? {
+                           displayName: author.displayName,
+                           slug: author.slug ?? "",
+                         } : undefined}
+                       />
                     </div>
                   ))}
                 </div>

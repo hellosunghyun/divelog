@@ -96,6 +96,7 @@ export default function TagDetailPage({ loaderData }: Route.ComponentProps) {
                   type: record.type as "personal" | "challenge" | "collaboration",
                   rhythm: record.rhythm ?? undefined,
                   createdAt: record.createdAt,
+                  recordedAt: record.recordedAt ?? undefined,
                 }}
                 contentSnippet={record.contentSnippet}
                 author={

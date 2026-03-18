@@ -20,6 +20,7 @@ interface SceneCardProps {
     rhythm?: string;
     createdAt: number;
     updatedAt?: number;
+    recordedAt?: number | null;
   };
   contentSnippet?: string;
   author?: {
@@ -49,6 +50,26 @@ const RHYTHM_LABELS: Record<string, string> = {
 };
 
 const BLOCK_TYPES = new Set(["paragraph", "heading", "blockquote", "bulletList", "orderedList", "listItem", "codeBlock"]);
+
+function formatRelativeTime(timestamp: number): string {
+  const now = Date.now();
+  const diff = now - timestamp * 1000;
+  const minutes = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
+
+  if (minutes < 1) return "방금 전";
+  if (minutes < 60) return `${minutes}분 전`;
+  if (hours < 24) return `${hours}시간 전`;
+  if (days < 7) return `${days}일 전`;
+  if (days < 30) return `${Math.floor(days / 7)}주 전`;
+  return `${Math.floor(days / 30)}개월 전`;
+}
+
+function formatShortDate(timestamp: number): string {
+  const date = new Date(timestamp * 1000);
+  return `${date.getMonth() + 1}월 ${date.getDate()}일`;
+}
 
 function extractPlainTextFromJson(content: string): string | null {
   try {
@@ -90,6 +111,9 @@ export default function SceneCard({
     snippet = text.substring(0, 120) + (text.length > 120 ? "…" : "");
   }
 
+  const rhythmLabel = record.rhythm ? (RHYTHM_LABELS[record.rhythm] ?? record.rhythm) : null;
+  const showRecordedAt = record.recordedAt && record.recordedAt !== record.createdAt;
+
   return (
     <motion.article
       data-testid="scene-card"
@@ -109,13 +133,18 @@ export default function SceneCard({
         "rounded-xl p-5 md:p-6 h-full flex flex-col gap-4",
         isRead ? "bg-[#F0F2F5]" : "bg-surface"
       )}>
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap">
           <span className="text-caption px-2.5 py-0.5 rounded-full bg-border text-text-secondary">
             {FORMAT_LABELS[record.format] ?? record.format}
           </span>
-          {record.rhythm && record.rhythm !== "free" && (
+          {rhythmLabel && (
             <span className="text-caption px-2.5 py-0.5 rounded-full bg-border text-text-secondary">
-              {RHYTHM_LABELS[record.rhythm] ?? record.rhythm}
+              {rhythmLabel}
+            </span>
+          )}
+          {showRecordedAt && (
+            <span className="text-caption px-2.5 py-0.5 rounded-full bg-mist-blue/60 text-ocean-blue">
+              {formatShortDate(record.recordedAt!)}
             </span>
           )}
         </div>
@@ -141,19 +170,27 @@ export default function SceneCard({
         <div className="flex items-center justify-between mt-2 border-t border-border-subtle pt-4">
           <div className="flex items-center gap-3">
             <div className="flex flex-col gap-1">
-              {author && (
-                author.slug ? (
-                  <Link
-                    to={`/learners/${author.slug}`}
-                    prefetch="viewport"
-                    className="text-meta text-text-secondary no-underline hover:text-ocean-blue transition-colors"
-                  >
-                    {author.displayName}
-                  </Link>
-                ) : (
-                  <span className="text-meta text-text-secondary">{author.displayName}</span>
-                )
-              )}
+              <div className="flex items-center gap-2">
+                {author && (
+                  author.slug ? (
+                    <Link
+                      to={`/learners/${author.slug}`}
+                      prefetch="viewport"
+                      className="text-meta text-text-secondary no-underline hover:text-ocean-blue transition-colors"
+                    >
+                      {author.displayName}
+                    </Link>
+                  ) : (
+                    <span className="text-meta text-text-secondary">{author.displayName}</span>
+                  )
+                )}
+                <span
+                  className={cn("text-caption", isRead ? "text-[#A0A4AB]" : "text-text-tertiary")}
+                  suppressHydrationWarning
+                >
+                  {formatRelativeTime(record.createdAt)}
+                </span>
+              </div>
               {record.updatedAt && (
                 <EditedIndicator createdAt={record.createdAt} updatedAt={record.updatedAt} />
               )}

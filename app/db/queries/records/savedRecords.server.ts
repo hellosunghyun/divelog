@@ -66,6 +66,7 @@ export async function getSavedRecordsWithDetails(d1: D1Database, learnerId: stri
         type: records.type,
         rhythm: records.rhythm,
         createdAt: records.createdAt,
+        recordedAt: records.recordedAt,
       },
       author: {
         displayName: learnerProfiles.displayName,

@@ -291,19 +291,20 @@ export default function SearchPage({ loaderData }: Route.ComponentProps) {
                     {results.records.map((item: typeof results.records[number]) => (
                       <div key={item.record.id}>
                         <SceneCard
-                          record={{
-                            ...item.record,
-                            format: normalizeContentFormat(item.record.format),
-                            type:
-                              item.record.type === "challenge"
-                                ? "challenge"
-                                : item.record.type === "collaboration"
-                                  ? "collaboration"
-                                  : "personal",
-                          }}
-                          author={item.author ?? undefined}
-                          contentSnippet={item.contentSnippet}
-                        />
+                           record={{
+                             ...item.record,
+                             format: normalizeContentFormat(item.record.format),
+                             type:
+                               item.record.type === "challenge"
+                                 ? "challenge"
+                                 : item.record.type === "collaboration"
+                                   ? "collaboration"
+                                   : "personal",
+                             recordedAt: item.record.recordedAt ?? undefined,
+                           }}
+                           author={item.author ?? undefined}
+                           contentSnippet={item.contentSnippet}
+                         />
                       </div>
                     ))}
                   </div>

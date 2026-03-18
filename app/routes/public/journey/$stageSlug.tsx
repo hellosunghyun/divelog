@@ -159,6 +159,7 @@ export default function StageDetailPage({ loaderData }: Route.ComponentProps) {
                       type: record.type as "personal" | "challenge" | "collaboration",
                       rhythm: record.rhythm ?? undefined,
                       createdAt: record.createdAt,
+                      recordedAt: record.recordedAt ?? undefined,
                     }}
                     author={author?.displayName ? { displayName: author.displayName, slug: author.slug ?? "" } : undefined}
                   />
