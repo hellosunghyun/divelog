@@ -8,6 +8,7 @@ import type { Route } from "./+types/article";
 const ArticleEditor = lazy(() =>
   import("~/components/editor/editors/ArticleEditor").then(m => ({ default: m.ArticleEditor }))
 );
+import { NavigationBlockerDialog } from "~/components/feedback/NavigationBlockerDialog";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
@@ -235,7 +236,7 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
   const titleError = errors && "title" in errors ? errors.title?.[0] : undefined;
   const contentError = errors && "content" in errors ? errors.content?.[0] : undefined;
 
-  useUnsavedWarning(title.length > 0 || articleContent.length > 0);
+  const blocker = useUnsavedWarning(title.length > 0 || articleContent.length > 0);
 
   function handleRhythmChange(newRhythm: string) {
     setRhythm(newRhythm);
@@ -416,6 +417,7 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
             </div>
           </details>
          </Form>
+         <NavigationBlockerDialog blocker={blocker} />
        </div>
      </div>
    );

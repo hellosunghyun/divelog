@@ -6,6 +6,7 @@ import type { Route } from "./+types/note";
 
 import { NoteEditor } from "~/components/editor/editors/NoteEditor";
 import PersonSearch from "~/components/PersonSearch";
+import { NavigationBlockerDialog } from "~/components/feedback/NavigationBlockerDialog";
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
 import {
@@ -151,7 +152,7 @@ export default function WriteNotePage({ loaderData }: Route.ComponentProps) {
   const isSubmitting = navigation.state === "submitting";
   const contentError = actionData?.errors?.content?.[0];
 
-  useUnsavedWarning(noteContent.length > 0);
+  const blocker = useUnsavedWarning(noteContent.length > 0);
 
   return (
     <div className="min-h-screen bg-background">
@@ -275,6 +276,7 @@ export default function WriteNotePage({ loaderData }: Route.ComponentProps) {
             </div>
           </details>
         </Form>
+        <NavigationBlockerDialog blocker={blocker} />
       </div>
     </div>
   );

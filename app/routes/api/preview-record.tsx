@@ -1,0 +1,72 @@
+import { eq, sql } from "drizzle-orm";
+import type { LoaderFunctionArgs } from "react-router";
+import { db } from "~/db/client.server";
+import { records, learnerProfiles, stages } from "~/db/schema.server";
+
+export async function loader({ request, context }: LoaderFunctionArgs) {
+  const url = new URL(request.url);
+  const slug = url.searchParams.get("slug")?.trim();
+
+  if (!slug) {
+    return Response.json({ error: "slug required" }, { status: 400 });
+  }
+
+  const database = db(context.cloudflare.env.DB);
+
+  const result = await database
+    .select({
+      id: records.id,
+      slug: records.slug,
+      title: records.title,
+      contentText: records.contentText,
+      format: records.format,
+      type: records.type,
+      rhythm: records.rhythm,
+      createdAt: records.createdAt,
+      authorDisplayName: learnerProfiles.displayName,
+      authorSlug: learnerProfiles.slug,
+      authorPhotoUrl: learnerProfiles.profilePhotoUrl,
+      stageId: records.stageId,
+    })
+    .from(records)
+    .leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
+    .where(eq(records.slug, slug))
+    .limit(1);
+
+  const record = result[0];
+  if (!record) {
+    return Response.json({ error: "not found" }, { status: 404 });
+  }
+
+  let stageName: string | null = null;
+  if (record.stageId) {
+    const stageResult = await database
+      .select({ name: stages.name })
+      .from(stages)
+      .where(eq(stages.id, record.stageId))
+      .limit(1);
+    stageName = stageResult[0]?.name ?? null;
+  }
+
+  const excerpt = record.contentText
+    ? record.contentText.trim().length > 120
+      ? `${record.contentText.trim().slice(0, 120).trimEnd()}…`
+      : record.contentText.trim()
+    : null;
+
+  return Response.json({
+    slug: record.slug,
+    title: record.title,
+    excerpt,
+    format: record.format,
+    type: record.type,
+    rhythm: record.rhythm,
+    createdAt: record.createdAt,
+    authorDisplayName: record.authorDisplayName,
+    authorSlug: record.authorSlug,
+    authorPhotoUrl: record.authorPhotoUrl,
+    stageName,
+  }, {
+    headers: { "Cache-Control": "private, max-age=60" },
+  });
+}
