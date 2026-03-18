@@ -24,7 +24,13 @@ Apple Developer Academy @ POSTECH Learner의 아홉 달을 **Journey-first refle
 | Sessions | `adakrpos_session` 쿠키 | `.ada-kr-pos.com` 도메인, 7일 TTL, 자동 갱신 |
 | CSS | Tailwind CSS v4 | Quiet Depth 디자인 토큰 |
 | Validation | Zod | 폼 검증, loader/action 입력 검증 |
-| Storage | Cloudflare R2 | Phase 2 (현재 미사용) |
+| Storage | Cloudflare R2 | 이미지 업로드, /api/upload + /api/images/* |
+| Rich Text Editor | Tiptap v3 | ProseMirror 기반, 에디터 확장 포함 |
+| Error Tracking | Sentry | `@sentry/cloudflare` + `@sentry/react-router` |
+| UI Primitives | Radix UI | Dialog, Select, Checkbox, Radio, Popover 등 |
+| Icons | Phosphor Icons | stroke 기반 아이콘 |
+| Animation | Framer Motion | reduced motion 지원 |
+| Font | Geist | CDN (jsdelivr), variable weight |
 | Queues | Cloudflare Queues | 알림, 모더레이션 비동기 처리 |
 | Package Manager | pnpm | |
 
@@ -32,8 +38,12 @@ Apple Developer Academy @ POSTECH Learner의 아홉 달을 **Journey-first refle
 - ❌ KV 바인딩 (제거됨)
 - ❌ Better Auth (완전 제거)
 - ❌ `@adakrpos/auth/hono`, `@adakrpos/auth/express` (generic만)
-- ❌ Rich text 에디터 (textarea + markdown preview만)
 - ❌ Node.js 전용 API (edge runtime 호환 필수)
+
+### 구현 완료 (이전 제약에서 이동)
+- ✅ Tiptap 리치 텍스트 에디터 (Phase 1에서 도입)
+- ✅ 이미지 업로드 (R2 + /api/upload)
+- ✅ 자동 저장 (/api/autosave + localStorage)
 
 ---
 
@@ -49,6 +59,7 @@ app/
 │   │   ├── journey/
 │   │   │   ├── index.tsx              → /journey
 │   │   │   └── $stageSlug.tsx         → /journey/:stageSlug
+│   │   ├── questions.tsx              → /questions (열린 질문)
 │   │   ├── logs/
 │   │   │   ├── index.tsx              → /logs
 │   │   │   ├── $recordSlug.tsx        → /logs/:recordSlug
@@ -57,17 +68,11 @@ app/
 │   │   ├── write/
 │   │   │   ├── index.tsx              → /write (requireVerified)
 │   │   │   ├── note.tsx               → /write/note
-│   │   │   └── article.tsx            → /write/article
+│   │   │   ├── article.tsx            → /write/article
+│   │   │   └── meta.$recordId.tsx     → /write/meta/:recordId
 │   │   ├── learners/
 │   │   │   ├── index.tsx              → /learners
 │   │   │   └── $learnerSlug.tsx       → /learners/:learnerSlug
-│   │   ├── challenges/
-│   │   │   ├── index.tsx              → /challenges
-│   │   │   └── $challengeSlug.tsx     → /challenges/:challengeSlug
-│   │   ├── groups/
-│   │   │   └── $groupSlug.tsx         → /groups/:groupSlug
-│   │   ├── memories/
-│   │   │   └── $stageSlug.tsx         → /memories/:stageSlug
 │   │   ├── tags/
 │   │   │   ├── index.tsx              → /tags
 │   │   │   └── $tagSlug.tsx           → /tags/:tagSlug
@@ -75,15 +80,18 @@ app/
 │   │   ├── inbox.tsx                  → /inbox (requireAuth)
 │   │   ├── me.tsx                     → /me (requireAuth)
 │   │   ├── settings.tsx               → /settings (requireAuth)
-│   │   └── guide.tsx                  → /guide
+│   │   ├── guide.tsx                  → /guide
+│   │   ├── terms.tsx                  → /terms
+│   │   ├── privacy.tsx                → /privacy
+│   │   └── style-reference.tsx        → /style-reference
+│   │   # DISABLED:
+│   │   # ├── groups/$groupSlug.tsx    → /groups/:groupSlug [COLLAB_DISABLED]
+│   │   # ├── memories/$stageSlug.tsx  → /memories/:stageSlug [STAGE_DISABLED]
 │   ├── admin/
 │   │   ├── index.tsx                  → /admin (Dashboard)
 │   │   ├── stages/
 │   │   │   ├── index.tsx              → /admin/stages
 │   │   │   └── $stageId.tsx           → /admin/stages/:stageId
-│   │   ├── challenges/
-│   │   │   ├── index.tsx              → /admin/challenges
-│   │   │   └── $challengeId.tsx       → /admin/challenges/:challengeId
 │   │   ├── learners/
 │   │   │   ├── index.tsx              → /admin/learners
 │   │   │   └── $learnerId.tsx         → /admin/learners/:learnerId
@@ -93,75 +101,171 @@ app/
 │   │   ├── dialogue/
 │   │   │   ├── index.tsx              → /admin/dialogue
 │   │   │   └── $responseId.tsx        → /admin/dialogue/:responseId
-│   │   ├── collaboration/
-│   │   │   ├── index.tsx              → /admin/collaboration
-│   │   │   └── $groupId.tsx           → /admin/collaboration/:groupId
-│   │   ├── memories/
-│   │   │   ├── index.tsx              → /admin/memories
-│   │   │   └── $stageId.tsx           → /admin/memories/:stageId
+│   │   ├── curation.tsx               → /admin/curation
 │   │   ├── templates/
 │   │   │   ├── index.tsx              → /admin/templates
 │   │   │   └── $templateId.tsx        → /admin/templates/:templateId
-│   │   ├── curation.tsx               → /admin/curation
 │   │   ├── tags.tsx                   → /admin/tags
 │   │   ├── analytics.tsx              → /admin/analytics
 │   │   ├── settings.tsx               → /admin/settings
 │   │   ├── roles.tsx                  → /admin/roles
-│   │   └── audit.tsx                  → /admin/audit
+│   │   ├── audit.tsx                  → /admin/audit
+│   │   # DISABLED:
+│   │   # ├── collaboration/           → [COLLAB_DISABLED]
+│   │   # ├── memories/                → [STAGE_DISABLED]
+│   │   # 미구현:
+│   │   # ├── challenges/              → 아직 구현되지 않음
 │   └── api/
-│       ├── upload.tsx                 → POST /api/upload
-│       ├── images.$.tsx               → /api/images/*
-│       ├── search-learners.tsx        → /api/search-learners (orphaned)
-│       └── search-records.tsx         → /api/search-records (orphaned)
+│       ├── upload.tsx                 → POST /api/upload (R2 이미지)
+│       ├── images.$.tsx               → /api/images/* (이미지 서빙)
+│       ├── autosave.tsx               → POST /api/autosave (초안 자동저장)
+│       ├── notifications.tsx          → /api/notifications
+│       ├── search-records.tsx         → /api/search-records
+│       ├── search-learners.tsx        → /api/search-learners
+│       ├── track-read.tsx             → /api/track-read (읽음 추적)
+│       ├── toggle-bookmark.tsx        → /api/toggle-bookmark
+│       ├── preview-learner.tsx        → /api/preview-learner
+│       └── preview-record.tsx         → /api/preview-record
 ├── components/
-│   ├── GlobalNav.tsx
-│   ├── Footer.tsx
-│   ├── SceneCard.tsx
-│   ├── QuestionCard.tsx
-│   ├── ResponseCard.tsx
-│   ├── LearnerCard.tsx
-│   ├── CollaborationUnitCard.tsx
-│   ├── HighlightedSentenceCard.tsx
-│   ├── HeroSection.tsx
-│   ├── StageStrip.tsx
-│   ├── CTABand.tsx
-│   ├── FilterBar.tsx
-│   ├── SortBar.tsx
-│   ├── EmptyState.tsx
-│   ├── LoadingSkeleton.tsx
-│   ├── ErrorState.tsx
-│   └── admin/
-│       ├── AdminSidebar.tsx
-│       └── AdminContextBar.tsx
+│   ├── layout/
+│   │   ├── GlobalNav.tsx
+│   │   ├── Footer.tsx
+│   │   └── FloatingWriteCTA.tsx
+│   ├── cards/
+│   │   ├── SceneCard.tsx
+│   │   ├── QuestionCard.tsx
+│   │   ├── ResponseCard.tsx
+│   │   ├── LearnerCard.tsx
+│   │   ├── CompactTimelineCard.tsx
+│   │   ├── HighlightedSentenceCard.tsx
+│   │   ├── SelfAnswerCard.tsx
+│   │   └── CollaborationUnitCard.tsx
+│   ├── sections/
+│   │   ├── HeroSection.tsx
+│   │   ├── StageStrip.tsx
+│   │   └── CTABand.tsx
+│   ├── views/
+│   │   ├── TimelineView.tsx
+│   │   ├── CalendarView.tsx
+│   │   ├── QuestionTimeline.tsx
+│   │   └── ViewToggle.tsx
+│   ├── feedback/
+│   │   ├── EmptyState.tsx
+│   │   ├── ErrorState.tsx
+│   │   ├── LoadingSkeleton.tsx
+│   │   ├── Spinner.tsx
+│   │   ├── SubmitButton.tsx
+│   │   ├── AutosaveIndicator.tsx
+│   │   └── NavigationBlockerDialog.tsx
+│   ├── content/
+│   │   ├── ContentRenderer.tsx
+│   │   ├── SmartLink.tsx
+│   │   ├── MentionPreview.tsx
+│   │   └── DraftRecoveryPrompt.tsx
+│   ├── filters/
+│   │   ├── FilterBar.tsx
+│   │   ├── FilterBottomSheet.tsx
+│   │   └── SortBar.tsx
+│   ├── record/
+│   │   ├── RhythmDateInput.tsx
+│   │   ├── WeekPicker.tsx
+│   │   └── MonthPicker.tsx
+│   ├── editor/editors/
+│   │   ├── NoteEditor.tsx
+│   │   ├── ArticleEditor.tsx
+│   │   └── SlashCommandMenu.tsx
+│   ├── revision/
+│   │   ├── RevisionTimeline.tsx
+│   │   └── RevisionDiffView.tsx
+│   ├── activity/
+│   │   ├── ActivityFeed.tsx
+│   │   └── NarrativeDigest.tsx
+│   ├── admin/
+│   │   ├── AdminSidebar.tsx
+│   │   ├── AdminContextBar.tsx
+│   │   └── admin-patterns.tsx
+│   ├── ui/                            → Radix UI 기반 프리미티브 (13개)
+│   ├── PersonSearch.tsx
+│   ├── RecordSearch.tsx
+│   └── TagSelector.tsx
 ├── db/
-│   ├── schema.server.ts        → Drizzle 스키마 (20+ 테이블, cohort 지원)
+│   ├── schema.server.ts        → Drizzle 스키마 (27 테이블, cohort 지원)
 │   ├── relations.server.ts     → Drizzle relations
 │   ├── client.server.ts        → Drizzle 클라이언트 팩토리
-│   └── queries/                → 도메인별 쿼리 모듈 (12+)
-│       ├── stages.server.ts
-│       ├── records.server.ts
-│       ├── questions.server.ts
-│       ├── responses.server.ts
-│       ├── sentences.server.ts
-│       ├── learners.server.ts
-│       ├── challenges.server.ts
-│       ├── collaboration.server.ts
-│       ├── memories.server.ts
-│       ├── notifications.server.ts
-│       ├── search.server.ts
+│   └── queries/                → 도메인별 쿼리 모듈 (35+)
+│       ├── journey/
+│       │   └── stages.server.ts
+│       ├── records/
+│       │   ├── records.server.ts
+│       │   ├── tags.server.ts
+│       │   ├── drafts.server.ts
+│       │   ├── sentences.server.ts
+│       │   ├── savedRecords.server.ts
+│       │   ├── recordReads.server.ts
+│       │   ├── recordLinks.server.ts
+│       │   ├── references.server.ts
+│       │   ├── participants.server.ts
+│       │   └── revisions.server.ts
+│       ├── dialogue/
+│       │   ├── questions.server.ts
+│       │   ├── responses.server.ts
+│       │   ├── selfAnswers.server.ts
+│       │   └── mentions.server.ts
+│       ├── learners/
+│       │   └── learners.server.ts
+│       ├── social/
+│       │   ├── notifications.server.ts
+│       │   ├── activity.server.ts
+│       │   └── collaboration.server.ts
+│       ├── misc/
+│       │   ├── search.server.ts
+│       │   └── reminders.server.ts
 │       └── admin/
+│           ├── data/ (stages, learners, records, collaboration)
+│           ├── ops/ (curation, dialogue, roles, settings, templates)
+│           └── insights/ (analytics, audit)
 ├── lib/
-│   ├── auth.server.ts          → getAuth (WeakMap 캐시, 요청당 1회)
-│   ├── auth.middleware.ts      → requireAuth, requireVerified, requireRole, getOptionalUser
-│   └── validation.ts           → Zod 스키마
+│   ├── auth/
+│   │   ├── auth.server.ts      → getAuth (WeakMap 캐시, 요청당 1회)
+│   │   ├── auth.middleware.ts   → requireAuth, requireVerified, requireRole, getOptionalUser, bootstrapAdmin, ensureAdminByEmail
+│   │   └── validation.ts       → Zod 스키마 (15+ 스키마)
+│   ├── content/
+│   │   ├── content.server.ts   → Tiptap JSON 렌더링, plaintext 추출
+│   │   ├── editor-config.ts    → Tiptap 에디터 설정
+│   │   ├── editor-extensions.ts → Tiptap 확장 (link, image, mention 등)
+│   │   ├── compress-image.ts   → 이미지 압축
+│   │   └── extract-references.server.ts → 콘텐츠 참조 추출
+│   ├── infra/
+│   │   ├── logger.server.ts    → 구조화된 로깅 (요청 ID, 민감정보 마스킹)
+│   │   ├── draft-storage.ts    → localStorage 기반 초안 관리
+│   │   ├── read-storage.ts     → 읽음 상태 추적
+│   │   └── r2-cleanup.server.ts → R2 고아 이미지 정리
+│   ├── utils/
+│   │   ├── utils.server.ts     → nanoid() ID 생성
+│   │   ├── utils.ts            → cn() Tailwind 클래스 병합
+│   │   ├── hangul.ts           → 한글 검색 (초성 분리)
+│   │   ├── calendar.ts         → 캘린더 날짜 생성
+│   │   ├── date-groups.ts      → 날짜 그룹핑
+│   │   ├── record-diff.ts      → 기록 변경 감지
+│   │   └── thread-tree.ts      → 응답 스레드 트리 구성
+│   ├── motion/
+│   │   ├── motion.tsx          → Framer Motion 프로바이더
+│   │   └── motion-utils.ts     → 모션 유틸리티
+│   └── constants/
+│       └── visibility.ts       → Visibility 상수
 └── styles/
-    ├── tokens.css              → CSS custom properties
-    └── global.css              → 리셋, 타이포, focus ring
+    ├── global.css              → CSS custom properties (Quiet Depth 토큰), Tailwind v4 @theme
+    ├── editor.css              → ProseMirror 에디터 스타일 (708줄)
+    ├── fonts.css               → Geist 폰트 선언
+    └── tokens.css              → (비어있음 — 토큰은 global.css에 inline)
 
-drizzle/migrations/             → D1 마이그레이션 파일
+workers/
+└── app.ts                      → Cloudflare Workers 진입점 (Sentry, 캐시 헤더)
+
+drizzle/migrations/             → D1 마이그레이션 파일 (16개)
 seeds/seed.sql                  → 한국어 seed data
-wrangler.toml                   → D1, R2, Queues 바인딩 (KV 없음)
-.dev.vars                       → ADAKRPOS_API_KEY, ADMIN_USER_ID, TEST_*_SESSION
+wrangler.toml                   → D1, R2, Queues 바인딩
+.dev.vars                       → ADAKRPOS_API_KEY, ADMIN_USER_ID, ADMIN_EMAILS, LOG_LEVEL, TEST_*_SESSION
 ```
 
 ---
@@ -175,7 +279,7 @@ wrangler.toml                   → D1, R2, Queues 바인딩 (KV 없음)
   ↓ 브라우저: adakrpos_session 쿠키 자동 전달
 서버: getAuth(request, apiKey) → WeakMap 캐시 → verifyRequest 1회
   ↓
-인증됨 → 정상 진행 + learner_profiles upsert
+인증됨 → 정상 진행 + learner_profiles get-or-create
 미인증 + 보호 페이지 → ada-kr-pos.com/login?returnUrl= 리다이렉트
 ```
 
@@ -186,11 +290,14 @@ wrangler.toml                   → D1, R2, Queues 바인딩 (KV 없음)
 | `requireAuth` | 인증 필수 | /inbox, /me, /settings |
 | `requireVerified` | isVerified=true 필수 | /write, 응답 작성 action |
 | `requireRole` | 역할 필수 | Admin 전체 |
+| `bootstrapAdmin` | ADMIN_USER_ID로 최초 admin 역할 설정 | _admin.tsx 레이아웃 |
+| `ensureAdminByEmail` | ADMIN_EMAILS 기반 admin 역할 자동 부여 | _public.tsx (waitUntil) |
 
 ### 핵심 규칙
 - `verifyRequest`는 요청당 **1회만** 호출 (WeakMap 캐시)
 - `ADAKRPOS_API_KEY`는 서버에서만 사용, 클라이언트 노출 금지
 - `@adakrpos/auth/generic` 진입점만 사용 (hono/express 금지)
+- `ADMIN_EMAILS`로 이메일 기반 관리자 자동 부여 (background task)
 - `learner_profiles`는 첫 인증 시 자동 생성 (display_name, profile_photo_url, cohort 캐시)
 
 ---
@@ -198,11 +305,11 @@ wrangler.toml                   → D1, R2, Queues 바인딩 (KV 없음)
 ## 데이터 로딩 패턴
 
 ```typescript
-// 레이아웃 로더 (_public.tsx) — 1회만 인증 + learner_profiles upsert
+// 레이아웃 로더 (_public.tsx) — 1회만 인증 + learner_profiles get-or-create
 export async function loader({ request, context }: Route.LoaderArgs) {
   const auth = await getAuth(request, context.cloudflare.env.ADAKRPOS_API_KEY);
   if (auth.isAuthenticated) {
-    await upsertLearnerProfile(context.cloudflare.env.DB, auth.user);
+    await getOrCreateLearnerProfile(context.cloudflare.env.DB, auth.user);
   }
   return { auth };
 }
@@ -223,7 +330,7 @@ const parentData = useRouteLoaderData("_public");
 
 ## 설계 문서 참조 가이드
 
-`.docs/` 디렉토리에 10개의 설계 문서가 있다. 작업 유형별로 참조해야 할 문서:
+`.docs/` 디렉토리에 13개의 설계 문서가 있다. 작업 유형별로 참조해야 할 문서:
 
 ### `.docs/prd.md` — 제품 요구사항
 **참조 시점**: 제품 철학, 비목표, 성공 상태, 디자인 방향을 확인할 때
@@ -258,7 +365,6 @@ const parentData = useRouteLoaderData("_public");
 - 스타일 토큰 (색상, 반경, 그림자, 타이포)
 - 상태 처리 원칙 (빈 상태, 로딩, 에러)
 - 접근성 요구사항 (16px↑, 44px↑ 타겟, focus ring, reduced motion)
-- ⚠️ 기술 기준에 "Next.js App Router" 언급이 있으나, 실제로는 **React Router 7** 사용. 해당 부분은 무시.
 
 ### `.docs/wireframe.md` — 와이어프레임 명세
 **참조 시점**: 화면 레이아웃 구현 시 구조 확인
@@ -364,7 +470,7 @@ Mist Blue:         #EAF4FA
 
 ### 타이포그래피
 
-**폰트**: system-ui / SF Pro 감성, 한글은 Pretendard 또는 동급 현대적 산세리프
+**폰트**: Geist (CDN), 한글 fallback system-ui / Apple SD Gothic Neo
 
 | 용도 | 크기 | 무게 | line-height |
 |------|------|------|-------------|
@@ -531,11 +637,13 @@ Public과 다른 톤: neutral, calm, efficient, dense, readable
 - leaderboard, 개인 비교 차트, 상위 작성자 랭킹
 - 숫자 차트 기반 Check-in (서술형만)
 - 자체 로그인/회원가입 UI
-- Rich text 에디터 (textarea + markdown preview만)
-- 이미지 업로드 (Phase 1)
-- 자동 저장
 - Settings에서 name/bio 편집 (ada-kr-pos.com에서 관리)
 - cohorts 관리 UI / cohorts 테이블
+
+### 구현 완료 (이전 제약에서 이동)
+- ✅ Rich text 에디터 → Tiptap v3 도입
+- ✅ 이미지 업로드 → R2 + /api/upload
+- ✅ 자동 저장 → /api/autosave + localStorage
 
 ### 코드 품질
 - `as any`, `@ts-ignore`, `@ts-expect-error` 금지
@@ -550,9 +658,10 @@ Public과 다른 톤: neutral, calm, efficient, dense, readable
 
 ```bash
 pnpm dev                                    # 로컬 개발 서버
-npx react-router build                      # 프로덕션 빌드
-tsc --noEmit                                # 타입 체크
-wrangler pages dev ./build/client --d1 DB   # Cloudflare 로컬 서버
+pnpm build                                  # 프로덕션 빌드 (react-router build + patch-worker)
+pnpm typecheck                              # 타입 체크 (cf-typegen + react-router typegen + tsc)
+pnpm test                                   # 테스트 실행 (vitest)
+pnpm deploy                                 # 배포 (build + wrangler deploy)
 wrangler d1 migrations apply DB --local     # 마이그레이션 적용
 wrangler d1 execute DB --local --file=seeds/seed.sql  # 시드 데이터
 ```
