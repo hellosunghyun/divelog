@@ -1,11 +1,11 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { data } from "react-router";
 import type { Route } from "./+types/$recordSlug";
 import { db } from "~/db/client.server";
 import { requireVerified, getOptionalUser } from "~/lib/auth/auth.middleware";
 import { createResponseSchema, saveSentenceSchema, updateResponseSchema } from "~/lib/auth/validation";
 import { normalizeContentFormat } from "~/lib/content/editor-extensions";
-import { getPlainText, renderContentToHtml } from "~/lib/content/content.server";
+import { getPlainText, renderContentToHtml, type MentionSlugMap } from "~/lib/content/content.server";
 import { createLogger } from "~/lib/infra/logger.server";
 import { nanoid } from "~/lib/utils/utils.server";
 import {
@@ -164,7 +164,8 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
     : [];
 
   const recordFormat = normalizeContentFormat(recordData.record.format);
-  const contentHtml = renderContentToHtml(recordData.record.content, recordFormat);
+  const mentionSlugMap = await buildMentionSlugMap(database, recordData.record.content);
+  const contentHtml = renderContentToHtml(recordData.record.content, recordFormat, mentionSlugMap);
   const plainTextContent = getPlainText(recordData.record.content, recordFormat);
 
   return {
@@ -468,4 +469,72 @@ export async function action({ request, context }: Route.ActionArgs) {
   }
 
   return { error: "알 수 없는 요청입니다." };
+}
+
+type DrizzleDB = ReturnType<typeof db>;
+
+async function buildMentionSlugMap(
+  database: DrizzleDB,
+  content: string,
+): Promise<MentionSlugMap> {
+  const map: MentionSlugMap = new Map();
+
+  const mentionIds = extractMentionIds(content);
+  if (mentionIds.length === 0) return map;
+
+  const results = await database
+    .select({ userId: learnerProfiles.userId, slug: learnerProfiles.slug })
+    .from(learnerProfiles)
+    .where(
+      sql`${learnerProfiles.slug} IN (${sql.join(mentionIds.map((id) => sql`${id}`), sql`, `)}) OR ${learnerProfiles.userId} IN (${sql.join(mentionIds.map((id) => sql`${id}`), sql`, `)})`,
+    );
+
+  for (const row of results) {
+    if (mentionIds.includes(row.slug)) {
+      map.set(row.slug, row.slug);
+    }
+    if (mentionIds.includes(row.userId)) {
+      map.set(row.userId, row.slug);
+    }
+  }
+
+  return map;
+}
+
+function extractMentionIds(content: string): string[] {
+  try {
+    const doc = JSON.parse(content);
+    if (!doc || doc.type !== "doc") return [];
+
+    const ids: string[] = [];
+    const seen = new Set<string>();
+
+    function traverse(node: Record<string, unknown>): void {
+      if (
+        (node.type === "userMention" || node.type === "mention") &&
+        node.attrs &&
+        typeof node.attrs === "object" &&
+        "id" in node.attrs
+      ) {
+        const id = String((node.attrs as Record<string, unknown>).id);
+        if (id && !seen.has(id)) {
+          seen.add(id);
+          ids.push(id);
+        }
+      }
+
+      if (Array.isArray(node.content)) {
+        for (const child of node.content) {
+          if (typeof child === "object" && child !== null) {
+            traverse(child as Record<string, unknown>);
+          }
+        }
+      }
+    }
+
+    traverse(doc);
+    return ids;
+  } catch {
+    return [];
+  }
 }

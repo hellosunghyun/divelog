@@ -6,6 +6,7 @@ type PreviewType = "learner" | "record";
 interface PreviewInfo {
   type: PreviewType;
   slug: string;
+  userId?: string;
 }
 
 interface LearnerPreviewData {
@@ -39,6 +40,7 @@ function cacheKey(type: PreviewType, slug: string) {
 async function fetchPreview(
   type: PreviewType,
   slug: string,
+  userId?: string,
 ): Promise<LearnerPreviewData | RecordPreviewData | null> {
   const key = cacheKey(type, slug);
   const cached = previewCache.get(key);
@@ -47,8 +49,10 @@ async function fetchPreview(
   const endpoint =
     type === "learner" ? "/api/preview-learner" : "/api/preview-record";
 
+  const lookupSlug = userId && type === "learner" ? userId : slug;
+
   try {
-    const res = await fetch(`${endpoint}?slug=${encodeURIComponent(slug)}`);
+    const res = await fetch(`${endpoint}?slug=${encodeURIComponent(lookupSlug)}`);
     if (!res.ok) return null;
     const data = (await res.json()) as LearnerPreviewData | RecordPreviewData;
     previewCache.set(key, data);
@@ -86,7 +90,11 @@ function parseAnchor(anchor: HTMLAnchorElement): PreviewInfo | null {
     : "record";
   const href = anchor.getAttribute("href") ?? "";
   const slug = href.split("/").filter(Boolean).pop() ?? "";
-  return slug ? { type, slug } : null;
+  if (!slug) return null;
+  const userId = type === "learner"
+    ? anchor.getAttribute("data-user-id") ?? undefined
+    : undefined;
+  return { type, slug, userId };
 }
 
 export function useMentionPreview(containerRef: RefObject<HTMLDivElement | null>) {
@@ -215,6 +223,7 @@ export function MentionPreviewCard({
 
   const previewType = preview?.type;
   const previewSlug = preview?.slug;
+  const previewUserId = preview?.userId;
 
   useEffect(() => {
     if (!previewType || !previewSlug) return;
@@ -232,14 +241,14 @@ export function MentionPreviewCard({
     let cancelled = false;
     setData(null);
     setLoading(true);
-    fetchPreview(previewType, previewSlug).then((result) => {
+    fetchPreview(previewType, previewSlug, previewUserId).then((result) => {
       if (cancelled) return;
       setData(result);
       setLoading(false);
     });
 
     return () => { cancelled = true; };
-  }, [previewType, previewSlug]);
+  }, [previewType, previewSlug, previewUserId]);
 
   if (typeof document === "undefined") return null;
 
