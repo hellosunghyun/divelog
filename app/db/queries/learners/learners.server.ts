@@ -21,6 +21,19 @@ function normalizePhotoUrl(url: string | null | undefined): string | null {
   return `https://ada-kr-pos.com${url.startsWith("/") ? "" : "/"}${url}`;
 }
 
+function extractEmailPrefix(email: string | null | undefined): string | null {
+  if (!email) return null;
+  const prefix = email.split("@")[0];
+  if (!prefix) return null;
+  const clean = prefix
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
+    .substring(0, 40);
+  return clean || null;
+}
+
 function generateSlug(base: string, suffix?: number): string {
   const clean =
     base
@@ -76,15 +89,39 @@ export async function getOrCreateLearnerProfile(d1: D1Database, user: AdakrposUs
     .limit(1);
 
   if (existing.length > 0) {
+    const updateData: Record<string, unknown> = {
+      displayName,
+      email: user.verifiedEmail ?? user.email ?? null,
+      profilePhotoUrl: normalizePhotoUrl(user.profilePhotoUrl),
+      cohort: user.cohort ?? null,
+      updatedAt: now,
+    };
+
+    // 기존 slug가 fallback("learner" 또는 "learner-N")이면 이메일 기반으로 재생성
+    const currentSlug = existing[0].slug;
+    if (/^learner(-\d+)?$/.test(currentSlug)) {
+      const emailPrefix = extractEmailPrefix(user.verifiedEmail ?? user.email);
+      if (emailPrefix) {
+        let newSlug = emailPrefix;
+        let attempt = 0;
+        while (true) {
+          const slugCheck = await database
+            .select({ slug: learnerProfiles.slug })
+            .from(learnerProfiles)
+            .where(eq(learnerProfiles.slug, newSlug))
+            .limit(1);
+          if (slugCheck.length === 0 || slugCheck[0].slug === currentSlug) break;
+          attempt += 1;
+          newSlug = `${emailPrefix}-${attempt + 1}`;
+          if (attempt > 100) { newSlug = `${emailPrefix}-${nanoid().substring(0, 6)}`; break; }
+        }
+        updateData.slug = newSlug;
+      }
+    }
+
     await database
       .update(learnerProfiles)
-      .set({
-        displayName,
-        email: user.verifiedEmail ?? user.email ?? null,
-        profilePhotoUrl: normalizePhotoUrl(user.profilePhotoUrl),
-        cohort: user.cohort ?? null,
-        updatedAt: now,
-      })
+      .set(updateData)
       .where(eq(learnerProfiles.userId, user.id));
 
     const updated = await database
@@ -96,7 +133,8 @@ export async function getOrCreateLearnerProfile(d1: D1Database, user: AdakrposUs
     return updated[0] ?? existing[0];
   }
 
-  const baseSlug = generateSlug(user.nickname ?? user.name ?? "learner");
+  const emailPrefix = extractEmailPrefix(user.verifiedEmail ?? user.email);
+  const baseSlug = generateSlug(emailPrefix ?? user.nickname ?? user.name ?? "learner");
   let slug = baseSlug;
   let attempt = 0;
 
