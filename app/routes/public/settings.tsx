@@ -157,12 +157,13 @@ export default function SettingsPage({ loaderData }: Route.ComponentProps) {
                 <p className="text-sm text-text-secondary mb-1">
                   새로운 기록을 작성할 때 기본으로 선택될 공개 범위를 설정합니다. 작성 시 언제든 변경할 수 있습니다.
                 </p>
-                <Select name="defaultVisibility" defaultValue={learner?.defaultVisibility ?? "cohort"}>
+                <Select name="defaultVisibility" defaultValue={learner?.defaultVisibility ?? "public"}>
                   <SelectTrigger id="defaultVisibility" className="w-full max-w-sm bg-surface">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="draft">임시저장 (나만 보기)</SelectItem>
+                    <SelectItem value="draft">임시저장</SelectItem>
+                    <SelectItem value="private">나만 보기</SelectItem>
                     <SelectItem value="cohort">코호트 공개</SelectItem>
                     <SelectItem value="public">전체 공개</SelectItem>
                   </SelectContent>
