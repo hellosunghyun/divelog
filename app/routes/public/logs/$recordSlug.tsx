@@ -1,5 +1,5 @@
 import { Link } from "~/components/content/SmartLink";
-import { useFetcher, useActionData, useNavigation, useSubmit } from "react-router";
+import { useFetcher, useActionData, useNavigation, useSubmit, isRouteErrorResponse, useRouteError } from "react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { cn } from "~/lib/utils/cn";
@@ -65,6 +65,7 @@ export async function clientLoader({ params, serverLoader }: Route.ClientLoaderA
   setCached(key, data);
   return data;
 }
+clientLoader.hydrate = true as const;
 
 export async function clientAction({ params, serverAction }: Route.ClientActionArgs) {
   const result = await serverAction();
@@ -88,14 +89,24 @@ export function meta({ data: loaderData }: Route.MetaArgs) {
 
 export function shouldRevalidate({
   formMethod,
+  currentParams,
+  nextParams,
   defaultShouldRevalidate,
 }: {
   formMethod?: string;
+  currentParams: Record<string, string>;
+  nextParams: Record<string, string>;
   defaultShouldRevalidate: boolean;
 }): boolean {
+  // params가 변경되면 반드시 재로드 (다른 record로 이동)
+  if (currentParams.recordSlug !== nextParams.recordSlug) {
+    return true;
+  }
+  // POST 등 mutation 후에는 기본 정책 따름
   if (formMethod && formMethod !== "GET") {
     return defaultShouldRevalidate;
   }
+  // 같은 record 내 GET 네비게이션은 캐시 활용
   return false;
 }
 
@@ -422,6 +433,7 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
   const sentencePopupRef = useRef<HTMLDivElement | null>(null);
   const savedRangeRef = useRef<Range | null>(null);
   const highlightCleanupRef = useRef<(() => void) | null>(null);
+  const highlightOverlayRef = useRef<HTMLDivElement | null>(null);
   const { unmarkRead } = useReadTracking({
     recordId: record.id,
     format: record.format,
@@ -468,43 +480,29 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
   }, [removeHighlight]);
 
   const applyHighlight = useCallback((range: Range) => {
-    const marks: HTMLElement[] = [];
-    const container = range.commonAncestorContainer.nodeType === Node.TEXT_NODE
-      ? range.commonAncestorContainer.parentElement
-      : range.commonAncestorContainer;
-    if (!container) return;
+    const overlayContainer = highlightOverlayRef.current;
+    const articleContainer = articleContentRef.current;
+    if (!overlayContainer || !articleContainer) return;
 
-    const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT);
-    const textNodes: Node[] = [];
-    let n = walker.nextNode();
-    while (n) {
-      if (range.intersectsNode(n)) textNodes.push(n);
-      n = walker.nextNode();
-    }
+    overlayContainer.innerHTML = "";
+    const containerRect = articleContainer.getBoundingClientRect();
+    const rects = range.getClientRects();
 
-    for (const textNode of textNodes) {
-      const r = document.createRange();
-      r.setStart(textNode, textNode === range.startContainer ? range.startOffset : 0);
-      r.setEnd(textNode, textNode === range.endContainer ? range.endOffset : (textNode.textContent?.length ?? 0));
-      if (r.collapsed) continue;
-
-      const mark = document.createElement("mark");
-      mark.style.backgroundColor = "rgba(108,196,214,0.3)";
-      mark.style.borderRadius = "2px";
-      try {
-        r.surroundContents(mark);
-        marks.push(mark);
-      } catch { /* empty */ }
+    for (const rect of Array.from(rects)) {
+      if (rect.width === 0 || rect.height === 0) continue;
+      const overlay = document.createElement("div");
+      overlay.style.position = "absolute";
+      overlay.style.left = `${rect.left - containerRect.left}px`;
+      overlay.style.top = `${rect.top - containerRect.top}px`;
+      overlay.style.width = `${rect.width}px`;
+      overlay.style.height = `${rect.height}px`;
+      overlay.style.backgroundColor = "rgba(108,196,214,0.25)";
+      overlay.style.borderRadius = "2px";
+      overlayContainer.appendChild(overlay);
     }
 
     highlightCleanupRef.current = () => {
-      for (const m of marks) {
-        const p = m.parentNode;
-        if (!p) continue;
-        while (m.firstChild) p.insertBefore(m.firstChild, m);
-        p.removeChild(m);
-        p.normalize();
-      }
+      overlayContainer.innerHTML = "";
     };
   }, []);
 
@@ -612,7 +610,9 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
     }
 
     const handleClickOutside = (e: MouseEvent | TouchEvent) => {
-      if (articleContentRef.current?.contains(e.target as Node)) return;
+      const target = e.target as HTMLElement;
+      if (articleContentRef.current?.contains(target)) return;
+      if (target.closest?.('button[aria-label="문장 저장하기"]')) return;
       hideSentenceButton();
     };
 
@@ -830,8 +830,9 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
       </header>
 
       <section className="mb-12 relative">
-        <div ref={articleContentRef}>
+        <div ref={articleContentRef} className="relative">
           <ContentRenderer contentHtml={contentHtml} format={recordFormat} />
+          <div ref={highlightOverlayRef} className="pointer-events-none absolute inset-0" aria-hidden="true" />
         </div>
 
         {showSentenceButton && selectedText && !showSentencePopup ? (
@@ -1398,10 +1399,22 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
 }
 
 export function ErrorBoundary() {
+  const error = useRouteError();
+  const isNotFound = isRouteErrorResponse(error) && error.status === 404;
+
+  const title = isNotFound
+    ? "기록을 찾을 수 없습니다"
+    : "기록을 불러오는 중 문제가 생겼습니다";
+
+  const description = isNotFound
+    ? "삭제되었거나 존재하지 않는 기록입니다."
+    : "잠시 후 다시 시도해주세요.";
+
   return (
-    <div className="text-center py-16 px-4">
-      <p className="text-xl font-semibold text-text-primary">기록을 찾을 수 없습니다.</p>
-      <Link to="/logs" className="mt-4 inline-block rounded-full bg-deep-ocean text-white px-7 py-3 text-[15px] font-medium hover:bg-ocean-blue transition-all shadow-sm hover:shadow-md no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2">
+    <div className="text-center py-16 px-4 max-w-reading mx-auto">
+      <p className="text-xl font-semibold text-text-primary mb-3">{title}</p>
+      <p className="text-base text-text-secondary mb-8">{description}</p>
+      <Link to="/logs" className="inline-block rounded-full bg-deep-ocean text-white px-7 py-3 text-[15px] font-medium hover:bg-ocean-blue transition-all shadow-sm hover:shadow-md no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2">
         기록 목록으로
       </Link>
     </div>
