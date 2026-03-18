@@ -51,7 +51,7 @@ export function useReadState(recordIds: string[]): UseReadStateResult {
     const ids = recordIdsKey ? recordIdsKey.split(",") : [];
     const localReadIds = getLocalReadIds();
     const filtered = ids.filter((id) => localReadIds.has(id));
-    setReadSet((prev) => {
+    setReadSet((prev: Set<string>) => {
       if (prev.size === filtered.length && filtered.every((id) => prev.has(id))) {
         return prev;
       }
@@ -60,6 +60,7 @@ export function useReadState(recordIds: string[]): UseReadStateResult {
   }, [isAuthenticated, recordIdsKey]);
 
   useEffect(() => {
+    if (isAuthenticated) return;
     function handleVisibility() {
       if (document.visibilityState === "visible") refreshLocalReads();
     }
@@ -69,7 +70,7 @@ export function useReadState(recordIds: string[]): UseReadStateResult {
       document.removeEventListener("visibilitychange", handleVisibility);
       window.removeEventListener("focus", refreshLocalReads);
     };
-  }, [refreshLocalReads]);
+  }, [isAuthenticated, refreshLocalReads]);
 
   useEffect(() => {
     if (!isAuthenticated || !userId || syncedRef.current) {
@@ -112,13 +113,16 @@ export function useReadState(recordIds: string[]): UseReadStateResult {
   }, [syncFetcher.data]);
 
   useEffect(() => {
-    if (!isAuthenticated || !hasRecordIds) {
+    if (isAuthenticated && hasRecordIds) {
+      setIsLoading(true);
+      fetcherRef.current.load(`/api/track-read?ids=${encodeURIComponent(recordIdsKey)}`);
       return;
     }
 
-    setIsLoading(true);
-    fetcherRef.current.load(`/api/track-read?ids=${encodeURIComponent(recordIdsKey)}`);
-  }, [isAuthenticated, hasRecordIds, recordIdsKey]);
+    if (!isAuthenticated) {
+      refreshLocalReads();
+    }
+  }, [isAuthenticated, hasRecordIds, recordIdsKey, refreshLocalReads]);
 
   useEffect(() => {
     if (fetcher.data?.readIds) {
@@ -127,15 +131,10 @@ export function useReadState(recordIds: string[]): UseReadStateResult {
       return;
     }
 
-    if (fetcher.state === "idle") {
+    if (fetcher.state === "idle" && isLoading) {
       setIsLoading(false);
     }
-  }, [fetcher.data, fetcher.state]);
-
-  useEffect(() => {
-    refreshLocalReads();
-    setIsLoading(false);
-  }, [refreshLocalReads]);
+  }, [fetcher.data, fetcher.state, isLoading]);
 
   return {
     isRead: (recordId: string) => readSet.has(recordId),

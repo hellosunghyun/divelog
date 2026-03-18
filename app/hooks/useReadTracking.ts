@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useFetcher } from "react-router";
 
 import {
@@ -22,42 +22,40 @@ export function useReadTracking({
   isAuthenticated,
 }: UseReadTrackingOptions): UseReadTrackingResult {
   const fetcher = useFetcher();
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const noopUnmarkRead = () => {};
+  const fetcherRef = useRef(fetcher);
+  fetcherRef.current = fetcher;
+
+  const isAuthenticatedRef = useRef(isAuthenticated);
+  isAuthenticatedRef.current = isAuthenticated;
 
   useEffect(() => {
     if (format !== "article") {
       return;
     }
 
-    timeoutRef.current = setTimeout(() => {
-      if (isAuthenticated) {
-        fetcher.submit(
+    const timeout = setTimeout(() => {
+      if (isAuthenticatedRef.current) {
+        fetcherRef.current.submit(
           { intent: "mark_read", recordId },
           { method: "POST", action: "/api/track-read" }
         );
       } else {
         markLocalRead(recordId);
       }
-
-      timeoutRef.current = null;
     }, 5000);
 
     return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-        timeoutRef.current = null;
-      }
+      clearTimeout(timeout);
     };
-  }, [fetcher, format, isAuthenticated, recordId]);
+  }, [format, recordId]);
 
-  if (format !== "article") {
-    return { unmarkRead: noopUnmarkRead };
-  }
+  const unmarkRead = useCallback(() => {
+    if (format !== "article") {
+      return;
+    }
 
-  const unmarkRead = () => {
-    if (isAuthenticated) {
-      fetcher.submit(
+    if (isAuthenticatedRef.current) {
+      fetcherRef.current.submit(
         { intent: "unmark_read", recordId },
         { method: "POST", action: "/api/track-read" }
       );
@@ -65,7 +63,7 @@ export function useReadTracking({
     }
 
     unmarkLocalRead(recordId);
-  };
+  }, [format, recordId]);
 
   return { unmarkRead };
 }
