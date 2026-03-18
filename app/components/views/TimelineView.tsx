@@ -37,14 +37,25 @@ const stageBorderColors: Record<string, string> = {
   unassigned: "#E3E8EF",
 };
 
+function formatDateMarker(timestamp: number): string {
+  return new Intl.DateTimeFormat("ko-KR", {
+    month: "long",
+    day: "numeric",
+  }).format(new Date(timestamp * 1000));
+}
+
+function getDayKey(timestamp: number): number {
+  return Math.floor(timestamp / 86400);
+}
+
 function StageSection({ group }: { group: StageGroup<TimelineRecord> }) {
-  const { stageName, stageType, notes, articles } = group;
+  const { stageName, stageType, allRecords } = group;
   const accentColor = stageAccentColors[stageType] ?? stageAccentColors.unassigned;
   const borderColor = stageBorderColors[stageType] ?? stageBorderColors.unassigned;
   const isUnassigned = stageType === "unassigned";
 
   return (
-    <section className="mb-10 last:mb-0">
+    <section className="mb-12 last:mb-0">
       <div
         className={cn(
           "flex items-center gap-3 mb-6",
@@ -64,79 +75,55 @@ function StageSection({ group }: { group: StageGroup<TimelineRecord> }) {
         >
           {stageName}
         </h3>
+        <span className="text-sm text-text-tertiary font-medium">
+          ({allRecords.length})
+        </span>
       </div>
 
       <div className="relative">
         <div
-          className="hidden md:block absolute left-1/2 top-0 bottom-0 w-px -translate-x-1/2 bg-gradient-to-b from-ocean-blue/30 via-border to-transparent"
+          className="absolute left-5 top-0 bottom-0 w-px bg-gradient-to-b from-border via-border to-transparent"
           aria-hidden="true"
         />
 
-        <div className="hidden md:grid md:grid-cols-[1fr_1fr] gap-8">
-          <div className="space-y-3 pr-4">
-            {notes.length > 0 ? (
-              notes.map((record) => (
-                <CompactTimelineCard
-                  key={record.id}
-                  slug={record.slug}
-                  title={record.title}
-                  contentSnippet={record.contentSnippet}
-                  format="note"
-                  stageType={record.stageType}
-                  createdAt={record.createdAt}
-                />
-              ))
-            ) : (
-              <div className="h-12 flex items-center justify-center">
-                <span className="text-xs text-text-tertiary">노트 없음</span>
+        <div className="space-y-4">
+          {allRecords.map((record, index) => {
+            const prevRecord = index > 0 ? allRecords[index - 1] : null;
+            const showDateMarker =
+              prevRecord === null || getDayKey(record.createdAt) !== getDayKey(prevRecord.createdAt);
+
+            return (
+              <div key={record.id}>
+                {showDateMarker && (
+                  <div className="flex items-center gap-3 pl-14 mb-3">
+                    <time
+                      className="text-xs font-medium text-text-tertiary uppercase tracking-wide"
+                      suppressHydrationWarning
+                    >
+                      {formatDateMarker(record.createdAt)}
+                    </time>
+                    <div className="flex-1 h-px bg-border-subtle" aria-hidden="true" />
+                  </div>
+                )}
+
+                <div className="relative pl-14">
+                  <span
+                    className="absolute left-[17px] top-5 w-3 h-3 rounded-full ring-2 ring-surface z-10"
+                    style={{ backgroundColor: accentColor }}
+                    aria-hidden="true"
+                  />
+                  <CompactTimelineCard
+                    slug={record.slug}
+                    title={record.title}
+                    contentSnippet={record.contentSnippet}
+                    format={record.format}
+                    stageType={record.stageType}
+                    createdAt={record.createdAt}
+                  />
+                </div>
               </div>
-            )}
-          </div>
-
-          <div className="space-y-3 pl-4">
-            {articles.length > 0 ? (
-              articles.map((record) => (
-                <CompactTimelineCard
-                  key={record.id}
-                  slug={record.slug}
-                  title={record.title}
-                  contentSnippet={record.contentSnippet}
-                  format="article"
-                  stageType={record.stageType}
-                  createdAt={record.createdAt}
-                />
-              ))
-            ) : (
-              <div className="h-12 flex items-center justify-center">
-                <span className="text-xs text-text-tertiary">글 없음</span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="md:hidden space-y-3">
-          <div
-            className="absolute left-3 top-0 bottom-0 w-px bg-gradient-to-b from-ocean-blue/30 via-border to-transparent"
-            aria-hidden="true"
-          />
-
-          {group.allRecords.map((record) => (
-            <div key={record.id} className="relative pl-10">
-              <span
-                className="absolute left-1.5 top-4 w-2 h-2 rounded-full ring-2 ring-surface"
-                style={{ backgroundColor: accentColor }}
-                aria-hidden="true"
-              />
-              <CompactTimelineCard
-                slug={record.slug}
-                title={record.title}
-                contentSnippet={record.contentSnippet}
-                format={record.format}
-                stageType={record.stageType}
-                createdAt={record.createdAt}
-              />
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>
