@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback, type RefObject } from "react";
 import { createPortal } from "react-dom";
+import { useNavigate } from "react-router";
 
 type PreviewType = "learner" | "record";
 
@@ -199,6 +200,7 @@ export function MentionPreviewCard({
   onCardEnter: () => void;
   onCardLeave: () => void;
 }) {
+  const navigate = useNavigate();
   const [data, setData] = useState<LearnerPreviewData | RecordPreviewData | null>(null);
   const [loading, setLoading] = useState(false);
   const lastKey = useRef<string>("");
@@ -235,11 +237,21 @@ export function MentionPreviewCard({
 
   const visible = open && preview && (loading || !!data);
 
+  const handleCardClick = () => {
+    if (!preview || !data) return;
+    const href = preview.type === "learner"
+      ? `/learners/${preview.slug}`
+      : `/logs/${preview.slug}`;
+    navigate(href);
+  };
+
   return createPortal(
     <div
       ref={cardRef}
       onMouseEnter={onCardEnter}
       onMouseLeave={onCardLeave}
+      onClick={handleCardClick}
+      onKeyDown={(e) => { if (e.key === "Enter") handleCardClick(); }}
       role="tooltip"
       style={{
         position: "fixed",
@@ -247,6 +259,7 @@ export function MentionPreviewCard({
         left: pos.left,
         width: CARD_WIDTH,
         zIndex: 9999,
+        cursor: data ? "pointer" : "default",
         opacity: visible ? 1 : 0,
         pointerEvents: visible ? "auto" : "none",
         transform: visible ? "scale(1)" : "scale(0.97)",
