@@ -28,7 +28,7 @@ import {
   userRoles,
 } from "~/db/schema.server";
 import { createNotification } from "~/db/queries/social/notifications.server";
-import { updateResponse, deleteResponse } from "~/db/queries/dialogue/responses.server";
+import { updateResponse, deleteResponse, getResponseById } from "~/db/queries/dialogue/responses.server";
 
 export async function loader({ params, context, request }: Route.LoaderArgs) {
   const { recordSlug } = params;
@@ -183,6 +183,7 @@ export async function action({ request, context }: Route.ActionArgs) {
       recordId: formData.get("recordId"),
       questionId: formData.get("questionId") || undefined,
       visibility: formData.get("visibility") || "cohort",
+      parentResponseId: formData.get("parentResponseId") || undefined,
     });
 
     if (!parsed.success) {
@@ -212,6 +213,31 @@ export async function action({ request, context }: Route.ActionArgs) {
       }
     }
 
+    // 답글 유효성 검증
+    if (parsed.data.parentResponseId) {
+      const parentResponse = await getResponseById(context.cloudflare.env.DB, parsed.data.parentResponseId);
+
+      // 1. 존재 확인
+      if (!parentResponse) {
+        return { error: "답글을 달 수 없는 응답입니다." };
+      }
+
+      // 2. 같은 recordId 확인
+      if (parentResponse.recordId !== parsed.data.recordId) {
+        return { error: "답글을 달 수 없는 응답입니다." };
+      }
+
+      // 3. moderationStatus가 "clean"인지 확인
+      if (parentResponse.moderationStatus !== "clean") {
+        return { error: "답글을 달 수 없는 응답입니다." };
+      }
+
+      // 4. 답글 type이 self_answer이면 거부
+      if (parsed.data.type === "self_answer") {
+        return { error: "자기답변은 답글로 작성할 수 없습니다." };
+      }
+    }
+
     const id = nanoid();
     const now = Math.floor(Date.now() / 1000);
 
@@ -224,6 +250,7 @@ export async function action({ request, context }: Route.ActionArgs) {
       content: parsed.data.content,
       visibility: parsed.data.visibility,
       moderationStatus: "clean",
+      parentResponseId: parsed.data.parentResponseId ?? null,
       createdAt: now,
       updatedAt: now,
     });
