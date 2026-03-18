@@ -1,5 +1,6 @@
 import type { Route } from "./+types/search";
-import { Form, useSearchParams, useNavigation } from "react-router";
+import { useSearchParams, useNavigation } from "react-router";
+import { useEffect, useRef, useState } from "react";
 import { like, or, desc, eq, and, sql } from "drizzle-orm";
 import SceneCard from "~/components/cards/SceneCard";
 import LearnerCard from "~/components/cards/LearnerCard";
@@ -12,22 +13,29 @@ import { learnerProfiles, questions, records, sentences } from "~/db/schema.serv
 import { getPlainText } from "~/lib/content/content.server";
 import { normalizeContentFormat } from "~/lib/content/editor-extensions";
 import { createLogger } from "~/lib/infra/logger.server";
+import { hangulIncludes } from "~/lib/utils/hangul";
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "검색 — DiveLog" }];
 }
 
 export function shouldRevalidate({
-  formMethod,
+  currentUrl,
+  nextUrl,
   defaultShouldRevalidate,
 }: {
-  formMethod?: string;
+  currentUrl: URL;
+  nextUrl: URL;
   defaultShouldRevalidate: boolean;
 }): boolean {
-  if (formMethod && formMethod !== "GET") {
-    return defaultShouldRevalidate;
+  if (currentUrl.search !== nextUrl.search) {
+    return true;
   }
-  return false;
+  return defaultShouldRevalidate;
+}
+
+function isJamoQuery(q: string): boolean {
+  return /^[ㄱ-ㅎㅏ-ㅣ]+$/.test(q);
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {
@@ -35,10 +43,11 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   logger.info("loader_start");
   const url = new URL(request.url);
   const q = url.searchParams.get("q") ?? "";
+  const trimmedQuery = q.trim();
   const tab = url.searchParams.get("tab") ?? "all";
   logger.info("search_query", { query: q, filters: { tab } });
 
-  if (!q.trim()) {
+  if (!trimmedQuery) {
     logger.info("loader_end");
     return {
       q: "",
@@ -47,55 +56,80 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     };
   }
 
-  const pattern = `%${q}%`;
+  const pattern = `%${trimmedQuery}%`;
+  const broadFetch = trimmedQuery.length <= 2 || isJamoQuery(trimmedQuery);
+  const fetchLimit = broadFetch ? 50 : 10;
   const database = db(context.cloudflare.env.DB);
+  const recordVisibilityFilter = sql`${records.visibility} IN ('cohort', 'public')`;
+  const learnersQuery = broadFetch
+    ? database
+        .select()
+        .from(learnerProfiles)
+        .limit(fetchLimit)
+    : database
+        .select()
+        .from(learnerProfiles)
+        .where(like(learnerProfiles.displayName, pattern))
+        .limit(fetchLimit);
 
-   const [foundRecordsRaw, foundQuestions, foundLearners, foundSentences] = await database.batch([
-     database
-       .select()
-       .from(records)
-        .where(
-          and(
-            or(like(records.title, pattern), like(records.contentText, pattern)),
-            sql`${records.visibility} IN ('cohort', 'public')`
-          )
-        )
-       .orderBy(desc(records.createdAt))
-       .limit(10),
-     database
-       .select({
-         question: questions,
-       })
-       .from(questions)
-       .innerJoin(records, eq(questions.recordId, records.id))
-       .where(
-         and(
-           like(questions.content, pattern),
-            sql`${records.visibility} IN ('cohort', 'public')`
-         )
-       )
-       .limit(10),
-     database
-       .select()
-       .from(learnerProfiles)
-       .where(like(learnerProfiles.displayName, pattern))
-       .limit(10),
-     database
-       .select({
-         sentence: sentences,
-       })
-       .from(sentences)
-       .innerJoin(records, eq(sentences.recordId, records.id))
-       .where(
-         and(
-           like(sentences.content, pattern),
-            sql`${records.visibility} IN ('cohort', 'public')`
-         )
-       )
-       .limit(10),
-   ]);
+  const [foundRecordsRaw, foundQuestionsRaw, foundLearnersRaw, foundSentencesRaw] = await database.batch([
+    database
+      .select()
+      .from(records)
+      .where(
+        broadFetch
+          ? recordVisibilityFilter
+          : and(
+              or(like(records.title, pattern), like(records.contentText, pattern)),
+              recordVisibilityFilter
+            )
+      )
+      .orderBy(desc(records.createdAt))
+      .limit(fetchLimit),
+    database
+      .select({
+        question: questions,
+      })
+      .from(questions)
+      .innerJoin(records, eq(questions.recordId, records.id))
+      .where(
+        broadFetch
+          ? recordVisibilityFilter
+          : and(like(questions.content, pattern), recordVisibilityFilter)
+      )
+      .limit(fetchLimit),
+    learnersQuery,
+    database
+      .select({
+        sentence: sentences,
+      })
+      .from(sentences)
+      .innerJoin(records, eq(sentences.recordId, records.id))
+      .where(
+        broadFetch
+          ? recordVisibilityFilter
+          : and(like(sentences.content, pattern), recordVisibilityFilter)
+      )
+      .limit(fetchLimit),
+  ]);
 
-  const authorIds = [...new Set(foundRecordsRaw.map((r) => r.authorId).filter(Boolean))];
+  const foundRecords = foundRecordsRaw
+    .filter((record) =>
+      hangulIncludes(record.title ?? "", trimmedQuery) ||
+      hangulIncludes(record.contentText ?? "", trimmedQuery)
+    )
+    .slice(0, 10);
+  const foundQuestions = foundQuestionsRaw
+    .filter((item) => hangulIncludes(item.question.content, trimmedQuery))
+    .slice(0, 10);
+  const foundLearners = foundLearnersRaw
+    .filter((learner) => hangulIncludes(learner.displayName, trimmedQuery))
+    .slice(0, 10);
+  const foundSentences = foundSentencesRaw
+    .filter((item) => hangulIncludes(item.sentence.content, trimmedQuery))
+    .slice(0, 10);
+
+  const authorIds = [...new Set(foundRecords.map((r) => r.authorId).filter(Boolean))];
   const authorMap = new Map<string, { displayName: string; slug: string; profilePhotoUrl: string | null }>();
   if (authorIds.length > 0) {
     const authors = await database
@@ -112,7 +146,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     }
   }
 
-  const recordsWithSnippets = foundRecordsRaw.map((record) => {
+  const recordsWithSnippets = foundRecords.map((record) => {
     const plainTextContent = getPlainText(record.content, normalizeContentFormat(record.format));
     const author = authorMap.get(record.authorId) ?? null;
 
@@ -126,7 +160,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 
   logger.info("loader_end");
   return {
-    q,
+    q: trimmedQuery,
     tab,
     results: {
       records: recordsWithSnippets,
@@ -147,14 +181,42 @@ const TABS = [
 
 export default function SearchPage({ loaderData }: Route.ComponentProps) {
   const { q, tab, results } = loaderData;
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const navigation = useNavigation();
+  const [inputValue, setInputValue] = useState(q);
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const isSearching = navigation.state === "loading";
   const total =
     results.records.length +
     results.questions.length +
     results.learners.length +
     results.sentences.length;
+
+  useEffect(() => {
+    setInputValue(q);
+  }, [q]);
+
+  function handleSearchInput(value: string) {
+    setInputValue(value);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+
+    debounceRef.current = setTimeout(() => {
+      const params = new URLSearchParams(searchParams);
+      const trimmed = value.trim();
+      if (trimmed) {
+        params.set("q", trimmed);
+      } else {
+        params.delete("q");
+      }
+      setSearchParams(params, { replace: true });
+    }, 300);
+  }
+
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
 
   return (
     <div>
@@ -165,27 +227,21 @@ export default function SearchPage({ loaderData }: Route.ComponentProps) {
       />
 
       <div className="max-w-content mx-auto py-12 px-6">
-        <Form className="mb-10">
+        <div className="mb-10">
           <div className="relative max-w-2xl mx-auto">
             <label htmlFor="search-query" className="sr-only">
               검색어
             </label>
             <input
               id="search-query"
-              name="q"
               type="search"
-              defaultValue={q}
+              value={inputValue}
+              onChange={(e) => handleSearchInput(e.currentTarget.value)}
               placeholder="기록, 질문, 학습자를 검색하세요"
               className="w-full rounded-full px-6 py-4 text-lg bg-surface border border-border focus:outline-none focus:ring-2 focus:ring-ocean-blue focus:border-ocean-blue shadow-tinted-sm placeholder:text-text-tertiary transition-premium"
             />
-            <button
-              type="submit"
-              className="absolute right-2 top-1/2 -translate-y-1/2 bg-deep-ocean text-white px-6 py-2.5 rounded-full text-sm font-medium hover:bg-ocean-blue transition-premium active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
-            >
-              검색
-            </button>
           </div>
-        </Form>
+        </div>
 
         {isSearching ? (
           <>
