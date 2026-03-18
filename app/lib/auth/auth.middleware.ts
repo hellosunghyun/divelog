@@ -53,6 +53,16 @@ export async function requireAuth(request: Request, context: AppLoadContext) {
       });
     }
 
+    // auth_retry=1이 이미 있으면 로그인 후에도 인증에 실패한 것 — 무한 리다이렉트 방지
+    if (url.searchParams.get("auth_retry") === "1") {
+      logger.error("auth_retry_loop_detected", {
+        returnPath: url.pathname,
+        hasSessionCookie,
+        hasApiKey: !!context.cloudflare.env.ADAKRPOS_API_KEY,
+      });
+      throw redirect("/?auth_error=session_expired");
+    }
+
     logger.info("auth_redirect", {
       returnUrl: `${url.pathname}${url.search}`,
     });
