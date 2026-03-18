@@ -8,7 +8,7 @@ interface BreadcrumbItem {
 }
 
 interface AdminContextBarProps {
-  title: string;
+  title?: string;
   breadcrumbs?: BreadcrumbItem[];
   actions?: React.ReactNode;
 }

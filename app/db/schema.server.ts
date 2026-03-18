@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { index, integer, primaryKey, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
+import { type AnySQLiteColumn, index, integer, primaryKey, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 const now = () => sql`(unixepoch())`;
 
@@ -148,7 +148,7 @@ export const responses = sqliteTable("responses", {
   authorId: text("author_id")
     .notNull()
     .references(() => learnerProfiles.userId),
-  parentResponseId: text("parent_response_id").references(() => responses.id),
+  parentResponseId: text("parent_response_id").references((): AnySQLiteColumn => responses.id),
   type: text("type").notNull(),
   content: text("content").notNull(),
   visibility: text("visibility").notNull().default("public"),
@@ -404,5 +404,4 @@ export const recordParticipants = sqliteTable(
   },
   (table) => [primaryKey({ columns: [table.recordId, table.participantUserId] })],
 );
-
 
