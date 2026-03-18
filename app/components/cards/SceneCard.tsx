@@ -1,7 +1,7 @@
 import { Link } from "~/components/content/SmartLink";
 import { EditedIndicator } from "~/components/ui/EditedIndicator";
 import { motion } from "~/lib/motion/motion";
-import { fadeUp } from "~/lib/motion/motion-utils";
+
 import { cn } from "~/lib/utils/cn";
 
 interface SceneCardProps {
@@ -102,10 +102,6 @@ export default function SceneCard({
       whileHover={{ y: -2 }}
       whileTap={{ scale: 0.98 }}
       transition={{ duration: 0.15, ease: [0.32, 0.72, 0, 1] }}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, margin: "-50px" }}
-      variants={fadeUp}
     >
       <div className="bg-surface rounded-xl p-5 md:p-6 h-full flex flex-col gap-4">
         <div className="flex gap-2 flex-wrap">

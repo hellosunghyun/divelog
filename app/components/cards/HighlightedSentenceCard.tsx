@@ -1,7 +1,7 @@
 import { Link } from "~/components/content/SmartLink";
 import { cn } from "~/lib/utils/cn";
 import { motion } from "~/lib/motion/motion";
-import { fadeUp } from "~/lib/motion/motion-utils";
+
 
 interface HighlightedSentenceCardProps {
   sentence: {
@@ -23,10 +23,6 @@ export default function HighlightedSentenceCard({ sentence, savedBy, record }: H
   return (
     <motion.article
       data-testid="sentence-card"
-      variants={fadeUp}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, margin: "-50px" }}
       whileHover={{ y: -2 }}
       whileTap={{ scale: 0.98 }}
       transition={{ duration: 0.15, ease: [0.32, 0.72, 0, 1] }}

@@ -1,7 +1,5 @@
 import { Link } from "~/components/content/SmartLink";
 import { cn } from "~/lib/utils/cn";
-import { motion } from "~/lib/motion/motion";
-import { fadeUp } from "~/lib/motion/motion-utils";
 
 import { Button } from "~/components/ui/button";
 
@@ -36,11 +34,8 @@ export default function QuestionCard({
     DIRECTION_LABELS[question.direction || "outward"] || "남겨진 질문";
 
   return (
-    <motion.article
+    <article
       data-testid="question-card"
-      variants={fadeUp}
-      initial="hidden"
-      animate="visible"
       className={cn(
         "bg-mist-blue/30 rounded-2xl p-6 md:p-8 border border-mist-blue",
         className
@@ -76,6 +71,6 @@ export default function QuestionCard({
           이 질문에 응답하기
         </Button>
       )}
-    </motion.article>
+    </article>
   );
 }

@@ -1,7 +1,5 @@
 import { Link } from "~/components/content/SmartLink";
 import { cn } from "~/lib/utils/cn";
-import { motion } from "~/lib/motion/motion";
-import { fadeUp } from "~/lib/motion/motion-utils";
 
 type ResponseType =
   | "resonance"
@@ -59,11 +57,8 @@ export default function ResponseCard({
     : { label: response.type, accentClass: "border-border" };
 
   return (
-    <motion.article
+    <article
       data-testid="response-card"
-      variants={fadeUp}
-      initial="hidden"
-      animate="visible"
       className={cn(
         "relative pl-4 border-l-2 rounded-r-xl bg-surface p-5",
         typeInfo.accentClass,
@@ -94,6 +89,6 @@ export default function ResponseCard({
           {formatTimestamp(response.createdAt)}
         </span>
       </div>
-    </motion.article>
+    </article>
   );
 }

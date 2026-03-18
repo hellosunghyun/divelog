@@ -8,8 +8,6 @@ import {
   getLearnersWithActivity,
 } from "~/db/queries/learners/learners.server";
 import { createLogger } from "~/lib/infra/logger.server";
-import { motion } from "~/lib/motion/motion";
-import { staggerContainer, staggerItem } from "~/lib/motion/motion-utils";
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "러너 — DiveLog" }];
@@ -82,14 +80,9 @@ export default function LearnersPage({ loaderData }: Route.ComponentProps) {
             }
           />
         ) : (
-          <motion.div
-            variants={staggerContainer}
-            initial="hidden"
-            animate="visible"
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-          >
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {learners.map((learner: typeof learners[number]) => (
-              <motion.div key={learner.userId} variants={staggerItem}>
+              <div key={learner.userId}>
                 <LearnerCard
                   learner={{
                     userId: learner.userId,
@@ -110,9 +103,9 @@ export default function LearnersPage({ loaderData }: Route.ComponentProps) {
                   }
                   stage={learner.stage ?? undefined}
                 />
-              </motion.div>
+              </div>
             ))}
-          </motion.div>
+          </div>
         )}
       </div>
     </div>

@@ -1,7 +1,5 @@
 import type { Route } from "./+types/index";
 import { Link } from "~/components/content/SmartLink";
-import { motion } from "~/lib/motion/motion";
-import { staggerContainer, staggerItem } from "~/lib/motion/motion-utils";
 import { cn } from "~/lib/utils/cn";
 import StageStrip from "~/components/sections/StageStrip";
 import HeroSection from "~/components/sections/HeroSection";
@@ -84,18 +82,13 @@ export default function JourneyPage({ loaderData }: Route.ComponentProps) {
         {allStages.length === 0 ? (
           <EmptyState variant="generic" message="아직 Stage가 등록되지 않았습니다." />
         ) : (
-          <motion.div
-            variants={staggerContainer}
-            initial="hidden"
-            animate="visible"
-            className="flex flex-col gap-5"
-          >
+          <div className="flex flex-col gap-5">
             {allStages.map((stage: any, index: number) => {
               const accentColor = STAGE_ACCENTS[stage.type] ?? "var(--color-ocean-blue)";
               const isCurrent = stage.isCurrent;
 
               return (
-                <motion.div key={stage.id} variants={staggerItem}>
+                <div key={stage.id}>
                   <Link
                     to={`/journey/${stage.slug}`}
                     className={cn(
@@ -160,10 +153,10 @@ export default function JourneyPage({ loaderData }: Route.ComponentProps) {
                       </div>
                     </div>
                   </Link>
-                </motion.div>
+                </div>
               );
             })}
-          </motion.div>
+          </div>
         )}
       </div>
     </div>
