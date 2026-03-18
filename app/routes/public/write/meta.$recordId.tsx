@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { useState } from "react";
-import { Form, redirect, useNavigation } from "react-router";
+import { data, Form, redirect, useNavigation } from "react-router";
 import type { Route } from "./+types/meta.$recordId";
 
 import { Link } from "~/components/content/SmartLink";
@@ -100,8 +100,12 @@ export async function action({ params, request, context }: Route.ActionArgs) {
   }
 
   const record = await getRecordById(context.cloudflare.env.DB, recordId);
-  if (!record || record.authorId !== auth.user.id) {
-    throw new Response("Forbidden", { status: 403 });
+  if (!record) {
+    throw new Response("Not Found", { status: 404 });
+  }
+
+  if (record.authorId !== auth.user.id) {
+    return data({ error: "권한이 없습니다." }, { status: 403 });
   }
 
   const formData = await request.formData();

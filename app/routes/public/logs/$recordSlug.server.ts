@@ -440,6 +440,16 @@ export async function action({ request, context }: Route.ActionArgs) {
       return { error: parsed.error.issues[0]?.message ?? "입력값을 확인해주세요." };
     }
 
+    const targetResponse = await getResponseById(context.cloudflare.env.DB, parsed.data.responseId);
+
+    if (!targetResponse) {
+      return { error: "응답을 수정할 수 없습니다." };
+    }
+
+    if (targetResponse.authorId !== auth.user.id) {
+      return data({ error: "권한이 없습니다." }, { status: 403 });
+    }
+
     const result = await updateResponse(context.cloudflare.env.DB, parsed.data.responseId, auth.user.id, parsed.data);
 
     if (result === null) {
@@ -455,6 +465,16 @@ export async function action({ request, context }: Route.ActionArgs) {
 
     if (typeof responseId !== "string" || !responseId) {
       return { error: "응답 ID가 없습니다." };
+    }
+
+    const targetResponse = await getResponseById(context.cloudflare.env.DB, responseId);
+
+    if (!targetResponse) {
+      return { error: "응답을 삭제할 수 없습니다." };
+    }
+
+    if (targetResponse.authorId !== auth.user.id) {
+      return data({ error: "권한이 없습니다." }, { status: 403 });
     }
 
     const result = await deleteResponse(context.cloudflare.env.DB, responseId, auth.user.id);
