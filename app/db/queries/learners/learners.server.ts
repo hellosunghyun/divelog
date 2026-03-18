@@ -1,4 +1,4 @@
-import { asc, desc, eq, isNotNull, sql } from "drizzle-orm";
+import { asc, desc, eq, inArray, isNotNull, sql } from "drizzle-orm";
 
 import { nanoid } from "../../../lib/utils/utils.server";
 import { db } from "../../client.server";
@@ -102,18 +102,24 @@ export async function getOrCreateLearnerProfile(d1: D1Database, user: AdakrposUs
     if (/^learner(-\d+)?$/.test(currentSlug)) {
       const emailPrefix = extractEmailPrefix(user.verifiedEmail ?? user.email);
       if (emailPrefix) {
-        let newSlug = emailPrefix;
-        let attempt = 0;
-        while (true) {
-          const slugCheck = await database
-            .select({ slug: learnerProfiles.slug })
-            .from(learnerProfiles)
-            .where(eq(learnerProfiles.slug, newSlug))
-            .limit(1);
-          if (slugCheck.length === 0 || slugCheck[0].slug === currentSlug) break;
-          attempt += 1;
-          newSlug = `${emailPrefix}-${attempt + 1}`;
-          if (attempt > 100) { newSlug = `${emailPrefix}-${nanoid().substring(0, 6)}`; break; }
+        // Generate candidates upfront
+        const MAX_ATTEMPTS = 10;
+        const candidates = [emailPrefix];
+        for (let i = 2; i <= MAX_ATTEMPTS; i++) {
+          candidates.push(`${emailPrefix}-${i}`);
+        }
+
+        // Single query to find taken slugs
+        const taken = await database
+          .select({ slug: learnerProfiles.slug })
+          .from(learnerProfiles)
+          .where(inArray(learnerProfiles.slug, candidates));
+        const takenSet = new Set(taken.map(r => r.slug));
+
+        // Pick first available, excluding current slug
+        let newSlug = candidates.find(c => !takenSet.has(c) && c !== currentSlug);
+        if (!newSlug) {
+          newSlug = `${emailPrefix}-${nanoid().substring(0, 6)}`;
         }
         updateData.slug = newSlug;
       }
@@ -135,28 +141,23 @@ export async function getOrCreateLearnerProfile(d1: D1Database, user: AdakrposUs
 
   const emailPrefix = extractEmailPrefix(user.verifiedEmail ?? user.email);
   const baseSlug = generateSlug(emailPrefix ?? user.nickname ?? user.name ?? "learner");
-  let slug = baseSlug;
-  let attempt = 0;
 
-  while (true) {
-    const slugCheck = await database
-      .select({ slug: learnerProfiles.slug })
-      .from(learnerProfiles)
-      .where(eq(learnerProfiles.slug, slug))
-      .limit(1);
-
-    if (slugCheck.length === 0) {
-      break;
-    }
-
-    attempt += 1;
-    slug = generateSlug(baseSlug, attempt + 1);
-
-    if (attempt > 100) {
-      slug = `${baseSlug}-${nanoid().substring(0, 6)}`;
-      break;
-    }
+  // Generate candidates upfront
+  const MAX_ATTEMPTS = 10;
+  const candidates = [baseSlug];
+  for (let i = 2; i <= MAX_ATTEMPTS; i++) {
+    candidates.push(generateSlug(baseSlug, i));
   }
+
+  // Single query to find taken slugs
+  const taken = await database
+    .select({ slug: learnerProfiles.slug })
+    .from(learnerProfiles)
+    .where(inArray(learnerProfiles.slug, candidates));
+  const takenSet = new Set(taken.map(r => r.slug));
+
+  // Pick first available
+  let slug = candidates.find(c => !takenSet.has(c)) ?? `${baseSlug}-${nanoid().substring(0, 6)}`;
 
   const newProfile = {
     userId: user.id,
