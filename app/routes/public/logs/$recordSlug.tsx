@@ -61,6 +61,12 @@ function setCached(key: string, data: unknown): void {
 
 export async function clientLoader({ params, serverLoader }: Route.ClientLoaderArgs) {
   const key = params.recordSlug ?? "";
+
+  if (typeof sessionStorage !== "undefined" && sessionStorage.getItem("divelog:invalidate-record-cache")) {
+    sessionStorage.removeItem("divelog:invalidate-record-cache");
+    cache.delete(key);
+  }
+
   const cached = getCached<LoaderData>(key);
   if (cached) return cached;
   const data = await serverLoader();

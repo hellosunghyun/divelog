@@ -45,6 +45,8 @@ const TOC = [
   { id: "access-level", label: "기능별 이용 조건" },
   { id: "login", label: "로그인 과정" },
   { id: "first-record", label: "첫 기록 남기기" },
+  { id: "editor", label: "에디터 사용법" },
+  { id: "meta-after-save", label: "저장 후 기록 마무리" },
   { id: "record-detail", label: "기록 상세에서 하는 일" },
   { id: "dialogue", label: "질문과 응답" },
   { id: "visibility", label: "공개 범위와 응답 선호도" },
@@ -366,6 +368,240 @@ export default function FullGuidePage() {
                     사람/관련 게시글, 외부 링크, 참조를 정리할 수 있습니다.
                   </li>
                   <li>노트는 저장 후 기록 상세로 이동합니다.</li>
+                </Ul>
+              </SubSection>
+            </Section>
+
+            <Hr />
+            <Section id="editor" title="에디터 사용법">
+              <P>
+                DiveLog 에디터는 글 쓰는 흐름을 방해하지 않으면서, 다른 러너·기록·태그를
+                자연스럽게 연결할 수 있도록 설계되어 있습니다. 아래 기능은 노트와 아티클
+                에디터 모두에서 사용할 수 있습니다.
+              </P>
+
+              <SubSection title="@ 러너 멘션">
+                <P>
+                  에디터에서 <InlineCode>@</InlineCode>를 입력하면 러너 목록이 나타납니다.
+                  이름을 타이핑해 검색하고, 원하는 러너를 선택하면 본문에 멘션이 삽입됩니다.
+                </P>
+                <Ul>
+                  <li>한글 초성 검색을 지원합니다. 예를 들어 <InlineCode>@ㄱ</InlineCode>으로 "김"으로 시작하는 러너를 찾을 수 있습니다.</li>
+                  <li>방향키(↑ ↓)로 목록을 탐색하고, Enter로 선택합니다.</li>
+                  <li>Esc를 누르면 멘션 입력을 취소합니다.</li>
+                  <li>멘션된 러너에게는 알림이 전달됩니다.</li>
+                </Ul>
+              </SubSection>
+
+              <SubSection title="[[ 기록 참조">
+                <P>
+                  에디터에서 <InlineCode>[[</InlineCode>를 입력하면 기록 검색 팝업이 열립니다.
+                  다른 러너의 기록이나 내 기록을 본문 안에서 바로 연결할 수 있습니다.
+                </P>
+                <Ul>
+                  <li>기록 제목으로 검색합니다. 한글 초성 검색도 지원됩니다.</li>
+                  <li>검색 결과에는 기록 형식(노트/글)과 작성자 이름이 함께 표시됩니다.</li>
+                  <li>선택하면 본문에 기록 링크가 삽입되어, 읽는 사람이 해당 기록으로 바로 이동할 수 있습니다.</li>
+                </Ul>
+              </SubSection>
+
+              <SubSection title="# 인라인 태그">
+                <P>
+                  에디터에서 <InlineCode>#</InlineCode>을 입력하면 태그 목록이 나타납니다.
+                  본문 중간에 주제 태그를 삽입해 기록의 맥락을 표시할 수 있습니다.
+                </P>
+                <Ul>
+                  <li>회고, Swift, SwiftUI, UIKit, 팀워크, 질문, 발견, CBL 등 미리 등록된 태그에서 선택합니다.</li>
+                  <li>태그 이름을 타이핑해 필터링할 수 있습니다.</li>
+                  <li>삽입된 태그는 <InlineCode>#태그이름</InlineCode> 형태로 본문에 표시됩니다.</li>
+                </Ul>
+                <Callout variant="tip">
+                  인라인 태그는 본문 안에서 맥락을 표시하는 용도입니다. 기록 전체에 부여하는 태그는
+                  저장 후 메타데이터 단계에서 별도로 설정합니다.
+                </Callout>
+              </SubSection>
+
+              <SubSection title="/ 슬래시 커맨드">
+                <P>
+                  에디터에서 <InlineCode>/</InlineCode>를 입력하면 블록 삽입 메뉴가 열립니다.
+                  다양한 블록을 키보드만으로 빠르게 삽입할 수 있습니다.
+                </P>
+
+                <div className="my-6 overflow-x-auto">
+                  <table className="w-full text-sm border-collapse">
+                    <thead>
+                      <tr className="border-b-2 border-border">
+                        <Th>카테고리</Th>
+                        <Th>사용 가능한 블록</Th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <Tr>
+                        <Td bold>기본</Td>
+                        <Td>제목 1 · 제목 2 · 제목 3</Td>
+                      </Tr>
+                      <Tr>
+                        <Td bold>목록</Td>
+                        <Td>글머리 기호 · 번호 매기기 · 체크리스트</Td>
+                      </Tr>
+                      <Tr>
+                        <Td bold>미디어</Td>
+                        <Td>이미지 · 표 · 구분선</Td>
+                      </Tr>
+                      <Tr>
+                        <Td bold>콜아웃</Td>
+                        <Td>인용구 · 콜아웃(ℹ) · 팁(💡) · 주의(⚠) · 질문 블록(?) · 접기(▸)</Td>
+                      </Tr>
+                      <Tr>
+                        <Td bold>꾸미기</Td>
+                        <Td>형광펜 · 코드 블록 · 목차</Td>
+                      </Tr>
+                      <Tr>
+                        <Td bold>색상</Td>
+                        <Td>빨강 · 주황 · 노랑 · 초록 · 파랑 · 보라 · 분홍 · 갈색 · 회색 · 초기화</Td>
+                      </Tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <Ul>
+                  <li>
+                    <InlineCode>/</InlineCode> 뒤에 한글이나 영어로 검색어를 입력하면 필터링됩니다.
+                    예: <InlineCode>/이미지</InlineCode>, <InlineCode>/table</InlineCode>
+                  </li>
+                  <li>색상 블록은 검색어를 입력해야 목록에 나타납니다. 예: <InlineCode>/빨강</InlineCode></li>
+                  <li>방향키(↑ ↓)로 탐색, Enter로 선택, Esc로 취소합니다.</li>
+                </Ul>
+              </SubSection>
+
+              <SubSection title="이미지 업로드">
+                <P>
+                  슬래시 커맨드의 "이미지" 항목을 선택하면 파일 선택 창이 열립니다.
+                  GIF, JPEG, PNG, WebP 형식을 지원합니다.
+                </P>
+                <Ul>
+                  <li>업로드된 이미지는 서버에 저장되며, 본문에 바로 삽입됩니다.</li>
+                  <li>이미지 크기는 자동으로 조절됩니다.</li>
+                </Ul>
+              </SubSection>
+
+              <SubSection title="자동 저장">
+                <P>
+                  작성 중인 내용은 브라우저에 자동으로 저장됩니다. 브라우저를 닫았다가 다시 열어도
+                  이전 작성 내용을 복구할 수 있습니다.
+                </P>
+                <Ul>
+                  <li>자동 저장은 몇 초 간격으로 동작하며, 에디터 상단에 저장 상태가 표시됩니다.</li>
+                  <li>서버에도 주기적으로 초안이 동기화됩니다.</li>
+                  <li>이전 초안이 있으면 복구 안내가 나타납니다.</li>
+                </Ul>
+              </SubSection>
+
+              <SubSection title="단축키 모음">
+                <div className="my-6 overflow-x-auto">
+                  <table className="w-full text-sm border-collapse">
+                    <thead>
+                      <tr className="border-b-2 border-border">
+                        <Th>입력</Th>
+                        <Th>동작</Th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <Tr>
+                        <Td bold><InlineCode>@이름</InlineCode></Td>
+                        <Td>러너 멘션 — 러너를 검색하고 본문에 언급합니다</Td>
+                      </Tr>
+                      <Tr>
+                        <Td bold><InlineCode>[[제목</InlineCode></Td>
+                        <Td>기록 참조 — 다른 기록을 검색하고 링크를 삽입합니다</Td>
+                      </Tr>
+                      <Tr>
+                        <Td bold><InlineCode>#태그</InlineCode></Td>
+                        <Td>인라인 태그 — 본문에 주제 태그를 삽입합니다</Td>
+                      </Tr>
+                      <Tr>
+                        <Td bold><InlineCode>/명령</InlineCode></Td>
+                        <Td>슬래시 커맨드 — 블록 삽입 메뉴를 엽니다</Td>
+                      </Tr>
+                    </tbody>
+                  </table>
+                </div>
+              </SubSection>
+            </Section>
+
+            <Hr />
+            <Section id="meta-after-save" title="저장 후 기록 마무리">
+              <P>
+                아티클을 저장하면 <InlineCode>/write/meta/:recordId</InlineCode> 페이지로 이동합니다.
+                여기서 기록에 부가 정보를 붙여 맥락을 풍부하게 만들 수 있습니다.
+                이 단계는 건너뛸 수 있으며, 나중에 수정 페이지에서도 변경할 수 있습니다.
+              </P>
+
+              <Callout variant="tip">
+                노트는 저장 후 바로 기록 상세로 이동합니다. 메타데이터 단계는 아티클 전용입니다.
+              </Callout>
+
+              <SubSection title="질문 남기기">
+                <P>
+                  기록의 끝을 질문으로 열어둘 수 있습니다. 아직 답이 없는 질문이나 함께 생각해볼
+                  질문을 남기면, 다른 러너가 응답으로 대화를 이어갈 수 있습니다.
+                </P>
+                <Ul>
+                  <li>질문을 작성하면 방향을 선택할 수 있습니다.</li>
+                  <li><strong>동료에게</strong> — 다른 러너와 함께 생각을 확장하고 싶을 때</li>
+                  <li><strong>스스로에게</strong> — 답보다 성찰이 더 필요한 질문일 때</li>
+                  <li><strong>다음 구간으로</strong> — 다음 스테이지에서 이어갈 고민을 남길 때</li>
+                </Ul>
+              </SubSection>
+
+              <SubSection title="응답 선호도">
+                <P>
+                  이 기록에 대한 응답 분위기를 설정합니다. 설정에 따라 응답 영역에 안내 문구가
+                  달라집니다.
+                </P>
+                <Ul>
+                  <li><strong>모든 응답을 환영합니다</strong> — 공명, 질문, 연결, 제안 모두 환영</li>
+                  <li><strong>질문은 환영해요</strong> — 질문 위주의 응답을 기대할 때</li>
+                  <li><strong>그냥 읽어줘도 괜찮아요</strong> — 조용히 읽히길 원할 때</li>
+                </Ul>
+              </SubSection>
+
+              <SubSection title="태그">
+                <P>
+                  기록 전체에 태그를 부여합니다. 기존 태그에서 선택하거나, 새 태그를 직접 만들 수
+                  있습니다. 최대 10개까지 설정할 수 있습니다.
+                </P>
+                <Callout>
+                  본문 안에서 <InlineCode>#</InlineCode>으로 삽입하는 인라인 태그와는 다른 기능입니다.
+                  여기서 설정하는 태그는 기록 전체를 분류하는 데 사용됩니다.
+                </Callout>
+              </SubSection>
+
+              <SubSection title="함께한 사람">
+                <P>
+                  기록에 함께한 러너를 태그합니다. 공동작성, 함께활동, 멘토 중 역할을 지정할 수
+                  있습니다.
+                </P>
+                <Ul>
+                  <li>러너 이름으로 검색해 추가합니다.</li>
+                  <li>태그된 러너에게는 알림이 전달됩니다.</li>
+                </Ul>
+              </SubSection>
+
+              <SubSection title="관련 게시글">
+                <P>
+                  이 기록과 관련된 다른 기록을 연결합니다. 기록 제목으로 검색해 추가할 수
+                  있습니다. 연결된 기록은 기록 상세 페이지에서 함께 노출됩니다.
+                </P>
+              </SubSection>
+
+              <SubSection title="외부 링크와 참조 (아티클 전용)">
+                <P>
+                  아티클에는 추가 정보를 붙일 수 있습니다.
+                </P>
+                <Ul>
+                  <li><strong>외부 링크</strong> — 블로그, 노션 등 다른 곳에도 올렸다면 URL을 남겨 기록 상세에서 바로 이동할 수 있습니다.</li>
+                  <li><strong>참조 및 출처</strong> — 기록을 쓸 때 참고한 자료의 URL과 제목을 정리합니다.</li>
                 </Ul>
               </SubSection>
             </Section>

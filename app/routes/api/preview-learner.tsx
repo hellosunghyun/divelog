@@ -13,20 +13,30 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   const database = db(context.cloudflare.env.DB);
 
-  const result = await database
-    .select({
-      userId: learnerProfiles.userId,
-      slug: learnerProfiles.slug,
-      displayName: learnerProfiles.displayName,
-      profilePhotoUrl: learnerProfiles.profilePhotoUrl,
-      cohort: learnerProfiles.cohort,
-      bio: learnerProfiles.bio,
-      currentQuestion: learnerProfiles.currentQuestion,
-      currentStageId: learnerProfiles.currentStageId,
-    })
+  const selectFields = {
+    userId: learnerProfiles.userId,
+    slug: learnerProfiles.slug,
+    displayName: learnerProfiles.displayName,
+    profilePhotoUrl: learnerProfiles.profilePhotoUrl,
+    cohort: learnerProfiles.cohort,
+    bio: learnerProfiles.bio,
+    currentQuestion: learnerProfiles.currentQuestion,
+    currentStageId: learnerProfiles.currentStageId,
+  };
+
+  let result = await database
+    .select(selectFields)
     .from(learnerProfiles)
     .where(eq(learnerProfiles.slug, slug))
     .limit(1);
+
+  if (result.length === 0) {
+    result = await database
+      .select(selectFields)
+      .from(learnerProfiles)
+      .where(eq(learnerProfiles.userId, slug))
+      .limit(1);
+  }
 
   const learner = result[0];
   if (!learner) {

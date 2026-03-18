@@ -46,7 +46,7 @@ export default function HeroSection({
         />
         <div className="hero-caustics" aria-hidden="true" />
 
-        <div className="relative z-10 max-w-content mx-auto px-6 w-full grid grid-cols-1 md:grid-cols-5 gap-8 md:gap-10 items-end pb-12 sm:pb-16 md:pb-20 pt-8 sm:pt-12 md:pt-20">
+        <div className="relative z-10 max-w-content mx-auto px-6 w-full grid grid-cols-1 md:grid-cols-5 gap-8 md:gap-10 items-end pb-12 sm:pb-16 md:pb-20 pt-8 sm:pt-10 md:pt-14">
           <div className="md:col-span-3 space-y-5 md:space-y-6">
             <div>
               <span className="inline-flex items-center rounded-full px-3 py-1 text-xs uppercase tracking-wide font-medium bg-white/10 text-white/80 backdrop-blur-sm border border-white/20">
@@ -110,7 +110,7 @@ export default function HeroSection({
     : "border-ocean-blue/15";
 
   return (
-    <section className="relative overflow-hidden -mt-15 sm:-mt-16 pt-[7.75rem] sm:pt-32 md:pt-36 pb-16 md:pb-20 px-6 bg-gradient-to-b from-mist-blue/60 via-mist-blue/30 to-bg">
+    <section className="relative overflow-hidden -mt-15 sm:-mt-16 pt-[5.25rem] sm:pt-24 md:pt-[6.5rem] pb-16 md:pb-20 px-6 bg-gradient-to-b from-mist-blue/60 via-mist-blue/30 to-bg">
       <div
         className="absolute inset-0 pointer-events-none"
         style={{

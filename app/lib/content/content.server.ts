@@ -51,7 +51,13 @@ export function getPlainText(content: string, format: ContentFormat): string {
   return extractPlainText(document).replace(/\n{3,}/g, "\n\n").trim();
 }
 
-export function renderContentToHtml(content: string, format: ContentFormat): string {
+export type MentionSlugMap = Map<string, string>;
+
+export function renderContentToHtml(
+  content: string,
+  format: ContentFormat,
+  mentionSlugMap?: MentionSlugMap,
+): string {
   if (format === "note") {
     return renderPlainText(content);
   }
@@ -63,7 +69,7 @@ export function renderContentToHtml(content: string, format: ContentFormat): str
   }
 
   try {
-    return tiptapJsonToHtml(document);
+    return tiptapJsonToHtml(document, mentionSlugMap);
   } catch (err) {
     Sentry.captureException(err, { tags: { type: "content_render" } });
     logger.error("content_render_failed", { error: err instanceof Error ? err.message : String(err) });
@@ -71,11 +77,11 @@ export function renderContentToHtml(content: string, format: ContentFormat): str
   }
 }
 
-function tiptapJsonToHtml(doc: TiptapDocument): string {
-  return renderNode(doc);
+function tiptapJsonToHtml(doc: TiptapDocument, mentionSlugMap?: MentionSlugMap): string {
+  return renderNode(doc, mentionSlugMap);
 }
 
-function renderNode(node: TiptapNode): string {
+function renderNode(node: TiptapNode, mentionSlugMap?: MentionSlugMap): string {
   if (node.type === "text") {
     let text = escapeHtml(node.text ?? "");
 
@@ -125,7 +131,7 @@ function renderNode(node: TiptapNode): string {
     return text;
   }
 
-  const children = (node.content ?? []).map(renderNode).join("");
+  const children = (node.content ?? []).map((child) => renderNode(child, mentionSlugMap)).join("");
 
   switch (node.type) {
     case "doc":
@@ -165,9 +171,12 @@ function renderNode(node: TiptapNode): string {
     }
     case "userMention":
     case "mention": {
-      const mentionId = escapeHtml((node.attrs?.id as string) ?? "");
+      const storedId = (node.attrs?.id as string) ?? "";
+      const storedSlug = (node.attrs?.slug as string) ?? "";
+      const resolvedSlug = mentionSlugMap?.get(storedId) ?? (storedSlug || storedId);
+      const mentionSlug = escapeHtml(resolvedSlug);
       const mentionLabel = escapeHtml((node.attrs?.label as string) ?? "");
-      return `<a href="/learners/${mentionId}" class="user-mention" data-user-id="${mentionId}">@${mentionLabel}</a>`;
+      return `<a href="/learners/${mentionSlug}" class="user-mention" data-user-id="${escapeHtml(storedId)}">@${mentionLabel}</a>`;
     }
     case "recordRef": {
       const refSlug = escapeHtml((node.attrs?.slug as string) ?? (node.attrs?.id as string) ?? "");

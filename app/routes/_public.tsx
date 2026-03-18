@@ -105,7 +105,7 @@ export default function PublicLayout() {
   return (
     <div className="min-h-screen flex flex-col bg-bg">
       <GlobalNav />
-      <main className="flex-1">
+      <main className="flex-1 [contain:layout_style]">
         <Outlet />
       </main>
       <Footer />

@@ -132,13 +132,14 @@ export function createUserMentionExtension() {
       command: ({ editor, range, props }: { editor: any; range: any; props: any }) => {
         if (props.id === "__loading__") return;
         const label = props.displayName ?? props.label ?? props.id;
+        const userId = props.id;
         const slug = props.slug ?? props.id;
         exitSuggestion(editor.view, mentionPluginKey);
         editor
           .chain()
           .focus()
           .insertContentAt(range, [
-            { type: "userMention", attrs: { id: slug, label } },
+            { type: "userMention", attrs: { id: userId, label, slug } },
             { type: "text", text: " " },
           ])
           .run();
