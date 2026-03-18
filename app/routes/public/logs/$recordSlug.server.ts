@@ -208,7 +208,7 @@ export async function action({ request, context }: Route.ActionArgs) {
     });
 
     if (!parsed.success) {
-      return { error: parsed.error.issues[0]?.message ?? "입력값을 확인해주세요." };
+      return data({ error: parsed.error.issues[0]?.message ?? "입력값을 확인해주세요." });
     }
 
     const targetRecord = await database
@@ -223,14 +223,14 @@ export async function action({ request, context }: Route.ActionArgs) {
       const authorId = targetRecord[0].authorId;
 
       if ((visibility === "draft" || visibility === "private") && authorId !== auth.user.id) {
-        return { error: "이 기록에 응답할 수 없습니다." };
+        return data({ error: "이 기록에 응답할 수 없습니다." });
       }
 
       if (pref === "closed") {
-        return { error: "이 기록은 응답이 닫혀 있습니다." };
+        return data({ error: "이 기록은 응답이 닫혀 있습니다." });
       }
       if (pref === "question_only" && parsed.data.type !== "question") {
-        return { error: "이 기록은 질문만 허용합니다." };
+        return data({ error: "이 기록은 질문만 허용합니다." });
       }
     }
 
@@ -240,22 +240,22 @@ export async function action({ request, context }: Route.ActionArgs) {
 
       // 1. 존재 확인
       if (!parentResponse) {
-        return { error: "답글을 달 수 없는 응답입니다." };
+        return data({ error: "답글을 달 수 없는 응답입니다." });
       }
 
       // 2. 같은 recordId 확인
       if (parentResponse.recordId !== parsed.data.recordId) {
-        return { error: "답글을 달 수 없는 응답입니다." };
+        return data({ error: "답글을 달 수 없는 응답입니다." });
       }
 
       // 3. moderationStatus가 "clean"인지 확인
       if (parentResponse.moderationStatus !== "clean") {
-        return { error: "답글을 달 수 없는 응답입니다." };
+        return data({ error: "답글을 달 수 없는 응답입니다." });
       }
 
       // 4. 답글 type이 self_answer이면 거부
       if (parsed.data.type === "self_answer") {
-        return { error: "자기답변은 답글로 작성할 수 없습니다." };
+        return data({ error: "자기답변은 답글로 작성할 수 없습니다." });
       }
     }
 
@@ -354,7 +354,7 @@ export async function action({ request, context }: Route.ActionArgs) {
       type: parsed.data.type,
     });
 
-    return { success: "응답이 등록되었습니다." };
+    return data({ success: "응답이 등록되었습니다." });
   }
 
   if (intent === "save_sentence") {
@@ -365,7 +365,7 @@ export async function action({ request, context }: Route.ActionArgs) {
     });
 
     if (!parsed.success) {
-      return { error: parsed.error.issues[0]?.message ?? "문장을 확인해주세요." };
+      return data({ error: parsed.error.issues[0]?.message ?? "문장을 확인해주세요." });
     }
 
     const targetRecord = await database
@@ -379,7 +379,7 @@ export async function action({ request, context }: Route.ActionArgs) {
       const authorId = targetRecord[0].authorId;
 
       if ((visibility === "draft" || visibility === "private") && authorId !== auth.user.id) {
-        return { error: "이 기록에 문장을 저장할 수 없습니다." };
+        return data({ error: "이 기록에 문장을 저장할 수 없습니다." });
       }
     }
 
@@ -389,7 +389,7 @@ export async function action({ request, context }: Route.ActionArgs) {
       recordId: parsed.data.recordId,
     });
 
-    return { success: "문장이 저장되었습니다." };
+    return data({ success: "문장이 저장되었습니다." });
   }
 
   if (intent === "create_self_answer") {
@@ -398,15 +398,15 @@ export async function action({ request, context }: Route.ActionArgs) {
     const recordId = formData.get("recordId");
 
     if (typeof questionId !== "string" || !questionId) {
-      return { error: "질문을 선택해주세요." };
+      return data({ error: "질문을 선택해주세요." });
     }
 
     if (typeof content !== "string" || content.trim().length === 0) {
-      return { error: "답변 내용을 입력해주세요." };
+      return data({ error: "답변 내용을 입력해주세요." });
     }
 
     if (typeof recordId !== "string" || !recordId) {
-      return { error: "기록 정보가 없습니다." };
+      return data({ error: "기록 정보가 없습니다." });
     }
 
     const recordData = await database
@@ -416,7 +416,7 @@ export async function action({ request, context }: Route.ActionArgs) {
       .limit(1);
 
     if (recordData.length === 0 || recordData[0].authorId !== auth.user.id) {
-      return { error: "자신의 기록에만 답변할 수 있습니다." };
+      return data({ error: "자신의 기록에만 답변할 수 있습니다." });
     }
 
     await createSelfAnswer(context.cloudflare.env.DB, auth.user.id, {
@@ -426,7 +426,7 @@ export async function action({ request, context }: Route.ActionArgs) {
 
     logger.info("self_answer_create", { questionId, recordId });
 
-    return { success: "자기 답변이 등록되었습니다." };
+    return data({ success: "자기 답변이 등록되었습니다." });
   }
 
   if (intent === "update_response") {
@@ -438,37 +438,37 @@ export async function action({ request, context }: Route.ActionArgs) {
     });
 
     if (!parsed.success) {
-      return { error: parsed.error.issues[0]?.message ?? "입력값을 확인해주세요." };
+      return data({ error: parsed.error.issues[0]?.message ?? "입력값을 확인해주세요." });
     }
 
     const result = await updateResponse(context.cloudflare.env.DB, parsed.data.responseId, auth.user.id, parsed.data);
 
     if (result === null) {
-      return { error: "응답을 수정할 수 없습니다." };
+      return data({ error: "응답을 수정할 수 없습니다." });
     }
 
     logger.info("response_update", { responseId: parsed.data.responseId });
-    return { success: "응답이 수정되었습니다." };
+    return data({ success: "응답이 수정되었습니다." });
   }
 
   if (intent === "delete_response") {
     const responseId = formData.get("responseId");
 
     if (typeof responseId !== "string" || !responseId) {
-      return { error: "응답 ID가 없습니다." };
+      return data({ error: "응답 ID가 없습니다." });
     }
 
     const result = await deleteResponse(context.cloudflare.env.DB, responseId, auth.user.id);
 
     if (!result) {
-      return { error: "응답을 삭제할 수 없습니다." };
+      return data({ error: "응답을 삭제할 수 없습니다." });
     }
 
     logger.info("response_delete", { responseId });
-    return { success: "응답이 삭제되었습니다." };
+    return data({ success: "응답이 삭제되었습니다." });
   }
 
-  return { error: "알 수 없는 요청입니다." };
+  return data({ error: "알 수 없는 요청입니다." });
 }
 
 type DrizzleDB = ReturnType<typeof db>;

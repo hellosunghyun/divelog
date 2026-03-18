@@ -88,3 +88,26 @@ export async function createNotification(
 
   return result[0];
 }
+
+export async function bulkCreateNotifications(
+  d1: D1Database,
+  inputs: CreateNotificationInput[]
+): Promise<void> {
+  if (inputs.length === 0) return;
+  const database = db(d1);
+  const now = Math.floor(Date.now() / 1000);
+
+  await database.insert(notifications).values(
+    inputs.map((input) => ({
+      id: nanoid(),
+      recipientId: input.recipientId,
+      type: input.type,
+      title: input.title,
+      content: input.content,
+      recordId: input.recordId,
+      questionId: input.questionId,
+      isRead: false,
+      createdAt: now,
+    }))
+  );
+}

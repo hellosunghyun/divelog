@@ -57,8 +57,7 @@ app/
 │   ├── public/
 │   │   ├── index.tsx                  → / (홈)
 │   │   ├── journey/
-│   │   │   ├── index.tsx              → /journey
-│   │   │   └── $stageSlug.tsx         → /journey/:stageSlug
+│   │   │   └── index.tsx              → /journey
 │   │   ├── questions.tsx              → /questions (열린 질문)
 │   │   ├── logs/
 │   │   │   ├── index.tsx              → /logs
@@ -81,12 +80,18 @@ app/
 │   │   ├── me.tsx                     → /me (requireAuth)
 │   │   ├── settings.tsx               → /settings (requireAuth)
 │   │   ├── guide.tsx                  → /guide
+│   │   ├── guide/
+│   │   │   └── full.tsx               → /guide/full
 │   │   ├── terms.tsx                  → /terms
 │   │   ├── privacy.tsx                → /privacy
 │   │   └── style-reference.tsx        → /style-reference
 │   │   # DISABLED:
+│   │   # ├── journey/$stageSlug.tsx   → /journey/:stageSlug [STAGE_DISABLED]
 │   │   # ├── groups/$groupSlug.tsx    → /groups/:groupSlug [COLLAB_DISABLED]
 │   │   # ├── memories/$stageSlug.tsx  → /memories/:stageSlug [STAGE_DISABLED]
+│   │   # 미구현:
+│   │   # ├── challenges/              → /challenges (아직 구현되지 않음)
+│   │   # └── challenges/$challengeSlug.tsx → /challenges/:challengeSlug
 │   ├── admin/
 │   │   ├── index.tsx                  → /admin (Dashboard)
 │   │   ├── stages/
@@ -112,9 +117,13 @@ app/
 │   │   ├── audit.tsx                  → /admin/audit
 │   │   # DISABLED:
 │   │   # ├── collaboration/           → [COLLAB_DISABLED]
-│   │   # ├── memories/                → [STAGE_DISABLED]
+│   │   # ├── memories/
+│   │   # │   ├── index.tsx            → /admin/memories [STAGE_DISABLED]
+│   │   # │   └── $stageId.tsx         → /admin/memories/:stageId [STAGE_DISABLED]
 │   │   # 미구현:
-│   │   # ├── challenges/              → 아직 구현되지 않음
+│   │   # ├── challenges/
+│   │   # │   ├── index.tsx            → /admin/challenges (아직 구현되지 않음)
+│   │   # │   └── $challengeId.tsx     → /admin/challenges/:challengeId
 │   └── api/
 │       ├── upload.tsx                 → POST /api/upload (R2 이미지)
 │       ├── images.$.tsx               → /api/images/* (이미지 서빙)

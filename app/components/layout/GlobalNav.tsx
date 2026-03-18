@@ -460,6 +460,7 @@ function GlobalNav() {
                                     <img
                                       src={learner.profilePhotoUrl}
                                       alt=""
+                                      aria-hidden="true"
                                       className="w-6 h-6 rounded-full object-cover"
                                     />
                                   ) : (

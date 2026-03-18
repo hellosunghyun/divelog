@@ -29,7 +29,7 @@ export default function SelfAnswerCard({
     <article
       data-testid="self-answer-card"
       className={cn(
-        "relative pl-4 border-l-2 border-ocean-blue/60 rounded-r-xl bg-surface p-5",
+        "relative pl-4 border-l-2 border-ocean-blue/60 rounded-r-2xl bg-surface p-5",
         className
       )}
     >

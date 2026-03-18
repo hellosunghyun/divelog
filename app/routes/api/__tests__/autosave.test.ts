@@ -105,7 +105,7 @@ describe("POST /api/autosave", () => {
         authorId: "usr-1",
         format: "note",
         content: "오늘 배운 점",
-        visibility: "draft",
+        visibility: "public",
       }),
     );
   });

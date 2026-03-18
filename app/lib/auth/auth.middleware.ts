@@ -105,6 +105,10 @@ export async function requireRole(request: Request, context: AppLoadContext, rol
   return auth;
 }
 
+// ⚠️ 배포 전 필수: ADMIN_USER_ID를 실제 관리자 ID로 설정해야 합니다.
+// placeholder 값이면 admin bootstrap이 조용히 건너뜁니다.
+// 설정 방법: wrangler secret put ADMIN_USER_ID
+// 또는 wrangler.deploy.toml [vars]에 실제 ID 입력 (비공개 배포 환경에서만)
 export async function bootstrapAdmin(context: AppLoadContext) {
   const adminUserId = context.cloudflare.env.ADMIN_USER_ID;
   if (!adminUserId || adminUserId === "usr_placeholder_replace_with_real_admin_id") {

@@ -121,7 +121,7 @@ export default function SceneCard({
         "group relative p-1.5 rounded-2xl ring-1",
         "hover:shadow-tinted-md transition-premium cursor-pointer",
         isRead
-          ? "bg-[#ECEEF1] ring-[#D8DCE3]"
+          ? "bg-read-bg ring-read-ring"
           : "bg-surface-secondary ring-border"
       )}
       whileHover={{ y: -2 }}
@@ -130,7 +130,7 @@ export default function SceneCard({
     >
       <div className={cn(
         "rounded-xl p-5 md:p-6 h-full flex flex-col gap-4",
-        isRead ? "bg-[#F0F2F5]" : "bg-surface"
+        isRead ? "bg-read-surface" : "bg-surface"
       )}>
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-caption px-2.5 py-0.5 rounded-full bg-border text-text-secondary">
@@ -162,7 +162,7 @@ export default function SceneCard({
 
         <p className={cn(
           "text-base leading-body m-0",
-          isRead ? "text-[#A0A4AB]" : "text-text-secondary"
+          isRead ? "text-read-text" : "text-text-secondary"
         )}>
           {snippet}
         </p>
@@ -185,7 +185,7 @@ export default function SceneCard({
                   )
                 )}
                 <span
-                  className={cn("text-[11px]", isRead ? "text-[#A0A4AB]" : "text-text-tertiary/70")}
+                  className={cn("text-[11px]", isRead ? "text-read-text" : "text-text-tertiary/70")}
                   suppressHydrationWarning
                 >
                   {formatRelativeTime(record.createdAt)}

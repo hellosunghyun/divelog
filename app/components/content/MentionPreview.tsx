@@ -322,6 +322,7 @@ function LearnerPreviewCard({ data }: { data: LearnerPreviewData }) {
           <img
             src={data.profilePhotoUrl}
             alt=""
+            aria-hidden="true"
             className="h-9 w-9 flex-shrink-0 rounded-full border border-border object-cover"
           />
         ) : (
@@ -395,6 +396,7 @@ function RecordPreviewCard({ data }: { data: RecordPreviewData }) {
           <img
             src={data.authorPhotoUrl}
             alt=""
+            aria-hidden="true"
             className="h-5 w-5 flex-shrink-0 rounded-full border border-border object-cover"
           />
         ) : data.authorDisplayName ? (
