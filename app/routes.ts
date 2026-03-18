@@ -61,4 +61,7 @@ export default [
   route("api/search-records", "routes/api/search-records.tsx"),
   route("api/search-learners", "routes/api/search-learners.tsx"),
   route("api/track-read", "routes/api/track-read.tsx"),
+  route("api/toggle-bookmark", "routes/api/toggle-bookmark.tsx"),
+  route("api/preview-learner", "routes/api/preview-learner.tsx"),
+  route("api/preview-record", "routes/api/preview-record.tsx"),
 ] satisfies RouteConfig;

@@ -233,6 +233,8 @@ export function MentionPreviewCard({
 
   if (typeof document === "undefined") return null;
 
+  const visible = open && preview && (loading || !!data);
+
   return createPortal(
     <div
       ref={cardRef}
@@ -245,9 +247,9 @@ export function MentionPreviewCard({
         left: pos.left,
         width: CARD_WIDTH,
         zIndex: 9999,
-        opacity: open && preview ? 1 : 0,
-        pointerEvents: open && preview ? "auto" : "none",
-        transform: open && preview ? "scale(1)" : "scale(0.97)",
+        opacity: visible ? 1 : 0,
+        pointerEvents: visible ? "auto" : "none",
+        transform: visible ? "scale(1)" : "scale(0.97)",
         transition: "opacity 150ms ease, transform 150ms ease",
       }}
       className="rounded-2xl border border-border bg-surface shadow-lg"
@@ -258,8 +260,6 @@ export function MentionPreviewCard({
         <LearnerPreviewCard data={data as LearnerPreviewData} />
       ) : data && preview?.type === "record" ? (
         <RecordPreviewCard data={data as RecordPreviewData} />
-      ) : preview ? (
-        <PreviewSkeleton />
       ) : null}
     </div>,
     document.body,
