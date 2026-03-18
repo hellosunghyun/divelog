@@ -5,7 +5,7 @@ export default [
   layout("routes/_public.tsx", [
     index("routes/public/index.tsx"),
     route("journey", "routes/public/journey/index.tsx"),
-    route("journey/:stageSlug", "routes/public/journey/$stageSlug.tsx"),
+    // [STAGE_DISABLED] route("journey/:stageSlug", "routes/public/journey/$stageSlug.tsx"),
     route("questions", "routes/public/questions.tsx"),
     route("logs", "routes/public/logs/index.tsx"),
     route("logs/:recordSlug", "routes/public/logs/$recordSlug.tsx"),

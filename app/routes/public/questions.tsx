@@ -42,12 +42,6 @@ export default function QuestionsPage({ loaderData }: Route.ComponentProps) {
         subtitle={<>동료들이 남긴 질문을 따라가며,<br />기록으로 다시 돌아가 대화를 이어가 보세요.</>}
         badge="Dialogue Layer"
       >
-        <Link
-          to="/journey"
-          className="w-full sm:w-auto border border-white/20 bg-white/5 px-6 py-3 rounded-full font-medium text-white backdrop-blur-xl hover:bg-white/10 transition-all text-center no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
-        >
-          여정 보기
-        </Link>
       </HeroSection>
 
       <div className="max-w-content mx-auto px-6 py-12 md:py-16">

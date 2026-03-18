@@ -4,7 +4,6 @@ import { cn } from "~/lib/utils/cn";
 const focusRing = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2 focus-visible:ring-offset-surface-secondary";
 
 const navLinks = [
-  { to: "/journey", label: "여정" },
   { to: "/logs", label: "기록" },
   { to: "/learners", label: "러너" },
   { to: "/guide", label: "가이드" },

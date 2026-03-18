@@ -166,16 +166,6 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
         badge="성찰적 다이빙"
       >
         <Link
-          to="/journey"
-          className="w-full sm:w-auto bg-white text-deep-ocean px-6 sm:px-10 py-4 rounded-full font-bold hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2.5 text-base shadow-xl no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
-        >
-          <span>여정 보기</span>
-          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M5 12h14" />
-            <path d="m12 5 7 7-7 7" />
-          </svg>
-        </Link>
-        <Link
           to="/write"
           className="w-full sm:w-auto border border-white/20 bg-white/5 backdrop-blur-xl text-white px-6 sm:px-10 py-4 rounded-full font-bold hover:bg-white/10 transition-all text-base text-center no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
         >

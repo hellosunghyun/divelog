@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "skills": {
+    "codebase-exploration": {
+      "source": "404kidwiz/claude-supercode-skills",
+      "sourceType": "github",
+      "computedHash": "a20215fd1e7bf976a5a9bb1beab0728a9e7bfbab1d62468b4b3321cd798d5a55"
+    }
+  }
+}
