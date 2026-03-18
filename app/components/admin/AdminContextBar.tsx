@@ -16,7 +16,6 @@ interface AdminContextBarProps {
 const ROUTE_LABELS: Record<string, string> = {
   "/admin": "대시보드",
   "/admin/stages": "Stage 관리",
-  "/admin/challenges": "챌린지 관리",
   "/admin/learners": "러너 관리",
   "/admin/records": "기록 관리",
   "/admin/dialogue": "Dialogue 관리",
@@ -49,7 +48,6 @@ function generateBreadcrumbs(pathname: string): BreadcrumbItem[] {
 
 function getCurrentTitle(pathname: string): string {
   if (pathname.match(/\/admin\/stages\/[^/]+$/)) return "Stage 상세";
-  if (pathname.match(/\/admin\/challenges\/[^/]+$/)) return "챌린지 상세";
   if (pathname.match(/\/admin\/learners\/[^/]+$/)) return "러너 상세";
   if (pathname.match(/\/admin\/records\/[^/]+$/)) return "기록 상세";
   if (pathname.match(/\/admin\/dialogue\/[^/]+$/)) return "Dialogue 상세";

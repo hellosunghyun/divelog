@@ -27,7 +27,6 @@ const RHYTHM_OPTIONS = [
 
 const TYPE_OPTIONS = [
   { value: "personal", label: "개인" },
-  { value: "challenge", label: "챌린지" },
   // [COLLAB_DISABLED] { value: "collaboration", label: "협업" },
 ];
 

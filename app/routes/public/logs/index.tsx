@@ -85,7 +85,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   if (format && (format === "note" || format === "article")) {
     conditions.push(eq(records.format, format));
   }
-  if (type && (type === "personal" || type === "challenge" || type === "collaboration")) {
+  if (type && (type === "personal" || type === "collaboration")) {
     conditions.push(eq(records.type, type));
   }
   if (rhythm && ["moment", "sprint", "weekly", "monthly", "stage", "reflection", "free"].includes(rhythm)) {
@@ -201,7 +201,6 @@ const FILTER_OPTIONS = [
     label: "유형",
     values: [
       { value: "personal", label: "개인" },
-      { value: "challenge", label: "챌린지" },
       // [COLLAB_DISABLED] { value: "collaboration", label: "협업" },
     ],
   },

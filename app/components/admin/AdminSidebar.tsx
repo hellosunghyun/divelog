@@ -4,7 +4,6 @@ import { useLocation } from "react-router";
 import {
   House,
   BookOpen,
-  Flag,
   Users,
   ChatTeardrop,
   UsersThree,
@@ -42,7 +41,6 @@ const NAV_GROUPS: NavGroup[] = [
     label: "콘텐츠",
     items: [
       { label: "Stage 관리", href: "/admin/stages", icon: BookOpen },
-      { label: "챌린지 관리", href: "/admin/challenges", icon: Flag },
       { label: "기록 관리", href: "/admin/records", icon: Files },
       { label: "템플릿", href: "/admin/templates", icon: List },
       { label: "태그 관리", href: "/admin/tags", icon: Tag },

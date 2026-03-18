@@ -262,7 +262,6 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
           >
             {[
               { value: "personal", label: "개인 탐구" },
-              { value: "challenge", label: "챌린지" },
               // [COLLAB_DISABLED] { value: "collaboration", label: "협업" },
             ].map((opt) => (
               <div key={opt.value} className="flex items-center gap-2">

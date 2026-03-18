@@ -16,8 +16,6 @@ export default [
     route("logs/:recordSlug/details", "routes/public/logs/$recordSlug.details.tsx"),
     route("learners", "routes/public/learners/index.tsx"),
     route("learners/:learnerSlug", "routes/public/learners/$learnerSlug.tsx"),
-    route("challenges", "routes/public/challenges/index.tsx"),
-    route("challenges/:challengeSlug", "routes/public/challenges/$challengeSlug.tsx"),
     // [COLLAB_DISABLED] route("groups/:groupSlug", "routes/public/groups/$groupSlug.tsx"),
     route("memories/:stageSlug", "routes/public/memories/$stageSlug.tsx"),
     route("search", "routes/public/search.tsx"),
@@ -34,8 +32,7 @@ export default [
     route("admin", "routes/admin/index.tsx"),
     route("admin/stages", "routes/admin/stages/index.tsx"),
     route("admin/stages/:stageId", "routes/admin/stages/$stageId.tsx"),
-    route("admin/challenges", "routes/admin/challenges/index.tsx"),
-    route("admin/challenges/:challengeId", "routes/admin/challenges/$challengeId.tsx"),
+
     route("admin/learners", "routes/admin/learners/index.tsx"),
     route("admin/learners/:learnerId", "routes/admin/learners/$learnerId.tsx"),
     route("admin/records", "routes/admin/records/index.tsx"),

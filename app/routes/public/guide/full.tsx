@@ -53,7 +53,6 @@ const TOC = [
   { id: "my-space", label: "내 공간" },
   { id: "inbox", label: "인박스" },
   { id: "settings", label: "설정" },
-  { id: "challenges", label: "챌린지" },
   { id: "learners", label: "러너 탐색" },
   { id: "memories", label: "공동 기억" },
   { id: "principles", label: "운영 원칙" },
@@ -708,29 +707,6 @@ export default function FullGuidePage() {
                 </ExtLink>
                 에서 관리합니다.
               </Callout>
-            </Section>
-
-            <Hr />
-            <Section id="challenges" title="챌린지">
-              <P>
-                챌린지는 구간 내에서 진행되는 문제 해결 또는 프로젝트 단위입니다.
-                각 챌린지에는 문제 정의와 탐구 질문이 있습니다.
-              </P>
-              <Ul>
-                <li>
-                  <Link
-                    to="/challenges"
-                    className="text-ocean-blue hover:underline"
-                  >
-                    챌린지 목록
-                  </Link>
-                  에서 활성/완료/예정 챌린지를 확인할 수 있습니다
-                </li>
-                <li>
-                  기록 작성 시 챌린지와 연결할 수 있습니다
-                </li>
-                <li>챌린지에 연결된 기록들은 챌린지 상세 페이지에서 모아볼 수 있습니다</li>
-              </Ul>
             </Section>
 
             <Hr />
