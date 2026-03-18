@@ -67,6 +67,7 @@ const NOTIF_TYPE_LABEL: Record<string, string> = {
 };
 
 const navLinks = [
+  { to: "/journey", label: "여정" },
   { to: "/logs", label: "기록" },
   { to: "/learners", label: "러너" },
   { to: "/guide", label: "가이드" },
@@ -138,9 +139,10 @@ export default function GlobalNav() {
 
   useEffect(() => {
     setCurrentUrl(window.location.href);
-  }, [location]);
+  }, []);
 
   useEffect(() => {
+    void location.pathname;
     setIsMenuOpen(false);
     setOpenDropdown(null);
     setSearchQuery("");
@@ -151,8 +153,7 @@ export default function GlobalNav() {
     if (data?.isAuthenticated) {
       notifFetcher.load("/api/notifications");
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data?.isAuthenticated]);
+  }, [data?.isAuthenticated, notifFetcher]);
 
   // Unified outside-click + Escape handler
   useEffect(() => {
