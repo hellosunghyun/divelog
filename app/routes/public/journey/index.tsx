@@ -1,7 +1,6 @@
 import type { Route } from "./+types/index";
 import { Link } from "~/components/content/SmartLink";
 import { cn } from "~/lib/utils/cn";
-import StageStrip from "~/components/sections/StageStrip";
 import EmptyState from "~/components/feedback/EmptyState";
 import { sql } from "drizzle-orm";
 import { db } from "~/db/client.server";
@@ -15,14 +14,13 @@ export function meta(_args: Route.MetaArgs) {
   ];
 }
 
-export async function loader({ request, context }: Route.LoaderArgs): Promise<{ stages: any[]; currentStage: any }> {
+export async function loader({ request, context }: Route.LoaderArgs): Promise<{ stages: any[] }> {
   const logger = createLogger(request, context.cloudflare.env).child({ route: "journey" });
   logger.info("loader_start");
   const database = db(context.cloudflare.env.DB);
   const allStages = await database.select().from(stages).orderBy(sql`"order" ASC`);
-  const currentStage = allStages.find((s: any) => s.isCurrent) ?? null;
   logger.info("loader_end");
-  return { stages: allStages, currentStage };
+  return { stages: allStages };
 }
 
 export function shouldRevalidate({
@@ -59,7 +57,7 @@ const STAGE_ACCENTS: Record<string, string> = {
 };
 
 export default function JourneyPage({ loaderData }: Route.ComponentProps) {
-  const { stages: allStages, currentStage } = loaderData;
+  const { stages: allStages } = loaderData;
 
   return (
     <div>
@@ -69,15 +67,6 @@ export default function JourneyPage({ loaderData }: Route.ComponentProps) {
           Apple Developer Academy @ POSTECH 러너의 아홉 달은 여러 Stage로 구성됩니다. 각 Stage마다 탐구와 기록이 쌓입니다.
         </p>
       </div>
-
-      {allStages.length > 0 && (
-        <div className="bg-surface border-b border-border">
-          <div className="max-w-content mx-auto px-6">
-            <StageStrip stages={allStages} currentStageSlug={currentStage?.slug} />
-          </div>
-        </div>
-      )}
-
       <div className="max-w-content mx-auto px-6 py-16 md:py-24">
         {allStages.length === 0 ? (
           <EmptyState variant="generic" message="아직 Stage가 등록되지 않았습니다." />

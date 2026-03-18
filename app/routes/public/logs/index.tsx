@@ -1,6 +1,7 @@
 import type { Route } from "./+types/index";
 import { useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router";
+import { Link } from "~/components/content/SmartLink";
 import { eq, and, asc, desc, gte, lt, sql, count } from "drizzle-orm";
 import SceneCard from "~/components/cards/SceneCard";
 import FilterBar from "~/components/filters/FilterBar";
@@ -55,6 +56,12 @@ function parseMonthParam(value: string | null) {
     startTimestamp: Math.floor(startDate.getTime() / 1000),
     endTimestamp: Math.floor(endDate.getTime() / 1000),
   };
+}
+
+function buildLogsPageHref(searchParams: URLSearchParams, newPage: number) {
+  const nextParams = new URLSearchParams(searchParams);
+  nextParams.set("page", String(newPage));
+  return `/logs?${nextParams.toString()}`;
 }
 
 export function meta({ data: loaderData }: Route.MetaArgs) {
@@ -244,12 +251,6 @@ export default function LogsPage({ loaderData }: Route.ComponentProps) {
     navigate(`/logs?${newParams.toString()}`);
   }
 
-  function handlePageChange(newPage: number) {
-    const newParams = new URLSearchParams(searchParams);
-    newParams.set("page", String(newPage));
-    navigate(`/logs?${newParams.toString()}`);
-  }
-
   const allFilters = FILTER_OPTIONS;
 
   const recordsContent =
@@ -344,14 +345,19 @@ export default function LogsPage({ loaderData }: Route.ComponentProps) {
 
         {currentView === "grid" && totalPages > 1 && (
           <div className="mt-12 flex justify-center items-center gap-2">
-            <button
-              type="button"
-              onClick={() => handlePageChange(page - 1)}
-              disabled={page <= 1}
-              className="rounded-full px-4 py-2 border border-border text-sm font-medium text-text-secondary hover:bg-surface-secondary disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            >
-              이전
-            </button>
+            {page <= 1 ? (
+              <span className="rounded-full px-4 py-2 border border-border text-sm font-medium text-text-secondary opacity-40 cursor-not-allowed transition-colors">
+                이전
+              </span>
+            ) : (
+              <Link
+                to={buildLogsPageHref(searchParams, page - 1)}
+                prefetch="viewport"
+                className="rounded-full px-4 py-2 border border-border text-sm font-medium text-text-secondary hover:bg-surface-secondary transition-colors no-underline"
+              >
+                이전
+              </Link>
+            )}
             
             <div className="flex gap-1">
               {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
@@ -366,30 +372,36 @@ export default function LogsPage({ loaderData }: Route.ComponentProps) {
                   pageNum = page - 2 + i;
                 }
                 return (
-                  <button
+                  <Link
                     key={pageNum}
-                    type="button"
-                    onClick={() => handlePageChange(pageNum)}
+                    to={buildLogsPageHref(searchParams, pageNum)}
+                    prefetch="viewport"
                     className={`rounded-full w-10 h-10 text-sm font-medium transition-colors ${
                       pageNum === page
                         ? "bg-ocean-blue text-white"
                         : "border border-border text-text-secondary hover:bg-surface-secondary"
-                    }`}
+                    } no-underline inline-flex items-center justify-center`}
+                    aria-current={pageNum === page ? "page" : undefined}
                   >
                     {pageNum}
-                  </button>
+                  </Link>
                 );
               })}
             </div>
 
-            <button
-              type="button"
-              onClick={() => handlePageChange(page + 1)}
-              disabled={page >= totalPages}
-              className="rounded-full px-4 py-2 border border-border text-sm font-medium text-text-secondary hover:bg-surface-secondary disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            >
-              다음
-            </button>
+            {page >= totalPages ? (
+              <span className="rounded-full px-4 py-2 border border-border text-sm font-medium text-text-secondary opacity-40 cursor-not-allowed transition-colors">
+                다음
+              </span>
+            ) : (
+              <Link
+                to={buildLogsPageHref(searchParams, page + 1)}
+                prefetch="viewport"
+                className="rounded-full px-4 py-2 border border-border text-sm font-medium text-text-secondary hover:bg-surface-secondary transition-colors no-underline"
+              >
+                다음
+              </Link>
+            )}
           </div>
         )}
       </div>
