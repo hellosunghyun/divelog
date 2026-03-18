@@ -6,6 +6,9 @@ import QuestionCard from "~/components/cards/QuestionCard";
 import HighlightedSentenceCard from "~/components/cards/HighlightedSentenceCard";
 // [COLLAB_DISABLED] import CollaborationUnitCard from "~/components/cards/CollaborationUnitCard";
 import EmptyState from "~/components/feedback/EmptyState";
+import { DiscoveryHelperBlocks } from "~/components/learner/DiscoveryHelperBlocks";
+import ProfileIntroBlock from "~/components/learner/ProfileIntroBlock";
+import SelfAnswerSection from "~/components/learner/SelfAnswerSection";
 import { cn } from "~/lib/utils/cn";
 import { useState } from "react";
 
@@ -99,9 +102,18 @@ export default function LearnerDetailPage({ loaderData }: Route.ComponentProps) 
   const learnerRecords = typedData.learnerRecords;
   const learnerQuestions = typedData.learnerQuestions;
   const learnerSentences = typedData.learnerSentences;
+  const profileIntro = typedData.profileIntro;
+  const contextLine = typedData.contextLine;
+  const interestTags = typedData.interestTags;
+  const currentStage = typedData.currentStage;
+  const recentActivity = typedData.recentActivity;
+  const selfAnswers = typedData.selfAnswers;
   const participatedRecords = typedData.participatedRecords ?? [];
   const mentionedRecords = typedData.mentionedRecords ?? [];
   const participantsByRecordId = typedData.participantsByRecordId ?? {};
+  const starterRecords = learnerRecords
+    .slice(0, 2)
+    .map((item) => ({ slug: item.record.slug, title: item.record.title }));
   const publicData = useRouteLoaderData<PublicLoaderData>("routes/_public");
   const [activeTab, setActiveTab] = useState<TabKey>("records");
   const authData = publicData as { isAuthenticated?: boolean; user?: { id: string } } | undefined;
@@ -119,7 +131,7 @@ export default function LearnerDetailPage({ loaderData }: Route.ComponentProps) 
   ];
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen" data-testid="learner-profile-page">
       <section className="bg-gradient-to-b from-mist-blue/60 via-mist-blue/30 to-bg -mt-15 sm:-mt-16 pt-[6.75rem] sm:pt-28 md:pt-32 pb-12 md:pb-16">
         <div className="max-w-content mx-auto px-6">
           <div className="flex flex-col md:flex-row items-start gap-6">
@@ -144,27 +156,27 @@ export default function LearnerDetailPage({ loaderData }: Route.ComponentProps) 
               {learner.cohort && (
                 <p className="text-meta text-text-secondary mt-1">{learner.cohort}</p>
               )}
-              {learner.bio && (
-                <p className="text-base text-text-secondary leading-body mt-3 max-w-[600px]">
-                  {learner.bio}
-                </p>
-              )}
-              {learner.currentQuestion && (
-                <div className="mt-6 p-5 bg-mist-blue/50 rounded-2xl border border-mist-blue">
-                  <span className="text-xs font-medium text-ocean-blue uppercase tracking-wide">
-                    지금 탐구 중인 질문
-                  </span>
-                  <p className="text-xl md:text-2xl font-medium leading-relaxed text-text-primary mt-2">
-                    "{learner.currentQuestion}"
-                  </p>
-                </div>
-              )}
             </div>
           </div>
         </div>
       </section>
 
       <div className="max-w-content mx-auto px-6 pt-8">
+        <div className="space-y-4 mb-8">
+          <ProfileIntroBlock
+            profileIntro={profileIntro}
+            contextLine={contextLine}
+            interestTags={interestTags}
+            currentQuestion={learner.currentQuestion}
+          />
+          <DiscoveryHelperBlocks
+            currentStage={currentStage}
+            recentActivity={recentActivity}
+            starterRecords={starterRecords}
+            learnerSlug={learner.slug}
+          />
+        </div>
+
         <div className="flex gap-2 mb-8">
           {tabItems.map((tab) => (
             <TabButton
@@ -292,6 +304,8 @@ export default function LearnerDetailPage({ loaderData }: Route.ComponentProps) 
             )}
           </section>
         )}
+
+        <SelfAnswerSection selfAnswers={selfAnswers} />
       </div>
 
       {learnerSentences.length > 0 && (
