@@ -6,7 +6,7 @@ import * as Sentry from "@sentry/react-router/cloudflare";
 import { db } from "../../db/client.server";
 import { userRoles } from "../../db/schema.server";
 import { nanoid } from "../utils/utils.server";
-import { getAuth } from "./auth.server";
+import { getAuth, getAuthDebug } from "./auth.server";
 import { createLogger, createModuleLogger } from "../infra/logger.server";
 
 const adminLogger = createModuleLogger("auth.middleware");
@@ -44,7 +44,6 @@ export async function requireAuth(request: Request, context: AppLoadContext) {
     const hasSessionCookie = (request.headers.get("cookie") ?? "").includes("adakrpos_session");
 
     if (hasSessionCookie) {
-      const { getAuthDebug } = await import("./auth.server");
       const debugInfo = getAuthDebug(request);
       logger.warn("auth_cookie_present_but_verify_failed", {
         debugInfo,
