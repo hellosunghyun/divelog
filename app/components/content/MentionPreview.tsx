@@ -101,12 +101,14 @@ export function useMentionPreview(containerRef: RefObject<HTMLDivElement | null>
   const overCard = useRef(false);
   const showTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const currentPreviewKey = useRef<string>("");
 
   const tryHide = useCallback(() => {
     if (hideTimer.current) clearTimeout(hideTimer.current);
     hideTimer.current = setTimeout(() => {
       if (!overAnchor.current && !overCard.current) {
         setOpen(false);
+        currentPreviewKey.current = "";
       }
     }, 300);
   }, []);
@@ -129,6 +131,10 @@ export function useMentionPreview(containerRef: RefObject<HTMLDivElement | null>
       const info = parseAnchor(anchor);
       if (!info) return;
 
+      const key = cacheKey(info.type, info.slug);
+      if (key === currentPreviewKey.current) return;
+
+      currentPreviewKey.current = key;
       if (showTimer.current) clearTimeout(showTimer.current);
       showTimer.current = setTimeout(() => {
         setPreview(info);
@@ -146,7 +152,11 @@ export function useMentionPreview(containerRef: RefObject<HTMLDivElement | null>
 
       overAnchor.current = false;
 
-      if (showTimer.current) { clearTimeout(showTimer.current); showTimer.current = null; }
+      if (showTimer.current) {
+        clearTimeout(showTimer.current);
+        showTimer.current = null;
+        currentPreviewKey.current = "";
+      }
       tryHide();
     }
 
@@ -193,10 +203,13 @@ export function MentionPreviewCard({
   const [loading, setLoading] = useState(false);
   const lastKey = useRef<string>("");
 
+  const previewType = preview?.type;
+  const previewSlug = preview?.slug;
+
   useEffect(() => {
-    if (!preview) return;
-    const key = cacheKey(preview.type, preview.slug);
-    if (key === lastKey.current && data) return;
+    if (!previewType || !previewSlug) return;
+    const key = cacheKey(previewType, previewSlug);
+    if (key === lastKey.current) return;
     lastKey.current = key;
 
     const cached = previewCache.get(key);
@@ -207,15 +220,16 @@ export function MentionPreviewCard({
     }
 
     let cancelled = false;
+    setData(null);
     setLoading(true);
-    fetchPreview(preview.type, preview.slug).then((result) => {
+    fetchPreview(previewType, previewSlug).then((result) => {
       if (cancelled) return;
       setData(result);
       setLoading(false);
     });
 
     return () => { cancelled = true; };
-  }, [preview, data]);
+  }, [previewType, previewSlug]);
 
   if (typeof document === "undefined") return null;
 
