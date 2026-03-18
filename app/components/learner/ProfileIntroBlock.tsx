@@ -18,32 +18,32 @@ export default function ProfileIntroBlock({
   }
 
   return (
-    <div data-testid="profile-intro-block" className="space-y-6">
+    <div data-testid="profile-intro-block" className="min-w-0 space-y-6">
       {currentQuestion && (
         <div data-testid="current-question">
-          <p className="text-base md:text-lg font-medium leading-relaxed text-text-primary">
+          <p className="break-words text-base md:text-lg font-medium leading-relaxed text-text-primary">
             "{currentQuestion}"
           </p>
         </div>
       )}
 
       {profileIntro && (
-        <p className="text-sm text-text-secondary leading-body">
+        <p className="break-words text-sm text-text-secondary leading-body">
           {profileIntro}
         </p>
       )}
 
       {contextLine && (
-        <p className="text-xs text-text-tertiary">{contextLine}</p>
+        <p className="break-words text-xs text-text-tertiary">{contextLine}</p>
       )}
 
       {interestTags.length > 0 && (
-        <div data-testid="interest-tags" className="flex flex-wrap gap-2">
+        <div data-testid="interest-tags" className="min-w-0 flex flex-wrap gap-2">
           {interestTags.map((tag) => (
             <Link
               key={tag.slug}
               to={`/tags/${tag.slug}`}
-              className="rounded-full px-3 py-1.5 text-xs font-medium bg-surface border border-border text-text-secondary hover:bg-mist-blue hover:text-ocean-blue hover:border-reef-cyan/30 transition-all duration-normal no-underline"
+              className="min-w-0 break-words rounded-full px-3 py-1.5 text-xs font-medium bg-surface border border-border text-text-secondary hover:bg-mist-blue hover:text-ocean-blue hover:border-reef-cyan/30 transition-all duration-normal no-underline"
             >
               #{tag.name}
             </Link>

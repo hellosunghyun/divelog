@@ -10,12 +10,12 @@ interface DiscoveryHelperBlocksProps {
 
 function CurrentStageBlock({ stage }: { stage: { id: string; name: string; slug: string } }) {
   return (
-    <div data-testid="current-stage-block" className="p-4 rounded-xl bg-surface border border-border">
-      <div className="flex items-center gap-2">
+    <div data-testid="current-stage-block" className="min-w-0 rounded-xl border border-border bg-surface p-4">
+      <div className="flex flex-wrap items-center gap-2">
         <span className="text-xs font-medium text-text-tertiary">현재 여정</span>
         <Link
           to={`/journey/${stage.slug}`}
-          className="px-3 py-1.5 text-sm font-medium rounded-full bg-mist-blue text-ocean-blue hover:bg-reef-cyan/30 transition-colors no-underline"
+          className="min-w-0 break-words rounded-full bg-mist-blue px-3 py-1.5 text-sm font-medium text-ocean-blue transition-colors no-underline hover:bg-reef-cyan/30"
         >
           {stage.name}
         </Link>
@@ -42,8 +42,8 @@ function RecentActivityBlock({
   if (parts.length === 0) return null;
 
   return (
-    <div data-testid="recent-activity-block" className="p-4 rounded-xl bg-surface border border-border">
-      <span className="text-sm text-text-secondary">{parts.join(" · ")}</span>
+    <div data-testid="recent-activity-block" className="min-w-0 rounded-xl border border-border bg-surface p-4">
+      <span className="break-words text-sm text-text-secondary">{parts.join(" · ")}</span>
     </div>
   );
 }
@@ -54,14 +54,14 @@ function StarterLinksBlock({ records }: { records: Array<{ slug: string; title: 
   if (displayRecords.length === 0) return null;
 
   return (
-    <div data-testid="starter-links" className="p-4 rounded-xl bg-surface border border-border">
+    <div data-testid="starter-links" className="min-w-0 rounded-xl border border-border bg-surface p-4">
       <p className="text-xs font-medium text-text-tertiary mb-3">여기서 시작해보세요</p>
       <div className="flex flex-col gap-2">
         {displayRecords.map((record) => (
           <Link
             key={record.slug}
             to={`/logs/${record.slug}`}
-            className="text-sm text-text-secondary hover:text-ocean-blue transition-colors no-underline"
+            className="min-w-0 break-words text-sm text-text-secondary transition-colors no-underline hover:text-ocean-blue"
           >
             {record.title}
           </Link>
@@ -85,7 +85,7 @@ export function DiscoveryHelperBlocks({
   }
 
   return (
-    <div className={cn("flex flex-col gap-3")}>
+    <div className={cn("min-w-0 flex flex-col gap-3")}>
       {hasStage && <CurrentStageBlock stage={currentStage} />}
       {hasActivity && (
         <RecentActivityBlock

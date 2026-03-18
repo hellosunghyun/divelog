@@ -48,20 +48,20 @@ export default function SelfAnswerSection({
             key={selfAnswer.id}
             to={`/logs/${selfAnswer.recordSlug}`}
             prefetch="viewport"
-            className="block no-underline"
+            className="block min-w-0 no-underline"
           >
             <article
               data-testid="self-answer-card"
               className={cn(
-                "border border-[#E3E8EF] rounded-2xl p-5 bg-white",
+                "min-w-0 rounded-2xl border border-[#E3E8EF] bg-white p-5",
                 "hover:border-ocean-blue/40 transition-colors duration-200",
                 "focus-within:ring-2 focus-within:ring-ocean-blue focus-within:ring-offset-2"
               )}
             >
-              <h3 className="text-base font-semibold text-text-primary mb-2 leading-snug">
+              <h3 className="mb-2 break-words text-base font-semibold leading-snug text-text-primary">
                 {selfAnswer.questionTitle}
               </h3>
-              <p className="text-sm text-text-secondary leading-relaxed line-clamp-2">
+              <p className="break-words text-sm text-text-secondary leading-relaxed line-clamp-2">
                 {selfAnswer.snippet}
               </p>
             </article>
