@@ -509,3 +509,24 @@ INSERT INTO question_carry_overs (
   'stage-test-closed',
   unixepoch() - 2000
 );
+
+-- 스레딩 답글 데이터 (parent_response_id 포함)
+INSERT INTO responses (
+  id,
+  record_id,
+  question_id,
+  author_id,
+  type,
+  content,
+  visibility,
+  moderation_status,
+  parent_response_id,
+  created_at,
+  updated_at
+) VALUES
+  ('resp-thread-001', 'record-001', 'q-001', 'soyeon', 'resonance', '막막함을 시작점으로 읽어낸 문장이 많이 와닿았습니다. 저도 처음에는 모른다는 사실이 부끄러웠는데, 지금은 그 모름이 질문의 자리라고 느끼고 있습니다.', 'cohort', 'clean', 'resp-001', unixepoch() - 86400 * 6, unixepoch() - 86400 * 6),
+  ('resp-thread-002', 'record-001', 'q-001', 'hyunjin', 'connection', '모름을 받아들이는 태도가 정말 중요하다고 생각합니다. 저도 비슷한 경험을 했는데, 그 과정에서 질문이 더 선명해졌습니다.', 'cohort', 'clean', 'resp-thread-001', unixepoch() - 86400 * 5, unixepoch() - 86400 * 5),
+  ('resp-thread-003', 'record-001', 'q-001', 'jaemin', 'suggestion', '질문을 오래 들고 가기 어렵다면 같은 질문을 다른 날의 문장으로 다시 적어 보는 것도 좋았습니다. 질문의 결이 조금씩 바뀌는 것이 보였습니다.', 'cohort', 'clean', 'resp-thread-002', unixepoch() - 86400 * 4, unixepoch() - 86400 * 4),
+  ('resp-thread-004', 'record-001', 'q-001', 'minjun', 'question', '질문의 변화가 가장 크게 느껴졌던 순간은 언제였나요?', 'cohort', 'clean', 'resp-thread-003', unixepoch() - 86400 * 3, unixepoch() - 86400 * 3),
+  ('resp-thread-005', 'record-001', 'q-001', 'jiwon', 'resonance', '함께 읽을 때 보이는 장면이 달라진다는 말이 기억에 남습니다. 저도 누군가의 시선이 들어올 때 기록이 넓어진다고 느낍니다.', 'cohort', 'clean', 'resp-thread-004', unixepoch() - 86400 * 2, unixepoch() - 86400 * 2),
+  ('resp-thread-006', 'record-001', 'q-001', 'hana', 'connection', '이 대화의 흐름이 정말 좋습니다. 각자의 경험이 모여서 질문이 더 깊어지는 것 같습니다.', 'cohort', 'clean', 'resp-thread-005', unixepoch() - 86400 * 1, unixepoch() - 86400 * 1);
