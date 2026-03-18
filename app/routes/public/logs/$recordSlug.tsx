@@ -200,8 +200,10 @@ type ResponseNode = {
 type RenderThreadContext = {
   editingResponseId: string | null;
   editingContent: string;
+  editingResponseType: string;
   setEditingContent: (v: string) => void;
   setEditingResponseId: (v: string | null) => void;
+  setEditingResponseType: (v: string) => void;
   isSubmittingResponseEdit: boolean;
   isSubmittingResponseDelete: boolean;
   handleEditResponse: (id: string) => void;
@@ -399,6 +401,7 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
   const [expandedQuestionId, setExpandedQuestionId] = useState<string | null>(null);
   const [editingResponseId, setEditingResponseId] = useState<string | null>(null);
   const [editingContent, setEditingContent] = useState("");
+  const [editingResponseType, setEditingResponseType] = useState("");
   const [replyingToId, setReplyingToIdRaw] = useState<string | null>(null);
   const [replyResponseType, setReplyResponseType] = useState(ALL_RESPONSE_TYPE_OPTIONS[0]?.value ?? "resonance");
   const setReplyingToId = useCallback((id: string | null) => {
@@ -520,6 +523,7 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
     if (response) {
       setEditingResponseId(responseId);
       setEditingContent(response.response.content);
+      setEditingResponseType(response.response.type);
     }
   }, [recordResponses]);
 
@@ -1101,8 +1105,10 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
                   renderResponseThread(rootNode, 0, {
                     editingResponseId,
                     editingContent,
+                    editingResponseType,
                     setEditingContent,
                     setEditingResponseId,
+                    setEditingResponseType,
                     isSubmittingResponseEdit,
                     isSubmittingResponseDelete,
                     handleEditResponse,
