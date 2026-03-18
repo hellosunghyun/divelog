@@ -47,60 +47,84 @@
 ---
 
 ## 기술 기준
-- Next.js App Router
+- React Router 7 (Vite, `@react-router/cloudflare`)
 - TypeScript strict mode
-- Tailwind CSS
-- Server Component 기본, Client Component 최소화
-- mock data + adapter 레이어 우선
-- SEO와 메타데이터는 page 단위로 관리
+- Tailwind CSS v4 (CSS-first 설정, @theme inline)
+- Tiptap v3 리치 텍스트 에디터 (ProseMirror 기반)
+- Radix UI 헤드리스 프리미티브 (Dialog, Select, Checkbox 등)
+- Framer Motion 애니메이션 (reduced motion 지원)
+- Sentry 에러 모니터링
+- Cloudflare Pages + D1 + R2 + Queues (edge runtime)
+- Drizzle ORM 스키마 기반 데이터 레이어
+- Zod 폼/입력 검증
+- SEO와 메타데이터는 page loader 단위로 관리
 - 접근성 기본 적용
 - light theme 우선, dark mode는 확장 가능 구조로 준비
 
 ---
 
 ## 프로젝트 구조
-권장 구조는 아래와 같다.
+실제 구조는 아래와 같다.
 
-- `src/app/(public)`  
-  공개 영역 라우트 그룹
-- `src/components`
-  공통 컴포넌트
-- `src/lib/mocks`
-  목 데이터
-- `src/lib/adapters`
-  데이터 조회 어댑터
-- `src/lib/schemas`
-  Zod 스키마 및 타입
-- `src/styles`
-  전역 스타일, 토큰
-- `src/content`
-  정적 이미지, seed 콘텐츠
+- `app/routes/public/`  
+  공개 영역 라우트
+- `app/routes/admin/`
+  관리자 영역 라우트
+- `app/routes/api/`
+  API 엔드포인트
+- `app/components/`
+  공통 컴포넌트 (14개 하위 디렉토리: layout, cards, sections, views, feedback, content, filters, record, editor, revision, activity, admin, ui, search)
+- `app/db/schema.server.ts`
+  Drizzle ORM 스키마 (27 테이블)
+- `app/db/queries/`
+  도메인별 쿼리 모듈 (35+ 파일: journey, records, dialogue, learners, social, misc, admin)
+- `app/lib/auth/`
+  인증 및 미들웨어 (getAuth, requireAuth, requireVerified, requireRole)
+- `app/lib/content/`
+  Tiptap 콘텐츠 처리 (렌더링, 에디터 설정, 이미지 압축)
+- `app/lib/infra/`
+  인프라 유틸리티 (로깅, 초안 저장, R2 정리)
+- `app/lib/utils/`
+  공통 유틸리티 (한글 검색, 캘린더, ID 생성 등)
+- `app/lib/auth/validation.ts`
+  Zod 스키마 (15+ 검증 스키마)
+- `app/styles/`
+  CSS (global.css, editor.css, fonts.css)
+- `workers/app.ts`
+  Cloudflare Workers 진입점
 
 ---
 
 ## 라우트 구조
-공개 영역 라우트는 아래를 기본으로 한다.
+공개 영역 라우트는 아래와 같다.
 
 - `/`
 - `/journey`
-- `/journey/[stageSlug]`
+- `/journey/:stageSlug`
+- `/questions`
 - `/logs`
-- `/logs/[recordSlug]`
-- `/challenges`
-- `/challenges/[challengeSlug]`
-- `/learners`
-- `/learners/[learnerSlug]`
-- `/groups/[groupSlug]`
-- `/guide`
+- `/logs/:recordSlug`
+- `/logs/:recordSlug/edit`
+- `/logs/:recordSlug/details`
 - `/write`
+- `/write/note`
+- `/write/article`
+- `/write/meta/:recordId`
+- `/learners`
+- `/learners/:learnerSlug`
+- `/tags`
+- `/tags/:tagSlug`
+- `/guide`
 - `/search`
 - `/inbox`
 - `/me`
 - `/settings`
-- `/memories/[stageSlug]`
+- `/terms`
+- `/privacy`
+- `/style-reference`
 
-`/groups/[groupSlug]`는 협업 단위가 존재할 때만 의미를 가진다.  
-제품의 기본 탐색 구조는 여전히 Learner / Stage / Record 축을 유지한다.
+미구현: `/challenges`, `/challenges/:challengeSlug`  
+비활성화: `/groups/:groupSlug` [COLLAB_DISABLED], `/memories/:stageSlug` [STAGE_DISABLED]
 
 ---
 
@@ -146,6 +170,8 @@
 ---
 
 ## 공통 컴포넌트
+
+컴포넌트는 14개 하위 디렉토리에 총 70개 이상 파일로 구성되어 있다.
 
 ### GlobalNav
 역할:
@@ -287,6 +313,110 @@
 원칙:
 - CTA는 많아도 두 개 이하
 - 카피는 허가형 문장 우선
+
+---
+
+### CompactTimelineCard
+역할:
+- 목록 뷰에서 사용하는 간략한 타임라인 카드
+
+---
+
+### SelfAnswerCard
+역할:
+- 자기답변을 시간 흐름과 함께 표시
+
+---
+
+### ViewToggle
+역할:
+- 타임라인/캘린더 뷰 간 전환
+
+---
+
+### TimelineView / CalendarView
+역할:
+- 기록을 타임라인 또는 캘린더 형태로 표시
+
+---
+
+### ContentRenderer
+역할:
+- Tiptap JSON을 HTML로 렌더링, 멘션 프리뷰 포함
+
+---
+
+### MentionPreview
+역할:
+- @멘션 및 기록 참조에 대한 호버 프리뷰
+
+---
+
+### NoteEditor / ArticleEditor
+역할:
+- Tiptap 기반 노트/아티클 에디터 (슬래시 커맨드 포함)
+
+---
+
+### AutosaveIndicator
+역할:
+- 자동 저장 상태 표시 (저장 중, 저장됨, 오류)
+
+---
+
+### NavigationBlockerDialog
+역할:
+- 저장하지 않은 변경사항 경고 다이얼로그
+
+---
+
+### DraftRecoveryPrompt
+역할:
+- 이전 초안 복구 안내
+
+---
+
+### RhythmDateInput / WeekPicker / MonthPicker
+역할:
+- 리듬 기반 날짜/기간 선택 컴포넌트
+
+---
+
+### RevisionTimeline / RevisionDiffView
+역할:
+- 기록 수정 이력 타임라인 및 변경사항 비교
+
+---
+
+### ActivityFeed / NarrativeDigest
+역할:
+- 활동 피드 및 서사형 요약
+
+---
+
+### FilterBottomSheet
+역할:
+- 모바일 바텀시트 필터 UI
+
+---
+
+### FloatingWriteCTA
+역할:
+- 하단 플로팅 기록 작성 버튼
+
+---
+
+### PersonSearch / RecordSearch / TagSelector
+역할:
+- 검색 및 선택 컴포넌트 (멀티셀렉트 지원)
+
+---
+
+### UI 프리미티브 (app/components/ui/)
+Radix UI 기반 13개 프리미티브:
+- Button, Input, Textarea, Label, Checkbox
+- RadioGroup, Select, Dialog, AlertDialog
+- Popover, Badge, Calendar, Table
 
 ---
 
@@ -455,17 +585,20 @@
 ---
 
 ## 프론트엔드 상태 관리 원칙
-- 서버 데이터는 가능한 서버 컴포넌트에서 로딩
+- 서버 데이터는 React Router loader/action에서 처리
 - URL search params로 필터와 정렬을 표현
 - local state는 상호작용 상태에만 사용
-- draft autosave는 local cache 또는 저장 API와 연계 가능 구조로 설계
+- draft autosave는 localStorage + /api/autosave 연계
+- 읽음 추적은 /api/track-read + localStorage 연계
 
 ---
 
 ## 데이터 레이어 원칙
-- 실제 API 전이라도 mock data adapter 구조를 먼저 둔다.
-- 페이지는 raw mock 파일을 직접 읽지 않고 adapter를 통해 가져온다.
-- record, question, response, stage, learner, collective memory는 독립 조회 가능 구조로 만든다.
+- Drizzle ORM + Cloudflare D1을 사용하여 서버에서 직접 쿼리
+- `app/db/queries/` 디렉토리에서 도메인별 쿼리 모듈 관리
+- 페이지 loader에서 Drizzle 쿼리를 직접 호출
+- record, question, response, stage, learner는 독립 쿼리 가능 구조
+- Zod 스키마로 모든 입력값 검증 (app/lib/auth/validation.ts)
 
 ---
 

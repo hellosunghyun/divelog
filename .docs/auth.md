@@ -194,3 +194,29 @@ if (!auth.isAuthenticated) {
 - SDK는 401/403 응답 시 해당 API 키를 30초간 무효로 캐시합니다.
 - 키 교체 후 즉시 반영하려면: `import { clearApiKeyCache } from "@adakrpos/auth"; clearApiKeyCache();`
 - 미인증 사용자는 `https://ada-kr-pos.com/login?callbackUrl=<현재URL>` 로 리다이렉트하세요.
+
+## divelog 로컬 미들웨어
+
+divelog은 `@adakrpos/auth/generic`의 `verifyRequest`를 감싸서 다음 미들웨어 함수를 구현합니다.
+
+### 위치
+`app/lib/auth/auth.middleware.ts`
+
+### 함수 목록
+
+| 함수 | 용도 | 사용처 |
+|------|------|--------|
+| `getOptionalUser` | 선택적 사용자 조회 (비인증 허용) | 모든 Public 페이지 |
+| `requireAuth` | 인증 필수 (미인증 시 로그인 리다이렉트) | /inbox, /me, /settings |
+| `requireVerified` | isVerified=true 필수 (미인증 시 /guide 리다이렉트) | /write/*, 기록 편집 |
+| `requireRole` | 특정 역할 필수 (DB user_roles 확인) | Admin 전체 (role="admin") |
+| `bootstrapAdmin` | ADMIN_USER_ID 환경변수로 최초 admin 설정 | _admin.tsx 레이아웃 |
+| `ensureAdminByEmail` | ADMIN_EMAILS 기반 admin 역할 자동 부여 | _public.tsx (waitUntil) |
+
+### WeakMap 캐싱
+`getAuth(request, apiKey)` 함수는 WeakMap으로 요청당 1회만 `verifyRequest`를 호출합니다.
+동일 요청 내 여러 미들웨어가 `getAuth()`를 호출해도 API 중복 호출이 발생하지 않습니다.
+
+### 무한 리다이렉트 방지
+`requireAuth`는 `auth_retry=1` 쿼리 파라미터로 리다이렉트 루프를 감지합니다.
+로그인 후 돌아왔는데도 인증이 안 되면, 무한 루프 대신 에러를 표시합니다.

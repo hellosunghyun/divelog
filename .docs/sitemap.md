@@ -19,7 +19,7 @@
   - 현재 Stage 강조
   - Stage 미리보기
 
-- `/journey/[stageSlug]`
+- `/journey/:stageSlug`
   - Stage 상세
   - Stage Hero
   - Stage Context
@@ -40,7 +40,7 @@
     - 자기답변 있음
     - 협업 연결 있음
 
-- `/logs/[recordSlug]`
+- `/logs/:recordSlug`
   - 기록 상세
   - 본문
   - 남겨둔 질문
@@ -60,13 +60,37 @@
   - 응답 선호도
   - Visibility 선택
 
-- `/challenges`
+- `/write/note`
+  - 노트 작성 에디터
+  - Tiptap 에디터
+  - 리듬 선택
+  - 질문 추가
+  - 저장 / 발행
+
+- `/write/article`
+  - 아티클 작성 에디터
+  - 제목 + Tiptap 에디터
+  - 리듬 선택
+  - 질문 추가
+  - 저장 / 발행
+
+- `/write/meta/:recordId`
+  - 기록 메타데이터 편집
+  - 질문, 응답 선호도, 태그
+  - Visibility 변경
+
+- `/questions`
+  - 열린 질문 목록
+  - Stage별 필터
+  - 질문 카드 그리드
+
+- `/challenges` [미구현]
   - 챌린지 목록
   - 현재 / 종료 상태
   - 주요 질문
   - 협업 유무
 
-- `/challenges/[challengeSlug]`
+- `/challenges/:challengeSlug` [미구현]
   - 챌린지 상세
   - 문제 정의
   - 현재 질문
@@ -81,7 +105,7 @@
   - 최근 기록
   - 필터
 
-- `/learners/[learnerSlug]`
+- `/learners/:learnerSlug`
   - Learner 상세
   - 소개
   - 지금 붙들고 있는 질문
@@ -91,7 +115,17 @@
   - 남겨두고 싶은 문장
   - 협업 흔적
 
-- `/groups/[groupSlug]`
+- `/tags`
+  - 태그 목록
+  - 사용 빈도
+  - 태그 검색
+
+- `/tags/:tagSlug`
+  - 태그 상세
+  - 해당 태그의 기록 목록
+  - 관련 태그
+
+- `/groups/:groupSlug` [COLLAB_DISABLED]
   - Collaboration Unit 상세
   - 존재할 때만 접근 가능
   - 질문
@@ -134,7 +168,16 @@
   - 응답 선호도
   - 알림 설정
 
-- `/memories/[stageSlug]`
+- `/terms`
+  - 이용약관
+
+- `/privacy`
+  - 개인정보처리방침
+
+- `/style-reference`
+  - 디자인 스타일 레퍼런스
+
+- `/memories/:stageSlug` [STAGE_DISABLED]
   - Collective Memory
   - 열린 질문
   - 오래 남은 문장
@@ -158,17 +201,17 @@
   - 순서 조정
   - 상태 변경
 
-- `/admin/stages/[stageId]`
+- `/admin/stages/:stageId`
   - Stage 편집
   - Hero 문구
   - 설명
   - 타입
   - 노출 설정
 
-- `/admin/challenges`
+- `/admin/challenges` [미구현]
   - Challenge 목록
 
-- `/admin/challenges/[challengeId]`
+- `/admin/challenges/:challengeId` [미구현]
   - Challenge 편집
   - 문제 정의
   - 주요 질문
@@ -180,7 +223,7 @@
   - 활동 상태
   - visibility 이슈
 
-- `/admin/learners/[learnerId]`
+- `/admin/learners/:learnerId`
   - Learner 상세 관리
   - 프로필
   - 활동 내역
@@ -192,7 +235,7 @@
   - 필터
   - bulk action
 
-- `/admin/records/[recordId]`
+- `/admin/records/:recordId`
   - Record 상세 관리
   - visibility 변경
   - moderation note
@@ -202,16 +245,21 @@
   - Response 목록
   - moderation queue
 
-- `/admin/dialogue/[responseId]`
+- `/admin/dialogue/:responseId`
   - Response 상세
   - 원문 질문
   - 원문 기록
   - 조치 내역
 
-- `/admin/collaboration`
+- `/admin/tags`
+  - 태그 관리
+  - 태그 생성/수정/삭제
+  - 사용 통계
+
+- `/admin/collaboration` [COLLAB_DISABLED]
   - Collaboration Unit 목록
 
-- `/admin/collaboration/[groupId]`
+- `/admin/collaboration/:groupId` [COLLAB_DISABLED]
   - Collaboration Unit 관리
   - 멤버
   - 상태
@@ -224,10 +272,10 @@
   - 문장 선별
   - Learner spotlight
 
-- `/admin/memories`
+- `/admin/memories` [STAGE_DISABLED]
   - Collective Memory 목록
 
-- `/admin/memories/[stageId]`
+- `/admin/memories/:stageId` [STAGE_DISABLED]
   - Collective Memory 편집
   - 질문 선택
   - 문장 선택
@@ -239,7 +287,7 @@
   - 템플릿 목록
   - 프롬프트 라이브러리
 
-- `/admin/templates/[templateId]`
+- `/admin/templates/:templateId`
   - 템플릿 상세 편집
   - 맥락
   - 형식

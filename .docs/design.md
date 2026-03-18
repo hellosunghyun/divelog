@@ -207,8 +207,8 @@ Stage의 성격을 색으로 가볍게 암시한다.
 좋은 타이포는 "읽기 쉬움", "위계", "정서"를 동시에 만든다.
 
 ### 8.2 폰트 방향
-- 기본: system-ui / SF Pro 계열 감성
-- 한글: Pretendard 또는 동급의 현대적 산세리프
+- 웹폰트: Geist (CDN via jsdelivr, variable weight 100-900)
+- 한글 fallback: system-ui / Apple SD Gothic Neo
 - 영문 타이틀과 한글 본문이 함께 있을 때도 리듬이 깨지지 않아야 함
 
 ### 8.3 타입 스케일
