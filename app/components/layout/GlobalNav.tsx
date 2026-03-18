@@ -258,7 +258,7 @@ export default function GlobalNav() {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 pt-3 px-4 pointer-events-none">
+      <header className="right-scroll-bar-position fixed top-0 left-0 right-0 z-50 pt-3 px-4 pointer-events-none">
         <nav
           aria-label="주요 내비게이션"
           className={cn(
