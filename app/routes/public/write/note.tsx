@@ -1,10 +1,11 @@
-import { eq, sql } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { useState } from "react";
 import { Link } from "~/components/content/SmartLink";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
 import type { Route } from "./+types/note";
 
 import { NoteEditor } from "~/components/editor/editors/NoteEditor";
+import PersonSearch from "~/components/PersonSearch";
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
 import {
@@ -16,14 +17,14 @@ import {
 } from "~/components/ui/select";
 import { TagSelector } from "~/components/TagSelector";
 import { db } from "~/db/client.server";
-import { syncMentionsForRecord } from "~/db/queries/dialogue/mentions.server";
+import { syncAllMentionsForRecord } from "~/db/queries/dialogue/mentions.server";
+import { syncParticipantsForRecord } from "~/db/queries/records/participants.server";
 import { getAllTags } from "~/db/queries/records/tags.server";
-import { learnerProfiles, notifications, records, recordTags, stages } from "~/db/schema.server";
+import { learnerProfiles, records, recordTags, stages } from "~/db/schema.server";
 import { useUnsavedWarning } from "~/hooks/useUnsavedWarning";
 import { requireVerified } from "~/lib/auth/auth.middleware";
 import { createNoteSchema } from "~/lib/auth/validation";
 import { getPlainText } from "~/lib/content/content.server";
-import { extractUserMentions } from "~/lib/content/extract-references.server";
 import { generateNoteTitle } from "~/lib/utils/title.server";
 import { nanoid } from "~/lib/utils/utils.server";
 
@@ -53,6 +54,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     currentStage: currentStageResult[0] ?? null,
     stages: allStages,
     tags: allTags,
+    currentUserId: auth.user?.id ?? null,
     learnerDefaults: {
       defaultVisibility: learner?.defaultVisibility ?? "public",
       defaultResponsePreference: learner?.defaultResponsePreference ?? "open",
@@ -112,52 +114,17 @@ export async function action({ request, context }: Route.ActionArgs) {
     updatedAt: now,
   });
 
-  const mentionSlugs = [...new Set(Array.from(content.matchAll(/(^|\s)@([a-z0-9][a-z0-9_-]*)/gi), (match) => match[2].toLowerCase()))];
-  const mentionedUsers =
-    mentionSlugs.length > 0
-      ? extractUserMentions(
-          JSON.stringify({
-            type: "doc",
-            content: mentionSlugs.map((mentionSlug) => ({
-              type: "mention",
-              attrs: { id: mentionSlug, label: mentionSlug },
-            })),
-          }),
-        )
-      : [];
+  const participantsJson = formData.get("participantsJson")?.toString() ?? "[]";
+  const mentionUserIdsJson = formData.get("mentionUserIds")?.toString() ?? "[]";
 
-  if (mentionedUsers.length > 0) {
-    await syncMentionsForRecord(
-      context.cloudflare.env.DB,
-      id,
-      auth.user.id,
-      mentionedUsers.map((mention) => mention.slug),
-    );
+  const participants = JSON.parse(participantsJson) as { userId: string; role: string }[];
+  const mentionUserIds = JSON.parse(mentionUserIdsJson) as string[];
 
-    const uniqueMentionSlugs = [...new Set(mentionedUsers.map((mention) => mention.slug).filter(Boolean))];
-    if (uniqueMentionSlugs.length > 0) {
-      const mentionedLearners = await database
-        .select({ userId: learnerProfiles.userId })
-        .from(learnerProfiles)
-        .where(sql`${learnerProfiles.slug} IN (${sql.join(uniqueMentionSlugs.map((mentionSlug) => sql`${mentionSlug}`), sql`, `)})`);
-
-      const actorName = auth.user.nickname ?? auth.user.name ?? "누군가";
-      for (const row of mentionedLearners) {
-        if (row.userId !== auth.user.id) {
-          await database.insert(notifications).values({
-            id: nanoid(),
-            recipientId: row.userId,
-            type: "mention",
-            title: `${actorName}님이 기록에서 당신을 언급했습니다`,
-            content: title,
-            recordId: id,
-            isRead: false,
-            createdAt: now,
-          });
-        }
-      }
-    }
+  if (participants.length > 0) {
+    await syncParticipantsForRecord(context.cloudflare.env.DB, id, participants, auth.user.id);
   }
+
+  await syncAllMentionsForRecord(context.cloudflare.env.DB, id, mentionUserIds, content, auth.user.id);
 
   // Handle tags
   const tagIds = formData.getAll("tagIds") as string[];
@@ -175,7 +142,7 @@ export async function action({ request, context }: Route.ActionArgs) {
 }
 
 export default function WriteNotePage({ loaderData }: Route.ComponentProps) {
-  const { currentStage, stages: availableStages, tags, learnerDefaults } = loaderData;
+  const { currentStage, stages: availableStages, tags, learnerDefaults, currentUserId } = loaderData;
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const [noteContent, setNoteContent] = useState("");
@@ -285,6 +252,26 @@ export default function WriteNotePage({ loaderData }: Route.ComponentProps) {
                 selectedTagIds={Array.from(selectedTags)}
                 onChange={(newIds) => setSelectedTags(new Set(newIds))}
               />
+
+              <div className="mt-4 space-y-4">
+                <PersonSearch
+                  label="함께하는 사람"
+                  name="participantsJson"
+                  selectedPeople={[]}
+                  excludeUserId={currentUserId ?? undefined}
+                  roleOptions={[
+                    { value: "coauthor", label: "공동작성" },
+                    { value: "companion", label: "함께활동" },
+                    { value: "mentor", label: "멘토" },
+                  ]}
+                />
+                <PersonSearch
+                  label="언급된 사람"
+                  name="mentionUserIds"
+                  selectedPeople={[]}
+                  excludeUserId={currentUserId ?? undefined}
+                />
+              </div>
             </div>
           </details>
         </Form>
