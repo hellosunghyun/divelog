@@ -186,7 +186,7 @@ export default function SceneCard({
                   )
                 )}
                 <span
-                  className={cn("text-caption", isRead ? "text-[#A0A4AB]" : "text-text-tertiary")}
+                  className={cn("text-[11px]", isRead ? "text-[#A0A4AB]" : "text-text-tertiary/70")}
                   suppressHydrationWarning
                 >
                   {formatRelativeTime(record.createdAt)}
