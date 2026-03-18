@@ -9,6 +9,7 @@ const ArticleEditor = lazy(() =>
   import("~/components/editor/editors/ArticleEditor").then(m => ({ default: m.ArticleEditor }))
 );
 import NoteEditor from "~/components/editor/editors/NoteEditor";
+import PersonSearch from "~/components/PersonSearch";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
@@ -22,7 +23,14 @@ import {
 } from "~/components/ui/select";
 import { TagSelector } from "~/components/TagSelector";
 import { db } from "~/db/client.server";
-import { syncMentionsForRecord } from "~/db/queries/dialogue/mentions.server";
+import {
+  getMentionsByRecord,
+  syncAllMentionsForRecord,
+} from "~/db/queries/dialogue/mentions.server";
+import {
+  getParticipantsByRecord,
+  syncParticipantsForRecord,
+} from "~/db/queries/records/participants.server";
 import { syncRecordLinksForRecord } from "~/db/queries/records/recordLinks.server";
 import { getRecordBySlug, updateRecord } from "~/db/queries/records/records.server";
 import { getAllTags, getTagsByRecord } from "~/db/queries/records/tags.server";
@@ -30,15 +38,18 @@ import { recordTags, stages, templates } from "~/db/schema.server";
 import { requireVerified } from "~/lib/auth/auth.middleware";
 import { createRecordSchema } from "~/lib/auth/validation";
 import { getPlainText } from "~/lib/content/content.server";
-import {
-  extractRecordRefs,
-  extractUserMentions,
-} from "~/lib/content/extract-references.server";
+import { extractRecordRefs } from "~/lib/content/extract-references.server";
 import { createLogger } from "~/lib/infra/logger.server";
 import { cleanupRemovedImages } from "~/lib/infra/r2-cleanup.server";
 import { useUnsavedWarning } from "~/hooks/useUnsavedWarning";
 
 const NO_SELECTION_VALUE = "__none__";
+
+const PARTICIPANT_ROLE_OPTIONS = [
+  { value: "coauthor", label: "공동작성" },
+  { value: "companion", label: "함께활동" },
+  { value: "mentor", label: "멘토" },
+];
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "기록 수정 — DiveLog" }];
@@ -71,8 +82,12 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
     // [COLLAB_DISABLED] collaboration query removed
   ]);
 
-  const allTags = await getAllTags(context.cloudflare.env.DB);
-  const currentTags = await getTagsByRecord(context.cloudflare.env.DB, recordData.record.id);
+  const [allTags, currentTags, existingParticipants, existingMentions] = await Promise.all([
+    getAllTags(context.cloudflare.env.DB),
+    getTagsByRecord(context.cloudflare.env.DB, recordData.record.id),
+    getParticipantsByRecord(context.cloudflare.env.DB, recordData.record.id),
+    getMentionsByRecord(context.cloudflare.env.DB, recordData.record.id),
+  ]);
 
   return {
     record: recordData.record,
@@ -81,6 +96,9 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
     collaborations: [] as never[], // [COLLAB_DISABLED]
     tags: allTags,
     currentTags,
+    existingParticipants,
+    existingMentions,
+    currentUserId: auth.user?.id ?? null,
   };
 }
 
@@ -103,8 +121,12 @@ export async function action({ params, request, context }: Route.ActionArgs) {
 
   const formatRaw = formData.get("format");
   const contentRaw = formData.get("content");
+  const participantsJson = formData.get("participantsJson")?.toString() ?? "[]";
+  const mentionUserIdsJson = formData.get("mentionUserIds")?.toString() ?? "[]";
   const format = formatRaw === "article" ? "article" : "note";
   const content = typeof contentRaw === "string" ? contentRaw : "";
+  const participants = JSON.parse(participantsJson) as { userId: string; role: string }[];
+  const mentionUserIds = JSON.parse(mentionUserIdsJson) as string[];
 
   let contentText = "";
   if (format === "article") {
@@ -162,16 +184,23 @@ export async function action({ params, request, context }: Route.ActionArgs) {
     collaborationUnitId: parsed.data.collaborationUnitId,
   }, { oldTags, newTags });
 
-  if (parsed.data.format === "article") {
-    const mentionedUsers = extractUserMentions(parsed.data.content);
-    const recordRefs = extractRecordRefs(parsed.data.content);
+  await syncParticipantsForRecord(
+    context.cloudflare.env.DB,
+    recordData.record.id,
+    participants,
+    auth.user.id,
+  );
 
-    await syncMentionsForRecord(
-      context.cloudflare.env.DB,
-      recordData.record.id,
-      auth.user.id,
-      mentionedUsers.map((mention) => mention.slug),
-    );
+  await syncAllMentionsForRecord(
+    context.cloudflare.env.DB,
+    recordData.record.id,
+    mentionUserIds,
+    parsed.data.content,
+    auth.user.id,
+  );
+
+  if (parsed.data.format === "article") {
+    const recordRefs = extractRecordRefs(parsed.data.content);
 
     await syncRecordLinksForRecord(context.cloudflare.env.DB, recordData.record.id, recordRefs);
   }
@@ -206,7 +235,17 @@ export async function action({ params, request, context }: Route.ActionArgs) {
 }
 
 export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
-  const { record, templates: availableTemplates, currentStage, collaborations, tags, currentTags } = loaderData;
+  const {
+    record,
+    templates: availableTemplates,
+    currentStage,
+    collaborations,
+    tags,
+    currentTags,
+    existingParticipants,
+    existingMentions,
+    currentUserId,
+  } = loaderData;
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
@@ -389,6 +428,30 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
           selectedTagIds={Array.from(selectedTags)}
           onChange={(newIds) => setSelectedTags(new Set(newIds))}
         />
+
+        <div className="space-y-4">
+          <PersonSearch
+            label="함께하는 사람"
+            name="participantsJson"
+            selectedPeople={existingParticipants.map((participant) => ({
+              userId: participant.userId,
+              displayName: participant.displayName ?? participant.slug ?? "이름 없음",
+              profilePhotoUrl: participant.profilePhotoUrl,
+            }))}
+            excludeUserId={currentUserId ?? undefined}
+            roleOptions={PARTICIPANT_ROLE_OPTIONS}
+          />
+          <PersonSearch
+            label="언급된 사람"
+            name="mentionUserIds"
+            selectedPeople={existingMentions.map((mention) => ({
+              userId: mention.userId,
+              displayName: mention.displayName ?? mention.slug ?? "이름 없음",
+              profilePhotoUrl: mention.profilePhotoUrl,
+            }))}
+            excludeUserId={currentUserId ?? undefined}
+          />
+        </div>
 
         <div>
           <Label htmlFor="visibility" className="mb-2 block text-meta font-medium text-text-secondary">

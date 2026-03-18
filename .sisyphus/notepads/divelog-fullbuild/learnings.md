@@ -38,6 +38,10 @@
 
 ## [2026-03-14] Task T2: Design Tokens
 
+## [2026-03-18] Task T15 Learner profile related records
+- `useRouteLoaderData("routes/_public")`는 레이아웃 loader의 `data(...)` 반환값을 그대로 주므로, 공개 레이아웃 사용자 정보는 `publicData.data.user` 형태로 읽어야 타입 오류를 피할 수 있다.
+- 러너 프로필의 보조 기록 섹션은 `getRecordsWithParticipant()`/`getRecordsWithMention()` 결과를 그대로 쓰되, 타인 프로필에서는 `record.visibility === "public"`만 남기면 기존 cohort 공개 규칙을 UI에서 안전하게 유지할 수 있다.
+
 ### Files Created
 - `app/styles/tokens.css` — CSS custom properties (Quiet Depth design system)
 - `app/styles/global.css` — Reset, base typography, focus ring
@@ -157,3 +161,9 @@
 - `syncParticipantsForRecord()`는 `records.authorId`를 먼저 조회한 뒤 `record_participants`를 delete-all 하고 bulk insert 하는 패턴으로 구현하면 작성자 self-tag를 서버에서 일관되게 차단할 수 있다.
 - 참여자 조회는 `record_participants` + `learner_profiles` LEFT JOIN으로 `displayName/profilePhotoUrl/role/createdAt`를 바로 반환하면 SceneCard/상세 페이지에서 후속 조회 없이 렌더링 가능하다.
 - `getParticipantsBatch()`는 `inArray(recordParticipants.recordId, recordIds)` 단일 쿼리로 처리해야 N+1 없이 기록 목록 단위 참여자 데이터를 로드할 수 있다.
+
+- 2026-03-18:  also needs  +  hidden JSON fields to mirror note tag flow, and  must accept  when article creation notifies participants before mentions.
+
+- 2026-03-18: article write route mirrors note tag flow by passing currentUserId into PersonSearch hidden JSON fields, and participant notifications require createNotification to accept participant_added before deduping mention alerts.
+- 2026-03-18: 기록 편집 폼도 생성 폼과 같은 `PersonSearch` hidden JSON 패턴을 그대로 재사용하면 `participantsJson`/`mentionUserIds` 직렬화와 서버 sync 함수를 추가 상태 관리 없이 연결할 수 있다.
+- 2026-03-18: Drizzle `.select({ ...table })`는 일부 쿼리에서 `SelectedFields` 타입 오류를 내므로, 전체 컬럼 확장이 필요할 때는 `getTableColumns(table)` 결과를 spread 하는 편이 안정적이다.

@@ -1,4 +1,4 @@
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, getTableColumns, sql } from "drizzle-orm";
 
 import type { CreateQuestionInput } from "../../../lib/auth/validation";
 import { nanoid } from "../../../lib/utils/utils.server";
@@ -206,10 +206,11 @@ export async function getUnansweredQuestionsByAuthor(
   limit = 10,
 ): Promise<UnansweredQuestionByAuthor[]> {
   const database = db(d1);
+  const questionColumns = getTableColumns(questions);
 
   return database
     .select({
-      ...questions,
+      ...questionColumns,
       recordSlug: records.slug,
       recordTitle: records.title,
     })

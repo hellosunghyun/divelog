@@ -15,3 +15,7 @@
 ## [2026-03-18] Task: Record Participants Query Module
 - `pnpm test` 전체 실행은 이번 변경과 무관한 기존 `app/db/queries/__tests__/mentions.test.ts` 2건 실패로 non-zero 상태다(`getMentionsByRecord` mock shape mismatch).
 - 신규 `participants.test.ts`는 별도 실행에서 6/6 PASS, `pnpm typecheck | grep "participants" | grep "error TS" | wc -l` 결과는 0으로 확인했다.
+
+## [2026-03-18] Task: Edit Record People Tagging
+- 요청된 검증 명령인 `pnpm typecheck 2>&1 | grep "recordSlug" | grep "error TS" | wc -l`는 `app/db/queries/dialogue/questions.server.ts`의 기존 Drizzle select 타입 오류를 `getTableColumns()`로 정리한 뒤 0으로 맞췄다.
+- 전체 `pnpm typecheck`는 이번 변경과 무관한 기존 오류들(`app/components/admin/AdminSidebar.tsx`, `app/db/queries/dialogue/responses.server.ts`, `app/lib/auth/auth.middleware.ts`, 일부 admin/api 파일) 때문에 여전히 실패한다.
