@@ -153,7 +153,7 @@ export default function GuidePage() {
             공개 범위
           </h2>
           <p className="text-base leading-relaxed text-text-secondary">
-            기록의 공개 범위를 선택할 수 있습니다: 임시저장(나만), 코호트 공개(같은 기수에게),
+            기록의 공개 범위를 선택할 수 있습니다: 임시저장, 나만 보기, 코호트 공개(같은 기수에게),
             전체 공개.
           </p>
         </section>
@@ -206,10 +206,11 @@ export default function GuidePage() {
                 공개 범위(Visibility)는 어떻게 설정하나요?
               </h3>
               <p className="text-base leading-relaxed text-text-secondary">
-                기록의 공개 범위는 세 단계로 설정할 수 있습니다:
+                기록의 공개 범위는 네 단계로 설정할 수 있습니다:
               </p>
               <ul className="mt-3 flex flex-col gap-2 pl-5 text-base text-text-secondary">
-                <li><strong className="text-text-primary">임시저장</strong> — 나만 볼 수 있습니다. 작성 중인 생각을 안전하게 보관합니다.</li>
+                <li><strong className="text-text-primary">임시저장</strong> — 작성 중 상태입니다. 본인만 볼 수 있습니다.</li>
+                <li><strong className="text-text-primary">나만 보기</strong> — 작성자만 볼 수 있습니다.</li>
                 <li><strong className="text-text-primary">코호트 공개</strong> — 같은 기수의 러너들에게 공개됩니다.</li>
                 <li><strong className="text-text-primary">전체 공개</strong> — 모든 사람이 볼 수 있습니다.</li>
               </ul>

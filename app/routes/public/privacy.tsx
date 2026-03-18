@@ -179,7 +179,7 @@ export default function PrivacyPage() {
           </p>
           <ul className="flex flex-col gap-2 pl-6 text-base text-text-secondary">
             <li>본인의 개인정보 열람, 정정, 삭제 요청</li>
-            <li>기록의 공개 범위 변경 (임시저장, 코호트 공개, 전체 공개)</li>
+            <li>기록의 공개 범위 변경 (임시저장, 나만 보기, 코호트 공개, 전체 공개)</li>
             <li>서비스 탈퇴 및 개인정보 파기 요청</li>
           </ul>
           <p className="text-base leading-relaxed text-text-secondary mt-4">
