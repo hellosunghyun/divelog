@@ -152,3 +152,8 @@
 - `groupRecordsByStage()`는 레코드가 있는 Stage만 그룹으로 만들고, 그룹 순서는 `stages.order` 오름차순 + `미분류` 마지막으로 정렬한다.
 - 그룹 내부 정렬 기준은 `createdAt` 내림차순 하나로 통일하고, `notes`/`articles`는 정렬된 `allRecords`를 다시 분리해 순서를 유지한다.
 - `stageId`가 `null`이거나 전달된 Stage 목록에 없는 레코드는 `stageType: "unassigned"`, `stageName: "미분류"`로 합쳐서 처리하면 UI 분기 복잡도를 줄일 수 있다.
+
+## [2026-03-18] Task: Record Participants Query Module
+- `syncParticipantsForRecord()`는 `records.authorId`를 먼저 조회한 뒤 `record_participants`를 delete-all 하고 bulk insert 하는 패턴으로 구현하면 작성자 self-tag를 서버에서 일관되게 차단할 수 있다.
+- 참여자 조회는 `record_participants` + `learner_profiles` LEFT JOIN으로 `displayName/profilePhotoUrl/role/createdAt`를 바로 반환하면 SceneCard/상세 페이지에서 후속 조회 없이 렌더링 가능하다.
+- `getParticipantsBatch()`는 `inArray(recordParticipants.recordId, recordIds)` 단일 쿼리로 처리해야 N+1 없이 기록 목록 단위 참여자 데이터를 로드할 수 있다.
