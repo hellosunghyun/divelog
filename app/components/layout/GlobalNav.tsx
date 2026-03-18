@@ -114,6 +114,7 @@ export default function GlobalNav() {
   const profileButtonRef = useRef<HTMLButtonElement>(null);
   const profileMenuRef = useRef<HTMLDivElement>(null);
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const isComposingRef = useRef(false);
 
   // Fetchers
   const searchFetcher = useFetcher({});
@@ -126,7 +127,7 @@ export default function GlobalNav() {
   const searchResults = searchFetcher.data as SearchData | undefined;
   const isSearching = searchFetcher.state === "loading";
   const hasSearchResults =
-    searchQuery.trim().length >= 2 &&
+    searchQuery.trim().length >= 1 &&
     searchResults?.results &&
     (searchResults.results.records.length > 0 || searchResults.results.learners.length > 0);
 
@@ -227,7 +228,7 @@ export default function GlobalNav() {
   function handleDropdownSearchInput(value: string) {
     setSearchQuery(value);
     if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
-    if (value.trim().length >= 2) {
+    if (value.trim().length >= 1) {
       searchTimeoutRef.current = setTimeout(() => {
         searchFetcher.load(`/search?q=${encodeURIComponent(value.trim())}`);
       }, 300);
@@ -370,6 +371,13 @@ export default function GlobalNav() {
                           type="text"
                           value={searchQuery}
                           onChange={(e) => handleDropdownSearchInput(e.target.value)}
+                          onCompositionStart={() => {
+                            isComposingRef.current = true;
+                          }}
+                          onCompositionEnd={(e) => {
+                            isComposingRef.current = false;
+                            handleDropdownSearchInput(e.currentTarget.value);
+                          }}
                           placeholder="기록, 러너 검색..."
                           className={cn(
                             "w-full h-9 rounded-lg border border-border bg-surface-secondary/50 pl-9 pr-3 text-sm",
@@ -389,13 +397,13 @@ export default function GlobalNav() {
                         </div>
                       )}
 
-                      {!isSearching && searchQuery.trim().length < 2 && (
+                      {!isSearching && searchQuery.trim().length < 1 && (
                         <div className="px-4 py-6 text-center text-meta text-text-tertiary">
-                          두 글자 이상 입력하세요
+                          검색어를 입력하세요
                         </div>
                       )}
 
-                      {!isSearching && searchQuery.trim().length >= 2 && !hasSearchResults && searchResults && (
+                      {!isSearching && searchQuery.trim().length >= 1 && !hasSearchResults && searchResults && (
                         <div className="px-4 py-6 text-center text-meta text-text-tertiary">
                           검색 결과가 없습니다
                         </div>
