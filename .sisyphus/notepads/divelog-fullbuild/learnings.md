@@ -24,6 +24,11 @@
 - @adakrpos/auth/generic entry point ONLY
 - STRICT SQLite tables, unixepoch() timestamps
 
+## [2026-03-18] Task: PersonSearch Component
+- `app/components/PersonSearch.tsx`는 `/api/search-learners?q=`를 300ms 디바운스로 호출하고, API 응답은 반드시 `response.results`로 파싱해야 한다.
+- 사람 선택 필드는 독립 상태 + hidden input 직렬화 패턴이 적합하다. 역할 옵션이 있으면 `[{ userId, role }]` JSON, 없으면 `userId[]` JSON으로 폼 전송을 맞춘다.
+- Quiet Depth 자동완성은 얇은 border 입력창, `border-ocean-blue bg-mist-blue text-ocean-blue` 칩, 플랫한 white dropdown 조합이 기존 태그 선택 패턴과 자연스럽게 이어진다.
+
 ## [2026-03-14] Task T1: Project Initialization
 - RR7 Cloudflare template scaffolded
 - wrangler.toml: DB (D1), R2, QUEUE bindings only (no KV)
