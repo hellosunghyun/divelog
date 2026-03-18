@@ -20,13 +20,24 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   let isAdmin = false;
 
   if (auth.isAuthenticated && auth.user) {
-    const database = db(context.cloudflare.env.DB);
-    const adminRole = await database
-      .select({ id: userRoles.id })
-      .from(userRoles)
-      .where(and(eq(userRoles.userId, auth.user.id), eq(userRoles.role, "admin")))
-      .limit(1);
-    isAdmin = adminRole.length > 0;
+    try {
+      const database = db(context.cloudflare.env.DB);
+      const adminRole = await database
+        .select({ id: userRoles.id })
+        .from(userRoles)
+        .where(and(eq(userRoles.userId, auth.user.id), eq(userRoles.role, "admin")))
+        .limit(1);
+      isAdmin = adminRole.length > 0;
+    } catch (err) {
+      Sentry.captureException(err, {
+        tags: { type: "layout_db_query" },
+        extra: { userId: auth.user.id, query: "adminRole" },
+      });
+      logger.error("admin_role_query_error", {
+        userId: auth.user.id,
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
 
     Sentry.setUser({
       id: auth.user.id,

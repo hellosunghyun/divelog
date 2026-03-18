@@ -50,8 +50,24 @@ export default function App() {
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
-  if (error instanceof Error) {
-    Sentry.captureException(error);
+  const url = typeof window !== "undefined" ? window.location.href : "unknown";
+
+  if (isRouteErrorResponse(error)) {
+    Sentry.captureMessage(`RouteError ${error.status}: ${url}`, {
+      level: error.status >= 500 ? "error" : "warning",
+      tags: { type: "route_error", status: String(error.status) },
+      extra: {
+        url,
+        status: error.status,
+        statusText: error.statusText,
+        data: error.data,
+      },
+    });
+  } else if (error instanceof Error) {
+    Sentry.captureException(error, {
+      tags: { type: "render_error" },
+      extra: { url },
+    });
   }
 
   let message = "오류가 발생했습니다";
