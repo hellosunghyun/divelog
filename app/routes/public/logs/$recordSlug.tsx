@@ -1022,8 +1022,10 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
                   renderResponseThread(rootNode, 0, {
                     editingResponseId,
                     editingContent,
+                    editingResponseType,
                     setEditingContent,
                     setEditingResponseId,
+                    setEditingResponseType,
                     isSubmittingResponseEdit,
                     isSubmittingResponseDelete,
                     handleEditResponse,
