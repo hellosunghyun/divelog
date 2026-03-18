@@ -1,3 +1,4 @@
+import { format } from "date-fns";
 import { eq } from "drizzle-orm";
 import { Link } from "~/components/content/SmartLink";
 import { data, redirect, useActionData, useNavigation } from "react-router";
@@ -9,7 +10,7 @@ const ArticleEditor = lazy(() =>
   import("~/components/editor/editors/ArticleEditor").then(m => ({ default: m.ArticleEditor }))
 );
 import NoteEditor from "~/components/editor/editors/NoteEditor";
-import PersonSearch from "~/components/PersonSearch";
+import { RhythmDateInput } from "~/components/record/RhythmDateInput";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
@@ -41,15 +42,23 @@ import { getPlainText } from "~/lib/content/content.server";
 import { extractRecordRefs } from "~/lib/content/extract-references.server";
 import { createLogger } from "~/lib/infra/logger.server";
 import { cleanupRemovedImages } from "~/lib/infra/r2-cleanup.server";
+import { cn } from "~/lib/utils/cn";
 import { useUnsavedWarning } from "~/hooks/useUnsavedWarning";
 
 const NO_SELECTION_VALUE = "__none__";
 
-const PARTICIPANT_ROLE_OPTIONS = [
-  { value: "coauthor", label: "공동작성" },
-  { value: "companion", label: "함께활동" },
-  { value: "mentor", label: "멘토" },
-];
+const RHYTHM_OPTIONS = [
+  { value: "free", label: "자유" },
+  { value: "moment", label: "순간" },
+  { value: "sprint", label: "스프린트" },
+  { value: "weekly", label: "주간" },
+  { value: "monthly", label: "월간" },
+  { value: "stage", label: "구간" },
+  { value: "reflection", label: "회고" },
+] as const;
+
+type TagOption = { id: string; name: string };
+type TemplateOption = { id: string; name: string };
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "기록 수정 — DiveLog" }];
@@ -76,9 +85,16 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
     throw new Response("Forbidden", { status: 403 });
   }
 
-  const [activeTemplates, currentStageResult] = await database.batch([
+  const [activeTemplates, currentStageResult, allStages] = await database.batch([
     database.select().from(templates).where(eq(templates.active, true)),
     database.select().from(stages).where(eq(stages.isCurrent, true)).limit(1),
+    database.select({
+      id: stages.id,
+      name: stages.name,
+      isCurrent: stages.isCurrent,
+      startDate: stages.startDate,
+      endDate: stages.endDate,
+    }).from(stages).orderBy(stages.order),
     // [COLLAB_DISABLED] collaboration query removed
   ]);
 
@@ -93,6 +109,7 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
     record: recordData.record,
     templates: activeTemplates,
     currentStage: currentStageResult[0] ?? null,
+    stages: allStages,
     collaborations: [] as never[], // [COLLAB_DISABLED]
     tags: allTags,
     currentTags,
@@ -121,8 +138,8 @@ export async function action({ params, request, context }: Route.ActionArgs) {
 
   const formatRaw = formData.get("format");
   const contentRaw = formData.get("content");
-  const participantsJson = formData.get("participantsJson")?.toString() ?? "[]";
-  const mentionUserIdsJson = formData.get("mentionUserIds")?.toString() ?? "[]";
+  const recordedAtRaw = formData.get("recordedAt");
+  const recordedEndAtRaw = formData.get("recordedEndAt");
   const format = formatRaw === "article" ? "article" : "note";
   const content = typeof contentRaw === "string" ? contentRaw : "";
   const participants = JSON.parse(participantsJson) as { userId: string; role: string }[];
@@ -153,6 +170,10 @@ export async function action({ params, request, context }: Route.ActionArgs) {
     stageId: formData.get("stageId") || undefined,
     challengeId: formData.get("challengeId") || undefined,
     collaborationUnitId: formData.get("collaborationUnitId") || undefined,
+    recordedAt:
+      typeof recordedAtRaw === "string" && recordedAtRaw ? recordedAtRaw : undefined,
+    recordedEndAt:
+      typeof recordedEndAtRaw === "string" && recordedEndAtRaw ? recordedEndAtRaw : undefined,
   });
 
   if (!parsed.success) {
@@ -182,6 +203,8 @@ export async function action({ params, request, context }: Route.ActionArgs) {
     stageId: parsed.data.stageId,
     challengeId: parsed.data.challengeId,
     collaborationUnitId: parsed.data.collaborationUnitId,
+    recordedAt: parsed.data.recordedAt,
+    recordedEndAt: parsed.data.recordedEndAt,
   }, { oldTags, newTags });
 
   await syncParticipantsForRecord(
@@ -235,24 +258,15 @@ export async function action({ params, request, context }: Route.ActionArgs) {
 }
 
 export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
-  const {
-    record,
-    templates: availableTemplates,
-    currentStage,
-    collaborations,
-    tags,
-    currentTags,
-    existingParticipants,
-    existingMentions,
-    currentUserId,
-  } = loaderData;
+  const { record, templates: availableTemplates, currentStage, collaborations, stages, tags, currentTags } = loaderData;
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
 
   const isArticleRecord = record.format === "article";
+  const [rhythm, setRhythm] = useState(record.rhythm ?? "free");
   const [selectedTags, setSelectedTags] = useState<Set<string>>(
-    new Set(currentTags.map((t) => t.id))
+    new Set(currentTags.map((t: TagOption) => t.id))
   );
   const [title, setTitle] = useState(record.title);
   const [articleContent, setArticleContent] = useState(isArticleRecord ? record.content : "");
@@ -267,8 +281,9 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
   const hasChanges =
     title !== record.title ||
     (isArticleRecord && articleContent !== record.content) ||
+    rhythm !== (record.rhythm ?? "free") ||
     selectedTags.size !== currentTags.length ||
-    Array.from(selectedTags).some((id) => !currentTags.some((t) => t.id === id));
+    Array.from(selectedTags).some((id) => !currentTags.some((t: TagOption) => t.id === id));
 
   useUnsavedWarning(hasChanges);
 
@@ -314,25 +329,69 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
           </RadioGroup>
         </fieldset>
 
-        <div>
-          <Label htmlFor="rhythm" className="mb-2 block text-meta font-medium text-text-secondary">
-            리듬
-          </Label>
-          <Select name="rhythm" defaultValue={record.rhythm}>
-            <SelectTrigger id="rhythm" className="w-full bg-surface">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="free">자유 형식</SelectItem>
-              <SelectItem value="moment">순간의 기록</SelectItem>
-              <SelectItem value="weekly">이번 주 메모</SelectItem>
-              <SelectItem value="sprint">스프린트 로그</SelectItem>
-              <SelectItem value="monthly">월간 회고</SelectItem>
-              <SelectItem value="stage">구간 회고</SelectItem>
-              <SelectItem value="reflection">개인 회고</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        {isArticleRecord ? (
+          <div className="space-y-4">
+            <div>
+              <Label className="mb-2 block text-meta font-medium text-text-secondary">
+                리듬
+              </Label>
+              <input type="hidden" name="rhythm" value={rhythm} />
+              <div className="flex flex-wrap gap-2">
+                {RHYTHM_OPTIONS.map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    aria-pressed={rhythm === option.value}
+                    onClick={() => setRhythm(option.value)}
+                    className={cn(
+                      "min-h-11 rounded-full border px-3.5 py-1.5 text-sm font-medium transition-all duration-[var(--duration-fast)]",
+                      "hover:bg-surface-secondary active:scale-[0.98]",
+                      "focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2 focus-visible:outline-none",
+                      rhythm === option.value
+                        ? "border-ocean-blue/30 bg-mist-blue text-ocean-blue"
+                        : "border-border bg-surface text-text-secondary",
+                    )}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <RhythmDateInput
+              rhythm={rhythm}
+              stages={stages}
+              initialValues={{
+                recordedAt: record.recordedAt
+                  ? format(new Date(record.recordedAt * 1000), "yyyy-MM-dd")
+                  : undefined,
+                recordedEndAt: record.recordedEndAt
+                  ? format(new Date(record.recordedEndAt * 1000), "yyyy-MM-dd")
+                  : undefined,
+                stageId: record.stageId ?? undefined,
+              }}
+            />
+          </div>
+        ) : (
+          <div>
+            <Label htmlFor="rhythm" className="mb-2 block text-meta font-medium text-text-secondary">
+              리듬
+            </Label>
+            <Select name="rhythm" defaultValue={record.rhythm}>
+              <SelectTrigger id="rhythm" className="w-full bg-surface">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="free">자유</SelectItem>
+                <SelectItem value="moment">순간</SelectItem>
+                <SelectItem value="sprint">스프린트</SelectItem>
+                <SelectItem value="weekly">주간</SelectItem>
+                <SelectItem value="monthly">월간</SelectItem>
+                <SelectItem value="stage">구간</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
 
         {availableTemplates.length > 0 ? (
           <div>
@@ -346,17 +405,19 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value={NO_SELECTION_VALUE}>템플릿 없이 작성 중</SelectItem>
-              {availableTemplates.map((tmpl) => (
-                <SelectItem key={tmpl.id} value={tmpl.id}>
-                  {tmpl.name}
-                </SelectItem>
+               {availableTemplates.map((tmpl: TemplateOption) => (
+                 <SelectItem key={tmpl.id} value={tmpl.id}>
+                   {tmpl.name}
+                 </SelectItem>
               ))}
               </SelectContent>
             </Select>
           </div>
         ) : null}
 
-        <input type="hidden" name="stageId" value={record.stageId ?? currentStage?.id ?? ""} />
+        {(!isArticleRecord || rhythm !== "stage") && (
+          <input type="hidden" name="stageId" value={record.stageId ?? currentStage?.id ?? ""} />
+        )}
 
         {/* [COLLAB_DISABLED] collaboration selector removed */}
 
@@ -422,35 +483,47 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
           </Select>
         </div>
 
-        <TagSelector
-          tags={tags}
-          selectedTagIds={Array.from(selectedTags)}
-          onChange={(newIds) => setSelectedTags(new Set(newIds))}
-        />
-
-        <div className="space-y-4">
-          <PersonSearch
-            label="함께하는 사람"
-            name="participantsJson"
-            selectedPeople={existingParticipants.map((participant) => ({
-              userId: participant.userId,
-              displayName: participant.displayName ?? participant.slug ?? "이름 없음",
-              profilePhotoUrl: participant.profilePhotoUrl,
-            }))}
-            excludeUserId={currentUserId ?? undefined}
-            roleOptions={PARTICIPANT_ROLE_OPTIONS}
-          />
-          <PersonSearch
-            label="언급된 사람"
-            name="mentionUserIds"
-            selectedPeople={existingMentions.map((mention) => ({
-              userId: mention.userId,
-              displayName: mention.displayName ?? mention.slug ?? "이름 없음",
-              profilePhotoUrl: mention.profilePhotoUrl,
-            }))}
-            excludeUserId={currentUserId ?? undefined}
-          />
-        </div>
+        {tags.length > 0 && (
+          <fieldset className="border-0 m-0 p-0">
+            <legend className="block text-meta font-medium text-text-secondary mb-3">
+              태그 (선택)
+            </legend>
+            <div className="flex flex-wrap gap-2">
+               {tags.map((tag: TagOption) => (
+                 <label
+                   key={tag.id}
+                   className="cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    name="tagIds"
+                    value={tag.id}
+                    checked={selectedTags.has(tag.id)}
+                    onChange={(e) => {
+                      const newTags = new Set(selectedTags);
+                      if (e.target.checked) {
+                        newTags.add(tag.id);
+                      } else {
+                        newTags.delete(tag.id);
+                      }
+                      setSelectedTags(newTags);
+                    }}
+                    className="hidden"
+                  />
+                  <span
+                    className={`inline-block px-3 py-1 rounded-full text-sm border transition-colors ${
+                      selectedTags.has(tag.id)
+                        ? "border-ocean-blue bg-mist-blue text-ocean-blue"
+                        : "border-border bg-surface text-text-secondary hover:border-ocean-blue"
+                    }`}
+                  >
+                    {tag.name}
+                  </span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        )}
 
         <div>
           <Label htmlFor="visibility" className="mb-2 block text-meta font-medium text-text-secondary">

@@ -1,25 +1,16 @@
-import { eq } from "drizzle-orm";
-import { format } from "date-fns";
-import { ko } from "date-fns/locale";
+import { eq, sql } from "drizzle-orm";
 import { useState, Suspense, lazy } from "react";
 import PersonSearch from "~/components/PersonSearch";
 import { Link } from "~/components/content/SmartLink";
 import { Form, redirect, useActionData, useNavigation } from "react-router";
-import type { DateRange } from "react-day-picker";
 import type { Route } from "./+types/article";
 
 const ArticleEditor = lazy(() =>
   import("~/components/editor/editors/ArticleEditor").then(m => ({ default: m.ArticleEditor }))
 );
 import { Button } from "~/components/ui/button";
-import { Calendar } from "~/components/ui/calendar";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "~/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -27,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { TagSelector } from "~/components/TagSelector";
+import { RhythmDateInput } from "~/components/record/RhythmDateInput";
 import { db } from "~/db/client.server";
 import { syncAllMentionsForRecord } from "~/db/queries/dialogue/mentions.server";
 import { createNotification } from "~/db/queries/social/notifications.server";
@@ -59,16 +50,6 @@ const RHYTHM_OPTIONS = [
   { value: "reflection", label: "회고" },
 ] as const;
 
-type DateMode = "none" | "single" | "range";
-
-function CalendarIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 shrink-0" aria-hidden="true">
-      <path d="M8 2v4" /><path d="M16 2v4" /><rect width="18" height="18" x="3" y="4" rx="2" /><path d="M3 10h18" />
-    </svg>
-  );
-}
-
 function parseDateToUnix(dateStr: string | undefined): number | null {
   if (!dateStr) return null;
   const date = new Date(`${dateStr}T00:00:00`);
@@ -86,7 +67,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const database = db(context.cloudflare.env.DB);
   const [currentStageResult, allStages, learnerResult] = await database.batch([
     database.select().from(stages).where(eq(stages.isCurrent, true)).limit(1),
-    database.select({ id: stages.id, name: stages.name, isCurrent: stages.isCurrent }).from(stages).orderBy(stages.order),
+    database.select({ id: stages.id, name: stages.name, isCurrent: stages.isCurrent, startDate: stages.startDate, endDate: stages.endDate }).from(stages).orderBy(stages.order),
     database.select().from(learnerProfiles).where(eq(learnerProfiles.userId, auth.user.id)).limit(1),
   ]);
   const learner = learnerResult[0] ?? null;
@@ -249,10 +230,6 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
   const [title, setTitle] = useState("");
   const [articleContent, setArticleContent] = useState("");
   const [rhythm, setRhythm] = useState("free");
-  const [dateMode, setDateMode] = useState<DateMode>("none");
-  const [singleDate, setSingleDate] = useState<Date | undefined>(undefined);
-  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
-  const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
   const isSubmitting = navigation.state === "submitting";
   const errors = actionData?.errors;
   const titleError = errors && "title" in errors ? errors.title?.[0] : undefined;
@@ -260,26 +237,9 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
 
   useUnsavedWarning(title.length > 0 || articleContent.length > 0);
 
-  function handleDateModeChange(newMode: DateMode) {
-    setDateMode(newMode);
-    if (newMode === "none") {
-      setSingleDate(undefined);
-      setDateRange(undefined);
-    } else if (newMode === "single") {
-      setDateRange(undefined);
-    } else {
-      setSingleDate(undefined);
-    }
+  function handleRhythmChange(newRhythm: string) {
+    setRhythm(newRhythm);
   }
-
-  const recordedAtValue = dateMode === "single" && singleDate
-    ? format(singleDate, "yyyy-MM-dd")
-    : dateMode === "range" && dateRange?.from
-      ? format(dateRange.from, "yyyy-MM-dd")
-      : "";
-  const recordedEndAtValue = dateMode === "range" && dateRange?.to
-    ? format(dateRange.to, "yyyy-MM-dd")
-    : "";
 
   return (
     <div className="min-h-screen bg-background">
@@ -330,29 +290,31 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
               </Select>
             </div>
 
-            <div>
-              <Label
-                htmlFor="stageId"
-                className="mb-1.5 block text-meta font-medium text-text-secondary"
-              >
-                구간
-              </Label>
-              <input type="hidden" name="stageId" value={stageValue === NO_STAGE_VALUE ? "" : stageValue} />
-              <Select value={stageValue} onValueChange={setStageValue}>
-                <SelectTrigger id="stageId" className="w-auto min-w-40 bg-surface">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={NO_STAGE_VALUE}>구간 미지정</SelectItem>
-                  {availableStages.map((stage) => (
-                    <SelectItem key={stage.id} value={stage.id}>
-                      {stage.name}
-                      {stage.isCurrent ? " (현재)" : ""}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {rhythm !== "stage" && (
+              <div>
+                <Label
+                  htmlFor="stageId"
+                  className="mb-1.5 block text-meta font-medium text-text-secondary"
+                >
+                  구간
+                </Label>
+                <input type="hidden" name="stageId" value={stageValue === NO_STAGE_VALUE ? "" : stageValue} />
+                <Select value={stageValue} onValueChange={setStageValue}>
+                  <SelectTrigger id="stageId" className="w-auto min-w-40 bg-surface">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={NO_STAGE_VALUE}>구간 미지정</SelectItem>
+                    {availableStages.map((stage: { id: string; name: string; isCurrent: boolean }) => (
+                      <SelectItem key={stage.id} value={stage.id}>
+                        {stage.name}
+                        {stage.isCurrent ? " (현재)" : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             <input
               type="hidden"
@@ -372,7 +334,7 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
                   key={option.value}
                   type="button"
                   aria-pressed={rhythm === option.value}
-                  onClick={() => setRhythm(option.value)}
+                  onClick={() => handleRhythmChange(option.value)}
                   className={cn(
                     "rounded-full px-3.5 py-1.5 text-sm font-medium border transition-all duration-[var(--duration-fast)]",
                     "hover:bg-surface-secondary active:scale-[0.98]",
@@ -388,109 +350,7 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
             </div>
           </div>
 
-          <div>
-            <Label className="mb-2 block text-meta font-medium text-text-secondary">
-              기록 날짜
-            </Label>
-            <div className="flex flex-col gap-3">
-              <div className="flex gap-2">
-                {([
-                  { mode: "none" as const, label: "지정 안 함" },
-                  { mode: "single" as const, label: "특정일" },
-                  { mode: "range" as const, label: "기간" },
-                ]).map((option) => (
-                  <button
-                    key={option.mode}
-                    type="button"
-                    aria-pressed={dateMode === option.mode}
-                    onClick={() => handleDateModeChange(option.mode)}
-                    className={cn(
-                      "rounded-full px-3.5 py-1.5 text-sm font-medium border transition-all duration-[var(--duration-fast)]",
-                      "hover:bg-surface-secondary active:scale-[0.98]",
-                      "focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2 focus-visible:outline-none",
-                      dateMode === option.mode
-                        ? "bg-mist-blue text-ocean-blue border-ocean-blue/30"
-                        : "bg-surface text-text-secondary border-border",
-                    )}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-
-              {dateMode === "single" && (
-                <div>
-                  <input type="hidden" name="recordedAt" value={recordedAtValue} />
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className={cn(
-                          "w-[240px] justify-start text-left font-normal",
-                          !singleDate && "text-text-tertiary",
-                        )}
-                      >
-                        <CalendarIcon />
-                        {singleDate ? format(singleDate, "yyyy년 M월 d일", { locale: ko }) : "날짜를 선택하세요"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={singleDate}
-                        onSelect={setSingleDate}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-              )}
-
-              {dateMode === "range" && (
-                <div>
-                  <input type="hidden" name="recordedAt" value={recordedAtValue} />
-                  <input type="hidden" name="recordedEndAt" value={recordedEndAtValue} />
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className={cn(
-                          "w-[300px] justify-start text-left font-normal",
-                          !dateRange?.from && "text-text-tertiary",
-                        )}
-                      >
-                        <CalendarIcon />
-                        {dateRange?.from ? (
-                          dateRange.to ? (
-                            <>
-                              {format(dateRange.from, "yyyy년 M월 d일", { locale: ko })}
-                              {" — "}
-                              {format(dateRange.to, "yyyy년 M월 d일", { locale: ko })}
-                            </>
-                          ) : (
-                            format(dateRange.from, "yyyy년 M월 d일", { locale: ko })
-                          )
-                        ) : (
-                          "기간을 선택하세요"
-                        )}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="range"
-                        selected={dateRange}
-                        onSelect={setDateRange}
-                        numberOfMonths={2}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-              )}
-            </div>
-          </div>
+          <RhythmDateInput rhythm={rhythm} stages={availableStages} />
 
           <div>
             <Label htmlFor="title" className="mb-2 block text-meta font-medium text-text-secondary">

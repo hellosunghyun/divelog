@@ -13,6 +13,8 @@ export const createRecordSchema = z
     stageId: z.string().optional(),
     challengeId: z.string().optional(),
     collaborationUnitId: z.string().optional(),
+    recordedAt: z.string().optional(),
+    recordedEndAt: z.string().optional(),
   })
   .superRefine((data, ctx) => {
     if (data.format !== "article") {
