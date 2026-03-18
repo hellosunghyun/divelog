@@ -135,9 +135,20 @@ describe("learner slug loader", () => {
 
     vi.mocked(getAuth).mockResolvedValue({
       isAuthenticated: true,
-      user: { id: fixture.learner.userId },
+      user: {
+        id: fixture.learner.userId,
+        email: "test@example.com",
+        verifiedEmail: true,
+        nickname: "test",
+        name: "Test User",
+        isVerified: true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        lastLoginAt: new Date().toISOString(),
+        metadata: {},
+      },
       session: null,
-    } as Awaited<ReturnType<typeof getAuth>>);
+    } as unknown as Awaited<ReturnType<typeof getAuth>>);
     vi.mocked(fetchAdaProfile).mockResolvedValue({ bio: fixture.profileIntro } as never);
     vi.mocked(getLearnerInterestTags).mockResolvedValue(fixture.interestTags);
     vi.mocked(getLearnerStageActivity).mockResolvedValue({
@@ -154,7 +165,7 @@ describe("learner slug loader", () => {
       params: { learnerSlug: fixture.learner.slug },
       request: createRequest(),
       context: createContext(),
-    } as Parameters<typeof loader>[0]);
+    } as unknown as Parameters<typeof loader>[0]);
 
     expect(result.learner).toEqual(fixture.learner);
     expect(result.profileIntro).toBe(fixture.profileIntro);
@@ -181,9 +192,20 @@ describe("learner slug loader", () => {
 
     vi.mocked(getAuth).mockResolvedValue({
       isAuthenticated: true,
-      user: { id: "different-user" },
+      user: {
+        id: "different-user",
+        email: "other@example.com",
+        verifiedEmail: true,
+        nickname: "other",
+        name: "Other User",
+        isVerified: true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        lastLoginAt: new Date().toISOString(),
+        metadata: {},
+      },
       session: null,
-    } as Awaited<ReturnType<typeof getAuth>>);
+    } as unknown as Awaited<ReturnType<typeof getAuth>>);
 
     vi.mocked(getLearnerStageActivity).mockResolvedValue({
       currentStage: fixture.currentStage,
@@ -207,7 +229,7 @@ describe("learner slug loader", () => {
       params: { learnerSlug: fixture.learner.slug },
       request: createRequest(),
       context: createContext(),
-    } as Parameters<typeof loader>[0]);
+    } as unknown as Parameters<typeof loader>[0]);
 
     expect(getLearnerStageActivity).toHaveBeenCalledWith(expect.anything(), fixture.learner.userId, false);
     expect(result.participatedRecords).toEqual([{ record: { id: "b", visibility: "public" } }]);
@@ -232,7 +254,7 @@ describe("learner slug loader", () => {
       params: { learnerSlug: fixture.learner.slug },
       request: createRequest(),
       context: createContext(),
-    } as Parameters<typeof loader>[0]);
+    } as unknown as Parameters<typeof loader>[0]);
 
     expect(result.currentStage).toBeNull();
     expect(result.contextLine).toBe(resolveContextLine(fixture.learner.cohort, null));

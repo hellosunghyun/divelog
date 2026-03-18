@@ -173,7 +173,6 @@ export default function LearnerDetailPage({ loaderData }: Route.ComponentProps) 
             currentStage={currentStage}
             recentActivity={recentActivity}
             starterRecords={starterRecords}
-            learnerSlug={learner.slug}
           />
         </div>
 

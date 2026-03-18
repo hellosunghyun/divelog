@@ -1,3 +1,4 @@
+import { describe, it, expect } from "vitest";
 import "@testing-library/jest-dom";
 import { screen, within } from "@testing-library/react";
 import { render } from "~/lib/test-utils";

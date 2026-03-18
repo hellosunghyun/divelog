@@ -5,7 +5,6 @@ interface DiscoveryHelperBlocksProps {
   currentStage: { id: string; name: string; slug: string } | null;
   recentActivity: { recordCount: number; questionCount: number; lastActiveAt: string | null } | null;
   starterRecords: Array<{ slug: string; title: string }>;
-  learnerSlug: string;
 }
 
 function CurrentStageBlock({ stage }: { stage: { id: string; name: string; slug: string } }) {
