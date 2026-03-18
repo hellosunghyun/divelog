@@ -13,8 +13,8 @@ Sentry.init({
     Sentry.feedbackIntegration({
       colorScheme: "system",
       showBranding: false,
-      triggerLabel: "버그 제보",
-      formTitle: "버그를 알려주세요",
+      triggerLabel: "제보 및 건의",
+      formTitle: "제보 및 건의",
       submitButtonLabel: "제출",
       cancelButtonLabel: "취소",
       confirmButtonLabel: "확인",

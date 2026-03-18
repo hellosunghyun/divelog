@@ -42,6 +42,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     Sentry.setUser({
       id: auth.user.id,
       username: auth.user.nickname ?? auth.user.name ?? undefined,
+      email: auth.user.verifiedEmail ?? undefined,
     });
 
     context.cloudflare.ctx.waitUntil(

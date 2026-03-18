@@ -12,7 +12,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   await bootstrapAdmin(context);
   const auth = await requireRole(request, context, "admin");
 
-  Sentry.setUser({ id: auth.user!.id, username: auth.user!.nickname ?? auth.user!.name ?? undefined });
+  Sentry.setUser({ id: auth.user!.id, username: auth.user!.nickname ?? auth.user!.name ?? undefined, email: auth.user!.verifiedEmail ?? undefined });
 
   return {
     adminUser: {
