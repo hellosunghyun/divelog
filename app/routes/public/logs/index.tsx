@@ -310,14 +310,6 @@ export default function LogsPage({ loaderData }: Route.ComponentProps) {
                     }
                   : undefined
               }
-              stage={
-                record.stage?.name
-                  ? {
-                      name: record.stage.name,
-                      type: record.stage.type ?? "",
-                    }
-                  : undefined
-              }
               participants={participantsByRecordId[record.id]}
               isRead={record.format === "article" && isRead(record.id)}
             />

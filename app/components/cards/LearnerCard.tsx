@@ -17,12 +17,9 @@ interface LearnerCardProps {
     slug: string;
     title: string;
   };
-  stage?: {
-    name: string;
-  };
 }
 
-export default function LearnerCard({ learner, recentRecord, stage }: LearnerCardProps) {
+export default function LearnerCard({ learner, recentRecord }: LearnerCardProps) {
   return (
     <motion.article
       data-testid="learner-card"
@@ -72,11 +69,9 @@ export default function LearnerCard({ learner, recentRecord, stage }: LearnerCar
           >
             {learner.displayName}
           </Link>
-          <div className="flex items-center gap-2 text-xs text-text-tertiary">
-            {stage && <span>{stage.name}</span>}
-            {learner.cohort && stage && <span>·</span>}
-            {learner.cohort && <span>{learner.cohort}</span>}
-          </div>
+          {learner.cohort && (
+            <p className="text-xs text-text-tertiary m-0">{learner.cohort}</p>
+          )}
         </div>
       </div>
 

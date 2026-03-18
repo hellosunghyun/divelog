@@ -511,7 +511,6 @@ export default function MySpacePage({ loaderData }: Route.ComponentProps) {
                         createdAt: saved.record.createdAt,
                       }}
                       author={saved.author ? { displayName: saved.author.displayName, slug: saved.author.slug } : undefined}
-                      stage={saved.stage ? { name: saved.stage.name, type: saved.stage.type } : undefined}
                     />
                   ))}
                 </div>

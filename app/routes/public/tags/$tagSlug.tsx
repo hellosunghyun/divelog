@@ -106,14 +106,6 @@ export default function TagDetailPage({ loaderData }: Route.ComponentProps) {
                       }
                     : undefined
                 }
-                stage={
-                  record.stage?.name
-                    ? {
-                        name: record.stage.name,
-                        type: record.stage.type ?? "",
-                      }
-                    : undefined
-                }
               />
             ))}
           </div>

@@ -26,10 +26,6 @@ interface SceneCardProps {
     displayName: string;
     slug: string;
   };
-  stage?: {
-    name: string;
-    type: string;
-  };
   participants?: Participant[];
   hasQuestions?: boolean;
   hasSelfAnswers?: boolean;
@@ -50,13 +46,6 @@ const RHYTHM_LABELS: Record<string, string> = {
   stage: "구간 회고",
   reflection: "개인 회고",
   free: "자유",
-};
-
-const stageToneClasses: Record<string, string> = {
-  prelude: "bg-mist-blue text-ocean-blue",
-  bridge: "bg-reef-cyan/20 text-ocean-blue",
-  challenge: "bg-deep-ocean/10 text-deep-ocean",
-  epilogue: "bg-surface-secondary text-text-secondary border border-border",
 };
 
 const BLOCK_TYPES = new Set(["paragraph", "heading", "blockquote", "bulletList", "orderedList", "listItem", "codeBlock"]);
@@ -89,7 +78,6 @@ export default function SceneCard({
   record,
   contentSnippet,
   author,
-  stage,
   participants,
   hasQuestions,
   hasSelfAnswers,
@@ -101,9 +89,6 @@ export default function SceneCard({
     const text = (record.format === "article" ? extractPlainTextFromJson(record.content) : null) ?? record.content;
     snippet = text.substring(0, 120) + (text.length > 120 ? "…" : "");
   }
-
-  const stageType = stage?.type?.toLowerCase() ?? "epilogue";
-  const stageBadgeClass = stageToneClasses[stageType] ?? stageToneClasses.epilogue;
 
   return (
     <motion.article
@@ -125,11 +110,6 @@ export default function SceneCard({
         isRead ? "bg-[#F0F2F5]" : "bg-surface"
       )}>
         <div className="flex gap-2 flex-wrap">
-          {stage && (
-            <span className={cn("rounded-full px-2.5 py-0.5 text-xs font-medium", stageBadgeClass)}>
-              {stage.name}
-            </span>
-          )}
           <span className="text-caption px-2.5 py-0.5 rounded-full bg-border text-text-secondary">
             {FORMAT_LABELS[record.format] ?? record.format}
           </span>
