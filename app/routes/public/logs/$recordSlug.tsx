@@ -447,17 +447,18 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
     selfAnswersByQuestion.get(qid)!.push(sa);
   }
 
-  const hideSentenceButton = useCallback(() => {
-    setSelectedText("");
-    setShowSentenceButton(false);
-    setButtonPosition({ x: 0, y: 0 });
-  }, []);
-
   const removeHighlight = useCallback(() => {
     highlightCleanupRef.current?.();
     highlightCleanupRef.current = null;
     savedRangeRef.current = null;
   }, []);
+
+  const hideSentenceButton = useCallback(() => {
+    removeHighlight();
+    setSelectedText("");
+    setShowSentenceButton(false);
+    setButtonPosition({ x: 0, y: 0 });
+  }, [removeHighlight]);
 
   const closeSentencePopup = useCallback(() => {
     removeHighlight();
@@ -508,15 +509,9 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
   }, []);
 
   const openSentencePopup = useCallback(() => {
-    const sel = window.getSelection();
-    if (sel && sel.rangeCount > 0) {
-      const range = sel.getRangeAt(0).cloneRange();
-      savedRangeRef.current = range;
-      applyHighlight(range);
-    }
     setShowSentenceButton(false);
     setShowSentencePopup(true);
-  }, [applyHighlight]);
+  }, []);
 
   const handleEditResponse = useCallback((responseId: string) => {
     const response = recordResponses.find(r => r.response.id === responseId);
@@ -565,6 +560,11 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
       return;
     }
 
+    removeHighlight();
+    const range = selection.getRangeAt(0).cloneRange();
+    savedRangeRef.current = range;
+    applyHighlight(range);
+
     setSelectedText(normalizedText);
     setButtonPosition({
       x: Math.min(
@@ -574,7 +574,7 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
       y: Math.max(rect.top - FLOATING_BUTTON_OFFSET, FLOATING_BUTTON_TOP_PADDING),
     });
     setShowSentenceButton(true);
-  }, [hideSentenceButton]);
+  }, [hideSentenceButton, removeHighlight, applyHighlight]);
 
   const handleSentencePopupSave = useCallback(() => {
     if (!selectedText) return;
@@ -611,24 +611,23 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
       return;
     }
 
-    const handleSelectionChange = () => {
-      const selection = window.getSelection();
-
-      if (!selection || selection.rangeCount === 0 || selection.isCollapsed) {
-        hideSentenceButton();
-      }
+    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
+      if (articleContentRef.current?.contains(e.target as Node)) return;
+      hideSentenceButton();
     };
 
     const handleViewportChange = () => {
       hideSentenceButton();
     };
 
-    document.addEventListener("selectionchange", handleSelectionChange);
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside);
     window.addEventListener("scroll", handleViewportChange, true);
     window.addEventListener("resize", handleViewportChange);
 
     return () => {
-      document.removeEventListener("selectionchange", handleSelectionChange);
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
       window.removeEventListener("scroll", handleViewportChange, true);
       window.removeEventListener("resize", handleViewportChange);
     };
@@ -846,7 +845,8 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
           >
             <button
               type="button"
-              onMouseDown={(event) => event.preventDefault()}
+              onMouseDown={(event) => { event.preventDefault(); event.stopPropagation(); }}
+              onTouchStart={(event) => event.stopPropagation()}
               onClick={openSentencePopup}
               aria-label="문장 저장하기"
               className="flex items-center justify-center w-9 h-9 rounded-full border border-border bg-surface text-ocean-blue shadow-[0_8px_20px_rgba(11,36,71,0.10)] transition-all duration-normal hover:-translate-y-0.5 hover:border-reef-cyan/40 hover:bg-mist-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
