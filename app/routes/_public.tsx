@@ -79,18 +79,18 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 }
 
 export function shouldRevalidate({
-  formMethod,
+  currentUrl,
+  nextUrl,
   defaultShouldRevalidate,
 }: {
-  formMethod?: string;
+  currentUrl: URL;
+  nextUrl: URL;
   defaultShouldRevalidate: boolean;
 }): boolean {
-  // mutation(POST/PUT/DELETE)에서만 revalidation
-  if (formMethod && formMethod !== "GET") {
-    return defaultShouldRevalidate;
+  if (currentUrl.pathname !== nextUrl.pathname) {
+    return false;
   }
-  // 일반 GET 네비게이션에서는 스킵
-  return false;
+  return defaultShouldRevalidate;
 }
 
 export function headers({ loaderHeaders }: { loaderHeaders: Headers }) {

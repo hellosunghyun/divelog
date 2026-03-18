@@ -8,6 +8,7 @@ type CompactTimelineCardProps = {
   format: "note" | "article";
   stageType?: "prelude" | "bridge" | "challenge" | "epilogue" | null;
   createdAt: number;
+  isRead?: boolean;
   className?: string;
 };
 
@@ -37,17 +38,20 @@ export default function CompactTimelineCard({
   contentSnippet,
   format,
   createdAt,
+  isRead,
   className,
 }: CompactTimelineCardProps) {
   return (
     <Link
       to={`/logs/${slug}`}
+      data-read={isRead ? "true" : undefined}
       className={cn(
         "block rounded-xl border border-subtle bg-surface shadow-card",
         "px-5 py-4",
         "hover:-translate-y-0.5 hover:shadow-card-hover transition-all duration-150",
         "no-underline",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2",
+        isRead && "opacity-60",
         className
       )}
     >

@@ -14,6 +14,7 @@ type TimelineRecord = RecordListItem & {
 interface TimelineViewProps {
   records: TimelineRecord[];
   stages: StageListItem[];
+  isRead?: (recordId: string) => boolean;
 }
 
 type TimelineItem =
@@ -59,7 +60,7 @@ const STAGE_TEXT: Record<string, string> = {
   unassigned: "text-text-tertiary",
 };
 
-export default function TimelineView({ records, stages }: TimelineViewProps) {
+export default function TimelineView({ records, stages, isRead }: TimelineViewProps) {
   if (records.length === 0) {
     return <EmptyState variant="records" message="조건에 맞는 기록이 없습니다." />;
   }
@@ -134,6 +135,7 @@ export default function TimelineView({ records, stages }: TimelineViewProps) {
                         format={record.format}
                         stageType={record.stageType}
                         createdAt={record.createdAt}
+                        isRead={isRead?.(record.id)}
                       />
                     </div>
                   )}
@@ -159,6 +161,7 @@ export default function TimelineView({ records, stages }: TimelineViewProps) {
                         format={record.format}
                         stageType={record.stageType}
                         createdAt={record.createdAt}
+                        isRead={isRead?.(record.id)}
                       />
                     </div>
                   )}
@@ -180,6 +183,7 @@ export default function TimelineView({ records, stages }: TimelineViewProps) {
                   format={record.format}
                   stageType={record.stageType}
                   createdAt={record.createdAt}
+                  isRead={isRead?.(record.id)}
                 />
               </div>
             </div>

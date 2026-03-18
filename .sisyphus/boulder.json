@@ -1,11 +1,12 @@
 {
-  "active_plan": "/Users/hellosunghyun/Documents/Github/divelog/.sisyphus/plans/route-folder-restructure.md",
-  "started_at": "2026-03-16T09:12:01.178Z",
+  "active_plan": "/Users/hellosunghyun/Documents/Github/divelog/.sisyphus/plans/logs-redesign.md",
+  "started_at": "2026-03-18T02:00:32.353Z",
   "session_ids": [
-    "ses_30a42250bffeo8hDH8cNRmt7Ki",
-    "ses_304ef72bdffe3RJLFlEKPCSSQC"
+    "ses_301bcbd57ffePYWJ4OOETBz6Uk",
+    "ses_3014ebae6ffefxpK7g7xBaeepE",
+    "ses_3014f37e0ffevLLCDEcG2NHI2s"
   ],
-  "plan_name": "route-folder-restructure",
-  "agent": "atlas",
-  "worktree_path": "/Users/hellosunghyun/Documents/Github/divelog-route-refactor"
+  "plan_name": "logs-redesign",
+  "worktree_path": "/Users/hellosunghyun/Documents/Github/divelog",
+  "agent": "atlas"
 }

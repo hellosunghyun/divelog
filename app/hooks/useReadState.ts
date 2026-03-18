@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useFetcher, useRouteLoaderData } from "react-router";
 import {
   getLocalReadIds,
@@ -41,11 +41,35 @@ export function useReadState(recordIds: string[]): UseReadStateResult {
   const [isLoading, setIsLoading] = useState(false);
 
   const syncedRef = useRef(false);
-  const loadedKeyRef = useRef<string>("");
   const fetcherRef = useRef(fetcher);
   fetcherRef.current = fetcher;
   const syncFetcherRef = useRef(syncFetcher);
   syncFetcherRef.current = syncFetcher;
+
+  const refreshLocalReads = useCallback(() => {
+    if (isAuthenticated) return;
+    const ids = recordIdsKey ? recordIdsKey.split(",") : [];
+    const localReadIds = getLocalReadIds();
+    const filtered = ids.filter((id) => localReadIds.has(id));
+    setReadSet((prev) => {
+      if (prev.size === filtered.length && filtered.every((id) => prev.has(id))) {
+        return prev;
+      }
+      return new Set(filtered);
+    });
+  }, [isAuthenticated, recordIdsKey]);
+
+  useEffect(() => {
+    function handleVisibility() {
+      if (document.visibilityState === "visible") refreshLocalReads();
+    }
+    document.addEventListener("visibilitychange", handleVisibility);
+    window.addEventListener("focus", refreshLocalReads);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("focus", refreshLocalReads);
+    };
+  }, [refreshLocalReads]);
 
   useEffect(() => {
     if (!isAuthenticated || !userId || syncedRef.current) {
@@ -92,11 +116,6 @@ export function useReadState(recordIds: string[]): UseReadStateResult {
       return;
     }
 
-    if (loadedKeyRef.current === recordIdsKey) {
-      return;
-    }
-
-    loadedKeyRef.current = recordIdsKey;
     setIsLoading(true);
     fetcherRef.current.load(`/api/track-read?ids=${encodeURIComponent(recordIdsKey)}`);
   }, [isAuthenticated, hasRecordIds, recordIdsKey]);
@@ -114,22 +133,9 @@ export function useReadState(recordIds: string[]): UseReadStateResult {
   }, [fetcher.data, fetcher.state]);
 
   useEffect(() => {
-    if (isAuthenticated) {
-      return;
-    }
-
-    const ids = recordIdsKey ? recordIdsKey.split(",") : [];
-    const localReadIds = getLocalReadIds();
-    const filtered = ids.filter((id) => localReadIds.has(id));
-
-    setReadSet((prev) => {
-      if (prev.size === filtered.length && filtered.every((id) => prev.has(id))) {
-        return prev;
-      }
-      return new Set(filtered);
-    });
+    refreshLocalReads();
     setIsLoading(false);
-  }, [isAuthenticated, recordIdsKey]);
+  }, [refreshLocalReads]);
 
   return {
     isRead: (recordId: string) => readSet.has(recordId),
