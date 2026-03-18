@@ -1,8 +1,10 @@
 import { redirect } from "react-router";
+import { useNavigation } from "react-router";
 import type { Route } from "./+types/curation";
 import { desc, eq } from "drizzle-orm";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
+import { Spinner } from "~/components/feedback/Spinner";
 import {
   Table,
   TableBody,
@@ -59,6 +61,7 @@ export async function action({ request, context }: Route.ActionArgs) {
 }
 export default function AdminCurationPage({ loaderData }: Route.ComponentProps) {
   const { slots } = loaderData;
+  const navigation = useNavigation();
   return (
     <div>
       <h2 className="text-xl font-semibold text-admin-text mb-6">큐레이션</h2>
@@ -99,24 +102,58 @@ export default function AdminCurationPage({ loaderData }: Route.ComponentProps) 
                   {slot.hidden ? "숨김" : "표시"}
                 </Badge>
               </TableCell>
-              <TableCell className="px-4 py-3">
-                <div className="flex gap-2">
-                  <form method="post" className="inline">
-                    <input type="hidden" name="id" value={slot.id} />
-                    <input type="hidden" name="intent" value={slot.pinned ? "unpin" : "pin"} />
-                    <Button type="submit" variant="outline" size="sm">
-                      {slot.pinned ? "고정 해제" : "고정"}
-                    </Button>
-                  </form>
-                  <form method="post" className="inline">
-                    <input type="hidden" name="id" value={slot.id} />
-                    <input type="hidden" name="intent" value={slot.hidden ? "unhide" : "hide"} />
-                    <Button type="submit" variant="outline" size="sm">
-                      {slot.hidden ? "표시" : "숨김"}
-                    </Button>
-                  </form>
-                </div>
-              </TableCell>
+               <TableCell className="px-4 py-3">
+                 <div className="flex gap-2">
+                   <form method="post" className="inline">
+                     <input type="hidden" name="id" value={slot.id} />
+                     <input type="hidden" name="intent" value={slot.pinned ? "unpin" : "pin"} />
+                     {(() => {
+                       const isPinLoading = navigation.state === "submitting"
+                         && navigation.formData?.get("intent") === (slot.pinned ? "unpin" : "pin")
+                         && navigation.formData?.get("id") === slot.id;
+                       return (
+                         <Button
+                           type="submit"
+                           variant="outline"
+                           size="sm"
+                           disabled={isPinLoading}
+                           className="disabled:opacity-50 disabled:cursor-not-allowed"
+                         >
+                           {isPinLoading ? (
+                             <><Spinner size="sm" /> {slot.pinned ? "해제 중..." : "고정 중..."}</>
+                           ) : (
+                             slot.pinned ? "고정 해제" : "고정"
+                           )}
+                         </Button>
+                       );
+                     })()}
+                   </form>
+                   <form method="post" className="inline">
+                     <input type="hidden" name="id" value={slot.id} />
+                     <input type="hidden" name="intent" value={slot.hidden ? "unhide" : "hide"} />
+                     {(() => {
+                       const isHideLoading = navigation.state === "submitting"
+                         && navigation.formData?.get("intent") === (slot.hidden ? "unhide" : "hide")
+                         && navigation.formData?.get("id") === slot.id;
+                       return (
+                         <Button
+                           type="submit"
+                           variant="outline"
+                           size="sm"
+                           disabled={isHideLoading}
+                           className="disabled:opacity-50 disabled:cursor-not-allowed"
+                         >
+                           {isHideLoading ? (
+                             <><Spinner size="sm" /> {slot.hidden ? "표시 중..." : "숨김 중..."}</>
+                           ) : (
+                             slot.hidden ? "표시" : "숨김"
+                           )}
+                         </Button>
+                       );
+                     })()}
+                   </form>
+                 </div>
+               </TableCell>
             </TableRow>
           ))}
         </TableBody>
