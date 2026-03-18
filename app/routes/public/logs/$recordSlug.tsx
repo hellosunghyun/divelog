@@ -1,6 +1,7 @@
 import { Link } from "~/components/content/SmartLink";
 import { useFetcher, useActionData, useNavigation, useSubmit, isRouteErrorResponse, useRouteError } from "react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
+import * as Sentry from "@sentry/react-router/cloudflare";
 
 import { cn } from "~/lib/utils/cn";
 import EmptyState from "~/components/feedback/EmptyState";
@@ -1415,7 +1416,63 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
 
 export function ErrorBoundary() {
   const error = useRouteError();
+  const capturedSignatureRef = useRef<string | null>(null);
   const isNotFound = isRouteErrorResponse(error) && error.status === 404;
+  const errorSignature = isRouteErrorResponse(error)
+    ? `route:${error.status}:${error.statusText}:${String(error.data ?? "")}`
+    : error instanceof Error
+      ? `error:${error.name}:${error.message}:${error.stack ?? ""}`
+      : `unknown:${String(error)}`;
+
+  useEffect(() => {
+    if (capturedSignatureRef.current === errorSignature) {
+      return;
+    }
+    capturedSignatureRef.current = errorSignature;
+
+    const url = typeof window !== "undefined" ? window.location.href : "unknown";
+
+    if (isRouteErrorResponse(error)) {
+      Sentry.captureMessage(`RecordDetail RouteError ${error.status}: ${url}`, {
+        level: error.status >= 500 ? "error" : "warning",
+        tags: {
+          type: "route_error",
+          route: "public/logs/$recordSlug",
+          status: String(error.status),
+        },
+        extra: {
+          url,
+          status: error.status,
+          statusText: error.statusText,
+          data: error.data,
+        },
+      });
+      return;
+    }
+
+    if (error instanceof Error) {
+      Sentry.captureException(error, {
+        tags: {
+          type: "render_error",
+          route: "public/logs/$recordSlug",
+        },
+        extra: { url },
+      });
+      return;
+    }
+
+    Sentry.captureMessage("RecordDetail unknown error boundary payload", {
+      level: "error",
+      tags: {
+        type: "render_error",
+        route: "public/logs/$recordSlug",
+      },
+      extra: {
+        url,
+        payload: String(error),
+      },
+    });
+  }, [error, errorSignature]);
 
   const title = isNotFound
     ? "기록을 찾을 수 없습니다"

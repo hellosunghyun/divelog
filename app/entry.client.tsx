@@ -38,6 +38,26 @@ Sentry.init({
   replaysOnErrorSampleRate: 0.5,
 });
 
+function isChunkLoadErrorMessage(message: string) {
+  return (
+    message.includes("Failed to fetch dynamically imported module") ||
+    message.includes("Importing a module script failed") ||
+    message.includes("error loading dynamically imported module") ||
+    message.includes("Load failed")
+  );
+}
+
+function reloadAfterSentryDrain() {
+  const doReload = () => window.location.reload();
+
+  if (typeof Sentry.flush === "function") {
+    void Sentry.flush(1200).then(doReload).catch(doReload);
+    return;
+  }
+
+  window.setTimeout(doReload, 150);
+}
+
 window.addEventListener("load", () => {
   setTimeout(async () => {
     const { replayIntegration } = await import("@sentry/react-router/cloudflare");
@@ -48,30 +68,76 @@ window.addEventListener("load", () => {
 // 배포 후 구 청크 로딩 실패 시 자동 새로고침 (1회만)
 window.addEventListener("error", (event) => {
   const msg = event.message ?? "";
-  if (
-    (msg.includes("Failed to fetch dynamically imported module") ||
-      msg.includes("Importing a module script failed") ||
-      msg.includes("error loading dynamically imported module") ||
-      msg.includes("Load failed")) &&
-    !sessionStorage.getItem("chunk_reload")
-  ) {
-    sessionStorage.setItem("chunk_reload", "1");
-    window.location.reload();
+  if (isChunkLoadErrorMessage(msg)) {
+    Sentry.captureMessage(`chunk_load_error: ${msg}`, {
+      level: "error",
+      tags: { type: "chunk_load_error" },
+      extra: {
+        filename: event.filename,
+        lineno: event.lineno,
+        colno: event.colno,
+      },
+    });
+
+    if (!sessionStorage.getItem("chunk_reload")) {
+      sessionStorage.setItem("chunk_reload", "1");
+      reloadAfterSentryDrain();
+    }
+    return;
+  }
+
+  if (event.error instanceof Error) {
+    Sentry.captureException(event.error, {
+      tags: { type: "window_error" },
+      extra: {
+        message: msg,
+        filename: event.filename,
+        lineno: event.lineno,
+        colno: event.colno,
+      },
+    });
+  } else if (msg) {
+    Sentry.captureMessage(`window_error: ${msg}`, {
+      level: "error",
+      tags: { type: "window_error" },
+      extra: {
+        filename: event.filename,
+        lineno: event.lineno,
+        colno: event.colno,
+      },
+    });
   }
 });
 
 window.addEventListener("unhandledrejection", (event) => {
   const msg = String(event.reason?.message ?? event.reason ?? "");
-  if (
-    (msg.includes("Failed to fetch dynamically imported module") ||
-      msg.includes("Importing a module script failed") ||
-      msg.includes("error loading dynamically imported module") ||
-      msg.includes("Load failed")) &&
-    !sessionStorage.getItem("chunk_reload")
-  ) {
-    sessionStorage.setItem("chunk_reload", "1");
-    window.location.reload();
+  if (isChunkLoadErrorMessage(msg)) {
+    Sentry.captureMessage(`chunk_load_unhandledrejection: ${msg}`, {
+      level: "error",
+      tags: { type: "chunk_load_error" },
+    });
+
+    if (!sessionStorage.getItem("chunk_reload")) {
+      sessionStorage.setItem("chunk_reload", "1");
+      reloadAfterSentryDrain();
+    }
+    return;
   }
+
+  if (event.reason instanceof Error) {
+    Sentry.captureException(event.reason, {
+      tags: { type: "unhandledrejection" },
+    });
+    return;
+  }
+
+  Sentry.captureMessage(`unhandledrejection: ${msg || "unknown"}`, {
+    level: "error",
+    tags: { type: "unhandledrejection" },
+    extra: {
+      reason: event.reason,
+    },
+  });
 });
 
 // 정상 로드 시 플래그 초기화
