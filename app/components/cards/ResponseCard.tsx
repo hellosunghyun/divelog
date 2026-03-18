@@ -1,5 +1,17 @@
 import { Link } from "~/components/content/SmartLink";
 import { cn } from "~/lib/utils/cn";
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "~/components/ui/alert-dialog";
+import { EditedIndicator } from "~/components/ui/EditedIndicator";
 
 type ResponseType =
   | "resonance"
@@ -14,24 +26,29 @@ interface ResponseCardProps {
     type: string;
     content: string;
     createdAt: number;
+    updatedAt: number;
+    authorId: string;
   };
   author?: {
     displayName: string;
     slug: string;
   };
+  currentUserId?: string | null;
+  onEdit?: (responseId: string) => void;
+  onDelete?: (responseId: string) => void;
   isSelfAnswer?: boolean;
   className?: string;
 }
 
 const TYPE_CONFIG: Record<
   ResponseType,
-  { label: string; accentClass: string }
+  { label: string; chipClass: string }
 > = {
-  resonance: { label: "공명", accentClass: "border-reef-cyan" },
-  question: { label: "질문", accentClass: "border-ocean-blue" },
-  connection: { label: "연결", accentClass: "border-mist-blue/80" },
-  suggestion: { label: "제안", accentClass: "border-deep-ocean/30" },
-  self_answer: { label: "자기답변", accentClass: "border-ocean-blue/60" },
+  resonance: { label: "공명", chipClass: "bg-reef-cyan/20 text-teal-700" },
+  question: { label: "질문", chipClass: "bg-ocean-blue/15 text-ocean-blue" },
+  connection: { label: "연결", chipClass: "bg-mist-blue/50 text-ocean-blue/80" },
+  suggestion: { label: "제안", chipClass: "bg-deep-ocean/10 text-deep-ocean/80" },
+  self_answer: { label: "자기답변", chipClass: "bg-ocean-blue/15 text-ocean-blue" },
 };
 
 function isResponseType(type: string): type is ResponseType {
@@ -49,24 +66,32 @@ function formatTimestamp(unixEpoch: number): string {
 export default function ResponseCard({
   response,
   author,
+  currentUserId,
+  onEdit,
+  onDelete,
   isSelfAnswer,
   className,
 }: ResponseCardProps) {
   const typeInfo = isResponseType(response.type)
     ? TYPE_CONFIG[response.type]
-    : { label: response.type, accentClass: "border-border" };
+    : { label: response.type, chipClass: "bg-surface-secondary text-text-secondary" };
+
+  const isOwner = currentUserId != null && response.authorId === currentUserId;
+  const isEdited = response.updatedAt > response.createdAt;
 
   return (
     <article
       data-testid="response-card"
       className={cn(
-        "relative pl-4 border-l-2 rounded-r-xl bg-surface p-5",
-        typeInfo.accentClass,
+        "rounded-2xl bg-surface border border-border p-5 md:p-6 transition-colors hover:border-border/80",
         className
       )}
     >
-      <div className="flex items-center gap-2 mb-2">
-        <span className="text-xs font-medium text-text-tertiary uppercase tracking-wide">
+      <div className="flex items-center justify-between mb-3">
+        <span className={cn(
+          "text-xs font-medium px-2.5 py-1 rounded-full",
+          typeInfo.chipClass
+        )}>
           {typeInfo.label}
         </span>
       </div>
@@ -75,7 +100,7 @@ export default function ResponseCard({
         {response.content}
       </p>
 
-      <div className="mt-3 flex items-center gap-3 text-text-tertiary text-sm">
+      <div className="mt-4 flex items-center gap-3 text-text-tertiary text-sm flex-wrap">
         {author && (
           <Link
             to={`/learners/${author.slug}`}
@@ -85,10 +110,50 @@ export default function ResponseCard({
             {author.displayName}
           </Link>
         )}
-        <span className="text-text-tertiary/60">
-          {formatTimestamp(response.createdAt)}
-        </span>
+        <span>{formatTimestamp(response.createdAt)}</span>
+        {isEdited && (
+          <EditedIndicator createdAt={response.createdAt} updatedAt={response.updatedAt} />
+        )}
       </div>
+
+      {isOwner && (
+        <div className="flex items-center gap-3 mt-4 pt-4 border-t border-border/50">
+          <button
+            type="button"
+            onClick={() => onEdit?.(response.id)}
+            className="text-xs text-text-tertiary hover:text-text-secondary transition-colors"
+          >
+            수정
+          </button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <button
+                type="button"
+                className="text-xs text-red-600/70 hover:text-red-600 transition-colors"
+              >
+                삭제
+              </button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>응답을 삭제하시겠습니까?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  삭제된 응답은 복구할 수 없습니다.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>취소</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => onDelete?.(response.id)}
+                  className="bg-red-600 text-white hover:bg-red-700"
+                >
+                  삭제
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+      )}
     </article>
   );
 }

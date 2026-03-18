@@ -3,7 +3,7 @@ import { data } from "react-router";
 import type { Route } from "./+types/$recordSlug";
 import { db } from "~/db/client.server";
 import { requireVerified, getOptionalUser } from "~/lib/auth/auth.middleware";
-import { createResponseSchema, saveSentenceSchema } from "~/lib/auth/validation";
+import { createResponseSchema, saveSentenceSchema, updateResponseSchema } from "~/lib/auth/validation";
 import { normalizeContentFormat } from "~/lib/content/editor-extensions";
 import { getPlainText, renderContentToHtml } from "~/lib/content/content.server";
 import { createLogger } from "~/lib/infra/logger.server";
@@ -26,6 +26,8 @@ import {
   stages,
   userRoles,
 } from "~/db/schema.server";
+import { createNotification } from "~/db/queries/social/notifications.server";
+import { updateResponse, deleteResponse } from "~/db/queries/dialogue/responses.server";
 
 export async function loader({ params, context, request }: Route.LoaderArgs) {
   const { recordSlug } = params;
@@ -221,6 +223,37 @@ export async function action({ request, context }: Route.ActionArgs) {
       updatedAt: now,
     });
 
+    // 알림 생성 (자기 응답 및 self_answer 제외)
+    if (auth.user.id !== targetRecord[0].authorId && parsed.data.type !== "self_answer") {
+      const TYPE_LABELS: Record<string, string> = {
+        resonance: "공명",
+        question: "질문",
+        connection: "연결",
+        suggestion: "제안",
+      };
+      const typeLabel = TYPE_LABELS[parsed.data.type] ?? parsed.data.type;
+
+      // 작성자 이름 조회
+      const authorProfile = await database
+        .select({ displayName: learnerProfiles.displayName })
+        .from(learnerProfiles)
+        .where(eq(learnerProfiles.userId, auth.user.id))
+        .limit(1);
+      const authorName = authorProfile[0]?.displayName ?? "누군가";
+
+      await createNotification(context.cloudflare.env.DB, {
+        recipientId: targetRecord[0].authorId,
+        type: "response",
+        title: `${authorName}님이 ${typeLabel}을 남겼습니다`,
+        recordId: parsed.data.recordId,
+      }).catch((err) => {
+        logger.warn("notification_create_failed", {
+          error: err instanceof Error ? err.message : String(err),
+          recordId: parsed.data.recordId,
+        });
+      });
+    }
+
     logger.info(parsed.data.type === "question" ? "question_create" : "response_create", {
       responseId: id,
       recordId: parsed.data.recordId,
@@ -300,6 +333,45 @@ export async function action({ request, context }: Route.ActionArgs) {
     logger.info("self_answer_create", { questionId, recordId });
 
     return { success: "자기 답변이 등록되었습니다." };
+  }
+
+  if (intent === "update_response") {
+    const parsed = updateResponseSchema.safeParse({
+      responseId: formData.get("responseId"),
+      content: formData.get("content") || undefined,
+      type: formData.get("type") || undefined,
+      visibility: formData.get("visibility") || undefined,
+    });
+
+    if (!parsed.success) {
+      return { error: parsed.error.issues[0]?.message ?? "입력값을 확인해주세요." };
+    }
+
+    const result = await updateResponse(context.cloudflare.env.DB, parsed.data.responseId, auth.user.id, parsed.data);
+
+    if (result === null) {
+      return { error: "응답을 수정할 수 없습니다." };
+    }
+
+    logger.info("response_update", { responseId: parsed.data.responseId });
+    return { success: "응답이 수정되었습니다." };
+  }
+
+  if (intent === "delete_response") {
+    const responseId = formData.get("responseId");
+
+    if (typeof responseId !== "string" || !responseId) {
+      return { error: "응답 ID가 없습니다." };
+    }
+
+    const result = await deleteResponse(context.cloudflare.env.DB, responseId, auth.user.id);
+
+    if (!result) {
+      return { error: "응답을 삭제할 수 없습니다." };
+    }
+
+    logger.info("response_delete", { responseId });
+    return { success: "응답이 삭제되었습니다." };
   }
 
   return { error: "알 수 없는 요청입니다." };

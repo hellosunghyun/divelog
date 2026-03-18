@@ -6,6 +6,7 @@ export default [
     index("routes/public/index.tsx"),
     route("journey", "routes/public/journey/index.tsx"),
     route("journey/:stageSlug", "routes/public/journey/$stageSlug.tsx"),
+    route("questions", "routes/public/questions.tsx"),
     route("logs", "routes/public/logs/index.tsx"),
     route("logs/:recordSlug", "routes/public/logs/$recordSlug.tsx"),
     route("logs/:recordSlug/edit", "routes/public/logs/$recordSlug.edit.tsx"),

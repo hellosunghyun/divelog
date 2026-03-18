@@ -2,6 +2,7 @@ import { Link } from "~/components/content/SmartLink";
 import { useActionData, useNavigation, useSubmit } from "react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { cn } from "~/lib/utils/cn";
 import EmptyState from "~/components/feedback/EmptyState";
 import HighlightedSentenceCard from "~/components/cards/HighlightedSentenceCard";
 import QuestionCard from "~/components/cards/QuestionCard";
@@ -132,11 +133,18 @@ function formatRecordDate(recordedAt: number | null, recordedEndAt: number | nul
 }
 
 const ALL_RESPONSE_TYPE_OPTIONS = [
-  { value: "resonance", label: "공명 — 이 기록에서 무엇이 남았는지 말합니다" },
-  { value: "question", label: "질문 — 더 듣고 싶은 지점을 엽니다" },
-  { value: "connection", label: "연결 — 내 경험이나 다른 기록과 이어봅니다" },
-  { value: "suggestion", label: "제안 — 다음 시도를 조심스럽게 제안합니다" },
+  { value: "resonance", label: "공명 — 이 기록에서 무엇이 남았는지 말합니다", shortLabel: "공명" },
+  { value: "question", label: "질문 — 더 듣고 싶은 지점을 엽니다", shortLabel: "질문" },
+  { value: "connection", label: "연결 — 내 경험이나 다른 기록과 이어봅니다", shortLabel: "연결" },
+  { value: "suggestion", label: "제안 — 다음 시도를 조심스럽게 제안합니다", shortLabel: "제안" },
 ];
+
+const RESPONSE_PLACEHOLDERS: Record<string, string> = {
+  resonance: "이 기록에서 무엇이 남았는지 적어보세요.",
+  question: "더 듣고 싶은 지점을 적어보세요.",
+  connection: "내 경험이나 다른 기록과 어떻게 이어지는지 적어보세요.",
+  suggestion: "다음 시도를 조심스럽게 제안해보세요.",
+};
 const NO_QUESTION_VALUE = "__none__";
 
 const RESPONSE_PREFERENCE_LABELS: Record<string, string> = {
@@ -184,10 +192,15 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
   const isSubmittingResponse = navigation.state === "submitting" && submittingIntent === "create_response";
   const isSubmittingSentence = navigation.state === "submitting" && submittingIntent === "save_sentence";
   const isSubmittingSelfAnswer = navigation.state === "submitting" && submittingIntent === "create_self_answer";
+  const isSubmittingResponseEdit = navigation.state === "submitting" && submittingIntent === "update_response";
+  const isSubmittingResponseDelete = navigation.state === "submitting" && submittingIntent === "delete_response";
 
   const [expandedQuestionId, setExpandedQuestionId] = useState<string | null>(null);
+  const [editingResponseId, setEditingResponseId] = useState<string | null>(null);
+  const [editingContent, setEditingContent] = useState("");
   const responseTypeOptions = getResponseTypeOptions(record.responsePreference);
   const [responseQuestionValue, setResponseQuestionValue] = useState(NO_QUESTION_VALUE);
+  const [selectedResponseType, setSelectedResponseType] = useState(responseTypeOptions[0]?.value ?? "resonance");
   const [selectedText, setSelectedText] = useState("");
   const [showSentenceButton, setShowSentenceButton] = useState(false);
   const [buttonPosition, setButtonPosition] = useState({ x: 0, y: 0 });
@@ -231,6 +244,18 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
     setShowSentenceButton(false);
     setShowSentencePopup(true);
   }, []);
+
+  const handleEditResponse = useCallback((responseId: string) => {
+    const response = recordResponses.find(r => r.response.id === responseId);
+    if (response) {
+      setEditingResponseId(responseId);
+      setEditingContent(response.response.content);
+    }
+  }, [recordResponses]);
+
+  const handleDeleteResponse = useCallback((responseId: string) => {
+    submit({ intent: "delete_response", responseId }, { method: "post" });
+  }, [submit]);
 
   const handleArticleMouseUp = useCallback(() => {
     if (typeof window === "undefined") {
@@ -632,27 +657,36 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
           ) : null}
 
           <div className="grid gap-6">
-            <form method="post" className="flex flex-col gap-5 bg-surface rounded-lg border border-border p-6">
+            <form method="post" className="flex flex-col gap-6 bg-surface rounded-2xl border border-border p-6 md:p-8">
               <input type="hidden" name="intent" value="create_response" />
               <input type="hidden" name="recordId" value={record.id} />
+              <input type="hidden" name="type" value={selectedResponseType} />
 
-              <div>
-                <Label htmlFor="response-type" className="text-sm font-medium text-text-secondary mb-2 block">
-                  응답 유형
-                </Label>
-                <Select name="type" required defaultValue={responseTypeOptions[0]?.value}>
-                  <SelectTrigger id="response-type" className="w-full bg-surface">
-                    <SelectValue placeholder="응답 유형 선택" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {responseTypeOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              <fieldset className="border-0 m-0 p-0">
+                <legend className="text-sm font-medium text-text-secondary mb-3 block">응답 유형</legend>
+                <div className="flex flex-wrap gap-2">
+                  {responseTypeOptions.map((option) => (
+                    <label key={option.value} className="cursor-pointer">
+                      <input
+                        type="radio"
+                        name="response-type-radio"
+                        value={option.value}
+                        checked={selectedResponseType === option.value}
+                        onChange={() => setSelectedResponseType(option.value)}
+                        className="sr-only"
+                      />
+                      <span className={cn(
+                        "inline-block px-4 py-2 rounded-full text-sm border transition-all",
+                        selectedResponseType === option.value
+                          ? "bg-deep-ocean text-white border-deep-ocean"
+                          : "border-border text-text-secondary bg-surface hover:border-ocean-blue/30 hover:bg-mist-blue/30"
+                      )}>
+                        {option.shortLabel}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
 
               <div>
                 <label htmlFor="response-visibility" className="text-sm font-medium text-text-secondary mb-2 block">
@@ -700,7 +734,7 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
                   name="content"
                   required
                   rows={5}
-                  placeholder="이 기록에 응답해보세요."
+                  placeholder={RESPONSE_PLACEHOLDERS[selectedResponseType] ?? "이 기록에 응답해보세요."}
                   className="min-h-[120px] bg-surface"
                 />
               </div>
@@ -715,27 +749,57 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
         </section>
       )}
 
-      <section className="mb-12">
-        <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-8">
-          응답 {recordResponses.length}개
-        </h2>
-        {recordResponses.length > 0 ? (
-          <div className="relative border-l-2 border-mist-blue pl-6 py-2 flex flex-col gap-8">
-            {recordResponses.map(({ response, author: responseAuthor }, i) => (
-              <div 
-                key={response.id} 
-                className="animate-in fade-in slide-in-from-bottom-4 relative"
-                style={{ animationDelay: `${i * 100}ms`, animationFillMode: "both" }}
-              >
-                <div className="absolute -left-[31px] top-6 w-3 h-3 rounded-full border-2 border-surface bg-reef-cyan shadow-sm z-10" />
-                <ResponseCard response={response} author={responseAuthor ?? undefined} isSelfAnswer={response.type === "self_answer"} />
-              </div>
-            ))}
-          </div>
-        ) : (
-          <EmptyState variant="responses" />
-        )}
-      </section>
+       <section className="mb-12">
+         <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-8">
+           응답 {recordResponses.length}개
+         </h2>
+         {recordResponses.length > 0 ? (
+           <div className="relative border-l-2 border-mist-blue pl-6 py-2 flex flex-col gap-10">
+             {recordResponses.map(({ response, author: responseAuthor }, i) => (
+               <div 
+                 key={response.id} 
+                 className="animate-in fade-in slide-in-from-bottom-4 relative"
+                 style={{ animationDelay: `${i * 100}ms`, animationFillMode: "both" }}
+               >
+                 <div className="absolute -left-[31px] top-6 w-3 h-3 rounded-full border-2 border-surface bg-reef-cyan shadow-sm z-10" />
+                 {editingResponseId === response.id ? (
+                   <form method="post" className="flex flex-col gap-4 bg-surface-secondary rounded-xl border border-border p-5">
+                     <input type="hidden" name="intent" value="update_response" />
+                     <input type="hidden" name="responseId" value={response.id} />
+                     <Textarea
+                       name="content"
+                       value={editingContent}
+                       onChange={(e) => setEditingContent(e.target.value)}
+                       rows={4}
+                       required
+                       className="w-full bg-surface"
+                     />
+                     <div className="flex gap-3">
+                       <Button type="submit" disabled={isSubmittingResponseEdit} className="rounded-full bg-deep-ocean text-white px-5 py-2.5 text-sm">
+                         {isSubmittingResponseEdit ? "저장 중..." : "저장"}
+                       </Button>
+                       <Button type="button" variant="ghost" onClick={() => setEditingResponseId(null)} className="rounded-full px-5 py-2.5 text-sm border border-border">
+                         취소
+                       </Button>
+                     </div>
+                   </form>
+                 ) : (
+                   <ResponseCard 
+                     response={response} 
+                     author={responseAuthor ?? undefined} 
+                     isSelfAnswer={response.type === "self_answer"}
+                     currentUserId={loaderData.currentUserId}
+                     onEdit={handleEditResponse}
+                     onDelete={handleDeleteResponse}
+                   />
+                 )}
+               </div>
+             ))}
+           </div>
+         ) : (
+           <EmptyState variant="responses" />
+         )}
+       </section>
 
       
 

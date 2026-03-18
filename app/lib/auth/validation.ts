@@ -146,6 +146,15 @@ export const createResponseSchema = z.object({
 
 export type CreateResponseInput = z.infer<typeof createResponseSchema>;
 
+export const updateResponseSchema = z.object({
+  responseId: z.string().min(1),
+  content: z.string().min(1, "내용을 입력해주세요").max(10000).optional(),
+  type: z.enum(["resonance", "question", "connection", "suggestion", "self_answer"]).optional(),
+  visibility: z.enum(["cohort", "public"]).optional(),
+});
+
+export type UpdateResponseInput = z.infer<typeof updateResponseSchema>;
+
 export const saveSentenceSchema = z.object({
   content: z.string().min(1).max(1000),
   reason: z.string().max(500).optional(),

@@ -1,6 +1,6 @@
 import { and, desc, eq, gte, sql } from "drizzle-orm";
 
-import type { CreateResponseInput } from "../../../lib/auth/validation";
+import type { CreateResponseInput, UpdateResponseInput } from "../../../lib/auth/validation";
 import { nanoid } from "../../../lib/utils/utils.server";
 import { db } from "../../client.server";
 import { learnerProfiles, records, responses } from "../../schema.server";
@@ -86,4 +86,72 @@ export async function getRecentlyRespondedRecords(
     .groupBy(records.id)
     .orderBy(desc(sql`last_response_at`))
     .limit(limit);
+}
+
+export async function getResponseById(d1: D1Database, responseId: string) {
+  const database = db(d1);
+
+  const result = await database
+    .select()
+    .from(responses)
+    .where(eq(responses.id, responseId));
+
+  return result[0];
+}
+
+export async function updateResponse(
+  d1: D1Database,
+  responseId: string,
+  authorId: string,
+  data: UpdateResponseInput,
+) {
+  const database = db(d1);
+
+  const response = await getResponseById(d1, responseId);
+  if (!response) {
+    return null;
+  }
+
+  if (response.authorId !== authorId || response.moderationStatus !== "clean") {
+    return null;
+  }
+
+  const now = Math.floor(Date.now() / 1000);
+  const updateData: Record<string, unknown> = {
+    updatedAt: now,
+  };
+
+  if (data.content !== undefined) {
+    updateData.content = data.content;
+  }
+  if (data.type !== undefined) {
+    updateData.type = data.type;
+  }
+  if (data.visibility !== undefined) {
+    updateData.visibility = data.visibility;
+  }
+
+  await database
+    .update(responses)
+    .set(updateData)
+    .where(eq(responses.id, responseId));
+
+  return true;
+}
+
+export async function deleteResponse(d1: D1Database, responseId: string, authorId: string) {
+  const database = db(d1);
+
+  const response = await getResponseById(d1, responseId);
+  if (!response) {
+    return false;
+  }
+
+  if (response.authorId !== authorId) {
+    return false;
+  }
+
+  await database.delete(responses).where(eq(responses.id, responseId));
+
+  return true;
 }

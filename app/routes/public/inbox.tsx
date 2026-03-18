@@ -6,7 +6,7 @@ import EmptyState from "~/components/feedback/EmptyState";
 import { Link } from "~/components/content/SmartLink";
 import { Button } from "~/components/ui/button";
 import { db } from "~/db/client.server";
-import { notifications } from "~/db/schema.server";
+import { notifications, records } from "~/db/schema.server";
 import { createLogger } from "~/lib/infra/logger.server";
 import { Form } from "react-router";
 
@@ -36,8 +36,19 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const tab = url.searchParams.get("tab") ?? "all";
 
   const allNotifs = await database
-    .select()
+    .select({
+      id: notifications.id,
+      type: notifications.type,
+      title: notifications.title,
+      content: notifications.content,
+      recordId: notifications.recordId,
+      recordSlug: records.slug,
+      questionId: notifications.questionId,
+      isRead: notifications.isRead,
+      createdAt: notifications.createdAt,
+    })
     .from(notifications)
+    .leftJoin(records, eq(notifications.recordId, records.id))
     .where(eq(notifications.recipientId, auth.user.id))
     .orderBy(desc(notifications.createdAt))
     .limit(50);
@@ -152,9 +163,9 @@ export default function InboxPage({ loaderData }: Route.ComponentProps) {
                       {n.content}
                     </p>
                   )}
-                  {n.recordId && (
+                  {n.recordSlug && (
                     <Link
-                      to={`/logs/${n.recordId}`}
+                      to={`/logs/${n.recordSlug}`}
                       className="text-caption text-text-tertiary hover:text-ocean-blue transition-colors no-underline"
                     >
                       기록 보기 →
