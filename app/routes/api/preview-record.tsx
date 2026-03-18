@@ -21,6 +21,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     format: records.format,
     type: records.type,
     rhythm: records.rhythm,
+    visibility: records.visibility,
     createdAt: records.createdAt,
     authorDisplayName: learnerProfiles.displayName,
     authorSlug: learnerProfiles.slug,
@@ -45,6 +46,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   const record = result[0];
   if (!record) {
+    return Response.json({ error: "not found" }, { status: 404 });
+  }
+
+  if (record.visibility === "draft") {
     return Response.json({ error: "not found" }, { status: 404 });
   }
 
