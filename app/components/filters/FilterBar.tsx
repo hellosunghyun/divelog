@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useSearchParams } from "react-router";
 
 import { cn } from "~/lib/utils/cn";
@@ -16,6 +17,14 @@ interface FilterBarProps {
 
 export default function FilterBar({ filters }: FilterBarProps) {
   const [searchParams, setSearchParams] = useSearchParams();
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const activeCount = filters.filter(
+    (filter) => {
+      const value = searchParams.get(filter.key);
+      return value !== null && value !== "" && value !== ALL_FILTER_VALUE;
+    }
+  ).length;
 
   const handleChange = (key: string, value: string) => {
     const newParams = new URLSearchParams(searchParams);
@@ -28,34 +37,97 @@ export default function FilterBar({ filters }: FilterBarProps) {
     setSearchParams(newParams);
   };
 
-  return (
-    <div className="flex flex-col gap-4">
-      {filters.map((filter) => {
-        const currentValue = searchParams.get(filter.key) ?? ALL_FILTER_VALUE;
+  const handleReset = () => {
+    const newParams = new URLSearchParams(searchParams);
+    filters.forEach((filter) => {
+      newParams.delete(filter.key);
+    });
+    newParams.delete("page");
+    setSearchParams(newParams);
+  };
 
-        return (
-          <div key={filter.key} className="flex flex-col gap-2">
-            <span className="text-sm font-medium text-text-secondary">
-              {filter.label}
+  return (
+    <div className="flex flex-col">
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl border border-border bg-surface hover:bg-surface-secondary transition-colors text-sm font-medium text-text-secondary"
+          aria-expanded={isExpanded}
+          aria-controls="filter-panel"
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            className={cn(
+              "transition-transform duration-200",
+              isExpanded && "rotate-180"
+            )}
+            aria-hidden="true"
+          >
+            <path
+              d="M4 6L8 10L12 6"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          <span>필터</span>
+          {activeCount > 0 && (
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-ocean-blue text-white text-xs font-semibold">
+              {activeCount}
             </span>
-            <div className="flex flex-wrap gap-2">
-              <FilterChip
-                label="전체"
-                isActive={currentValue === ALL_FILTER_VALUE}
-                onClick={() => handleChange(filter.key, "")}
-              />
-              {filter.values.map((v) => (
-                <FilterChip
-                  key={v.value}
-                  label={v.label}
-                  isActive={currentValue === v.value}
-                  onClick={() => handleChange(filter.key, v.value)}
-                />
-              ))}
-            </div>
-          </div>
-        );
-      })}
+          )}
+        </button>
+
+        {activeCount > 0 && (
+          <button
+            type="button"
+            onClick={handleReset}
+            className="text-sm text-text-tertiary hover:text-text-primary transition-colors"
+          >
+            초기화
+          </button>
+        )}
+      </div>
+
+      {isExpanded && (
+        <div
+          id="filter-panel"
+          className="mt-3 pt-4 border-t border-border flex flex-col gap-4"
+        >
+          {filters.map((filter) => {
+            const currentValue = searchParams.get(filter.key) ?? ALL_FILTER_VALUE;
+
+            return (
+              <div key={filter.key} className="flex flex-col gap-2">
+                <span className="text-sm font-medium text-text-secondary">
+                  {filter.label}
+                </span>
+                <div className="flex flex-wrap gap-2">
+                  <FilterChip
+                    label="전체"
+                    isActive={currentValue === ALL_FILTER_VALUE}
+                    onClick={() => handleChange(filter.key, "")}
+                  />
+                  {filter.values.map((v) => (
+                    <FilterChip
+                      key={v.value}
+                      label={v.label}
+                      isActive={currentValue === v.value}
+                      onClick={() => handleChange(filter.key, v.value)}
+                    />
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
