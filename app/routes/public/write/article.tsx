@@ -90,7 +90,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     currentStage: currentStageResult[0] ?? null,
     stages: allStages,
     learnerDefaults: {
-      defaultVisibility: learner?.defaultVisibility ?? "cohort",
+      defaultVisibility: learner?.defaultVisibility ?? "public",
       defaultResponsePreference: learner?.defaultResponsePreference ?? "open",
     },
   };
@@ -120,7 +120,7 @@ export async function action({ request, context }: Route.ActionArgs) {
     title: formData.get("title"),
     content,
     rhythm: formData.get("rhythm") || "free",
-    visibility: formData.get("visibility") || "cohort",
+    visibility: formData.get("visibility") || "public",
     stageId: formData.get("stageId") || undefined,
     recordedAt: typeof recordedAtRaw === "string" && recordedAtRaw ? recordedAtRaw : undefined,
     recordedEndAt: typeof recordedEndAtRaw === "string" && recordedEndAtRaw ? recordedEndAtRaw : undefined,

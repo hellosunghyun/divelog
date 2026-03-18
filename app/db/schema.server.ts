@@ -16,7 +16,7 @@ export const learnerProfiles = sqliteTable("learner_profiles", {
   notificationEmailEnabled: integer("notification_email_enabled", { mode: "boolean" })
     .notNull()
     .default(true),
-  defaultVisibility: text("default_visibility").notNull().default("cohort"),
+  defaultVisibility: text("default_visibility").notNull().default("public"),
   defaultResponsePreference: text("default_response_preference").notNull().default("open"),
   createdAt: integer("created_at").notNull().default(now()),
   updatedAt: integer("updated_at").notNull().default(now()),
@@ -111,7 +111,7 @@ export const records = sqliteTable("records", {
   format: text("format").notNull().default("note"),
   type: text("type").notNull().default("personal"),
   rhythm: text("rhythm").notNull().default("free"),
-  visibility: text("visibility").notNull().default("cohort"),
+  visibility: text("visibility").notNull().default("public"),
   responsePreference: text("response_preference").notNull().default("open"),
   isFeatured: integer("is_featured", { mode: "boolean" }).notNull().default(false),
   moderationStatus: text("moderation_status").notNull().default("clean"),
@@ -160,7 +160,7 @@ export const responses = sqliteTable("responses", {
     .references(() => learnerProfiles.userId),
   type: text("type").notNull(),
   content: text("content").notNull(),
-  visibility: text("visibility").notNull().default("cohort"),
+  visibility: text("visibility").notNull().default("public"),
   moderationStatus: text("moderation_status").notNull().default("clean"),
   createdAt: integer("created_at").notNull().default(now()),
   updatedAt: integer("updated_at").notNull().default(now()),

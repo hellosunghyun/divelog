@@ -9,7 +9,7 @@ export interface DraftData {
   contentJson?: string;
   stageId?: string | null;
   rhythm?: string;
-  visibility?: 'draft' | 'cohort' | 'public';
+  visibility?: 'draft' | 'private' | 'cohort' | 'public';
   responsePreference?: 'open' | 'question_only' | 'closed';
   savedAt: number; // unix timestamp (ms)
 }

@@ -78,7 +78,16 @@ describe("record-diff utilities", () => {
 
       expect(result).toEqual({
         label: "공개 범위",
-        summary: "코호트 → 전체 공개",
+        summary: "코호트 공개 → 전체 공개",
+      });
+    });
+
+    it("formats private visibility change with Korean label", () => {
+      const result = formatFieldChange("visibility", "public", "private");
+
+      expect(result).toEqual({
+        label: "공개 범위",
+        summary: "전체 공개 → 나만 보기",
       });
     });
 

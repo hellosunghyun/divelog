@@ -177,13 +177,13 @@ export async function action({ request, context }: Route.ActionArgs) {
   const database = db(context.cloudflare.env.DB);
 
   if (intent === "create_response") {
-    const parsed = createResponseSchema.safeParse({
-      content: formData.get("content"),
-      type: formData.get("type"),
-      recordId: formData.get("recordId"),
-      questionId: formData.get("questionId") || undefined,
-      visibility: formData.get("visibility") || "cohort",
-    });
+     const parsed = createResponseSchema.safeParse({
+       content: formData.get("content"),
+       type: formData.get("type"),
+       recordId: formData.get("recordId"),
+       questionId: formData.get("questionId") || undefined,
+       visibility: formData.get("visibility") || "public",
+     });
 
     if (!parsed.success) {
       return { error: parsed.error.issues[0]?.message ?? "입력값을 확인해주세요." };

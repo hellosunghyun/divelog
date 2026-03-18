@@ -86,11 +86,12 @@ const VALUE_LABELS: Record<string, Record<string, string>> = {
     reflection: "성찰",
     free: "자유",
   },
-  visibility: {
-    draft: "초안",
-    cohort: "코호트",
-    public: "전체 공개",
-  },
+   visibility: {
+     draft: "임시저장",
+     private: "나만 보기",
+     cohort: "코호트 공개",
+     public: "전체 공개",
+   },
   responsePreference: {
     open: "열린 응답",
     question_only: "질문만",

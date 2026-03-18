@@ -2,6 +2,7 @@ import { data, redirect } from "react-router";
 import type { Route } from "./+types/$recordId";
 import { Link } from "~/components/content/SmartLink";
 import { Button } from "~/components/ui/button";
+import { VISIBILITY_LABELS } from "~/lib/constants/visibility";
 import { Label } from "~/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
 import { Textarea } from "~/components/ui/textarea";
@@ -150,10 +151,10 @@ export default function AdminRecordDetailPage({ loaderData }: Route.ComponentPro
                 <span className="text-admin-text-secondary">형식:</span>
                 <span className="ml-2 text-admin-text">{record.format}</span>
               </div>
-              <div>
-                <span className="text-admin-text-secondary">공개 범위:</span>
-                <span className="ml-2 text-admin-text">{record.visibility}</span>
-              </div>
+               <div>
+                 <span className="text-admin-text-secondary">공개 범위:</span>
+                 <span className="ml-2 text-admin-text">{VISIBILITY_LABELS[record.visibility] ?? record.visibility}</span>
+               </div>
               <div>
                 <span className="text-admin-text-secondary">Challenge:</span>
                 <span className="ml-2 text-admin-text">{challenge?.name ?? "-"}</span>
