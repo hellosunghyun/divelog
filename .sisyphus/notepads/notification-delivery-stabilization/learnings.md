@@ -106,3 +106,9 @@ Tests written:
 - `NOTIFICATION_TYPES`와 `NotificationType`을 `app/lib/constants/notificationTypes.ts`로 이동해 `settings.tsx` 같은 client route가 `.server` 모듈을 직접 참조하지 않도록 분리했다.
 - `app/db/queries/social/notificationPreferences.server.ts`와 `app/lib/notifications/notify.server.ts`는 같은 shared 타입을 가져오도록 맞춰서 서버 쿼리와 알림 서비스의 타입 소스를 하나로 고정했다.
 - 검증 결과 `pnpm build`와 `pnpm exec vitest run app/lib/notifications/__tests__/notify.test.ts`가 다시 통과했다.
+
+## 2026-03-19 F3 QA rerun after build fix
+- `pnpm exec vitest run app/lib/notifications/ app/db/queries/social/`는 4개 파일, 20개 테스트가 모두 통과했다.
+- `app/lib/notifications/notify.server.ts`는 `getNotificationPreferences` import와 실제 조회 호출을 유지하고 있어 opt-out enforcement가 여전히 적용된다.
+- `pnpm exec vitest run app/components/layout/__tests__/GlobalNav.badge.test.ts`는 15개 테스트가 모두 통과했고, `pnpm build`도 완료됐다.
+- 다만 `grep -c "notif_" app/routes/public/settings.tsx` 결과는 여전히 4여서 F3 기대치(6+)는 충족하지 못해 최종 QA verdict는 REJECT로 유지했다.
