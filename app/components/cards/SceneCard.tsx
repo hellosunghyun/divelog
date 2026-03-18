@@ -110,7 +110,7 @@ export default function SceneCard({
       data-testid="scene-card"
       data-read={isRead ? "true" : undefined}
       className={cn(
-        "group p-1.5 rounded-2xl ring-1",
+        "group relative p-1.5 rounded-2xl ring-1",
         "hover:shadow-tinted-md transition-premium cursor-pointer",
         isRead
           ? "bg-[#ECEEF1] ring-[#D8DCE3]"
@@ -145,6 +145,7 @@ export default function SceneCard({
           prefetch="viewport"
           className={cn(
             "text-lg font-semibold leading-title no-underline",
+            "after:absolute after:inset-0 after:rounded-2xl",
             isRead ? "text-text-tertiary" : "text-text-primary"
           )}
         >
@@ -166,7 +167,7 @@ export default function SceneCard({
                   <Link
                     to={`/learners/${author.slug}`}
                     prefetch="viewport"
-                    className="text-meta text-text-secondary no-underline hover:text-ocean-blue transition-colors"
+                    className="relative z-10 text-meta text-text-secondary no-underline hover:text-ocean-blue transition-colors"
                   >
                     {author.displayName}
                   </Link>
