@@ -6,7 +6,6 @@ const focusRing = "focus-visible:outline-none focus-visible:ring-2 focus-visible
 const navLinks = [
   { to: "/journey", label: "여정" },
   { to: "/logs", label: "기록" },
-  { to: "/challenges", label: "챌린지" },
   { to: "/learners", label: "러너" },
 ];
 

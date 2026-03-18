@@ -1,7 +1,7 @@
 import { Link } from "~/components/content/SmartLink";
 
 interface HeroSectionProps {
-  variant: "home" | "stage" | "challenge" | "learner" | "memory";
+  variant: "home" | "stage" | "learner" | "memory";
   title: React.ReactNode;
   subtitle?: React.ReactNode;
   accentTone?: string;
