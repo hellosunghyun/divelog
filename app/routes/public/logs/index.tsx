@@ -99,10 +99,12 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const pageSize = shouldLoadAllRecords ? 200 : 20;
   const offset = (page - 1) * pageSize;
 
+  const effectiveSort = view === "timeline" ? "stage" : sort;
+
   const orderBy =
-    sort === "stage"
+    effectiveSort === "stage"
       ? [asc(stages.order), desc(records.createdAt)]
-      : sort === "oldest"
+      : effectiveSort === "oldest"
         ? [asc(records.createdAt)]
         : [desc(records.createdAt)];
 
