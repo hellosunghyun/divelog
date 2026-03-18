@@ -59,4 +59,5 @@ export default [
   route("api/autosave", "routes/api/autosave.tsx"),
   route("api/search-records", "routes/api/search-records.tsx"),
   route("api/search-learners", "routes/api/search-learners.tsx"),
+  route("api/track-read", "routes/api/track-read.tsx"),
 ] satisfies RouteConfig;
