@@ -169,7 +169,7 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
               <div className="flex items-center gap-3">
                 <Link
                   to="/write"
-                  className="inline-flex items-center justify-center rounded-md border border-border px-4 py-2 text-sm font-medium text-text-secondary no-underline transition-colors hover:bg-surface-secondary"
+                  className="inline-flex h-10 items-center justify-center rounded-md border border-border px-4 py-2 text-sm font-medium text-text-secondary no-underline transition-colors hover:bg-surface-secondary"
                 >
                   취소
                 </Link>
