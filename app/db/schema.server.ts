@@ -1,4 +1,5 @@
 import { sql } from "drizzle-orm";
+import type { AnySQLiteColumn } from "drizzle-orm/sqlite-core";
 import { index, integer, primaryKey, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 const now = () => sql`(unixepoch())`;
@@ -148,7 +149,7 @@ export const responses = sqliteTable("responses", {
   authorId: text("author_id")
     .notNull()
     .references(() => learnerProfiles.userId),
-  parentResponseId: text("parent_response_id").references(() => responses.id),
+  parentResponseId: text("parent_response_id").references((): AnySQLiteColumn => responses.id),
   type: text("type").notNull(),
   content: text("content").notNull(),
   visibility: text("visibility").notNull().default("public"),
@@ -245,13 +246,17 @@ export const settings = sqliteTable("settings", {
   updatedAt: integer("updated_at").notNull().default(now()),
 });
 
-export const userRoles = sqliteTable("user_roles", {
-  id: text("id").primaryKey(),
-  userId: text("user_id").notNull(),
-  role: text("role").notNull(),
-  grantedAt: integer("granted_at").notNull().default(now()),
-  grantedBy: text("granted_by"),
-});
+export const userRoles = sqliteTable(
+  "user_roles",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull(),
+    role: text("role").notNull(),
+    grantedAt: integer("granted_at").notNull().default(now()),
+    grantedBy: text("granted_by"),
+  },
+  (table) => [uniqueIndex("idx_user_roles_user_role").on(table.userId, table.role)],
+);
 
 export const tags = sqliteTable("tags", {
   id: text("id").primaryKey(),
@@ -278,19 +283,25 @@ export const recordTags = sqliteTable(
   (table) => [primaryKey({ columns: [table.recordId, table.tagId] })],
 );
 
-export const mentions = sqliteTable("mentions", {
-  id: text("id").primaryKey(),
-  recordId: text("record_id")
-    .notNull()
-    .references(() => records.id, { onDelete: "cascade" }),
-  mentionedUserId: text("mentioned_user_id")
-    .notNull()
-    .references(() => learnerProfiles.userId, { onDelete: "cascade" }),
-  mentionedById: text("mentioned_by_id")
-    .notNull()
-    .references(() => learnerProfiles.userId, { onDelete: "cascade" }),
-  createdAt: integer("created_at").notNull().default(now()),
-});
+export const mentions = sqliteTable(
+  "mentions",
+  {
+    id: text("id").primaryKey(),
+    recordId: text("record_id")
+      .notNull()
+      .references(() => records.id, { onDelete: "cascade" }),
+    mentionedUserId: text("mentioned_user_id")
+      .notNull()
+      .references(() => learnerProfiles.userId, { onDelete: "cascade" }),
+    mentionedById: text("mentioned_by_id")
+      .notNull()
+      .references(() => learnerProfiles.userId, { onDelete: "cascade" }),
+    createdAt: integer("created_at").notNull().default(now()),
+  },
+  (table) => [
+    uniqueIndex("idx_mentions_record_user").on(table.recordId, table.mentionedUserId),
+  ],
+);
 
 export const recordLinks = sqliteTable(
   "record_links",
@@ -404,5 +415,3 @@ export const recordParticipants = sqliteTable(
   },
   (table) => [primaryKey({ columns: [table.recordId, table.participantUserId] })],
 );
-
-

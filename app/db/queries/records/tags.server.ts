@@ -233,11 +233,11 @@ export async function syncTagsForRecord(
   if (tagIds.length === 0) return;
 
   const now = Math.floor(Date.now() / 1000);
-  for (const tagId of tagIds) {
-    await database.insert(recordTags).values({
+  await database.insert(recordTags).values(
+    tagIds.map((tagId) => ({
       recordId,
       tagId,
       createdAt: now,
-    });
-  }
+    }))
+  );
 }

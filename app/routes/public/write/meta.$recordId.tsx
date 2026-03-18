@@ -15,7 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~
 import { Textarea } from "~/components/ui/textarea";
 import { db } from "~/db/client.server";
 import { syncAllMentionsForRecord } from "~/db/queries/dialogue/mentions.server";
-import { createNotification } from "~/db/queries/social/notifications.server";
+import { bulkCreateNotifications } from "~/db/queries/social/notifications.server";
 import { syncParticipantsForRecord, getParticipantsByRecord } from "~/db/queries/records/participants.server";
 import { markAsRead } from "~/db/queries/records/recordReads.server";
 import { syncTypedRecordLinks, getTypedRecordLinks } from "~/db/queries/records/recordLinks.server";
@@ -187,21 +187,16 @@ export async function action({ params, request, context }: Route.ActionArgs) {
     });
   }
 
-  const notified = new Set<string>();
-  for (const participant of participants) {
-    if (participant.userId === auth.user.id) {
-      continue;
-    }
-
-    await createNotification(context.cloudflare.env.DB, {
+  const notificationInputs = participants
+    .filter((participant) => participant.userId !== auth.user.id)
+    .map((participant) => ({
       recipientId: participant.userId,
-      type: "participant_added",
+      type: "participant_added" as const,
       title: `${actorName}님이 기록에 함께하는 사람으로 남겼습니다`,
       content: record.title,
       recordId: record.id,
-    });
-    notified.add(participant.userId);
-  }
+    }));
+  await bulkCreateNotifications(context.cloudflare.env.DB, notificationInputs);
 
   if (record.visibility !== "draft") {
     try {

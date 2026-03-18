@@ -30,16 +30,18 @@ export async function syncRecordLinksForRecord(
   const database = db(d1);
   await database.delete(recordLinks).where(eq(recordLinks.sourceRecordId, sourceRecordId));
 
+  if (refs.length === 0) return;
+
   const now = Math.floor(Date.now() / 1000);
-  for (const ref of refs) {
-    await database.insert(recordLinks).values({
+  await database.insert(recordLinks).values(
+    refs.map((ref) => ({
       id: nanoid(),
       sourceRecordId,
       targetRecordId: ref.recordId,
       linkType: "reference",
       createdAt: now,
-    });
-  }
+    }))
+  );
 }
 
 export async function getRecordLinksByRecord(d1: D1Database, recordId: string) {
@@ -111,16 +113,16 @@ export async function syncTypedRecordLinks(
   if (targetRecordIds.length === 0) return;
 
   const now = Math.floor(Date.now() / 1000);
-  for (const targetId of targetRecordIds) {
-    await database.insert(recordLinks).values({
+  await database.insert(recordLinks).values(
+    targetRecordIds.map((targetId) => ({
       id: nanoid(),
       sourceRecordId,
       targetRecordId: targetId,
       linkType,
       quotedText: null,
       createdAt: now,
-    });
-  }
+    }))
+  );
 }
 
 export async function getTypedRecordLinks(
