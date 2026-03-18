@@ -2,7 +2,6 @@ import type { Route } from "./+types/index";
 import { Link } from "~/components/content/SmartLink";
 import { cn } from "~/lib/utils/cn";
 import StageStrip from "~/components/sections/StageStrip";
-import HeroSection from "~/components/sections/HeroSection";
 import EmptyState from "~/components/feedback/EmptyState";
 import { sql } from "drizzle-orm";
 import { db } from "~/db/client.server";
@@ -64,11 +63,12 @@ export default function JourneyPage({ loaderData }: Route.ComponentProps) {
 
   return (
     <div>
-      <HeroSection
-        variant="stage"
-        title="여정"
-        subtitle="Apple Developer Academy @ POSTECH 러너의 아홉 달은 여러 Stage로 구성됩니다. 각 Stage마다 탐구와 기록이 쌓입니다."
-      />
+      <div className="max-w-content mx-auto px-6 pt-12 pb-8 md:pt-16 md:pb-12">
+        <h1 className="mb-2 text-4xl font-semibold tracking-tight text-text-primary">여정</h1>
+        <p className="text-lg leading-body text-text-secondary">
+          Apple Developer Academy @ POSTECH 러너의 아홉 달은 여러 Stage로 구성됩니다. 각 Stage마다 탐구와 기록이 쌓입니다.
+        </p>
+      </div>
 
       {allStages.length > 0 && (
         <div className="bg-surface border-b border-border">

@@ -223,7 +223,7 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
                   ) : null}
                 </div>
 
-                <div className="w-full overflow-x-auto px-4 py-8 lg:w-3/4">
+                <div className="[-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden w-full overflow-x-auto px-4 py-8 lg:w-3/4">
                   <div className="relative flex min-w-max items-start justify-between gap-4">
                     <div
                       className="pointer-events-none absolute top-[7px] z-0 h-0.5 bg-border"
