@@ -130,7 +130,7 @@ export async function createRecord(d1: D1Database, authorId: string, data: Creat
     format: data.format ?? "note",
     type: data.type ?? "personal",
     rhythm: data.rhythm ?? "free",
-    visibility: data.visibility ?? "cohort",
+    visibility: data.visibility ?? "public",
     responsePreference: data.responsePreference ?? "open",
     stageId: data.stageId ?? null,
     challengeId: data.challengeId ?? null,

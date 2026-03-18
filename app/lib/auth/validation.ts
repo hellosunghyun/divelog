@@ -8,7 +8,7 @@ export const createRecordSchema = z
     format: z.enum(["note", "article"]).default("note"),
     type: z.enum(["personal", "challenge", "collaboration"]).default("personal"),
     rhythm: z.enum(["moment", "sprint", "weekly", "monthly", "stage", "reflection", "free"]).default("free"),
-    visibility: z.enum(["draft", "private", "cohort", "public"]).default("cohort"),
+    visibility: z.enum(["draft", "private", "cohort", "public"]).default("public"),
     responsePreference: z.enum(["open", "question_only", "closed"]).default("open"),
     stageId: z.string().optional(),
     challengeId: z.string().optional(),
@@ -62,7 +62,7 @@ export type AutosaveDraftInput = z.infer<typeof autosaveDraftSchema>;
 export const createNoteSchema = z.object({
   content: z.string().min(1, "내용을 입력해주세요").max(50000),
   rhythm: z.enum(["moment", "sprint", "weekly", "monthly", "stage", "reflection", "free"]).default("free"),
-  visibility: z.enum(["draft", "private", "cohort", "public"]).default("cohort"),
+  visibility: z.enum(["draft", "private", "cohort", "public"]).default("public"),
   responsePreference: z.enum(["open", "question_only", "closed"]).default("open"),
   stageId: z.string().optional(),
   captureQuestion: z.string().optional(),
@@ -86,7 +86,7 @@ export const createArticleSchema = z
     ),
     content: z.string().min(1, "내용을 입력해주세요").max(50000),
     rhythm: z.enum(["moment", "sprint", "weekly", "monthly", "stage", "reflection", "free"]).default("free"),
-    visibility: z.enum(["draft", "private", "cohort", "public"]).default("cohort"),
+    visibility: z.enum(["draft", "private", "cohort", "public"]).default("public"),
     stageId: z.string().optional(),
     recordedAt: z.string().optional(),
     recordedEndAt: z.string().optional(),
@@ -139,7 +139,7 @@ export type CreateQuestionInput = z.infer<typeof createQuestionSchema>;
 export const createResponseSchema = z.object({
   content: z.string().min(1, "내용을 입력해주세요").max(10000),
   type: z.enum(["resonance", "question", "connection", "suggestion", "self_answer"]),
-  visibility: z.enum(["cohort", "public"]).default("cohort"),
+  visibility: z.enum(["cohort", "public"]).default("public"),
   recordId: z.string().min(1),
   questionId: z.string().optional(),
 });

@@ -35,7 +35,7 @@ export async function createResponse(d1: D1Database, authorId: string, data: Cre
     authorId,
     type: data.type,
     content: data.content,
-    visibility: data.visibility ?? "cohort",
+    visibility: data.visibility ?? "public",
     moderationStatus: "clean",
     createdAt: now,
     updatedAt: now,
