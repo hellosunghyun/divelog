@@ -12,11 +12,22 @@ interface MentionItem {
 const mentionPluginKey = new PluginKey("userMention");
 
 let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+let lastFetchedQuery: string | null = null;
+let cachedResults: MentionItem[] | null = null;
 
 async function fetchLearners(query: string): Promise<MentionItem[]> {
-  if (!query || query.length < 1) return [];
+  // 빈 쿼리 → 캐시 있으면 즉시 반환 (Safari IME 진동 대응)
+  if (!query) {
+    if (cachedResults !== null) return cachedResults;
+  }
+
+  // 같은 쿼리 반복 호출 → 캐시 반환
+  if (query === lastFetchedQuery && cachedResults !== null) return cachedResults;
 
   if (debounceTimer) clearTimeout(debounceTimer);
+
+  // 빈 쿼리는 debounce 없이 즉시 fetch (전체 목록)
+  const delay = query.length === 0 ? 0 : 200;
 
   return new Promise((resolve) => {
     debounceTimer = setTimeout(async () => {
@@ -24,19 +35,22 @@ async function fetchLearners(query: string): Promise<MentionItem[]> {
         const res = await fetch(`/api/search-learners?q=${encodeURIComponent(query)}`);
         if (!res.ok) {
           console.warn("[mention] search-learners 응답 오류:", res.status);
-          resolve([]);
+          resolve(cachedResults ?? []);
           return;
         }
         const data = (await res.json()) as { results: MentionItem[]; _auth?: boolean };
         if (data._auth === false) {
           console.warn("[mention] 인증되지 않은 상태에서 러너 검색 시도");
         }
-        resolve(data.results ?? []);
+        const results = data.results ?? [];
+        lastFetchedQuery = query;
+        cachedResults = results;
+        resolve(results);
       } catch (err) {
         console.warn("[mention] search-learners fetch 실패:", err);
-        resolve([]);
+        resolve(cachedResults ?? []);
       }
-    }, 250);
+    }, delay);
   });
 }
 
@@ -146,10 +160,7 @@ export function createUserMentionExtension() {
         const parent = state.selection.$from.parent;
         return parent.isTextblock && !parent.type.spec.code;
       },
-      items: async ({ query }: { query: string }) => {
-        console.debug("[mention] items query:", JSON.stringify(query), "len:", query.length);
-        return fetchLearners(query);
-      },
+      items: async ({ query }: { query: string }) => fetchLearners(query),
       command: ({ editor, range, props }: { editor: any; range: any; props: any }) => {
         const label = props.displayName ?? props.label ?? props.id;
         const slug = props.slug ?? props.id;

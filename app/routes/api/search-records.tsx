@@ -18,17 +18,12 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const url = new URL(request.url);
   const q = url.searchParams.get("q")?.trim() ?? "";
 
-  if (q.length === 0) {
-    return Response.json({ results: [] });
-  }
-
-  logger.info("search_query", { query: q });
+  logger.info("search_query", { query: q || "(empty)" });
 
   try {
     const database = db(context.cloudflare.env.DB);
-    const pattern = `%${q}%`;
 
-    const results = await database
+    const baseQuery = database
       .select({
         id: records.id,
         slug: records.slug,
@@ -37,14 +32,14 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
         authorDisplayName: learnerProfiles.displayName,
       })
       .from(records)
-      .leftJoin(learnerProfiles, sql`${records.authorId} = ${learnerProfiles.userId}`)
-      .where(
-        and(
+      .leftJoin(learnerProfiles, sql`${records.authorId} = ${learnerProfiles.userId}`);
+
+    const results = q.length > 0
+      ? await baseQuery.where(and(
           sql`${records.visibility} IN ('cohort', 'public')`,
-          sql`(${records.title} LIKE ${pattern} OR ${records.contentText} LIKE ${pattern})`,
-        ),
-      )
-      .limit(8);
+          sql`(${records.title} LIKE ${"%" + q + "%"} OR ${records.contentText} LIKE ${"%" + q + "%"})`,
+        )).limit(8)
+      : await baseQuery.where(sql`${records.visibility} IN ('cohort', 'public')`).orderBy(sql`${records.createdAt} DESC`).limit(8);
 
     logger.info("search_results", { count: results.length });
     return Response.json({ results });

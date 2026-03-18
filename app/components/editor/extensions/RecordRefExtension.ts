@@ -13,11 +13,19 @@ interface RecordItem {
 const recordRefPluginKey = new PluginKey("recordRef");
 
 let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+let lastFetchedQuery: string | null = null;
+let cachedResults: RecordItem[] | null = null;
 
 async function fetchRecords(query: string): Promise<RecordItem[]> {
-  if (!query || query.length < 1) return [];
+  if (!query) {
+    if (cachedResults !== null) return cachedResults;
+  }
+
+  if (query === lastFetchedQuery && cachedResults !== null) return cachedResults;
 
   if (debounceTimer) clearTimeout(debounceTimer);
+
+  const delay = query.length === 0 ? 0 : 200;
 
   return new Promise((resolve) => {
     debounceTimer = setTimeout(async () => {
@@ -25,19 +33,22 @@ async function fetchRecords(query: string): Promise<RecordItem[]> {
         const res = await fetch(`/api/search-records?q=${encodeURIComponent(query)}`);
         if (!res.ok) {
           console.warn("[record-ref] search-records 응답 오류:", res.status);
-          resolve([]);
+          resolve(cachedResults ?? []);
           return;
         }
         const data = (await res.json()) as { results: RecordItem[]; _auth?: boolean };
         if (data._auth === false) {
           console.warn("[record-ref] 인증되지 않은 상태에서 기록 검색 시도");
         }
-        resolve(data.results ?? []);
+        const results = data.results ?? [];
+        lastFetchedQuery = query;
+        cachedResults = results;
+        resolve(results);
       } catch (err) {
         console.warn("[record-ref] search-records fetch 실패:", err);
-        resolve([]);
+        resolve(cachedResults ?? []);
       }
-    }, 250);
+    }, delay);
   });
 }
 
@@ -129,10 +140,7 @@ export function createRecordRefExtension() {
         const parent = state.selection.$from.parent;
         return parent.isTextblock && !parent.type.spec.code;
       },
-      items: async ({ query }: { query: string }) => {
-        console.debug("[record-ref] items query:", JSON.stringify(query), "len:", query.length);
-        return fetchRecords(query);
-      },
+      items: async ({ query }: { query: string }) => fetchRecords(query),
       command: ({ editor, range, props }: { editor: any; range: any; props: any }) => {
         const label = props.title ?? props.label ?? props.id;
         exitSuggestion(editor.view, recordRefPluginKey);

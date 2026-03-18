@@ -18,26 +18,23 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const url = new URL(request.url);
   const q = url.searchParams.get("q")?.trim() ?? "";
 
-  if (q.length === 0) {
-    return Response.json({ results: [] });
-  }
-
-  logger.info("search_query", { query: q });
+  logger.info("search_query", { query: q || "(empty)" });
 
   try {
     const database = db(context.cloudflare.env.DB);
-    const pattern = `%${q}%`;
 
-    const results = await database
+    const baseQuery = database
       .select({
         id: learnerProfiles.userId,
         slug: learnerProfiles.slug,
         displayName: learnerProfiles.displayName,
         profilePhotoUrl: learnerProfiles.profilePhotoUrl,
       })
-      .from(learnerProfiles)
-      .where(sql`${learnerProfiles.displayName} LIKE ${pattern} OR ${learnerProfiles.slug} LIKE ${pattern}`)
-      .limit(8);
+      .from(learnerProfiles);
+
+    const results = q.length > 0
+      ? await baseQuery.where(sql`${learnerProfiles.displayName} LIKE ${"%" + q + "%"} OR ${learnerProfiles.slug} LIKE ${"%" + q + "%"}`).limit(8)
+      : await baseQuery.limit(8);
 
     logger.info("search_results", { count: results.length });
     return Response.json({ results });
