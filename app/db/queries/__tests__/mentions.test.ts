@@ -16,22 +16,25 @@ vi.mock("~/lib/utils/utils.server", () => ({
   nanoid: vi.fn(() => "mention-fixed-id"),
 }));
 
-function createDatabaseMock(existingMentions: unknown[] = []) {
+function createDatabaseMock(selectResults: unknown[][] = [[]]) {
   const deleteWhere = vi.fn(async () => undefined);
   const insertValues = vi.fn(async () => undefined);
+  let selectCallIndex = 0;
 
-  const createChainableMock = (): Record<string, unknown> => {
+  const createResult = (rows: unknown[]) => {
+    const result = [...rows];
+    Object.defineProperty(result, "limit", {
+      value: vi.fn(() => result),
+      enumerable: false,
+      configurable: true,
+    });
+    return result;
+  };
+
+  const createChainableMock = (rows: unknown[]): Record<string, unknown> => {
     const chain: Record<string, unknown> = {
-      leftJoin: vi.fn(() => createChainableMock()),
-      where: vi.fn(() => {
-        const result = [...existingMentions];
-        Object.defineProperty(result, "limit", {
-          value: vi.fn(() => result),
-          enumerable: false,
-          configurable: true,
-        });
-        return result;
-      }),
+      leftJoin: vi.fn(() => chain),
+      where: vi.fn(() => createResult(rows)),
     };
     return chain;
   };
@@ -40,7 +43,7 @@ function createDatabaseMock(existingMentions: unknown[] = []) {
     delete: vi.fn(() => ({ where: deleteWhere })),
     insert: vi.fn(() => ({ values: insertValues })),
     select: vi.fn(() => ({
-      from: vi.fn(() => createChainableMock()),
+      from: vi.fn(() => createChainableMock(selectResults[selectCallIndex++] ?? [])),
     })),
     _spies: {
       deleteWhere,
@@ -59,8 +62,8 @@ describe("mentions query", () => {
   });
 
   describe("syncAllMentionsForRecord", () => {
-    it("merges explicit and regex mentions, removing duplicates", async () => {
-      const mockDb = createDatabaseMock();
+    it("merges explicit and content mentions, removing duplicates", async () => {
+      const mockDb = createDatabaseMock([[{ userId: "user-1" }, { userId: "user-2" }]]);
       vi.mocked(db).mockReturnValue(mockDb as never);
 
       const content = JSON.stringify({
@@ -101,8 +104,8 @@ describe("mentions query", () => {
       expect(userIds).toContain("user-2");
     });
 
-    it("handles regex-only mentions from content", async () => {
-      const mockDb = createDatabaseMock();
+    it("handles content-only mentions", async () => {
+      const mockDb = createDatabaseMock([[{ userId: "user-1" }, { userId: "user-2" }]]);
       vi.mocked(db).mockReturnValue(mockDb as never);
 
       const content = JSON.stringify({
@@ -142,7 +145,7 @@ describe("mentions query", () => {
     });
 
     it("handles explicit-only mentions", async () => {
-      const mockDb = createDatabaseMock();
+      const mockDb = createDatabaseMock([[{ userId: "user-1" }, { userId: "user-2" }]]);
       vi.mocked(db).mockReturnValue(mockDb as never);
 
       const content = JSON.stringify({
@@ -189,7 +192,7 @@ describe("mentions query", () => {
     });
 
     it("sets correct metadata on inserted mentions", async () => {
-      const mockDb = createDatabaseMock();
+      const mockDb = createDatabaseMock([[{ userId: "user-1" }]]);
       vi.mocked(db).mockReturnValue(mockDb as never);
 
       const content = JSON.stringify({
@@ -227,7 +230,7 @@ describe("mentions query", () => {
     });
 
     it("handles invalid JSON content gracefully", async () => {
-      const mockDb = createDatabaseMock();
+      const mockDb = createDatabaseMock([[{ userId: "user-1" }]]);
       vi.mocked(db).mockReturnValue(mockDb as never);
 
       await syncAllMentionsForRecord(
@@ -248,7 +251,7 @@ describe("mentions query", () => {
     });
 
     it("deduplicates mentions from both sources", async () => {
-      const mockDb = createDatabaseMock();
+      const mockDb = createDatabaseMock([[{ userId: "user-1" }]]);
       vi.mocked(db).mockReturnValue(mockDb as never);
 
       const content = JSON.stringify({
@@ -328,7 +331,7 @@ describe("mentions query", () => {
         },
       ];
 
-      const mockDb = createDatabaseMock(existingMentions);
+      const mockDb = createDatabaseMock([existingMentions]);
       vi.mocked(db).mockReturnValue(mockDb as never);
 
       const result = await getMentionsByRecord(d1, "record-1");
@@ -337,7 +340,7 @@ describe("mentions query", () => {
     });
 
     it("returns empty array when no mentions exist", async () => {
-      const mockDb = createDatabaseMock([]);
+      const mockDb = createDatabaseMock([[]]);
       vi.mocked(db).mockReturnValue(mockDb as never);
 
       const result = await getMentionsByRecord(d1, "record-1");
@@ -358,7 +361,7 @@ describe("mentions query", () => {
         },
       ];
 
-      const mockDb = createDatabaseMock(existingMentions);
+      const mockDb = createDatabaseMock([existingMentions]);
       vi.mocked(db).mockReturnValue(mockDb as never);
 
       const result = await getMentionsOfUser(d1, "user-1", 10);

@@ -21,11 +21,9 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   return { currentStage: currentStage[0] ?? null, recentRecords, flaggedRecords, learnerCount: allLearners.length };
 }
 
-type FlaggedRecord = typeof records.$inferSelect;
-type RecentRecord = {
-  record: typeof records.$inferSelect;
-  author: { displayName: string | null } | null;
-};
+type AdminDashboardLoaderData = Awaited<ReturnType<typeof loader>>;
+type FlaggedRecord = AdminDashboardLoaderData["flaggedRecords"][number];
+type RecentRecord = AdminDashboardLoaderData["recentRecords"][number];
 
 export default function AdminDashboard({ loaderData }: Route.ComponentProps) {
   const { currentStage, recentRecords, flaggedRecords, learnerCount } = loaderData;

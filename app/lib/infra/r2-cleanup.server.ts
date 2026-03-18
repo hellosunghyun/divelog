@@ -7,6 +7,12 @@ import { createModuleLogger } from "./logger.server";
 
 const logger = createModuleLogger("r2-cleanup.server");
 
+interface TiptapJsonNode {
+  type?: string;
+  attrs?: { src?: string; [key: string]: unknown };
+  content?: TiptapJsonNode[];
+}
+
 /**
  * Tiptap JSON에서 이미지 R2 키 추출
  * @param tiptapJsonString - Tiptap JSON 문자열
@@ -16,10 +22,10 @@ export function extractImageKeys(tiptapJsonString: string): string[] {
   const keys: string[] = [];
 
   try {
-    const doc = JSON.parse(tiptapJsonString);
+    const doc = JSON.parse(tiptapJsonString) as TiptapJsonNode;
 
     // 재귀 함수로 모든 노드 순회
-    function traverse(node: any): void {
+    function traverse(node: TiptapJsonNode): void {
       if (!node) return;
 
       // type === "image"인 노드에서 src 추출

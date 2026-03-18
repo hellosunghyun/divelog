@@ -1,63 +1,33 @@
-import type { Route } from "./+types/index";
+import { data } from "react-router";
 import { Link } from "~/components/content/SmartLink";
-import { eq, desc } from "drizzle-orm";
-import EmptyState from "~/components/feedback/EmptyState";
-import { Badge } from "~/components/ui/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "~/components/ui/table";
+const DISABLED_MESSAGE = "Collective Memory 관리 화면은 현재 비활성화되어 있습니다.";
 
-export function meta(_: Route.MetaArgs) { return [{ title: "Collective Memory" }]; }
-export async function loader({ request, context }: Route.LoaderArgs) {
-  const { db } = await import("~/db/client.server");
-  const { createLogger } = await import("~/lib/infra/logger.server");
-  const { collectiveMemories, stages } = await import("~/db/schema.server");
-
-  const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.memories" });
-  logger.info("loader_start");
-  return { memories: await db(context.cloudflare.env.DB).select({ memory: collectiveMemories, stage: { name: stages.name, slug: stages.slug } }).from(collectiveMemories).leftJoin(stages, eq(collectiveMemories.stageId, stages.id)).orderBy(desc(collectiveMemories.createdAt)) };
+export function meta() {
+  return [{ title: "Collective Memory 비활성화" }];
 }
-export default function AdminMemoriesPage({ loaderData }: Route.ComponentProps) {
+
+export async function loader() {
+  throw data(DISABLED_MESSAGE, { status: 404 });
+}
+
+export default function AdminMemoriesPage() {
   return (
-    <div>
-      <h2 className="text-xl font-semibold text-admin-text mb-6">Collective Memory</h2>
-      {loaderData.memories.length === 0 ? (
-        <EmptyState variant="generic" message="Collective Memory가 없습니다" />
-      ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              {["Stage", "상태", "코호트", "작업"].map((h) => (
-                <TableHead
-                  key={h}
-                  className="px-3 py-2 text-xs uppercase tracking-widest text-muted-foreground"
-                >
-                  {h}
-                </TableHead>
-              ))}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {loaderData.memories.map(({ memory, stage }) => (
-              <TableRow key={memory.id}>
-                <TableCell className="px-3 py-2 text-sm text-admin-text">{stage?.name ?? "-"}</TableCell>
-                <TableCell className="px-3 py-2 text-sm">
-                  <Badge variant={memory.status === "draft" ? "outline" : "default"}>{memory.status}</Badge>
-                </TableCell>
-                <TableCell className="px-3 py-2 text-sm text-admin-text-secondary">{memory.cohort ?? "-"}</TableCell>
-                <TableCell className="px-3 py-2">
-                  <Link to={`/admin/memories/${memory.id}`} className="text-xs text-admin-accent hover:underline">편집</Link>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      )}
+    <div className="mx-auto flex min-h-[50vh] max-w-[720px] flex-col justify-center px-6 py-16 text-center">
+      <p className="text-sm font-medium text-admin-text-secondary">비활성화된 화면</p>
+      <h1 className="mt-3 text-3xl font-semibold tracking-tight text-admin-text">
+        Collective Memory 관리는 현재 닫혀 있습니다
+      </h1>
+      <p className="mt-4 text-base leading-7 text-admin-text-secondary">
+        현재 워크트리에서는 관련 라우트와 스키마가 비활성화되어 있어 이 화면을 자리표시자로만 유지합니다.
+      </p>
+      <div className="mt-8">
+        <Link
+          to="/admin"
+          className="inline-flex items-center justify-center rounded-full bg-admin-accent px-6 py-3 text-sm font-medium text-white no-underline transition-opacity hover:opacity-90"
+        >
+          관리자 홈으로 돌아가기
+        </Link>
+      </div>
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import type { AuthContext } from "@adakrpos/auth";
 import type { AppLoadContext } from "react-router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -13,6 +14,9 @@ vi.mock("~/db/queries/records/drafts.server", () => ({
   upsertDraft: vi.fn(),
 }));
 
+type AuthenticatedContext = Extract<AuthContext, { isAuthenticated: true }>;
+type UnauthenticatedContext = Extract<AuthContext, { isAuthenticated: false }>;
+
 function createContext(): AppLoadContext {
   return {
     cloudflare: {
@@ -24,13 +28,37 @@ function createContext(): AppLoadContext {
   } as unknown as AppLoadContext;
 }
 
-function createVerifiedAuth() {
+function createVerifiedAuth(): AuthenticatedContext {
   return {
     isAuthenticated: true,
     user: {
       id: "usr-1",
+      email: "learner@example.com",
+      verifiedEmail: "learner@example.com",
+      nickname: "learner",
+      name: "Learner",
+      profilePhotoUrl: null,
+      bio: null,
+      contact: null,
+      snsLinks: {},
+      cohort: "2026",
       isVerified: true,
+      createdAt: 1700000000,
+      updatedAt: 1700000000,
     },
+    session: {
+      id: "session-1",
+      userId: "usr-1",
+      expiresAt: 1700003600,
+      createdAt: 1700000000,
+    },
+  };
+}
+
+function createUnauthenticatedAuth(): UnauthenticatedContext {
+  return {
+    isAuthenticated: false,
+    user: null,
     session: null,
   };
 }
@@ -48,11 +76,7 @@ describe("POST /api/autosave", () => {
   });
 
   it("인증이 없으면 401을 반환한다", async () => {
-    vi.mocked(getAuth).mockResolvedValue({
-      isAuthenticated: false,
-      user: null,
-      session: null,
-    });
+    vi.mocked(getAuth).mockResolvedValue(createUnauthenticatedAuth());
 
     const request = createFormRequest(new FormData());
     const response = await action({ request, context: createContext() });
@@ -143,6 +167,30 @@ describe("POST /api/autosave", () => {
       2,
       expect.anything(),
       expect.objectContaining({ authorId: "usr-1", format: "note", content: "초안 2" }),
+    );
+  });
+
+  it("전달한 공개 범위를 그대로 임시저장한다", async () => {
+    vi.mocked(getAuth).mockResolvedValue(createVerifiedAuth());
+    vi.mocked(upsertDraft).mockResolvedValue({
+      id: "draft-1",
+      updatedAt: 1700000000,
+    } as Awaited<ReturnType<typeof upsertDraft>>);
+
+    const formData = new FormData();
+    formData.set("format", "note");
+    formData.set("content", "비공개 초안");
+    formData.set("visibility", "private");
+
+    const response = await action({ request: createFormRequest(formData), context: createContext() });
+
+    expect(response.status).toBe(200);
+    expect(upsertDraft).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        authorId: "usr-1",
+        visibility: "private",
+      }),
     );
   });
 });

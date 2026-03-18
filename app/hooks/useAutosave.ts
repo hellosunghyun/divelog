@@ -26,7 +26,7 @@ export interface AutosaveState {
 export function useAutosave(options: UseAutosaveOptions): AutosaveState {
   const { format, getFormData, enabled = true, debounceMs = 3000 } = options;
 
-  const fetcher = useFetcher();
+  const fetcher = useFetcher<{ error?: string; updatedAt?: number }>();
   const [status, setStatus] = useState<AutosaveStatus>("idle");
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
 
@@ -47,7 +47,7 @@ export function useAutosave(options: UseAutosaveOptions): AutosaveState {
         setStatus("error");
       } else if (fetcher.data?.updatedAt) {
         setStatus("saved");
-        setLastSavedAt(new Date(fetcher.data.updatedAt));
+        setLastSavedAt(new Date(fetcher.data.updatedAt * 1000));
       } else {
         setStatus("idle");
       }
@@ -101,7 +101,7 @@ export function useAutosave(options: UseAutosaveOptions): AutosaveState {
       content: currentContent,
       contentJson: formData.contentJson,
       rhythm: formData.rhythm,
-      visibility: (formData.visibility as "draft" | "cohort" | "public") || "public",
+      visibility: (formData.visibility as "draft" | "private" | "cohort" | "public") || "public",
       responsePreference: (formData.responsePreference as "open" | "question_only" | "closed") || "open",
     });
 

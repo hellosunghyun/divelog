@@ -63,7 +63,7 @@ export async function getSelfAnswersByRecord(
     return [];
   }
 
-  const questionIds = recordQuestions.map((q: any) => q.id);
+  const questionIds = recordQuestions.map((q) => q.id);
 
   return database
     .select({
@@ -108,7 +108,7 @@ export async function getLearnerSelfAnswerSummary(
     .orderBy(desc(selfAnswers.createdAt))
     .limit(limit);
 
-  return results.map((row: any) => {
+  return results.map((row) => {
     const questionPlainText = getPlainText(row.questionContent, "article");
     const answerPlainText = getPlainText(row.selfAnswerContent, "article");
 

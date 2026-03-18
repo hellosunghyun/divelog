@@ -232,7 +232,7 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
                     />
                     {stages.map((stage) => {
                       const isCurrent = Boolean(stage.isCurrent) || stage.slug === currentStage?.slug;
-                      const isPast = Boolean(currentStage) && stage.order < currentStage.order;
+                      const isPast = currentStage ? stage.order < currentStage.order : false;
 
                       return (
                         <Link

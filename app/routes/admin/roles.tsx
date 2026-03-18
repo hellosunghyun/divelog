@@ -65,7 +65,7 @@ export async function action({ request, context }: Route.ActionArgs) {
   await requireRole(request, context, "admin");
   const { db } = await import("~/db/client.server");
   const { createLogger } = await import("~/lib/infra/logger.server");
-  const { userRoles, learnerProfiles } = await import("~/db/schema.server");
+  const { userRoles } = await import("~/db/schema.server");
 
   const logger = createLogger(request, context.cloudflare.env as { LOG_LEVEL?: string }).child({ route: "admin.roles" });
   const f = await request.formData();
@@ -101,20 +101,9 @@ const ROLE_LABELS: Record<string, string> = {
   analytics_viewer: "애널리틱스 뷰어",
 };
 
-type RoleRow = {
-  role: typeof userRoles.$inferSelect;
-  learner: {
-    displayName: string | null;
-    email: string | null;
-    userId: string;
-  } | null;
-};
-
-type LearnerOption = {
-  userId: string;
-  displayName: string | null;
-  email: string | null;
-};
+type AdminRolesLoaderData = Awaited<ReturnType<typeof loader>>;
+type RoleRow = AdminRolesLoaderData["roles"][number];
+type LearnerOption = AdminRolesLoaderData["allLearners"][number];
 
 function userLabel(email: string | null, displayName: string | null, userId: string): string {
   if (email) return email;
