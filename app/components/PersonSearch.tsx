@@ -30,7 +30,7 @@ interface SelectedPersonEntry {
   role?: string;
 }
 
-const MIN_QUERY_LENGTH = 2;
+const MIN_QUERY_LENGTH = 0;
 const DEBOUNCE_MS = 300;
 
 function isSearchResult(value: unknown): value is SearchResult {
@@ -316,8 +316,10 @@ export default function PersonSearch({
           onChange={(event) => setQuery(event.target.value)}
           onKeyDown={handleInputKeyDown}
           onFocus={() => {
-            if (query.trim().length >= MIN_QUERY_LENGTH && (results.length > 0 || isLoading || errorMessage)) {
+            if (results.length > 0 || isLoading || errorMessage) {
               setIsOpen(true);
+            } else {
+              setDebouncedQuery(query.trim());
             }
           }}
           placeholder="이름으로 사람을 찾아보세요"

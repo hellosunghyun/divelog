@@ -15,7 +15,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~
 import { Textarea } from "~/components/ui/textarea";
 import { db } from "~/db/client.server";
 import { syncAllMentionsForRecord } from "~/db/queries/dialogue/mentions.server";
-import { getMentionsByRecord } from "~/db/queries/dialogue/mentions.server";
 import { createNotification } from "~/db/queries/social/notifications.server";
 import { syncParticipantsForRecord, getParticipantsByRecord } from "~/db/queries/records/participants.server";
 import { markAsRead } from "~/db/queries/records/recordReads.server";
@@ -62,14 +61,12 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
 
   const database = db(context.cloudflare.env.DB);
 
-  const [allTags, currentTags, participants, mentions, mentionedLinks, usefulLinks, references, existingQuestions] =
+  const [allTags, currentTags, participants, mentionedLinks, references, existingQuestions] =
     await Promise.all([
       getAllTags(context.cloudflare.env.DB),
       getTagsByRecord(context.cloudflare.env.DB, record.id),
       getParticipantsByRecord(context.cloudflare.env.DB, record.id).catch(() => []),
-      getMentionsByRecord(context.cloudflare.env.DB, record.id).catch(() => []),
       getTypedRecordLinks(context.cloudflare.env.DB, record.id, "mentioned"),
-      getTypedRecordLinks(context.cloudflare.env.DB, record.id, "useful"),
       getRecordReferences(context.cloudflare.env.DB, record.id).catch(() => []),
       database.select().from(questions).where(eq(questions.recordId, record.id)).limit(1),
     ]);
@@ -87,9 +84,7 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
     tags: allTags,
     currentTags,
     participants,
-    mentions,
     mentionedLinks,
-    usefulLinks,
     references,
     existingQuestion: (existingQuestions[0] ?? null) as LoaderQuestion,
     responsePreference: record.responsePreference ?? "open",
@@ -170,17 +165,13 @@ export async function action({ params, request, context }: Route.ActionArgs) {
   await syncTagsForRecord(context.cloudflare.env.DB, record.id, allTagIds);
 
   const participantsJson = formData.get("participantsJson")?.toString() ?? "[]";
-  const mentionUserIdsJson = formData.get("mentionUserIds")?.toString() ?? "[]";
   const participants = JSON.parse(participantsJson) as { userId: string; role: string }[];
-  const mentionUserIds = JSON.parse(mentionUserIdsJson) as string[];
 
   await syncParticipantsForRecord(context.cloudflare.env.DB, record.id, participants, auth.user.id);
-  await syncAllMentionsForRecord(context.cloudflare.env.DB, record.id, mentionUserIds, record.content ?? "", auth.user.id);
+  await syncAllMentionsForRecord(context.cloudflare.env.DB, record.id, [], record.content ?? "", auth.user.id);
 
   const mentionedRecordIds = JSON.parse(formData.get("mentionedRecordIds")?.toString() ?? "[]") as string[];
-  const usefulRecordIds = JSON.parse(formData.get("usefulRecordIds")?.toString() ?? "[]") as string[];
   await syncTypedRecordLinks(context.cloudflare.env.DB, record.id, mentionedRecordIds, "mentioned");
-  await syncTypedRecordLinks(context.cloudflare.env.DB, record.id, usefulRecordIds, "useful");
 
   if (record.format === "article") {
     const references = parseReferencesFromFormData(formData);
@@ -212,20 +203,6 @@ export async function action({ params, request, context }: Route.ActionArgs) {
     notified.add(participant.userId);
   }
 
-  for (const userId of mentionUserIds) {
-    if (userId === auth.user.id || notified.has(userId)) {
-      continue;
-    }
-
-    await createNotification(context.cloudflare.env.DB, {
-      recipientId: userId,
-      type: "mention",
-      title: `${actorName}님이 기록에서 당신을 언급했습니다`,
-      content: record.title,
-      recordId: record.id,
-    });
-  }
-
   if (record.visibility !== "draft") {
     try {
       await markAsRead(context.cloudflare.env.DB, auth.user.id, record.id);
@@ -248,9 +225,7 @@ export default function WriteMetaPage({ loaderData }: Route.ComponentProps) {
     tags,
     currentTags,
     participants,
-    mentions,
     mentionedLinks,
-    usefulLinks,
     references: initialReferences,
     existingQuestion,
     responsePreference,
@@ -284,19 +259,7 @@ export default function WriteMetaPage({ loaderData }: Route.ComponentProps) {
     profilePhotoUrl: participant.profilePhotoUrl ?? null,
   }));
 
-  const initialMentions = mentions.map((mention: LoaderMention) => ({
-    userId: mention.userId,
-    displayName: mention.displayName ?? "",
-    profilePhotoUrl: mention.profilePhotoUrl ?? null,
-  }));
-
   const initialMentionedRecords = mentionedLinks.map((link: LoaderRecordLink) => ({
-    recordId: link.targetRecordId,
-    title: link.targetTitle ?? "",
-    authorDisplayName: link.authorDisplayName ?? null,
-  }));
-
-  const initialUsefulRecords = usefulLinks.map((link: LoaderRecordLink) => ({
     recordId: link.targetRecordId,
     title: link.targetTitle ?? "",
     authorDisplayName: link.authorDisplayName ?? null,
@@ -431,23 +394,10 @@ export default function WriteMetaPage({ loaderData }: Route.ComponentProps) {
                 { value: "mentor", label: "멘토" },
               ]}
             />
-            <PersonSearch
-              label="언급한 사람"
-              name="mentionUserIds"
-              selectedPeople={initialMentions}
-              excludeUserId={currentUserId}
-            />
-
             <RecordSearch
               label="관련 게시글"
               name="mentionedRecordIds"
               selectedRecords={initialMentionedRecords}
-              excludeRecordId={record.id}
-            />
-            <RecordSearch
-              label="도움받은 게시글"
-              name="usefulRecordIds"
-              selectedRecords={initialUsefulRecords}
               excludeRecordId={record.id}
             />
           </section>
@@ -456,15 +406,15 @@ export default function WriteMetaPage({ loaderData }: Route.ComponentProps) {
             <>
               <section className="flex flex-col gap-3">
                 <div className="flex items-center gap-3 pt-2">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">출처</span>
+                  <span className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">외부 게시</span>
                   <div className="h-px flex-1 bg-border" />
                 </div>
 
                 <div>
                   <p className="mb-1 text-meta font-medium text-text-secondary">
-                    원문 링크 <span className="text-xs font-normal text-text-tertiary">(선택)</span>
+                    외부 링크 <span className="text-xs font-normal text-text-tertiary">(선택)</span>
                   </p>
-                  <p className="mb-3 text-xs text-text-tertiary">블로그, 노션 등 원본이 있으면 남겨두세요</p>
+                  <p className="mb-3 text-xs text-text-tertiary">블로그, 노션 등 다른 곳에도 올렸다면 링크를 남겨두세요. 기록 상세에서 바로 이동할 수 있습니다.</p>
                 </div>
                 <div className="flex flex-col gap-3 rounded-xl border border-border bg-surface-secondary p-4">
                   <div>
