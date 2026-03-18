@@ -53,7 +53,7 @@ async function fetchPreview(
   try {
     const res = await fetch(`${endpoint}?slug=${encodeURIComponent(slug)}`);
     if (!res.ok) return null;
-    const data = await res.json();
+    const data = (await res.json()) as LearnerPreviewData | RecordPreviewData;
     previewCache.set(key, data);
     return data;
   } catch {
@@ -86,8 +86,8 @@ function calculatePosition(rect: DOMRect) {
 
 export function useMentionPreview(containerRef: RefObject<HTMLDivElement | null>) {
   const [target, setTarget] = useState<PreviewTarget | null>(null);
-  const showTimer = useRef<ReturnType<typeof setTimeout>>();
-  const hideTimer = useRef<ReturnType<typeof setTimeout>>();
+  const showTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
 
   const clearAll = useCallback(() => {

@@ -1,4 +1,6 @@
+import { useRef } from "react";
 import type { ContentFormat } from "../../lib/content/editor-extensions";
+import { useMentionPreview, MentionPreviewPortal } from "./MentionPreview";
 
 interface ContentRendererProps {
   contentHtml: string;
@@ -9,6 +11,8 @@ interface ContentRendererProps {
 const NOTE_CLASS_NAME = [
   "break-words text-base leading-relaxed text-text-primary",
   "[&_div]:whitespace-pre-wrap",
+  "[&_.user-mention]:text-ocean-blue [&_.user-mention]:no-underline [&_.user-mention]:font-medium [&_.user-mention]:hover:underline [&_.user-mention]:hover:underline-offset-4",
+  "[&_.record-ref]:text-ocean-blue [&_.record-ref]:no-underline [&_.record-ref]:font-medium [&_.record-ref]:hover:underline [&_.record-ref]:hover:underline-offset-4",
 ].join(" ");
 
 const ARTICLE_CLASS_NAME = [
@@ -24,12 +28,17 @@ const ARTICLE_CLASS_NAME = [
   "[&_pre]:my-6 [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-surface-secondary [&_pre]:p-4",
   "[&_code]:rounded-lg [&_code]:bg-surface-secondary [&_code]:px-2 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-sm",
   "[&_pre_code]:bg-transparent [&_pre_code]:p-0",
-  "[&_a]:text-ocean-blue [&_a]:underline [&_a]:underline-offset-4 [&_a]:decoration-ocean-blue/30 [&_a]:hover:decoration-ocean-blue",
+  "[&_a:not(.user-mention):not(.record-ref)]:text-ocean-blue [&_a:not(.user-mention):not(.record-ref)]:underline [&_a:not(.user-mention):not(.record-ref)]:underline-offset-4 [&_a:not(.user-mention):not(.record-ref)]:decoration-ocean-blue/30 [&_a:not(.user-mention):not(.record-ref)]:hover:decoration-ocean-blue",
+  "[&_.user-mention]:text-ocean-blue [&_.user-mention]:no-underline [&_.user-mention]:font-medium [&_.user-mention]:hover:underline [&_.user-mention]:hover:underline-offset-4",
+  "[&_.record-ref]:text-ocean-blue [&_.record-ref]:no-underline [&_.record-ref]:font-medium [&_.record-ref]:hover:underline [&_.record-ref]:hover:underline-offset-4",
   "[&_img]:my-6 [&_img]:w-full [&_img]:rounded-md [&_img]:border [&_img]:border-border",
   "[&_hr]:my-8 [&_hr]:border-border",
 ].join(" ");
 
 export function ContentRenderer({ contentHtml, format, className }: ContentRendererProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { target, cardRef, cancelHide, scheduleHide } = useMentionPreview(containerRef);
+
   const combinedClassName = [
     format === "note" ? NOTE_CLASS_NAME : ARTICLE_CLASS_NAME,
     className,
@@ -37,10 +46,21 @@ export function ContentRenderer({ contentHtml, format, className }: ContentRende
     .filter(Boolean)
     .join(" ");
 
-  const containerProps = {
-    className: combinedClassName,
-    dangerouslySetInnerHTML: { __html: contentHtml },
-  };
-
-  return <div {...containerProps} />;
+  return (
+    <>
+      <div
+        ref={containerRef}
+        className={combinedClassName}
+        dangerouslySetInnerHTML={{ __html: contentHtml }}
+      />
+      {target && (
+        <MentionPreviewPortal
+          target={target}
+          cardRef={cardRef}
+          onMouseEnter={cancelHide}
+          onMouseLeave={scheduleHide}
+        />
+      )}
+    </>
+  );
 }
