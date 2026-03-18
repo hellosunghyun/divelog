@@ -6,11 +6,11 @@ import { createLogger } from "~/lib/infra/logger.server";
 
 export function meta(_args: Route.MetaArgs) {
   return [
-    { title: "플랫폼 가이드 — DiveLog" },
+    { title: "플랫폼 전체 가이드 — DiveLog" },
     {
       name: "description",
       content:
-        "DiveLog 플랫폼의 전체 사용법을 안내합니다. 로그인, 기록, 여정, 대화, 검색, 설정까지.",
+        "DiveLog 사용 전 과정을 안내합니다. 로그인, 기록 작성, 응답, 검색, 인박스, 설정, 자주 묻는 문제 해결까지 한 번에 확인하세요.",
     },
   ];
 }
@@ -38,45 +38,38 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 }
 
 const TOC = [
-  { id: "overview", label: "DiveLog란" },
-  { id: "getting-started", label: "시작하기" },
-  { id: "login", label: "로그인과 계정" },
-  { id: "writing", label: "기록하기" },
-  { id: "note-vs-article", label: "노트와 아티클" },
-  { id: "visibility", label: "공개 범위" },
-  { id: "journey", label: "여정과 구간" },
-  { id: "dialogue", label: "대화 레이어" },
-  { id: "questions", label: "질문 남기기" },
-  { id: "responses", label: "응답하기" },
-  { id: "sentences", label: "문장 저장" },
+  { id: "quick-start", label: "빠른 시작" },
+  { id: "overview", label: "이 가이드에서 다루는 것" },
+  { id: "access-level", label: "기능별 이용 조건" },
+  { id: "login", label: "로그인 과정" },
+  { id: "first-record", label: "첫 기록 남기기" },
+  { id: "record-detail", label: "기록 상세에서 하는 일" },
+  { id: "dialogue", label: "질문과 응답" },
+  { id: "visibility", label: "공개 범위와 응답 선호도" },
+  { id: "browse", label: "둘러보기와 탐색" },
   { id: "search", label: "검색" },
-  { id: "my-space", label: "내 공간" },
-  { id: "inbox", label: "인박스" },
-  { id: "settings", label: "설정" },
-  { id: "learners", label: "러너 탐색" },
-  { id: "memories", label: "공동 기억" },
-  { id: "principles", label: "운영 원칙" },
+  { id: "me-inbox-settings", label: "내 공간·인박스·설정" },
+  { id: "disabled", label: "현재 비활성화 기능" },
+  { id: "troubleshooting", label: "문제 해결" },
   { id: "faq", label: "자주 묻는 질문" },
 ] as const;
 
 export default function FullGuidePage() {
   return (
     <div>
-      {/* ───── Hero ───── */}
       <HeroSection
         variant="home"
-        title="플랫폼 가이드"
-        subtitle="DiveLog의 모든 기능을 안내합니다. 처음 방문한 분도 편하게 읽어보세요."
-        badge="DiveLog 전체 가이드"
+        title="플랫폼 전체 가이드"
+        subtitle="처음 시작하는 분부터 다시 정리하고 싶은 분까지, DiveLog 사용 흐름을 한 페이지에서 안내합니다."
+        badge="실사용 기준 안내"
       />
 
       <div className="max-w-content mx-auto px-6 py-12 md:py-20">
         <div className="flex flex-col lg:flex-row gap-12 lg:gap-16">
-          {/* ───── Sticky TOC (Desktop) ───── */}
-          <aside className="hidden lg:block w-56 shrink-0">
+          <aside className="hidden lg:block w-64 shrink-0">
             <nav
               className="sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto"
-              aria-label="가이드 목차"
+              aria-label="플랫폼 가이드 목차"
             >
               <p className="text-xs font-bold tracking-[0.25em] uppercase text-ocean-blue/50 mb-4">
                 목차
@@ -96,12 +89,10 @@ export default function FullGuidePage() {
             </nav>
           </aside>
 
-          {/* ───── Main content ───── */}
           <article className="flex-1 max-w-reading">
-            {/* Mobile TOC */}
             <nav
               className="lg:hidden mb-12 p-5 rounded-2xl border border-border bg-surface"
-              aria-label="가이드 목차"
+              aria-label="플랫폼 가이드 목차"
             >
               <p className="text-xs font-bold tracking-[0.25em] uppercase text-ocean-blue/50 mb-3">
                 목차
@@ -119,725 +110,523 @@ export default function FullGuidePage() {
                 ))}
               </ul>
             </nav>
-            <Section id="overview" title="DiveLog란">
-              <P>
-                DiveLog는 Apple Developer Academy @ POSTECH Learner의 아홉 달을
-                기록하는 <Strong>여정 중심 아카이브</Strong>입니다.
-              </P>
-              <P>
-                최신 피드가 아니라 여정의 구조가 먼저 보이고, 댓글 대신{" "}
-                <Strong>대화 레이어</Strong>(공명 · 질문 · 연결 · 제안 ·
-                자기답변)를 사용합니다.
-              </P>
 
-              <Callout>
-                이 공간에는 좋아요, 추천, 인기순 정렬, 랭킹이 없습니다.
-                비교 없이 서로를 연결하는 것이 DiveLog의 핵심 가치입니다.
-              </Callout>
+            <Section id="quick-start" title="빠른 시작">
+              <div className="rounded-3xl border border-ocean-blue/15 bg-mist-blue/35 p-6 md:p-8">
+                <p className="text-sm md:text-base leading-relaxed text-text-secondary mb-6">
+                  처음이라면 아래 세 단계만 따라오셔도 충분합니다. 완성된 글이 아니어도 괜찮습니다.
+                </p>
 
-              <SubSection title="핵심 가치">
-                <Dl>
-                  <DlItem
-                    term="여정 중심 (Journey-first)"
-                    desc="피드가 아닌 여정. '지금 어디를 지나고 있는가'를 먼저 봅니다."
-                  />
-                  <DlItem
-                    term="조용한 깊이 (Quiet Depth)"
-                    desc="깊이감 있는 인터페이스. 읽고, 머물고, 다시 생각하게 합니다."
-                  />
-                  <DlItem
-                    term="대화, 댓글이 아닌"
-                    desc="구조화된 응답으로 서로의 탐구를 존중합니다."
-                  />
-                  <DlItem
-                    term="연결, 비교가 아닌"
-                    desc="열린 질문, 이어진 기록, 남겨두고 싶은 문장으로 연결합니다."
-                  />
-                </Dl>
-              </SubSection>
-            </Section>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5">
+                  <div className="rounded-2xl border border-border bg-surface p-5">
+                    <div className="mb-3 inline-flex h-8 w-8 items-center justify-center rounded-full bg-deep-ocean text-sm font-semibold text-white">
+                      1
+                    </div>
+                    <h3 className="text-base font-semibold text-text-primary mb-2">
+                      ada-kr-pos.com에서 로그인
+                    </h3>
+                    <p className="text-sm leading-relaxed text-text-secondary">
+                      DiveLog는 자체 로그인 기능 없이 통합 계정 서비스를 사용합니다. ada-kr-pos.com에서
+                      로그인하면 DiveLog도 자동으로 인증됩니다.
+                    </p>
+                  </div>
 
-            <Hr />
-            <Section id="getting-started" title="시작하기">
-              <P>DiveLog를 처음 사용하려면 아래 순서를 따라주세요.</P>
-              <Ol>
-                <li>
-                  <Strong>ada-kr-pos.com 계정 만들기</Strong> — DiveLog는 자체
-                  회원가입이 없습니다. Academy 통합 계정 서비스인{" "}
-                  <ExtLink href="https://ada-kr-pos.com">
-                    ada-kr-pos.com
-                  </ExtLink>
-                  에서 먼저 가입해야 합니다.
-                </li>
-                <li>
-                  <Strong>로그인하기</Strong> — ada-kr-pos.com에 로그인하면
-                  DiveLog에도 자동으로 인증됩니다.
-                </li>
-                <li>
-                  <Strong>첫 기록 남기기</Strong> — 상단 네비게이션의{" "}
-                  <InlineCode>기록하기</InlineCode> 버튼을 눌러 노트 또는
-                  아티클을 작성하세요.
-                </li>
-                <li>
-                  <Strong>여정 둘러보기</Strong> — 상단의{" "}
-                  <InlineCode>여정</InlineCode> 메뉴에서 현재 구간과 지나온
-                  구간을 확인할 수 있습니다.
-                </li>
-              </Ol>
-            </Section>
+                  <div className="rounded-2xl border border-border bg-surface p-5">
+                    <div className="mb-3 inline-flex h-8 w-8 items-center justify-center rounded-full bg-deep-ocean text-sm font-semibold text-white">
+                      2
+                    </div>
+                    <h3 className="text-base font-semibold text-text-primary mb-2">첫 기록 남기기</h3>
+                    <p className="text-sm leading-relaxed text-text-secondary">
+                      상단 네비게이션의 "짧은 메모" 또는 "글쓰기" 버튼으로 노트나 아티클을 작성합니다.
+                      완성된 글이 아니어도 괜찮습니다.
+                    </p>
+                  </div>
 
-            <Hr />
-            <Section id="login" title="로그인과 계정">
-              <P>
-                DiveLog는 자체 로그인 화면이 없습니다. 모든 인증은{" "}
-                <ExtLink href="https://ada-kr-pos.com">
-                  ada-kr-pos.com
-                </ExtLink>
-                에 위임됩니다.
-              </P>
+                  <div className="rounded-2xl border border-border bg-surface p-5">
+                    <div className="mb-3 inline-flex h-8 w-8 items-center justify-center rounded-full bg-deep-ocean text-sm font-semibold text-white">
+                      3
+                    </div>
+                    <h3 className="text-base font-semibold text-text-primary mb-2">질문이나 응답 남기기</h3>
+                    <p className="text-sm leading-relaxed text-text-secondary">
+                      다른 러너의 기록을 읽고 공명, 질문, 연결, 제안 중 하나로 응답할 수 있습니다.
+                      필요하다면 기록에 열린 질문을 남겨 다음 대화를 이어가도 좋습니다.
+                    </p>
+                  </div>
+                </div>
 
-              <SubSection title="로그인 흐름">
-                <Ol>
-                  <li>
-                    DiveLog에서 로그인이 필요한 기능(기록하기, 응답 등)을 사용하면
-                    자동으로 ada-kr-pos.com 로그인 페이지로 이동합니다.
-                  </li>
-                  <li>
-                    ada-kr-pos.com에서 로그인하면 브라우저에 세션 쿠키가
-                    설정됩니다.
-                  </li>
-                  <li>
-                    이후 DiveLog를 포함한 모든 ada-kr-pos.com 하위 서비스에
-                    자동으로 인증됩니다.
-                  </li>
-                </Ol>
-              </SubSection>
-
-              <SubSection title="로그인이 필요한 기능">
-                <Ul>
-                  <li>기록 작성 및 수정</li>
-                  <li>다른 기록에 응답 남기기</li>
-                  <li>문장 저장하기</li>
-                  <li>인박스 (알림 확인)</li>
-                  <li>내 공간</li>
-                  <li>설정</li>
-                </Ul>
-              </SubSection>
-
-              <SubSection title="로그인 없이 가능한 것">
-                <Ul>
-                  <li>기록, 질문, 여정 등 공개 콘텐츠 둘러보기</li>
-                  <li>검색</li>
-                  <li>러너 프로필 보기</li>
-                  <li>가이드 읽기</li>
-                </Ul>
-              </SubSection>
-
-              <Callout variant="tip">
-                로그인 후 세션이 확인되지 않는 경우, 브라우저의 서드파티 쿠키
-                설정을 확인하세요. Safari에서는{" "}
-                <Strong>설정 → 개인 정보 보호 → 사이트 간 추적 방지</Strong>를
-                해제해야 할 수 있습니다.
-              </Callout>
-
-              <SubSection title="프로필 정보">
-                <P>
-                  이름, 프로필 사진, 소개(바이오) 등 계정 정보는{" "}
-                  <ExtLink href="https://ada-kr-pos.com/settings/profile">
-                    ada-kr-pos.com
-                  </ExtLink>
-                  에서 관리합니다. DiveLog 설정에서는 기록과 알림 관련 설정만
-                  변경할 수 있습니다.
-                </P>
-              </SubSection>
-            </Section>
-
-            <Hr />
-            <Section id="writing" title="기록하기">
-              <P>
-                DiveLog는 완성된 글을 쓰는 곳이 아닙니다.{" "}
-                <Strong>탐구하는 과정을 기록하는 곳</Strong>입니다. 아직 정리되지
-                않은 생각, 막막한 질문, 작은 발견 — 모두 기록할 수 있습니다.
-              </P>
-              <P>
-                상단 네비게이션의 <InlineCode>기록하기</InlineCode> 버튼을 누르면
-                두 가지 형식 중 하나를 선택합니다.
-              </P>
-
-              <SubSection title="기록 작성 시 설정할 수 있는 것">
-                <Dl>
-                  <DlItem
-                    term="공개 범위"
-                    desc="누구에게 보일지 결정합니다. 임시저장, 나만 보기, 코호트 공개, 전체 공개 중 선택할 수 있습니다."
-                  />
-                  <DlItem
-                    term="구간"
-                    desc="이 기록이 어떤 여정 구간에 해당하는지 선택합니다. 현재 구간이 기본값이며, 미지정도 가능합니다."
-                  />
-                  <DlItem
-                    term="응답 선호도"
-                    desc="다른 사람이 어떤 응답을 남길 수 있을지 설정합니다. 모든 응답 허용, 질문과 공명만, 응답 닫기 중 선택할 수 있습니다."
-                  />
-                </Dl>
-              </SubSection>
-
-              <SubSection title="멘션 (@)">
-                <P>
-                  기록 본문에서 <InlineCode>@이름</InlineCode>을 입력하면 다른
-                  러너를 언급할 수 있습니다. 언급된 러너에게는 알림이 전달됩니다.
-                </P>
-              </SubSection>
-            </Section>
-
-            <Hr />
-            <Section id="note-vs-article" title="노트와 아티클">
-              <P>DiveLog의 기록은 두 가지 형식으로 나뉩니다.</P>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 my-8">
-                <FeatureCard
-                  title="노트"
-                  description="짧은 생각, 메모, 일상 기록"
-                  details={[
-                    "제목이 자동 생성됩니다",
-                    "간단한 텍스트 입력",
-                    "마크다운 문법 사용 가능",
-                    "Cmd/Ctrl+B(굵게), Cmd/Ctrl+I(기울임)",
-                  ]}
-                />
-                <FeatureCard
-                  title="아티클"
-                  description="깊이 있는 글, 에세이, 분석"
-                  details={[
-                    "제목을 직접 입력합니다",
-                    "리치 에디터 제공 (슬래시 커맨드)",
-                    "제목, 인용문, 코드블록, 테이블 등",
-                    "기록 리듬과 기록 날짜 설정 가능",
-                  ]}
-                />
+                <div className="mt-6">
+                  <Link
+                    to="/write"
+                    className="inline-flex items-center rounded-xl border border-ocean-blue/20 bg-white px-4 py-2 text-sm font-medium text-ocean-blue no-underline transition-colors hover:bg-mist-blue/50"
+                  >
+                    지금 시작하기
+                  </Link>
+                </div>
               </div>
+            </Section>
 
-              <SubSection title="아티클 전용 기능">
-                <Dl>
-                  <DlItem
-                    term="기록 리듬"
-                    desc="기록의 시간적 맥락을 나타냅니다 — 자유, 순간, 스프린트, 주간, 월간, 구간, 회고 중 선택합니다."
-                  />
-                  <DlItem
-                    term="기록 날짜"
-                    desc="경험이 일어난 날짜를 기록할 수 있습니다. 특정일 또는 기간을 지정할 수 있습니다."
-                  />
-                  <DlItem
-                    term="슬래시 커맨드"
-                    desc="에디터에서 /를 입력하면 블록 메뉴가 나타납니다 — 제목, 인용문, 코드블록, 콜아웃 등을 추가할 수 있습니다."
-                  />
-                  <DlItem
-                    term="기록 레퍼런스"
-                    desc="다른 기록을 본문에서 참조할 수 있습니다. 참조된 기록은 자동으로 연결됩니다."
-                  />
-                </Dl>
-              </SubSection>
+            <Hr />
 
-              <SubSection title="작성 후 메타데이터 (아티클)">
-                <P>
-                  아티클을 저장하면 추가 정보를 입력할 수 있는 화면이 나타납니다.
-                </P>
-                <Ul>
-                  <li>
-                    <Strong>질문 남기기</Strong> — 기록 끝에 열린 질문을 남길 수
-                    있습니다
-                  </li>
-                  <li>
-                    <Strong>태그</Strong> — 기록을 분류할 태그를 추가합니다
-                  </li>
-                  <li>
-                    <Strong>응답 선호도</Strong> — 응답 허용 범위를 조정합니다
-                  </li>
-                </Ul>
-              </SubSection>
+            <Section id="overview" title="이 가이드에서 다루는 것">
+              <P>
+                이 페이지는 DiveLog를 실제로 사용할 때 자주 마주치는 흐름을 기준으로 정리했습니다.
+                "무엇을 할 수 있는지"뿐 아니라 "언제 로그인이 필요한지", "왜 접근이 제한될 수
+                있는지"까지 함께 안내합니다.
+              </P>
+              <Ul>
+                <li>
+                  처음 기록 남기기부터 기록 읽기, 검색, 알림 확인, 개인 설정까지 주요 사용 동선
+                  전체를 다룹니다.
+                </li>
+                <li>로그인/인증/검증(Verified) 조건과 접근 제한이 생기는 이유를 설명합니다.</li>
+                <li>기록 작성부터 질문·응답·자기답변까지 대화 레이어 사용법을 안내합니다.</li>
+                <li>공개 범위 4단계와 응답 선호도 3단계 설정 기준을 정리합니다.</li>
+                <li>자주 막히는 상황을 빠르게 해결할 수 있도록 점검 순서를 제공합니다.</li>
+              </Ul>
 
               <Callout>
-                짧은 노트와 긴 아티클은 동등하게 취급됩니다. 한 줄짜리 기록도
-                여정의 일부입니다.
+                DiveLog는 좋아요, 추천, 인기순, 랭킹이 없는 공간입니다. 평가보다 질문, 비교보다 연결을
+                중심에 둡니다.
               </Callout>
             </Section>
 
             <Hr />
-            <Section id="visibility" title="공개 범위">
+            <Section id="access-level" title="기능별 이용 조건">
               <P>
-                모든 기록에는 공개 범위를 설정할 수 있습니다. 처음에는 편한
-                범위로 시작하고, 준비가 되면 나중에 변경할 수 있습니다.
+                DiveLog는 기능에 따라 접근 조건이 다릅니다. 아래 표를 먼저 보면 "왜 어떤 페이지는 바로
+                열리고, 어떤 페이지는 로그인으로 이동하는지"를 빠르게 이해할 수 있습니다.
               </P>
 
               <div className="my-8 overflow-x-auto">
                 <table className="w-full text-sm border-collapse">
                   <thead>
                     <tr className="border-b-2 border-border">
-                      <Th>공개 범위</Th>
-                      <Th>누가 볼 수 있나요</Th>
-                      <Th>응답 가능</Th>
+                      <Th>구분</Th>
+                      <Th>대표 경로</Th>
+                      <Th>이용 범위</Th>
+                      <Th>한국어 설명</Th>
                     </tr>
                   </thead>
                   <tbody>
                     <Tr>
-                      <Td bold>임시저장</Td>
-                      <Td>나만 볼 수 있습니다</Td>
-                      <Td>불가</Td>
+                      <Td bold>누구나</Td>
+                      <Td>
+                        <InlineCode>/</InlineCode>, <InlineCode>/journey</InlineCode>, <InlineCode>/logs</InlineCode>, <InlineCode>/learners</InlineCode>, <InlineCode>/guide</InlineCode>, <InlineCode>/search</InlineCode>
+                      </Td>
+                      <Td>열람 중심</Td>
+                      <Td>
+                        로그인 없이도 여정, 기록, 러너, 태그를 둘러보고 검색할 수 있습니다. 기록을
+                        읽으며 플랫폼 문화를 익히기에 좋은 구간입니다.
+                      </Td>
                     </Tr>
                     <Tr>
-                      <Td bold>나만 보기</Td>
-                      <Td>나만 볼 수 있습니다</Td>
-                      <Td>불가</Td>
+                      <Td bold>로그인 필요</Td>
+                      <Td>
+                        <InlineCode>/inbox</InlineCode>, <InlineCode>/me</InlineCode>, <InlineCode>/settings</InlineCode>
+                      </Td>
+                      <Td>개인 공간</Td>
+                      <Td>
+                        내 활동 기록, 인박스 알림, 기본 설정처럼 개인화된 정보는 로그인 후에만
+                        확인할 수 있습니다.
+                      </Td>
                     </Tr>
                     <Tr>
-                      <Td bold>코호트 공개</Td>
-                      <Td>같은 기수의 러너들</Td>
-                      <Td>가능</Td>
-                    </Tr>
-                    <Tr>
-                      <Td bold>전체 공개</Td>
-                      <Td>모든 사람</Td>
-                      <Td>가능</Td>
+                      <Td bold>인증 완료(Verified) 필요</Td>
+                      <Td>
+                        <InlineCode>/write</InlineCode>, <InlineCode>/write/note</InlineCode>, <InlineCode>/write/article</InlineCode>
+                      </Td>
+                      <Td>작성/참여</Td>
+                      <Td>
+                        기록 작성, 질문 남기기, 응답 남기기, 문장 저장처럼 상호작용이 있는 기능은
+                        Verified 상태에서 사용할 수 있습니다.
+                      </Td>
                     </Tr>
                   </tbody>
                 </table>
               </div>
+            </Section>
+
+            <Hr />
+            <Section id="login" title="로그인 과정">
+              <P>
+                DiveLog는 자체 로그인 화면이 없고, 인증을
+                <ExtLink href="https://ada-kr-pos.com">ada-kr-pos.com</ExtLink>에 위임합니다.
+                ada-kr-pos.com에서는 Apple 로그인과 매직 링크 로그인을 지원합니다.
+              </P>
+
+              <SubSection title="실제 동작 순서">
+                <Ol>
+                  <li>로그인이 필요한 페이지에 접근하면 ada-kr-pos.com 로그인으로 이동합니다.</li>
+                  <li>로그인 성공 후 원래 보던 DiveLog 페이지로 자동 복귀합니다.</li>
+                  <li>복귀 시 세션 쿠키를 확인하고, 인증된 사용자로 페이지를 렌더링합니다.</li>
+                  <li>세션은 기본 7일 유지되며, 사용 중에는 자동으로 갱신됩니다.</li>
+                  <li>
+                    인증된 요청에서는 러너 프로필(이름/사진/코호트)이 백그라운드로 동기화될 수 있습니다.
+                  </li>
+                </Ol>
+              </SubSection>
+
+              <SubSection title="어디서 로그인하나요?">
+                <Ul>
+                  <li>네비게이션에서 로그인 상태가 아니면 로그인/로그아웃 링크가 외부 계정 서비스로 연결됩니다.</li>
+                  <li>프로필 수정도 DiveLog가 아니라 ada-kr-pos.com에서 진행합니다.</li>
+                </Ul>
+              </SubSection>
 
               <Callout variant="tip">
-                설정 페이지에서 새 기록의 기본 공개 범위를 변경할 수 있습니다.
-                매번 선택하지 않아도 됩니다.
+                기록 작성 화면으로 들어가려는데 안내 페이지로 이동한다면 계정 검증(Verified) 상태를 먼저
+                확인해 주세요.
               </Callout>
             </Section>
 
             <Hr />
-            <Section id="journey" title="여정과 구간 (Stage)">
+            <Section id="first-record" title="첫 기록 남기기">
               <P>
-                Academy의 아홉 달은 여러 구간(Stage)으로 나뉩니다. 각 구간은
-                고유한 성격과 톤을 가지며, 기록과 질문의 맥락이 됩니다.
+                첫 기록은 <InlineCode>/write</InlineCode>에서 시작합니다. 노트와 아티클 중 하나를 고를 수
+                있습니다.
               </P>
 
-              <SubSection title="구간 유형">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 my-6">
-                  <StageBadge
-                    type="전주 (Prelude)"
-                    desc="시작과 탐색의 시간. 자유롭게 주제를 찾아가는 구간입니다."
-                    tone="prelude"
-                  />
-                  <StageBadge
-                    type="연결 (Bridge)"
-                    desc="전주와 도전을 잇는 전환의 구간입니다."
-                    tone="bridge"
-                  />
-                  <StageBadge
-                    type="도전 (Challenge)"
-                    desc="문제를 정의하고 해결해가는 몰입의 구간입니다."
-                    tone="challenge"
-                  />
-                  <StageBadge
-                    type="에필로그 (Epilogue)"
-                    desc="전체 여정을 돌아보고 의미를 정리하는 구간입니다."
-                    tone="epilogue"
-                  />
-                </div>
-              </SubSection>
-
-              <SubSection title="여정 페이지에서 할 수 있는 것">
-                <Ul>
-                  <li>전체 구간의 흐름과 현재 위치를 확인합니다</li>
-                  <li>각 구간을 클릭하면 해당 구간의 기록, 질문, 챌린지를 볼 수 있습니다</li>
-                  <li>구간별 공동 기억(Collective Memory)이 발행되면 확인할 수 있습니다</li>
-                </Ul>
-              </SubSection>
-
-              <P>
-                기록을 작성할 때 구간을 지정하면, 나중에 여정 페이지에서 구간별로
-                기록을 돌아볼 수 있습니다.
-              </P>
-            </Section>
-
-            <Hr />
-            <Section id="dialogue" title="대화 레이어 (Dialogue Layer)">
-              <P>
-                DiveLog에는 댓글이 없습니다. 대신{" "}
-                <Strong>대화 레이어</Strong>라는 구조화된 응답 시스템이
-                있습니다. 다른 사람의 기록에 반응할 때, 단순한 의견 대신 자신의
-                응답이 어떤 종류인지 명시합니다.
-              </P>
-              <P>
-                이 구조는 "잘했어요"나 "좋은 글이네요" 같은 가벼운 반응 대신,
-                서로의 탐구를 진지하게 이어가기 위해 설계되었습니다.
-              </P>
-            </Section>
-
-            <Hr />
-            <Section id="questions" title="질문 남기기">
-              <P>
-                기록마다 질문을 남길 수 있습니다. 답을 찾기보다{" "}
-                <Strong>더 좋은 질문을 가지고 다니는 것</Strong>이 목표입니다.
-              </P>
-
-              <SubSection title="질문 방향">
-                <Dl>
-                  <DlItem
-                    term="스스로에게 묻다 (Inward)"
-                    desc="미래의 나에게 던지는 질문입니다. 나중에 스스로 답할 수 있습니다."
-                  />
-                  <DlItem
-                    term="함께 생각할 질문 (Outward)"
-                    desc="다른 러너와 함께 생각해볼 질문입니다."
-                  />
-                  <DlItem
-                    term="다음 구간으로 (Next Stage)"
-                    desc="현재 구간을 넘어 다음 구간으로 가져갈 질문입니다."
-                  />
-                </Dl>
-              </SubSection>
-
-              <P>
-                열려 있는 질문은{" "}
-                <Link
-                  to="/questions"
-                  className="text-ocean-blue hover:underline"
-                >
-                  질문 피드
-                </Link>
-                에서 모아볼 수 있습니다. 구간별로 필터링할 수 있습니다.
-              </P>
-            </Section>
-
-            <Hr />
-            <Section id="responses" title="응답하기">
-              <P>
-                다른 러너의 기록을 읽고 나서 응답을 남길 수 있습니다. 응답에는
-                다섯 가지 유형이 있습니다.
-              </P>
-
-              <div className="flex flex-col gap-4 my-8">
-                <ResponseType
-                  type="공명"
-                  emoji="〰️"
-                  desc="이 기록에서 무엇이 남았는지 말합니다. 판단 없이 '나에게도 이 부분이 와닿았다'고 전합니다."
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 my-8">
+                <FeatureCard
+                  title="노트"
+                  description="짧은 메모와 순간 기록"
+                  details={[
+                    "짧게 바로 남길 때 적합",
+                    "제목은 내용 기반으로 자동 생성",
+                    "공개 범위와 응답 기본값 설정 가능",
+                  ]}
                 />
-                <ResponseType
-                  type="질문"
-                  emoji="？"
-                  desc="더 듣고 싶은 지점을 엽니다. '이 부분이 궁금합니다'라는 호기심의 표현입니다."
-                />
-                <ResponseType
-                  type="연결"
-                  emoji="⟷"
-                  desc="내 경험이나 다른 기록과 이어봅니다. '나도 비슷한 경험이 있다'는 연결의 시도입니다."
-                />
-                <ResponseType
-                  type="제안"
-                  emoji="→"
-                  desc="다음 시도를 조심스럽게 제안합니다. 정답이 아닌, 하나의 가능성을 나눕니다."
-                />
-                <ResponseType
-                  type="자기답변"
-                  emoji="↩"
-                  desc="자신이 남겨둔 질문에 나중에 직접 답합니다. 시간이 지나 달라진 생각을 기록합니다."
+                <FeatureCard
+                  title="아티클"
+                  description="긴 글, 회고, 정리형 기록"
+                  details={[
+                    "제목 직접 입력",
+                    "리듬(자유/순간/스프린트/주간/월간) 선택",
+                    "작성 후 메타 단계에서 질문·태그·참조 링크 정리",
+                  ]}
                 />
               </div>
 
-              <SubSection title="응답 선호도">
-                <P>기록 작성자는 응답 허용 범위를 설정할 수 있습니다.</P>
+              <SubSection title="작성 후 이어지는 단계">
                 <Ul>
                   <li>
-                    <Strong>모든 응답 허용</Strong> — 네 가지 유형 모두 받습니다
+                    아티클 저장 후 <InlineCode>/write/meta/:recordId</InlineCode>에서 질문, 태그,
+                    사람/관련 게시글, 외부 링크, 참조를 정리할 수 있습니다.
                   </li>
-                  <li>
-                    <Strong>질문과 공명만</Strong> — 질문과 공명만 받습니다
-                  </li>
-                  <li>
-                    <Strong>응답 닫기</Strong> — 응답을 받지 않습니다
-                  </li>
+                  <li>노트는 저장 후 기록 상세로 이동합니다.</li>
                 </Ul>
               </SubSection>
             </Section>
 
             <Hr />
-            <Section id="sentences" title="문장 저장하기">
+            <Section id="record-detail" title="기록 상세에서 하는 일">
               <P>
-                다른 러너의 기록을 읽다가 마음에 남는 문장이 있으면 저장할 수
-                있습니다. 문장을 선택하고 이유를 적으면, 내 공간에서 다시 꺼내볼 수
-                있습니다.
+                <InlineCode>/logs/:recordSlug</InlineCode>는 읽기와 대화의 중심입니다. 기록 본문, 질문,
+                응답, 문장 저장, 관련 기록/태그/함께한 사람을 함께 봅니다.
               </P>
+
               <Ul>
-                <li>기록 상세 페이지에서 텍스트를 선택하면 저장 옵션이 나타납니다</li>
-                <li>저장할 때 이유를 함께 적을 수 있습니다 (선택)</li>
-                <li>
-                  저장한 문장은{" "}
-                  <Link to="/me" className="text-ocean-blue hover:underline">
-                    내 공간
-                  </Link>
-                  에서 모아볼 수 있습니다
-                </li>
-                <li>공동 기억에 포함될 수 있습니다</li>
+                <li>기록 작성자라면 수정 버튼으로 <InlineCode>/logs/:recordSlug/edit</InlineCode>로 이동할 수 있습니다.</li>
+                <li>기록 본문에서 문장을 드래그해 선택하면 문장 저장을 바로 할 수 있습니다.</li>
+                <li>기록을 나중에 다시 보고 싶다면 북마크로 저장해 내 공간에서 모아볼 수 있습니다.</li>
+                <li>아티클은 읽은 기록 상태가 표시되어, 나중에 다시 돌아와도 흐름을 이어가기 좋습니다.</li>
+                <li>응답은 스레드(답글)로 이어집니다.</li>
+                <li>태그, 연결된 기록, 언급된 사람 등을 사이드에서 확인합니다.</li>
               </Ul>
+            </Section>
+
+            <Hr />
+            <Section id="dialogue" title="질문과 응답">
+              <P>
+                DiveLog는 댓글 대신 대화 레이어를 사용합니다. 반응을 남길 때 응답 유형을 명시해 맥락을
+                분명히 합니다.
+              </P>
+
+              <SubSection title="응답 유형">
+                <div className="flex flex-col gap-4 my-6">
+                  <ResponseType
+                    type="공명"
+                    desc="이 기록에서 무엇이 남았는지 전합니다."
+                  />
+                  <ResponseType
+                    type="질문"
+                    desc="더 듣고 싶은 지점을 엽니다."
+                  />
+                  <ResponseType
+                    type="연결"
+                    desc="내 경험이나 다른 기록과 이어봅니다."
+                  />
+                  <ResponseType
+                    type="제안"
+                    desc="다음 시도를 조심스럽게 제안합니다."
+                  />
+                  <ResponseType
+                    type="자기답변"
+                    desc="내가 남긴 열린 질문에 시간이 지난 뒤 스스로 답합니다."
+                  />
+                </div>
+                <Callout variant="tip">
+                  DiveLog의 응답 유형은 공명, 질문, 연결, 제안, 자기답변까지 총 5가지입니다.
+                </Callout>
+              </SubSection>
+
+              <SubSection title="질문 방향">
+                <Ul>
+                  <li>
+                    동료에게 <InlineCode>(outward)</InlineCode>: 다른 러너와 함께 생각을 확장하고 싶을 때
+                    선택합니다.
+                  </li>
+                  <li>
+                    스스로에게 <InlineCode>(inward)</InlineCode>: 지금 당장 답보다 성찰이 더 필요한 질문에
+                    사용합니다.
+                  </li>
+                  <li>
+                    다음 구간으로 <InlineCode>(next_stage)</InlineCode>: 다음 스테이지에서 이어갈 고민을
+                    남길 때 선택합니다.
+                  </li>
+                </Ul>
+              </SubSection>
+
+              <SubSection title="자기답변">
+                <P>
+                  자기답변은 일반 응답과 다르게, 내가 남긴 열린 질문에 시간이 지난 뒤 스스로 답하는 흐름입니다.
+                  기록 상세의 질문 영역에서 작성할 수 있습니다.
+                </P>
+              </SubSection>
+            </Section>
+
+            <Hr />
+            <Section id="visibility" title="공개 범위와 응답 선호도">
+              <SubSection title="공개 범위">
+                <div className="my-6 overflow-x-auto">
+                  <table className="w-full text-sm border-collapse">
+                    <thead>
+                      <tr className="border-b-2 border-border">
+                        <Th>값</Th>
+                        <Th>의미</Th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <Tr>
+                        <Td bold>임시저장 (draft)</Td>
+                        <Td>작성 중 상태. 본인 중심으로 관리합니다.</Td>
+                      </Tr>
+                      <Tr>
+                        <Td bold>나만 보기 (private)</Td>
+                        <Td>작성자만 볼 수 있습니다.</Td>
+                      </Tr>
+                      <Tr>
+                        <Td bold>코호트 공개 (cohort)</Td>
+                        <Td>같은 코호트 구성원에게 보입니다.</Td>
+                      </Tr>
+                      <Tr>
+                        <Td bold>전체 공개 (public)</Td>
+                        <Td>누구나 볼 수 있습니다.</Td>
+                      </Tr>
+                    </tbody>
+                  </table>
+                </div>
+              </SubSection>
+
+              <SubSection title="응답 선호도">
+                <Ul>
+                  <li>모든 응답을 환영합니다 (open)</li>
+                  <li>질문은 환영해요 (question_only)</li>
+                  <li>그냥 읽어줘도 괜찮아요 (closed)</li>
+                </Ul>
+              </SubSection>
+
+              <Callout>
+                새 기록의 기본 공개 범위와 기본 응답 선호도는 <Link to="/settings" className="text-ocean-blue hover:underline">설정</Link>에서
+                바꿀 수 있습니다.
+              </Callout>
+            </Section>
+
+            <Hr />
+            <Section id="browse" title="둘러보기와 탐색">
+              <Dl>
+                <DlItem
+                  term="여정"
+                  desc={
+                    <>
+                      <Link to="/journey" className="text-ocean-blue hover:underline">
+                        여정
+                      </Link>
+                      과 각 스테이지 페이지에서 Stage 흐름과 열린 질문을 확인합니다.
+                    </>
+                  }
+                />
+                <DlItem
+                  term="기록"
+                  desc={
+                    <>
+                      <Link to="/logs" className="text-ocean-blue hover:underline">
+                        기록 목록
+                      </Link>
+                      에서 형식/리듬 필터와 정렬, 그리드/캘린더 보기로 탐색합니다.
+                    </>
+                  }
+                />
+                <DlItem
+                  term="열린 질문"
+                  desc="열린 질문 목록에서 질문을 모아 보고, 기록 상세로 이동해 대화를 이어갑니다."
+                />
+                <DlItem
+                  term="러너"
+                  desc={
+                    <>
+                      <Link to="/learners" className="text-ocean-blue hover:underline">
+                        러너 목록
+                      </Link>
+                      과 러너 페이지에서 다른 러너의 기록, 질문, 남겨둔 문장을 확인합니다.
+                    </>
+                  }
+                />
+                <DlItem
+                  term="태그"
+                  desc={
+                    <>
+                      <Link to="/tags" className="text-ocean-blue hover:underline">
+                        태그
+                      </Link>
+                      에서 주제별 기록을 탐색합니다.
+                    </>
+                  }
+                />
+              </Dl>
             </Section>
 
             <Hr />
             <Section id="search" title="검색">
               <P>
-                상단 네비게이션의 검색 아이콘이나{" "}
-                <Link to="/search" className="text-ocean-blue hover:underline">
-                  검색 페이지
-                </Link>
-                에서 플랫폼 전체를 검색할 수 있습니다.
-              </P>
-
-              <SubSection title="검색 대상">
-                <Ul>
-                  <li>
-                    <Strong>기록</Strong> — 제목과 본문 내용을 검색합니다
-                  </li>
-                  <li>
-                    <Strong>질문</Strong> — 열린 질문 내용을 검색합니다
-                  </li>
-                  <li>
-                    <Strong>러너</Strong> — 이름으로 러너를 찾습니다
-                  </li>
-                  <li>
-                    <Strong>문장</Strong> — 저장된 문장 내용을 검색합니다
-                  </li>
-                </Ul>
-              </SubSection>
-
-              <P>
-                탭으로 전체, 기록, 질문, 러너, 문장을 필터링할 수 있습니다.
-                코호트 공개 이상인 콘텐츠만 검색 결과에 나타납니다.
-              </P>
-            </Section>
-
-            <Hr />
-            <Section id="my-space" title="내 공간">
-              <P>
-                <Link to="/me" className="text-ocean-blue hover:underline">
-                  내 공간
-                </Link>
-                은 나의 활동을 한 곳에서 모아보는 페이지입니다. 로그인이
-                필요합니다.
-              </P>
-
-              <SubSection title="탭 구성">
-                <Dl>
-                  <DlItem
-                    term="내 기록"
-                    desc="구간별로 정리된 나의 기록, 임시저장 목록, 저장한 문장들을 볼 수 있습니다."
-                  />
-                  <DlItem
-                    term="내 질문"
-                    desc="내가 남긴 질문들과 아직 답하지 않은 질문을 확인합니다. 나중에 자기답변을 남길 수 있습니다."
-                  />
-                  <DlItem
-                    term="내 응답"
-                    desc="다른 러너의 기록에 남긴 응답 목록입니다."
-                  />
-                  <DlItem
-                    term="저장한 기록"
-                    desc="나중에 다시 보고 싶어 저장해둔 기록들입니다."
-                  />
-                </Dl>
-              </SubSection>
-            </Section>
-
-            <Hr />
-            <Section id="inbox" title="인박스 (알림)">
-              <P>
-                <Link to="/inbox" className="text-ocean-blue hover:underline">
-                  인박스
-                </Link>
-                에서 나에게 온 알림을 확인할 수 있습니다.
-              </P>
-
-              <SubSection title="알림이 오는 경우">
-                <Ul>
-                  <li>누군가 내 기록에 응답을 남겼을 때</li>
-                  <li>누군가 내 기록에 질문을 남겼을 때</li>
-                  <li>기록 본문에서 나를 언급(@)했을 때</li>
-                  <li>구간 마무리 안내</li>
-                  <li>다시 읽기 안내</li>
-                </Ul>
-              </SubSection>
-
-              <P>
-                전체 / 읽지 않음 탭으로 필터링할 수 있고, 모두 읽음 처리도
-                가능합니다. 네비게이션 상단의 알림 아이콘에서도 최근 알림을 바로
-                확인할 수 있습니다.
-              </P>
-            </Section>
-
-            <Hr />
-            <Section id="settings" title="설정">
-              <P>
-                <Link
-                  to="/settings"
-                  className="text-ocean-blue hover:underline"
-                >
-                  설정 페이지
-                </Link>
-                에서 DiveLog 활동을 위한 기본 설정을 관리할 수 있습니다.
-              </P>
-
-              <SubSection title="변경 가능한 설정">
-                <Dl>
-                  <DlItem
-                    term="새 기록 기본 공개 범위"
-                    desc="기록 작성 시 기본으로 선택될 공개 범위입니다. 작성 시 언제든 변경할 수 있습니다."
-                  />
-                  <DlItem
-                    term="기본 응답 선호도"
-                    desc="다른 러너가 내 기록에 남길 수 있는 응답 종류의 기본값입니다."
-                  />
-                  <DlItem
-                    term="이메일 알림"
-                    desc="내 기록에 남겨진 응답과 질문을 이메일로 받을지 설정합니다."
-                  />
-                  <DlItem
-                    term="읽음 상태 초기화"
-                    desc="읽은 기록의 표시를 모두 초기화하여 처음부터 다시 읽을 수 있습니다."
-                  />
-                </Dl>
-              </SubSection>
-
-              <Callout variant="tip">
-                이름, 프로필 사진, 소개 등 계정 정보는{" "}
-                <ExtLink href="https://ada-kr-pos.com/settings/profile">
-                  ada-kr-pos.com
-                </ExtLink>
-                에서 관리합니다.
-              </Callout>
-            </Section>
-
-            <Hr />
-            <Section id="learners" title="러너 탐색">
-              <P>
-                <Link
-                  to="/learners"
-                  className="text-ocean-blue hover:underline"
-                >
-                  러너 페이지
-                </Link>
-                에서 다른 러너의 여정을 둘러볼 수 있습니다.
-              </P>
-
-              <SubSection title="러너 프로필에서 볼 수 있는 것">
-                <Ul>
-                  <li>이름, 소개, 코호트 정보</li>
-                  <li>구간별로 정리된 기록들</li>
-                  <li>남긴 질문들</li>
-                  <li>저장한 문장들</li>
-                </Ul>
-              </SubSection>
-
-              <Callout>
-                러너 프로필에서는 질문이 이름보다 먼저 보입니다. DiveLog는
-                프로필보다 탐구를 중심으로 사람을 봅니다.
-              </Callout>
-            </Section>
-
-            <Hr />
-            <Section id="memories" title="공동 기억 (Collective Memory)">
-              <P>
-                각 구간이 끝나면 운영진이 그 구간의 공동 기억을 정리하여
-                발행합니다. 공동 기억에는 해당 구간에서 남겨진 주요 질문, 문장,
-                기록이 큐레이션되어 포함됩니다.
+                검색 페이지에서 기록, 질문, 러너, 문장을 통합 검색할 수 있습니다. 상단 네비게이션의 빠른
+                검색 드롭다운에서도 같은 항목을 바로 찾아 이동할 수 있습니다.
               </P>
               <Ul>
-                <li>구간 요약 서사</li>
-                <li>큐레이션된 질문들</li>
-                <li>다음 구간으로 이어질 질문</li>
-                <li>러너들이 저장한 문장들</li>
-                <li>대표 기록들</li>
+                <li>탭: 전체 / 기록 / 질문 / 러너 / 문장</li>
+                <li>검색어 입력 시 디바운스 기반으로 결과가 갱신됩니다.</li>
+                <li>공개 범위가 코호트/전체 공개인 데이터 중심으로 결과가 구성됩니다.</li>
+                <li>빠른 검색 드롭다운에서 항목을 선택하면 해당 상세 페이지로 바로 이동합니다.</li>
               </Ul>
-              <P>
-                공동 기억은 여정 페이지의 각 구간 상세에서 확인하거나,{" "}
-                <InlineCode>/memories/:구간이름</InlineCode> 경로에서 직접 볼 수
-                있습니다.
-              </P>
             </Section>
 
             <Hr />
-            <Section id="principles" title="운영 원칙">
+            <Section id="me-inbox-settings" title="내 공간·인박스·설정">
+              <SubSection title="내 공간">
+                <Ul>
+                  <li>
+                    내 기록, 임시저장, 저장한 문장, 내 질문, 내 응답, 북마크(저장한 기록) 탭으로 활동을
+                    정리해 볼 수 있습니다.
+                  </li>
+                  <li>자동저장된 초안이 있으면 이어 쓰기 동선이 표시될 수 있습니다.</li>
+                </Ul>
+              </SubSection>
+
+              <SubSection title="인박스">
+                <Ul>
+                  <li>읽지 않음/전체 필터, 단건 읽음, 모두 읽음 처리를 지원합니다.</li>
+                  <li>응답, 질문, 언급, 시스템 알림 등을 기록 링크와 함께 확인합니다.</li>
+                </Ul>
+              </SubSection>
+
+              <SubSection title="설정">
+                <Ul>
+                  <li>새 기록 기본 공개 범위</li>
+                  <li>기본 응답 선호도</li>
+                  <li>이메일 알림 수신 여부</li>
+                  <li>읽음 상태 초기화</li>
+                </Ul>
+                <P>
+                  이름/프로필 사진/바이오는 DiveLog가 아니라
+                  <ExtLink href="https://ada-kr-pos.com/settings/profile"> ada-kr-pos.com </ExtLink>
+                  에서 수정합니다.
+                </P>
+              </SubSection>
+            </Section>
+
+            <Hr />
+            <Section id="disabled" title="현재 비활성화 기능">
               <P>
-                DiveLog는 아래 원칙에 따라 운영됩니다. 이 원칙을 함께 지켜주세요.
+                아래 항목은 코드 흔적은 있으나 현재 사용자 동선에서는 비활성화되어 있습니다.
+              </P>
+              <Ul>
+                <li>협업 그룹 중심 화면 (groups / collaboration 관련 동선)</li>
+                <li>공동 기억 상세 공개 경로(일부 Stage 관련 경로는 현재 라우팅 비활성)</li>
+              </Ul>
+              <Callout variant="tip">
+                가이드에 없는 버튼이나 경로를 우연히 발견해도, 현재 운영 흐름에서는 사용하지 않는 기능일 수 있습니다.
+              </Callout>
+            </Section>
+
+            <Hr />
+            <Section id="troubleshooting" title="문제 해결">
+              <P>
+                로그인/세션 문제는 대부분 브라우저 쿠키 설정에서 시작됩니다. 아래 순서대로 점검하면
+                빠르게 원인을 좁힐 수 있습니다.
               </P>
 
-              <div className="flex flex-col gap-5 my-8">
-                <PrincipleCard
-                  title="기록은 완성본만이 아닙니다"
-                  desc="짧은 노트, 미완의 생각, 질문만 남긴 기록도 모두 기록으로 존중합니다."
-                />
-                <PrincipleCard
-                  title="평가 대신 질문"
-                  desc="'좋다/나쁘다'보다 '무엇이 남았는가', '무엇을 더 듣고 싶은가'를 중심에 둡니다."
-                />
-                <PrincipleCard
-                  title="비교 대신 연결"
-                  desc="랭킹, 인기순, 베스트 응답이 없습니다. 질문과 공명으로 연결합니다."
-                />
-                <PrincipleCard
-                  title="심리적 안전 우선"
-                  desc="민감한 회고, 불안, 혼란, 실패를 포함한 기록이 안전하게 남겨질 수 있어야 합니다."
-                />
-                <PrincipleCard
-                  title="공개는 계단식"
-                  desc="모든 기록이 처음부터 공개일 필요는 없습니다. 임시저장 → 코호트 → 전체로 단계적으로 공개하세요."
-                />
-                <PrincipleCard
-                  title="조언은 조심스럽게"
-                  desc="제안은 허용되지만, '더 알고 싶은 점' 없이 해결책만 던지는 것은 지양합니다."
-                />
-              </div>
+              <SubSection title="1차 점검 체크리스트">
+                <Ol>
+                  <li>시크릿 모드가 아닌 일반 창에서 다시 시도합니다.</li>
+                  <li>브라우저에서 쿠키 차단/추적 방지 설정을 확인합니다.</li>
+                  <li>광고 차단/프라이버시 확장 프로그램을 잠시 끄고 다시 시도합니다.</li>
+                  <li>해당 도메인 사이트 데이터(쿠키)를 지운 뒤 재로그인합니다.</li>
+                </Ol>
+              </SubSection>
+
+              <FaqItem
+                q="로그인했는데 다시 로그인 화면으로 돌아가요"
+                a="브라우저 쿠키 설정 또는 세션 만료 문제일 수 있습니다. 브라우저에서 쿠키 차단 설정을 확인한 뒤, ada-kr-pos.com에서 다시 로그인해 주세요."
+              />
+              <FaqItem
+                q="/write에 들어가면 /guide로 이동해요"
+                a="기록 작성은 Verified 사용자만 가능합니다. 계정 인증 상태를 확인한 뒤 다시 시도해 주세요."
+              />
+              <FaqItem
+                q="내 기록이 검색에 안 보여요"
+                a="공개 범위가 임시저장/나만 보기이면 공용 검색에서 보이지 않을 수 있습니다. 공개 범위를 코호트 공개 또는 전체 공개로 변경해 보세요."
+              />
+              <FaqItem
+                q="갑자기 로그아웃됐어요"
+                a="세션 7일 만료, VPN·네트워크 변경, 브라우저 종료 시 쿠키 삭제 설정 때문에 발생할 수 있습니다. 네트워크를 고정한 뒤 다시 로그인하고 쿠키 보존 설정을 확인해 주세요."
+              />
+
+              <Callout variant="tip">
+                여러 번 반복될 때는 다른 브라우저(또는 모바일)에서 한 번 테스트해 보세요. 특정 브라우저
+                설정 문제인지 빠르게 확인할 수 있습니다.
+              </Callout>
             </Section>
 
             <Hr />
             <Section id="faq" title="자주 묻는 질문">
               <div className="flex flex-col gap-6">
                 <FaqItem
-                  q="로그인했는데 '세션을 확인할 수 없습니다'라고 나와요."
-                  a="브라우저의 서드파티 쿠키 설정을 확인해 주세요. Safari에서는 '사이트 간 추적 방지'를 해제해야 할 수 있습니다. 문제가 지속되면 ada-kr-pos.com에서 다시 로그인 후 시도해 주세요."
+                  q="노트와 아티클 중 무엇으로 시작하면 좋을까요?"
+                  a="처음에는 노트로 시작하는 것을 권장합니다. 짧게 기록하고, 필요할 때 아티클로 확장하면 부담이 줄어듭니다."
                 />
                 <FaqItem
-                  q="임시저장한 기록은 어디서 찾나요?"
-                  a="내 공간(/me)의 '내 기록' 탭에서 임시저장 목록을 확인할 수 있습니다. 해당 기록을 클릭하면 이어 쓰기가 가능합니다."
+                  q="응답은 꼭 길게 써야 하나요?"
+                  a="아니요. 짧아도 괜찮습니다. 다만 '평가'보다 '질문/공명/연결'의 맥락이 드러나면 더 좋은 대화가 됩니다."
                 />
                 <FaqItem
-                  q="기록의 공개 범위를 나중에 바꿀 수 있나요?"
-                  a="네, 기록 상세 페이지에서 수정 버튼을 눌러 언제든 공개 범위를 변경할 수 있습니다."
+                  q="기록을 지우기 전에 다른 방법이 있나요?"
+                  a="삭제 대신 공개 범위를 임시저장 또는 나만 보기로 낮춰 보관하는 방법을 먼저 권장합니다."
                 />
                 <FaqItem
-                  q="내 기록에 응답이 달리지 않게 하고 싶어요."
-                  a="기록 작성 시 또는 수정 시 응답 선호도를 '응답 닫기'로 설정하면 됩니다. 설정 페이지에서 기본값도 변경할 수 있습니다."
+                  q="프로필 정보가 DiveLog와 다르게 보여요"
+                  a="프로필은 통합 계정 서비스와 연동됩니다. ada-kr-pos.com에서 수정한 뒤 잠시 후 다시 확인해 주세요."
                 />
                 <FaqItem
-                  q="자기답변은 언제 남기나요?"
-                  a="내가 기록에 남긴 질문에 대해, 시간이 지나서 생각이 정리되었을 때 스스로 답합니다. 내 공간의 '내 질문' 탭에서 미답변 질문을 확인할 수 있습니다."
+                  q="세션이 만료되면 어떻게 하나요?"
+                  a="세션은 기본 7일 유지되고 사용 중에는 자동 갱신됩니다. 만료되면 ada-kr-pos.com에서 다시 로그인하면 바로 이어서 사용할 수 있습니다."
                 />
                 <FaqItem
-                  q="이름이나 프로필 사진은 어디서 바꾸나요?"
-                  a="DiveLog에서는 변경할 수 없습니다. ada-kr-pos.com/settings/profile에서 수정하면 DiveLog에도 반영됩니다."
-                />
-                <FaqItem
-                  q="기록에서 다른 러너를 어떻게 언급하나요?"
-                  a="본문에 @이름을 입력하면 됩니다. 아티클의 경우 에디터에서 @을 입력하면 자동완성 목록이 나타납니다."
-                />
-                <FaqItem
-                  q="삭제한 기록은 복구할 수 있나요?"
-                  a="삭제된 기록은 복구할 수 없습니다. 삭제 전에 공개 범위를 '임시저장'이나 '나만 보기'로 변경하는 것을 권장합니다."
-                />
-                <FaqItem
-                  q="태그는 어떻게 추가하나요?"
-                  a="아티클 작성 후 나타나는 메타데이터 화면에서 태그를 추가할 수 있습니다. 기록 수정 시에도 태그를 변경할 수 있습니다."
-                />
-                <FaqItem
-                  q="기록을 나중에 다시 보고 싶으면 어떻게 하나요?"
-                  a="기록 상세 페이지에서 저장 버튼을 누르면 내 공간의 '저장한 기록' 탭에서 모아볼 수 있습니다."
+                  q="다른 러너의 기록에 문장을 저장하면 상대방이 알 수 있나요?"
+                  a="아니요. 문장 저장은 개인 보관 기능이며 알림이 가지 않습니다. 필요할 때 내 공간에서 다시 꺼내 읽으면 좋습니다."
                 />
               </div>
             </Section>
 
-            {/* ───── Back link ───── */}
             <div className="mt-16 pt-8 border-t border-border flex items-center justify-between">
               <Link
                 to="/guide"
@@ -856,7 +645,6 @@ export default function FullGuidePage() {
         </div>
       </div>
 
-      {/* ───── CTA ───── */}
       <CTABand
         eyebrow="완성된 글이 아니어도 괜찮습니다"
         heading="지금 첫 기록을 남겨보세요"
@@ -901,20 +689,12 @@ function SubSection({
 }
 
 function P({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="text-base leading-relaxed text-text-secondary mb-4">
-      {children}
-    </p>
-  );
-}
-
-function Strong({ children }: { children: React.ReactNode }) {
-  return <strong className="text-text-primary font-medium">{children}</strong>;
+  return <p className="text-base leading-relaxed text-text-secondary mb-4">{children}</p>;
 }
 
 function Ul({ children }: { children: React.ReactNode }) {
   return (
-    <ul className="my-4 flex flex-col gap-2 pl-6 list-disc marker:text-ocean-blue/40">
+    <ul className="my-4 flex flex-col gap-2 pl-6 list-disc marker:text-ocean-blue/40 text-base leading-relaxed text-text-secondary">
       {children}
     </ul>
   );
@@ -928,8 +708,17 @@ function Ol({ children }: { children: React.ReactNode }) {
   );
 }
 
-function Hr() {
-  return <hr className="my-12 border-t border-border" />;
+function Dl({ children }: { children: React.ReactNode }) {
+  return <dl className="my-4 flex flex-col gap-4">{children}</dl>;
+}
+
+function DlItem({ term, desc }: { term: string; desc: React.ReactNode }) {
+  return (
+    <div className="flex flex-col gap-1">
+      <dt className="text-base font-medium text-text-primary">{term}</dt>
+      <dd className="text-sm leading-relaxed text-text-secondary">{desc}</dd>
+    </div>
+  );
 }
 
 function Callout({
@@ -939,16 +728,20 @@ function Callout({
   children: React.ReactNode;
   variant?: "default" | "tip";
 }) {
-  const styles =
+  const styleClass =
     variant === "tip"
       ? "border-ocean-blue/20 bg-mist-blue/20"
       : "border-border bg-surface-secondary/50";
 
   return (
-    <div className={`my-6 rounded-2xl border p-5 ${styles}`}>
+    <div className={`my-6 rounded-2xl border p-5 ${styleClass}`}>
       <p className="text-sm leading-relaxed text-text-secondary">{children}</p>
     </div>
   );
+}
+
+function Hr() {
+  return <hr className="my-12 border-t border-border" />;
 }
 
 function InlineCode({ children }: { children: React.ReactNode }) {
@@ -978,21 +771,6 @@ function ExtLink({
   );
 }
 
-function Dl({ children }: { children: React.ReactNode }) {
-  return <dl className="my-4 flex flex-col gap-4">{children}</dl>;
-}
-
-function DlItem({ term, desc }: { term: string; desc: string }) {
-  return (
-    <div className="flex flex-col gap-1">
-      <dt className="text-base font-medium text-text-primary">{term}</dt>
-      <dd className="text-sm leading-relaxed text-text-secondary pl-0">
-        {desc}
-      </dd>
-    </div>
-  );
-}
-
 function FeatureCard({
   title,
   description,
@@ -1007,10 +785,10 @@ function FeatureCard({
       <h4 className="text-lg font-semibold text-text-primary mb-1">{title}</h4>
       <p className="text-sm text-text-secondary mb-4">{description}</p>
       <ul className="flex flex-col gap-1.5 text-sm text-text-secondary">
-        {details.map((d) => (
-          <li key={d} className="flex items-start gap-2">
+        {details.map((item) => (
+          <li key={item} className="flex items-start gap-2">
             <span className="mt-1.5 w-1 h-1 rounded-full bg-ocean-blue/40 shrink-0" />
-            {d}
+            {item}
           </li>
         ))}
       </ul>
@@ -1018,63 +796,13 @@ function FeatureCard({
   );
 }
 
-function ResponseType({
-  type,
-  emoji,
-  desc,
-}: {
-  type: string;
-  emoji: string;
-  desc: string;
-}) {
+function ResponseType({ type, desc }: { type: string; desc: string }) {
   return (
     <div className="flex items-start gap-4 p-5 rounded-2xl border border-border bg-surface">
-      <span className="text-xl mt-0.5 shrink-0 w-8 text-center" aria-hidden="true">
-        {emoji}
-      </span>
       <div>
         <p className="text-base font-medium text-text-primary mb-1">{type}</p>
         <p className="text-sm leading-relaxed text-text-secondary">{desc}</p>
       </div>
-    </div>
-  );
-}
-
-const STAGE_TONE_STYLES: Record<
-  string,
-  { border: string; bg: string }
-> = {
-  prelude: { border: "border-prelude/30", bg: "bg-prelude/5" },
-  bridge: { border: "border-bridge/30", bg: "bg-bridge/5" },
-  challenge: { border: "border-challenge/30", bg: "bg-challenge/5" },
-  epilogue: { border: "border-epilogue/30", bg: "bg-epilogue/5" },
-};
-
-function StageBadge({
-  type,
-  desc,
-  tone,
-}: {
-  type: string;
-  desc: string;
-  tone: string;
-}) {
-  const styles = STAGE_TONE_STYLES[tone] ?? STAGE_TONE_STYLES.prelude;
-  return (
-    <div
-      className={`rounded-2xl border p-5 ${styles.border} ${styles.bg}`}
-    >
-      <p className="text-base font-semibold text-text-primary mb-1">{type}</p>
-      <p className="text-sm leading-relaxed text-text-secondary">{desc}</p>
-    </div>
-  );
-}
-
-function PrincipleCard({ title, desc }: { title: string; desc: string }) {
-  return (
-    <div className="p-5 rounded-2xl border border-mist-blue bg-mist-blue/10">
-      <p className="text-base font-medium text-deep-ocean mb-1">{title}</p>
-      <p className="text-sm leading-relaxed text-text-secondary">{desc}</p>
     </div>
   );
 }
@@ -1109,7 +837,7 @@ function Td({
 }) {
   return (
     <td
-      className={`py-3 px-4 text-sm ${bold ? "font-medium text-text-primary" : "text-text-secondary"}`}
+      className={`py-3 px-4 text-sm leading-relaxed ${bold ? "font-medium text-text-primary" : "text-text-secondary"}`}
     >
       {children}
     </td>

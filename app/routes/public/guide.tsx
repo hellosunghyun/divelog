@@ -76,6 +76,24 @@ export default function GuidePage() {
             )}
           </div>
         )}
+
+        <section className="mb-10 rounded-2xl border border-border bg-surface-secondary/40 p-6 md:p-7">
+          <p className="text-sm font-medium text-ocean-blue mb-2">처음이라면 여기부터</p>
+          <h2 className="text-2xl font-semibold leading-title text-text-primary mb-3">
+            플랫폼 전체 가이드
+          </h2>
+          <p className="text-base leading-relaxed text-text-secondary mb-5">
+            로그인부터 기록 작성, 질문/응답, 검색, 인박스, 설정까지 한 번에 정리한
+            상세 안내를 제공합니다.
+          </p>
+          <a
+            href="/guide/full"
+            className="inline-flex items-center rounded-full bg-deep-ocean text-white px-6 py-2.5 text-sm font-semibold hover:bg-ocean-blue transition-all no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2"
+          >
+            전체 가이드 보기
+          </a>
+        </section>
+
         <section className="mb-10">
           <h2 className="text-2xl font-semibold leading-title text-text-primary mb-4">
             기록하기
