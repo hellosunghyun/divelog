@@ -1,67 +1,71 @@
 import type { Route } from "./+types/tags";
 import type { TagWithUsage } from "~/db/queries/records/tags.server";
-import { data, redirect } from "react-router";
-import { useNavigation } from "react-router";
-import { eq } from "drizzle-orm";
+import { data, redirect, useNavigation } from "react-router";
+import { Spinner } from "~/components/feedback/Spinner";
+import { Input } from "~/components/ui/input";
 import {
-  adminTableClass,
-  adminThClass,
-  adminTdClass,
-  adminTrClass,
-  adminLabelClass,
-  adminBtnPrimary,
-  adminBtnDanger,
-  adminBtnSm,
-  adminCardClass,
-  adminCardHeaderClass,
-  adminCardBodyClass,
   adminBadgeBase,
   adminBadgeDefault,
-  adminEmptyStateClass,
-  adminEmptyIconClass,
-  adminEmptyTitleClass,
+  adminBadgePrimary,
+  adminBtnDanger,
+  adminBtnPrimary,
+  adminBtnSecondary,
+  adminBtnSm,
+  adminCardBodyClass,
+  adminCardClass,
+  adminCardHeaderClass,
   adminEmptyDescClass,
+  adminEmptyIconClass,
+  adminEmptyStateClass,
+  adminEmptyTitleClass,
+  adminInputClass,
+  adminLabelClass,
+  adminTableClass,
+  adminTdClass,
+  adminThClass,
+  adminTrClass,
 } from "~/components/admin/admin-patterns";
-import { Input } from "~/components/ui/input";
-import { Spinner } from "~/components/feedback/Spinner";
 
 export function meta(_: Route.MetaArgs) {
-  return [{ title: "태그 관리" }];
+  return [{ title: "게시글 태그 관리" }];
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {
-  const { db } = await import("~/db/client.server");
   const { createLogger } = await import("~/lib/infra/logger.server");
-  const { tags } = await import("~/db/schema.server");
-  const { getAllTags, createTag, updateTag, deleteTag, getTagByName, getTagBySlug } = await import("~/db/queries/records/tags.server");
+  const { getAllTags } = await import("~/db/queries/records/tags.server");
 
   const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.tags" });
   logger.info("loader_start");
-  const allTags = await getAllTags(context.cloudflare.env.DB);
-  return { tags: allTags };
+
+  return {
+    tags: await getAllTags(context.cloudflare.env.DB),
+  };
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
-  const { db } = await import("~/db/client.server");
   const { createLogger } = await import("~/lib/infra/logger.server");
-  const { tags } = await import("~/db/schema.server");
-  const { getAllTags, createTag, updateTag, deleteTag, getTagByName, getTagBySlug } = await import("~/db/queries/records/tags.server");
+  const { createTag, updateTag, deleteTag, getTagById, getTagByName, getTagBySlug, getTagUsageCount } = await import(
+    "~/db/queries/records/tags.server"
+  );
 
   const logger = createLogger(request, context.cloudflare.env).child({ route: "admin.tags" });
   const formData = await request.formData();
-  const intent = formData.get("intent");
+  const intent = formData.get("intent")?.toString();
   logger.info("action_start", { intent });
 
-  const database = db(context.cloudflare.env.DB);
-
   if (intent === "create_tag") {
-    const name = formData.get("name")?.toString()?.trim();
-    const slug = formData.get("slug")?.toString()?.trim();
-    const description = formData.get("description")?.toString()?.trim() ?? "";
-    const color = formData.get("color")?.toString()?.trim() ?? "#6E6E73";
+    const name = formData.get("name")?.toString().trim() ?? "";
+    const rawSlug = formData.get("slug")?.toString().trim() ?? "";
+    const description = formData.get("description")?.toString().trim() ?? "";
+    const color = normalizeHexColor(formData.get("color")?.toString()) ?? "#6E6E73";
 
-    if (!name || !slug) {
-      return data({ error: "이름과 슬러그는 필수입니다." }, { status: 400 });
+    if (!name) {
+      return data({ error: "태그 이름은 필수입니다." }, { status: 400 });
+    }
+
+    const slug = normalizeSlug(rawSlug || generateSlug(name));
+    if (!slug) {
+      return data({ error: "슬러그 형식이 올바르지 않습니다." }, { status: 400 });
     }
 
     const existingByName = await getTagByName(context.cloudflare.env.DB, name);
@@ -87,55 +91,49 @@ export async function action({ request, context }: Route.ActionArgs) {
 
   if (intent === "update_tag") {
     const id = formData.get("id")?.toString();
-    const name = formData.get("name")?.toString()?.trim();
-    const slug = formData.get("slug")?.toString()?.trim();
-    const description = formData.get("description")?.toString()?.trim();
-    const color = formData.get("color")?.toString()?.trim();
+    const name = formData.get("name")?.toString().trim() ?? "";
+    const rawSlug = formData.get("slug")?.toString().trim() ?? "";
+    const description = formData.get("description")?.toString().trim() ?? "";
+    const color = normalizeHexColor(formData.get("color")?.toString()) ?? "#6E6E73";
 
     if (!id) {
       return data({ error: "태그 ID가 필요합니다." }, { status: 400 });
     }
 
-    const updateData: {
-      name?: string;
-      slug?: string;
-      description?: string;
-      color?: string;
-    } = {};
-
-    if (name) {
-      const existing = await database
-        .select()
-        .from(tags)
-        .where(eq(tags.name, name))
-        .limit(1);
-      if (existing.length > 0 && existing[0].id !== id) {
-        return data({ error: "이미 존재하는 태그 이름입니다." }, { status: 400 });
-      }
-      updateData.name = name;
+    const existingTag = await getTagById(context.cloudflare.env.DB, id);
+    if (!existingTag) {
+      return data({ error: "수정할 태그를 찾을 수 없습니다." }, { status: 404 });
     }
 
-    if (slug) {
-      const existing = await database
-        .select()
-        .from(tags)
-        .where(eq(tags.slug, slug))
-        .limit(1);
-      if (existing.length > 0 && existing[0].id !== id) {
-        return data({ error: "이미 존재하는 슬러그입니다." }, { status: 400 });
-      }
-      updateData.slug = slug;
+    if (!name) {
+      return data({ error: "태그 이름은 비워둘 수 없습니다." }, { status: 400 });
     }
 
-    if (description !== undefined) {
-      updateData.description = description;
+    const slug = normalizeSlug(rawSlug || generateSlug(name));
+    if (!slug) {
+      return data({ error: "슬러그 형식이 올바르지 않습니다." }, { status: 400 });
     }
 
-    if (color) {
-      updateData.color = color;
+    const existingByName = await getTagByName(context.cloudflare.env.DB, name);
+    if (existingByName && existingByName.id !== id) {
+      return data({ error: "이미 존재하는 태그 이름입니다." }, { status: 400 });
     }
 
-    const updatedTag = await updateTag(context.cloudflare.env.DB, id, updateData);
+    const existingBySlug = await getTagBySlug(context.cloudflare.env.DB, slug);
+    if (existingBySlug && existingBySlug.id !== id) {
+      return data({ error: "이미 존재하는 슬러그입니다." }, { status: 400 });
+    }
+
+    const updatedTag = await updateTag(context.cloudflare.env.DB, id, {
+      name,
+      slug,
+      description,
+      color,
+    });
+
+    if (!updatedTag) {
+      return data({ error: "태그 수정에 실패했습니다. 다시 시도해 주세요." }, { status: 500 });
+    }
 
     logger.info("admin_update_tag", { tagId: updatedTag?.id ?? id, slug: updatedTag?.slug });
     return redirect("/admin/tags");
@@ -148,8 +146,22 @@ export async function action({ request, context }: Route.ActionArgs) {
       return data({ error: "태그 ID가 필요합니다." }, { status: 400 });
     }
 
-    await deleteTag(context.cloudflare.env.DB, id);
+    const existingTag = await getTagById(context.cloudflare.env.DB, id);
+    if (!existingTag) {
+      return data({ error: "삭제할 태그를 찾을 수 없습니다." }, { status: 404 });
+    }
 
+    const usageCount = await getTagUsageCount(context.cloudflare.env.DB, id);
+    if (usageCount > 0) {
+      return data(
+        {
+          error: `이 태그는 게시글 ${usageCount}개에서 사용 중입니다. 먼저 게시글에서 태그를 제거해 주세요.`,
+        },
+        { status: 400 }
+      );
+    }
+
+    await deleteTag(context.cloudflare.env.DB, id);
     logger.info("admin_delete_tag", { tagId: id });
     return redirect("/admin/tags");
   }
@@ -166,34 +178,57 @@ function generateSlug(name: string): string {
     .replace(/^-|-$/g, "");
 }
 
+function normalizeSlug(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9가-힣-]/g, "")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+function normalizeHexColor(value: string | undefined): string | null {
+  if (!value) return null;
+  const trimmed = value.trim();
+  return /^#[0-9a-fA-F]{6}$/.test(trimmed) ? trimmed : null;
+}
+
+function formatDate(timestamp: number): string {
+  return new Date(timestamp * 1000).toLocaleDateString("ko-KR");
+}
+
 export default function AdminTagsPage({ loaderData, actionData }: Route.ComponentProps) {
   const error = (actionData as { error?: string } | undefined)?.error;
   const navigation = useNavigation();
-  const isCreating = navigation.state === "submitting" && navigation.formData?.get("intent") === "create_tag";
+  const currentIntent = navigation.formData?.get("intent")?.toString();
+  const currentTagId = navigation.formData?.get("id")?.toString();
+  const isCreating = navigation.state === "submitting" && currentIntent === "create_tag";
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-semibold text-admin-text">태그 관리</h2>
-        <p className="text-meta text-admin-text-secondary">
-          전체 {loaderData.tags.length}개
-        </p>
+      <div className="mb-6 flex items-center justify-between">
+        <h2 className="text-xl font-semibold text-admin-text">게시글 태그 관리</h2>
+        <p className="text-meta text-admin-text-secondary">전체 {loaderData.tags.length}개</p>
       </div>
 
-      {error && (
-        <div className="mb-4 p-3 bg-error/10 border border-error/20 rounded-lg text-error text-caption">
-          {error}
+      <div className={`${adminCardClass} mb-4`}>
+        <div className={adminCardBodyClass}>
+          <p className="text-sm text-admin-text-secondary">
+            이 태그는 기록 작성 화면에서 선택됩니다. 사용 중인 태그는 실수로 삭제되지 않도록 보호됩니다.
+          </p>
         </div>
-      )}
+      </div>
+
+      {error && <div className="mb-4 rounded-lg border border-error/20 bg-error/10 p-3 text-caption text-error">{error}</div>}
 
       <div className={`${adminCardClass} mb-6`}>
         <div className={adminCardHeaderClass}>
           <h3 className="text-sm font-semibold text-admin-text">새 태그 추가</h3>
         </div>
         <div className={adminCardBodyClass}>
-          <form method="post" className="flex flex-wrap gap-4 items-end">
+          <form method="post" className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_1fr_2fr_auto_auto] md:items-end">
             <input type="hidden" name="intent" value="create_tag" />
-            
+
             <div className="flex flex-col gap-1.5">
               <label htmlFor="name" className={adminLabelClass}>
                 이름 <span className="text-error">*</span>
@@ -202,12 +237,12 @@ export default function AdminTagsPage({ loaderData, actionData }: Route.Componen
                 id="name"
                 name="name"
                 required
-                className="w-40"
+                className={adminInputClass}
                 placeholder="태그 이름"
-                onInput={(e) => {
-                  const slugInput = document.getElementById("slug") as HTMLInputElement;
+                onInput={(event) => {
+                  const slugInput = document.getElementById("slug") as HTMLInputElement | null;
                   if (slugInput && !slugInput.dataset.manual) {
-                    slugInput.value = generateSlug(e.currentTarget.value);
+                    slugInput.value = generateSlug(event.currentTarget.value);
                   }
                 }}
               />
@@ -215,16 +250,15 @@ export default function AdminTagsPage({ loaderData, actionData }: Route.Componen
 
             <div className="flex flex-col gap-1.5">
               <label htmlFor="slug" className={adminLabelClass}>
-                슬러그 <span className="text-error">*</span>
+                슬러그
               </label>
               <Input
                 id="slug"
                 name="slug"
-                required
-                className="w-40 font-mono"
+                className={`${adminInputClass} font-mono`}
                 placeholder="tag-slug"
-                onChange={(e) => {
-                  e.currentTarget.dataset.manual = "true";
+                onChange={(event) => {
+                  event.currentTarget.dataset.manual = "true";
                 }}
               />
             </div>
@@ -233,35 +267,34 @@ export default function AdminTagsPage({ loaderData, actionData }: Route.Componen
               <label htmlFor="description" className={adminLabelClass}>
                 설명
               </label>
-              <Input
-                id="description"
-                name="description"
-                className="w-56"
-                placeholder="태그 설명"
-              />
+              <Input id="description" name="description" className={adminInputClass} placeholder="태그 설명" />
             </div>
 
             <div className="flex flex-col gap-1.5">
               <label htmlFor="color" className={adminLabelClass}>
                 색상
               </label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="color"
-                  id="color"
-                  name="color"
-                  defaultValue="#6E6E73"
-                  className="w-9 h-9 border border-admin-border rounded cursor-pointer"
-                />
-              </div>
+              <input
+                type="color"
+                id="color"
+                name="color"
+                defaultValue="#6E6E73"
+                className="h-10 w-10 cursor-pointer rounded border border-admin-border"
+              />
             </div>
 
             <button
               type="submit"
               disabled={isCreating}
-              className={`${adminBtnPrimary} disabled:opacity-50 disabled:cursor-not-allowed`}
+              className={`${adminBtnPrimary} disabled:cursor-not-allowed disabled:opacity-50`}
             >
-              {isCreating ? <><Spinner size="sm" /> 추가 중...</> : "추가"}
+              {isCreating ? (
+                <>
+                  <Spinner size="sm" /> 추가 중...
+                </>
+              ) : (
+                "추가"
+              )}
             </button>
           </form>
         </div>
@@ -270,11 +303,16 @@ export default function AdminTagsPage({ loaderData, actionData }: Route.Componen
       {loaderData.tags.length === 0 ? (
         <div className={adminCardClass}>
           <div className={adminEmptyStateClass}>
-            <svg className={adminEmptyIconClass} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+            <svg className={adminEmptyIconClass} fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+              />
             </svg>
             <p className={adminEmptyTitleClass}>태그가 없습니다</p>
-            <p className={adminEmptyDescClass}>위에서 새 태그를 추가하세요</p>
+            <p className={adminEmptyDescClass}>위에서 새 태그를 추가해 주세요</p>
           </div>
         </div>
       ) : (
@@ -282,7 +320,7 @@ export default function AdminTagsPage({ loaderData, actionData }: Route.Componen
           <table className={adminTableClass}>
             <thead>
               <tr>
-                {["색상", "이름", "슬러그", "설명", "사용", "생성일", "작업"].map((header) => (
+                {["색상", "이름", "슬러그", "설명", "사용 중", "생성일", "작업"].map((header) => (
                   <th key={header} className={adminThClass}>
                     {header}
                   </th>
@@ -291,58 +329,110 @@ export default function AdminTagsPage({ loaderData, actionData }: Route.Componen
             </thead>
             <tbody>
               {loaderData.tags.map((tag: TagWithUsage) => {
+                const updateFormId = `update-tag-${tag.id}`;
                 const deleteFormId = `delete-tag-${tag.id}`;
+                const isUpdatingThisTag =
+                  navigation.state === "submitting" && currentIntent === "update_tag" && currentTagId === tag.id;
+                const isDeletingThisTag =
+                  navigation.state === "submitting" && currentIntent === "delete_tag" && currentTagId === tag.id;
 
                 return (
                   <tr key={tag.id} className={adminTrClass}>
                     <td className={adminTdClass}>
-                      <div
-                        className="h-5 w-5 rounded border border-admin-border"
-                        style={{ backgroundColor: tag.color ?? "#6E6E73" }}
+                      <input
+                        type="color"
+                        name="color"
+                        form={updateFormId}
+                        defaultValue={tag.color ?? "#6E6E73"}
+                        className="h-10 w-10 cursor-pointer rounded border border-admin-border"
+                        aria-label={`${tag.name} 색상`}
                       />
                     </td>
-                    <td className={`${adminTdClass} font-medium text-admin-text`}>
-                      {tag.name}
+                    <td className={adminTdClass}>
+                      <Input
+                        name="name"
+                        form={updateFormId}
+                        defaultValue={tag.name}
+                        required
+                        className={adminInputClass}
+                        aria-label={`${tag.name} 이름`}
+                      />
                     </td>
                     <td className={adminTdClass}>
-                      <span className={`${adminBadgeBase} ${adminBadgeDefault} font-mono`}>
-                        {tag.slug}
+                      <Input
+                        name="slug"
+                        form={updateFormId}
+                        defaultValue={tag.slug}
+                        className={`${adminInputClass} font-mono`}
+                        aria-label={`${tag.name} 슬러그`}
+                      />
+                    </td>
+                    <td className={adminTdClass}>
+                      <Input
+                        name="description"
+                        form={updateFormId}
+                        defaultValue={tag.description ?? ""}
+                        className={adminInputClass}
+                        placeholder="설명 없음"
+                        aria-label={`${tag.name} 설명`}
+                      />
+                    </td>
+                    <td className={adminTdClass}>
+                      <span className={`${adminBadgeBase} ${tag.usageCount > 0 ? adminBadgePrimary : adminBadgeDefault} tabular-nums`}>
+                        {tag.usageCount}개 게시글
                       </span>
                     </td>
-                    <td className={`${adminTdClass} max-w-[200px] truncate text-admin-text-secondary`}>
-                      {tag.description || <span className="text-admin-text-tertiary">-</span>}
-                    </td>
+                    <td className={`${adminTdClass} tabular-nums text-admin-text-secondary`}>{formatDate(tag.createdAt)}</td>
                     <td className={adminTdClass}>
-                      <span className="text-caption text-admin-text-secondary tabular-nums">
-                        {tag.usageCount}회
-                      </span>
-                    </td>
-                    <td className={`${adminTdClass} text-admin-text-secondary tabular-nums`}>
-                      {new Date(tag.createdAt * 1000).toLocaleDateString("ko-KR")}
-                    </td>
-                    <td className={adminTdClass}>
-                      <form id={deleteFormId} method="post" className="inline">
+                      <div className="flex flex-col gap-2">
+                        <div className="flex gap-2">
+                          <button
+                            type="submit"
+                            form={updateFormId}
+                            disabled={isUpdatingThisTag}
+                            className={`${adminBtnSecondary} ${adminBtnSm} disabled:cursor-not-allowed disabled:opacity-50`}
+                          >
+                            {isUpdatingThisTag ? (
+                              <>
+                                <Spinner size="sm" /> 저장 중...
+                              </>
+                            ) : (
+                              "저장"
+                            )}
+                          </button>
+                          <button
+                            type="submit"
+                            form={deleteFormId}
+                            disabled={tag.usageCount > 0 || isDeletingThisTag}
+                            className={`${adminBtnDanger} ${adminBtnSm} disabled:cursor-not-allowed disabled:opacity-50`}
+                            onClick={(event) => {
+                              if (!confirm(`\"${tag.name}\" 태그를 삭제하시겠습니까?`)) {
+                                event.preventDefault();
+                              }
+                            }}
+                          >
+                            {isDeletingThisTag ? (
+                              <>
+                                <Spinner size="sm" /> 삭제 중...
+                              </>
+                            ) : (
+                              "삭제"
+                            )}
+                          </button>
+                        </div>
+                        {tag.usageCount > 0 && (
+                          <p className="text-[11px] text-admin-text-secondary">사용 중 태그는 삭제할 수 없습니다.</p>
+                        )}
+                      </div>
+
+                      <form id={updateFormId} method="post" className="hidden">
+                        <input type="hidden" name="intent" value="update_tag" />
+                        <input type="hidden" name="id" value={tag.id} />
+                      </form>
+
+                      <form id={deleteFormId} method="post" className="hidden">
                         <input type="hidden" name="intent" value="delete_tag" />
                         <input type="hidden" name="id" value={tag.id} />
-                        {(() => {
-                          const isDeletingThisTag = navigation.state === "submitting"
-                            && navigation.formData?.get("intent") === "delete_tag"
-                            && navigation.formData?.get("id") === tag.id;
-                          return (
-                            <button
-                              type="submit"
-                              disabled={isDeletingThisTag}
-                              className={`${adminBtnDanger} ${adminBtnSm} disabled:opacity-50 disabled:cursor-not-allowed`}
-                              onClick={(e) => {
-                                if (!confirm(`"${tag.name}" 태그를 삭제하시겠습니까?`)) {
-                                  e.preventDefault();
-                                }
-                              }}
-                            >
-                              {isDeletingThisTag ? <><Spinner size="sm" /> 삭제 중...</> : "삭제"}
-                            </button>
-                          );
-                        })()}
                       </form>
                     </td>
                   </tr>
