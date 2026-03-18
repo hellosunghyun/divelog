@@ -1,5 +1,6 @@
 import { data, redirect } from "react-router";
 import type { Route } from "./+types/$recordId";
+import { useNavigation } from "react-router";
 import { Link } from "~/components/content/SmartLink";
 import { Button } from "~/components/ui/button";
 import { VISIBILITY_LABELS } from "~/lib/constants/visibility";
@@ -10,6 +11,8 @@ import { Badge } from "~/components/ui/badge";
 import { RevisionTimeline } from "~/components/revision/RevisionTimeline";
 import { normalizeContentFormat } from "~/lib/content/editor-extensions";
 import { getRevisionsByRecord } from "~/db/queries/records/revisions.server";
+import { SubmitButton } from "~/components/feedback/SubmitButton";
+import { Spinner } from "~/components/feedback/Spinner";
 import { eq, desc } from "drizzle-orm";
 
 export async function loader({ params, request, context }: Route.LoaderArgs) {
@@ -118,6 +121,8 @@ const getModerationBadgeVariant = (
 
 export default function AdminRecordDetailPage({ loaderData }: Route.ComponentProps) {
   const { record, author, stage, challenge, questions, responses, plainTextPreview, revisions, revisionCount } = loaderData;
+  const navigation = useNavigation();
+  const isDeleting = navigation.state === "submitting" && navigation.formData?.get("intent") === "delete";
 
   return (
     <div>
@@ -234,49 +239,51 @@ export default function AdminRecordDetailPage({ loaderData }: Route.ComponentPro
           )}
         </div>
 
-        <div className="space-y-6">
-          <form method="post" className="bg-admin-surface rounded-lg p-5 border border-admin-border">
-            <h3 className="text-sm font-semibold mb-4 text-admin-text">Moderation</h3>
+         <div className="space-y-6">
+           <form method="post" className="bg-admin-surface rounded-lg p-5 border border-admin-border">
+             <h3 className="text-sm font-semibold mb-4 text-admin-text">Moderation</h3>
 
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="moderation-status" className="text-xs text-admin-text-secondary">
-                  상태
-                </Label>
-                <Select name="moderationStatus" defaultValue={record.moderationStatus ?? "clean"}>
-                  <SelectTrigger id="moderation-status" className="h-9 rounded-md border-admin-border px-3 text-sm mt-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="clean">Clean</SelectItem>
-                    <SelectItem value="flagged">Flagged</SelectItem>
-                    <SelectItem value="hidden">Hidden</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+             <div className="space-y-4">
+               <input type="hidden" name="intent" value="moderate" />
+               <div>
+                 <Label htmlFor="moderation-status" className="text-xs text-admin-text-secondary">
+                   상태
+                 </Label>
+                 <Select name="moderationStatus" defaultValue={record.moderationStatus ?? "clean"}>
+                   <SelectTrigger id="moderation-status" className="h-9 rounded-md border-admin-border px-3 text-sm mt-1">
+                     <SelectValue />
+                   </SelectTrigger>
+                   <SelectContent>
+                     <SelectItem value="clean">Clean</SelectItem>
+                     <SelectItem value="flagged">Flagged</SelectItem>
+                     <SelectItem value="hidden">Hidden</SelectItem>
+                   </SelectContent>
+                 </Select>
+               </div>
 
-              <div>
-                <Label htmlFor="moderation-note" className="text-xs text-admin-text-secondary">
-                  메모
-                </Label>
-                <Textarea
-                  id="moderation-note"
-                  name="note"
-                  placeholder="메모 (선택)"
-                  rows={3}
-                  defaultValue={record.moderationNote ?? ""}
-                  className="min-h-0 rounded-md border-admin-border px-3 py-2 text-sm mt-1"
-                />
-              </div>
+               <div>
+                 <Label htmlFor="moderation-note" className="text-xs text-admin-text-secondary">
+                   메모
+                 </Label>
+                 <Textarea
+                   id="moderation-note"
+                   name="note"
+                   placeholder="메모 (선택)"
+                   rows={3}
+                   defaultValue={record.moderationNote ?? ""}
+                   className="min-h-0 rounded-md border-admin-border px-3 py-2 text-sm mt-1"
+                 />
+               </div>
 
-              <Button
-                type="submit"
-                className="w-full h-9 rounded-md bg-admin-accent text-white text-sm hover:opacity-90"
-              >
-                저장
-              </Button>
-            </div>
-          </form>
+               <SubmitButton
+                 formDataMatch={{ intent: "moderate" }}
+                 loadingText="저장 중..."
+                 className="w-full h-9 rounded-md bg-admin-accent text-white text-sm hover:opacity-90"
+               >
+                 저장
+               </SubmitButton>
+             </div>
+           </form>
 
           <div className="bg-admin-surface rounded-lg p-5 border border-admin-border">
             <h3 className="text-sm font-semibold mb-4 text-admin-text">공개 링크</h3>
@@ -289,24 +296,25 @@ export default function AdminRecordDetailPage({ loaderData }: Route.ComponentPro
             </Link>
           </div>
 
-          <div className="border border-error/30 rounded-lg p-5 bg-error/5">
-            <h3 className="text-sm font-semibold text-error mb-2">위험 영역</h3>
-            <p className="text-sm text-admin-text-secondary mb-4">이 기록을 삭제하면 관련된 질문, 응답, 문장도 함께 삭제됩니다. 되돌릴 수 없습니다.</p>
-            <form method="post">
-              <input type="hidden" name="intent" value="delete" />
-              <button
-                type="submit"
-                className="w-full h-9 rounded-md bg-error text-white text-sm font-medium hover:opacity-90 transition-colors"
-                onClick={(e) => {
-                  if (!confirm("정말로 이 기록을 삭제하시겠습니까? 관련된 질문, 응답, 문장도 모두 삭제됩니다.")) {
-                    e.preventDefault();
-                  }
-                }}
-              >
-                기록 삭제
-              </button>
-            </form>
-          </div>
+           <div className="border border-error/30 rounded-lg p-5 bg-error/5">
+             <h3 className="text-sm font-semibold text-error mb-2">위험 영역</h3>
+             <p className="text-sm text-admin-text-secondary mb-4">이 기록을 삭제하면 관련된 질문, 응답, 문장도 함께 삭제됩니다. 되돌릴 수 없습니다.</p>
+             <form method="post">
+               <input type="hidden" name="intent" value="delete" />
+               <button
+                 type="submit"
+                 disabled={isDeleting}
+                 className="w-full h-9 rounded-md bg-error text-white text-sm font-medium hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                 onClick={(e) => {
+                   if (!confirm("정말로 이 기록을 삭제하시겠습니까? 관련된 질문, 응답, 문장도 모두 삭제됩니다.")) {
+                     e.preventDefault();
+                   }
+                 }}
+               >
+                 {isDeleting ? <><Spinner size="sm" /> 삭제 중...</> : "기록 삭제"}
+               </button>
+             </form>
+           </div>
         </div>
       </div>
     </div>
