@@ -1,4 +1,4 @@
-# Divelog
+# DiveLog
 
 Apple Developer Academy @ POSTECH Learner의 아홉 달을 기록하는 **Journey-first reflective archive** 웹 애플리케이션.
 

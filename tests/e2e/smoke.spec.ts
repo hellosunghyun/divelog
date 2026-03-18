@@ -3,7 +3,7 @@ import { test, expect } from "@playwright/test";
 test.describe("홈페이지 스모크 테스트", () => {
   test("홈페이지가 로드되고 핵심 요소가 표시된다", async ({ page }) => {
     await page.goto("/");
-    await expect(page).toHaveTitle(/divelog/);
+    await expect(page).toHaveTitle(/DiveLog/i);
     await expect(page.locator("text=여정 보기")).toBeVisible();
     await expect(page.locator("text=기록 남기기").first()).toBeVisible();
   });

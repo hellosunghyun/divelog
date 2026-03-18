@@ -63,7 +63,7 @@ export default function GuidePage() {
               <>
                 <h3 className="text-lg font-bold text-deep-ocean mb-2">로그인 인증을 확인할 수 없습니다</h3>
                 <p className="text-sm text-text-secondary leading-relaxed mb-4">
-                  ada-kr-pos.com에 로그인되어 있지만 divelog에서 세션을 확인하지 못했습니다.
+                  ada-kr-pos.com에 로그인되어 있지만 DiveLog에서 세션을 확인하지 못했습니다.
                   브라우저의 쿠키 설정을 확인하거나, 다시 시도해 주세요.
                 </p>
                 <a
@@ -81,7 +81,7 @@ export default function GuidePage() {
             기록하기
           </h2>
           <p className="text-base leading-relaxed text-text-secondary">
-            divelog는 완성된 글을 쓰는 곳이 아닙니다. 탐구하는 과정을 기록하는 곳입니다.
+            DiveLog는 완성된 글을 쓰는 곳이 아닙니다. 탐구하는 과정을 기록하는 곳입니다.
             아직 정리되지 않은 생각, 막막한 질문, 작은 발견 — 모두 기록할 수 있습니다.
           </p>
           <ul className="mt-4 flex flex-col gap-2 pl-6">
@@ -145,7 +145,7 @@ export default function GuidePage() {
             운영 원칙
           </h2>
           <p className="text-base leading-relaxed text-text-secondary">
-            divelog는 평가보다 질문을, 비교보다 연결을, 조언보다 공명을 중심으로 운영됩니다.
+            DiveLog는 평가보다 질문을, 비교보다 연결을, 조언보다 공명을 중심으로 운영됩니다.
             다른 사람의 탐구를 존중하고, 나 자신의 탐구를 솔직하게 기록해주세요.
           </p>
         </section>
