@@ -864,7 +864,7 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
                 <label htmlFor="response-visibility" className="text-sm font-medium text-text-secondary mb-2 block">
                   공개 범위
                 </label>
-                <Select name="visibility" defaultValue="cohort">
+                <Select name="visibility" defaultValue="public">
                   <SelectTrigger id="response-visibility" className="w-full bg-surface">
                     <SelectValue />
                   </SelectTrigger>
