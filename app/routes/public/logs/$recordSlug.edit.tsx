@@ -43,6 +43,7 @@ import { getPlainText } from "~/lib/content/content.server";
 import { extractRecordRefs, extractUserMentions } from "~/lib/content/extract-references.server";
 import { createLogger } from "~/lib/infra/logger.server";
 import { cleanupRemovedImages } from "~/lib/infra/r2-cleanup.server";
+import { deliverMentionNotifications } from "~/lib/notifications/mention-delivery.server";
 import { cn } from "~/lib/utils/cn";
 import { useUnsavedWarning } from "~/hooks/useUnsavedWarning";
 
@@ -252,6 +253,17 @@ export async function action({ params, request, context }: Route.ActionArgs) {
       auth.user.id,
     );
   }
+
+  context.cloudflare.ctx.waitUntil(
+    deliverMentionNotifications({
+      d1: context.cloudflare.env.DB,
+      actorId: auth.user.id,
+      actorName: auth.user.nickname ?? auth.user.name ?? "누군가",
+      content: parsed.data.content,
+      recordId: recordData.record.id,
+      visibility: parsed.data.visibility,
+    }),
+  );
 
   logger.info("record_update", { recordId: recordData.record.id });
 

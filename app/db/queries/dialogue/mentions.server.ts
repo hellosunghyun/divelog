@@ -80,15 +80,18 @@ export async function syncAllMentionsForRecord(
   }
 }
 
+export type ExtractedContentMention = {
+  userId: string;
+  displayName: string;
+};
+
 /**
  * Extract user mentions from Tiptap JSON content.
  * Looks for userMention or mention nodes with id attributes.
  */
-function extractMentionsFromContent(
-  jsonStr: string,
-): Array<{ userId: string; displayName: string }> {
+export function extractMentionsFromContent(jsonStr: string): ExtractedContentMention[] {
   const seen = new Set<string>();
-  const results: Array<{ userId: string; displayName: string }> = [];
+  const results: ExtractedContentMention[] = [];
 
   try {
     const doc = JSON.parse(jsonStr) as Record<string, unknown>;
@@ -125,6 +128,10 @@ function extractMentionsFromContent(
   }
 
   return results;
+}
+
+export function extractMentionUserIdsFromContent(jsonStr: string): string[] {
+  return extractMentionsFromContent(jsonStr).map((mention) => mention.userId);
 }
 
 export type MentionWithProfile = {

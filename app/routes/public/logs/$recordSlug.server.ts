@@ -21,6 +21,7 @@ import { saveSentence } from "~/db/queries/records/sentences.server";
 import { getTagsByRecord } from "~/db/queries/records/tags.server";
 import { getParticipantsByRecord } from "~/db/queries/records/participants.server";
 import { getMentionsByRecord } from "~/db/queries/dialogue/mentions.server";
+import { extractMentionUserIdsFromContent } from "~/db/queries/dialogue/mentions.server";
 import {
   learnerProfiles,
   questions,
@@ -30,6 +31,7 @@ import {
   userRoles,
 } from "~/db/schema.server";
 import { notify } from "~/lib/notifications/notify.server";
+import { deliverMentionNotifications } from "~/lib/notifications/mention-delivery.server";
 import { updateResponse, deleteResponse, getResponseById } from "~/db/queries/dialogue/responses.server";
 
 export async function loader({ params, context, request }: Route.LoaderArgs) {
@@ -298,6 +300,17 @@ export async function action({ request, context }: Route.ActionArgs) {
       const recordVisibility = targetRecord[0]?.visibility;
       const currentUserId = auth.user.id;
 
+      context.cloudflare.ctx.waitUntil(
+        deliverMentionNotifications({
+          d1: context.cloudflare.env.DB,
+          actorId: currentUserId,
+          actorName: authorName,
+          content: parsed.data.content,
+          recordId: parsed.data.recordId,
+          visibility: parsed.data.visibility,
+        }),
+      );
+
       if (parsed.data.parentResponseId) {
         // 답글 알림: 부모 응답 작성자에게
         const parentResponse = await getResponseById(context.cloudflare.env.DB, parsed.data.parentResponseId);
@@ -495,7 +508,7 @@ async function buildMentionSlugMap(
 ): Promise<MentionSlugMap> {
   const map: MentionSlugMap = new Map();
 
-  const mentionIds = extractMentionIds(content);
+  const mentionIds = extractMentionUserIdsFromContent(content);
   if (mentionIds.length === 0) return map;
 
   const results = await database
@@ -515,42 +528,4 @@ async function buildMentionSlugMap(
   }
 
   return map;
-}
-
-function extractMentionIds(content: string): string[] {
-  try {
-    const doc = JSON.parse(content);
-    if (!doc || doc.type !== "doc") return [];
-
-    const ids: string[] = [];
-    const seen = new Set<string>();
-
-    function traverse(node: Record<string, unknown>): void {
-      if (
-        (node.type === "userMention" || node.type === "mention") &&
-        node.attrs &&
-        typeof node.attrs === "object" &&
-        "id" in node.attrs
-      ) {
-        const id = String((node.attrs as Record<string, unknown>).id);
-        if (id && !seen.has(id)) {
-          seen.add(id);
-          ids.push(id);
-        }
-      }
-
-      if (Array.isArray(node.content)) {
-        for (const child of node.content) {
-          if (typeof child === "object" && child !== null) {
-            traverse(child as Record<string, unknown>);
-          }
-        }
-      }
-    }
-
-    traverse(doc);
-    return ids;
-  } catch {
-    return [];
-  }
 }

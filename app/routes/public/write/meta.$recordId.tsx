@@ -26,6 +26,7 @@ import { questions, records } from "~/db/schema.server";
 import { useUnsavedWarning } from "~/hooks/useUnsavedWarning";
 import { requireVerified } from "~/lib/auth/auth.middleware";
 import { parseReferencesFromFormData } from "~/lib/auth/validation";
+import { deliverMentionNotifications } from "~/lib/notifications/mention-delivery.server";
 
 type ReferenceField = { id: string; url: string; title: string };
 type LoaderTag = { id: string };
@@ -169,6 +170,16 @@ export async function action({ params, request, context }: Route.ActionArgs) {
 
   await syncParticipantsForRecord(context.cloudflare.env.DB, record.id, participants, auth.user.id);
   await syncAllMentionsForRecord(context.cloudflare.env.DB, record.id, [], record.content ?? "", auth.user.id);
+  context.cloudflare.ctx.waitUntil(
+    deliverMentionNotifications({
+      d1: context.cloudflare.env.DB,
+      actorId: auth.user.id,
+      actorName,
+      content: record.content,
+      recordId: record.id,
+      visibility: record.visibility,
+    }),
+  );
 
   const mentionedRecordIds = JSON.parse(formData.get("mentionedRecordIds")?.toString() ?? "[]") as string[];
   await syncTypedRecordLinks(context.cloudflare.env.DB, record.id, mentionedRecordIds, "mentioned");

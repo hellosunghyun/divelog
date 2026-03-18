@@ -1,0 +1,16 @@
+T7 mention trigger integration
+
+- Added shared mention delivery helper at `app/lib/notifications/mention-delivery.server.ts`
+- Wired record mention delivery in `app/routes/public/write/meta.$recordId.tsx`
+- Wired record edit mention delivery in `app/routes/public/logs/$recordSlug.edit.tsx`
+- Wired response/reply mention delivery in `app/routes/public/logs/$recordSlug.server.ts`
+- Reused shared Tiptap mention extraction via `extractMentionUserIdsFromContent()` from `app/db/queries/dialogue/mentions.server.ts`
+
+Verification
+
+- LSP diagnostics: clean on all modified files
+- Targeted tests: `pnpm vitest run app/db/queries/__tests__/mentions.test.ts app/lib/notifications/__tests__/notify.test.ts app/lib/notifications/__tests__/mention-delivery.test.ts`
+  - Result: 3 files passed, 28 tests passed
+- Build: `pnpm build`
+  - Result: build completed and patched worker output generated
+  - Note: Sentry sourcemap upload warned about missing auth token, but the application build itself completed
