@@ -1,5 +1,5 @@
 import { Link } from "~/components/content/SmartLink";
-import { useActionData, useNavigation, useSubmit } from "react-router";
+import { useFetcher, useActionData, useNavigation, useSubmit } from "react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { cn } from "~/lib/utils/cn";
@@ -184,7 +184,7 @@ function isSelectionInsideElement(selection: Selection, element: HTMLElement | n
 }
 
 export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
-  const { record, author, stage, questions: recordQuestions, responses: recordResponses, sentences: recordSentences, linkedRecords, incomingLinks, selfAnswers, tags: recordTags, currentUserId, contentHtml, revisions, isAuthorOrAdmin } = loaderData as LoaderData;
+  const { record, author, stage, questions: recordQuestions, responses: recordResponses, sentences: recordSentences, linkedRecords, incomingLinks, selfAnswers, tags: recordTags, currentUserId, contentHtml, revisions, isAuthorOrAdmin, isSaved: initialIsSaved } = loaderData as LoaderData;
   const actionData = useActionData<Action>();
   const navigation = useNavigation();
   const submit = useSubmit();
@@ -215,6 +215,11 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
     format: record.format,
     isAuthenticated: !!currentUserId,
   });
+
+  const bookmarkFetcher = useFetcher<{ saved: boolean }>();
+  const optimisticSaved = bookmarkFetcher.formData
+    ? !initialIsSaved
+    : initialIsSaved;
 
   const isRecordAuthor = currentUserId === record.authorId;
   const recordFormat = normalizeContentFormat(record.format);
@@ -551,8 +556,29 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
             );
           })()}
 
-          {(isArticleRecord || isRecordAuthor) && (
-            <div className="ml-auto flex items-center gap-2">
+          <div className="ml-auto flex items-center gap-2">
+              {currentUserId && (
+                <bookmarkFetcher.Form method="post" action="/api/toggle-bookmark">
+                  <input type="hidden" name="recordId" value={record.id} />
+                  <button
+                    type="submit"
+                    aria-label={optimisticSaved ? "저장 취소" : "기록 저장"}
+                    aria-pressed={optimisticSaved}
+                    className={cn(
+                      "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2",
+                      optimisticSaved
+                        ? "border-reef-cyan/40 bg-mist-blue text-ocean-blue hover:bg-mist-blue/70"
+                        : "border-border text-text-secondary hover:bg-surface-secondary hover:text-text-primary"
+                    )}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill={optimisticSaved ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" />
+                    </svg>
+                    {optimisticSaved ? "저장됨" : "저장"}
+                  </button>
+                </bookmarkFetcher.Form>
+              )}
+
               {isArticleRecord && (
                 <button
                   type="button"
@@ -572,7 +598,6 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
                 </Link>
               )}
             </div>
-          )}
         </div>
       </header>
 
