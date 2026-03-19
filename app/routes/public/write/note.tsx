@@ -8,6 +8,7 @@ import { NoteEditor } from "~/components/editor/editors/NoteEditor";
 import { NavigationBlockerDialog } from "~/components/feedback/NavigationBlockerDialog";
 import { SubmitButton } from "~/components/feedback/SubmitButton";
 import { Label } from "~/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
 import {
   Select,
   SelectContent,
@@ -15,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import { RECORD_TYPES, RECORD_TYPE_LABELS, DEFAULT_RECORD_TYPE } from "~/lib/constants/record-types";
 import { db } from "~/db/client.server";
 import { learnerProfiles, records } from "~/db/schema.server";
 import { useUnsavedWarning } from "~/hooks/useUnsavedWarning";
@@ -76,6 +78,7 @@ export async function action({ request, context }: Route.ActionArgs) {
 
   const title = generateNoteTitle(parsed.data.content);
   const plainText = getPlainText(content, "note");
+  const type = (formData.get("type") as string) || DEFAULT_RECORD_TYPE;
 
   const database = db(context.cloudflare.env.DB);
   const id = nanoid();
@@ -90,7 +93,7 @@ export async function action({ request, context }: Route.ActionArgs) {
     content,
     contentText: plainText,
     format: "note",
-    type: "personal",
+    type,
     rhythm: "free",
     visibility: parsed.data.visibility,
     responsePreference,
@@ -167,6 +170,18 @@ export default function WriteNotePage({ loaderData }: Route.ComponentProps) {
                 </SubmitButton>
               </div>
             </div>
+          </div>
+
+          <div>
+            <Label className="mb-2 block text-sm font-medium text-text-secondary">유형</Label>
+            <RadioGroup name="type" defaultValue={DEFAULT_RECORD_TYPE} className="flex flex-wrap gap-2">
+              {RECORD_TYPES.map((type) => (
+                <div key={type} className="flex items-center gap-1.5">
+                  <RadioGroupItem value={type} id={`note-type-${type}`} />
+                  <Label htmlFor={`note-type-${type}`} className="text-sm cursor-pointer">{RECORD_TYPE_LABELS[type]}</Label>
+                </div>
+              ))}
+            </RadioGroup>
           </div>
 
           <div className="flex flex-wrap items-center gap-4">

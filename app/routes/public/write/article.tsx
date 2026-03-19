@@ -11,6 +11,7 @@ import { NavigationBlockerDialog } from "~/components/feedback/NavigationBlocker
 import { SubmitButton } from "~/components/feedback/SubmitButton";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
 import {
   Select,
   SelectContent,
@@ -18,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import { RECORD_TYPES, RECORD_TYPE_LABELS, DEFAULT_RECORD_TYPE } from "~/lib/constants/record-types";
 import { RhythmDateInput } from "~/components/record/RhythmDateInput";
 import { db } from "~/db/client.server";
 import { getStages } from "~/db/queries/journey/stages.server";
@@ -113,6 +115,7 @@ export async function action({ request, context }: Route.ActionArgs) {
 
   const recordedAt = parseDateToUnix(parsed.data.recordedAt);
   const recordedEndAt = parseDateToUnix(parsed.data.recordedEndAt);
+  const type = (formData.get("type") as string) || DEFAULT_RECORD_TYPE;
 
   const database = db(context.cloudflare.env.DB);
   const id = nanoid();
@@ -127,7 +130,7 @@ export async function action({ request, context }: Route.ActionArgs) {
     content,
     contentText,
     format: "article",
-    type: "personal",
+    type,
     rhythm: parsed.data.rhythm,
     visibility: parsed.data.visibility,
     responsePreference,
@@ -220,6 +223,18 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
                 </SubmitButton>
               </div>
             </div>
+          </div>
+
+          <div>
+            <Label className="mb-2 block text-sm font-medium text-text-secondary">유형</Label>
+            <RadioGroup name="type" defaultValue={DEFAULT_RECORD_TYPE} className="flex flex-wrap gap-2">
+              {RECORD_TYPES.map((type) => (
+                <div key={type} className="flex items-center gap-1.5">
+                  <RadioGroupItem value={type} id={`article-type-${type}`} />
+                  <Label htmlFor={`article-type-${type}`} className="text-sm cursor-pointer">{RECORD_TYPE_LABELS[type]}</Label>
+                </div>
+              ))}
+            </RadioGroup>
           </div>
 
           <div className="flex flex-wrap items-center gap-4">
