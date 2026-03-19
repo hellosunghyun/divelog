@@ -19,6 +19,7 @@ import { Underline } from "@tiptap/extension-underline";
 import { Extension, EditorContent, useEditor, type Editor } from "@tiptap/react";
 import type { Editor as TiptapEditor } from "@tiptap/core";
 import { BubbleMenu } from "@tiptap/react/menus";
+import { DOMParser as PMDOMParser } from "@tiptap/pm/model";
 import { StarterKit } from "@tiptap/starter-kit";
 import { common, createLowlight } from "lowlight";
 import { Callout } from "../extensions/CalloutExtension";
@@ -333,6 +334,12 @@ export function ArticleEditor({
     content: parsedContent,
     editorProps: {
       handlePaste: (view, event) => {
+        // 코드블록 안에서는 기본 ProseMirror 동작 사용 (plain text 삽입)
+        const { $from } = view.state.selection;
+        if ($from.parent.type.name === "codeBlock") {
+          return false;
+        }
+
         const html = event.clipboardData?.getData("text/html")?.trim();
         if (!html) {
           return false;
@@ -350,8 +357,14 @@ export function ArticleEditor({
           return false;
         }
 
-        event.preventDefault();
-        view.pasteHTML(sanitizedHtml, event);
+        // view.pasteHTML() 는 내부에서 paste 이벤트를 다시 dispatch하므로
+        // handlePaste 가 재호출되어 무한 재귀가 발생한다.
+        // 대신 ProseMirror DOMParser 로 직접 파싱하여 삽입한다.
+        const slice = PMDOMParser.fromSchema(view.state.schema).parseSlice(
+          parsed.body,
+          { preserveWhitespace: true, context: view.state.selection.$from },
+        );
+        view.dispatch(view.state.tr.replaceSelection(slice));
         return true;
       },
     },
