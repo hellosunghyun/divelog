@@ -1,4 +1,4 @@
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, or, sql } from "drizzle-orm";
 import { data } from "react-router";
 import type { Route } from "./+types/$recordSlug";
 import { db } from "~/db/client.server";
@@ -39,7 +39,7 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
   const logger = createLogger(request, context.cloudflare.env).child({ route: "logs_detail" });
   logger.info("loader_start");
   const database = db(context.cloudflare.env.DB);
-  const optionalAuth = await getOptionalUser(request, context);
+  const optionalAuthPromise = getOptionalUser(request, context);
 
   const selectFields = {
     record: records,
@@ -51,21 +51,12 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
     },
   };
 
-  let recordResult = await database
+  const recordResult = await database
     .select(selectFields)
     .from(records)
     .leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
-    .where(eq(records.slug, recordSlug))
+    .where(or(eq(records.slug, recordSlug), eq(records.id, recordSlug)))
     .limit(1);
-
-  if (recordResult.length === 0) {
-    recordResult = await database
-      .select(selectFields)
-      .from(records)
-      .leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
-      .where(eq(records.id, recordSlug))
-      .limit(1);
-  }
 
   const recordData = recordResult[0];
 
@@ -73,6 +64,8 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
     logger.info("not_found", { slug: recordSlug });
     throw data("기록을 찾을 수 없습니다.", { status: 404 });
   }
+
+  const optionalAuth = await optionalAuthPromise;
 
   const currentUserId = optionalAuth?.isAuthenticated ? optionalAuth.user.id : null;
   const isAuthor = currentUserId === recordData.record.authorId;
@@ -128,6 +121,7 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
       return [] as Awaited<ReturnType<typeof getIncomingLinks>>;
     }),
     optionalAuth?.isAuthenticated
+      && !isAuthor
       ? database
           .select()
           .from(userRoles)
@@ -160,13 +154,17 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
   }));
 
   const isAuthorOrAdmin = isAuthor || isAdmin;
-
-  const revisions = isAuthorOrAdmin
-    ? await getRevisionsByRecord(context.cloudflare.env.DB, recordData.record.id)
-    : [];
-
   const recordFormat = normalizeContentFormat(recordData.record.format);
-  const mentionSlugMap = await buildMentionSlugMap(database, recordData.record.content);
+  const shouldLoadRevisions =
+    isAuthorOrAdmin && recordData.record.updatedAt > recordData.record.createdAt;
+
+  const [revisions, mentionSlugMap] = await Promise.all([
+    shouldLoadRevisions
+      ? getRevisionsByRecord(context.cloudflare.env.DB, recordData.record.id)
+      : Promise.resolve([]),
+    buildMentionSlugMap(database, recordData.record.content),
+  ]);
+
   const contentHtml = renderContentToHtml(recordData.record.content, recordFormat, mentionSlugMap);
   const plainTextContent = getPlainText(recordData.record.content, recordFormat);
 
