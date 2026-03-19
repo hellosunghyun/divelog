@@ -10,10 +10,6 @@ export interface EnrichedLearnerProfile {
   };
   profileIntro: string | null;
   contextLine: string | null;
-  interestTags: Array<{
-    slug: string;
-    name: string;
-  }>;
   currentStage: {
     id: string;
     name: string;

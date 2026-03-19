@@ -70,7 +70,7 @@ export default function TagDetailPage({ loaderData }: Route.ComponentProps) {
         variant="home"
         title={
           <span>
-            <Link to="/tags" className="text-text-tertiary hover:text-text-primary transition-colors no-underline">
+            <Link to="/tags" className="text-white/50 hover:text-white/80 transition-colors no-underline">
               태그
             </Link>
             {" / "}

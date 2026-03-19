@@ -5,7 +5,7 @@ import { buildEmptyLearnerProfile, buildPopulatedLearnerProfile } from "./fixtur
 import { db } from "~/db/client.server";
 import { getRecordsWithMention } from "~/db/queries/dialogue/mentions.server";
 import { getLearnerSelfAnswerSummary } from "~/db/queries/dialogue/selfAnswers.server";
-import { getLearnerInterestTags, getLearnerStageActivity } from "~/db/queries/learners/learners.server";
+import { getLearnerStageActivity } from "~/db/queries/learners/learners.server";
 import { getParticipantsBatch, getRecordsWithParticipant } from "~/db/queries/records/participants.server";
 import { fetchAdaProfile, resolveContextLine, resolveProfileIntro } from "~/lib/auth/ada-profile.server";
 import { getAuth } from "~/lib/auth/auth.server";
@@ -24,7 +24,6 @@ vi.mock("~/db/queries/dialogue/mentions.server", () => ({
 }));
 
 vi.mock("~/db/queries/learners/learners.server", () => ({
-  getLearnerInterestTags: vi.fn(),
   getLearnerStageActivity: vi.fn(),
 }));
 
@@ -115,7 +114,6 @@ describe("learner slug loader", () => {
     vi.mocked(getRecordsWithParticipant).mockResolvedValue([]);
     vi.mocked(getRecordsWithMention).mockResolvedValue([]);
     vi.mocked(getParticipantsBatch).mockResolvedValue([]);
-    vi.mocked(getLearnerInterestTags).mockResolvedValue([]);
     vi.mocked(getLearnerSelfAnswerSummary).mockResolvedValue([]);
     vi.mocked(fetchAdaProfile).mockResolvedValue(null);
     vi.mocked(getAuth).mockResolvedValue({
@@ -150,7 +148,6 @@ describe("learner slug loader", () => {
       session: null,
     } as unknown as Awaited<ReturnType<typeof getAuth>>);
     vi.mocked(fetchAdaProfile).mockResolvedValue({ bio: fixture.profileIntro } as never);
-    vi.mocked(getLearnerInterestTags).mockResolvedValue(fixture.interestTags);
     vi.mocked(getLearnerStageActivity).mockResolvedValue({
       currentStage: fixture.currentStage,
       recentActivity: fixture.recentActivity ?? {
@@ -170,14 +167,12 @@ describe("learner slug loader", () => {
     expect(result.learner).toEqual(fixture.learner);
     expect(result.profileIntro).toBe(fixture.profileIntro);
     expect(result.contextLine).toBe(resolveContextLine(fixture.learner.cohort, fixture.currentStage?.name ?? null));
-    expect(result.interestTags).toEqual(fixture.interestTags);
     expect(result.currentStage).toEqual(fixture.currentStage);
     expect(result.recentActivity).toEqual(fixture.recentActivity);
     expect(result.selfAnswers).toEqual(fixture.selfAnswers);
 
     expect(fetchAdaProfile).toHaveBeenCalledWith(fixture.learner.userId, "test-api-key");
     expect(resolveProfileIntro).toHaveBeenCalledWith({ bio: fixture.profileIntro }, fixture.learner.bio);
-    expect(getLearnerInterestTags).toHaveBeenCalledWith(expect.anything(), fixture.learner.userId);
     expect(getLearnerStageActivity).toHaveBeenCalledWith(expect.anything(), fixture.learner.userId, true);
     expect(getLearnerSelfAnswerSummary).toHaveBeenCalledWith(expect.anything(), fixture.learner.userId);
   });

@@ -113,7 +113,6 @@ export default function LearnerDetailPage({ loaderData }: Route.ComponentProps) 
   const learnerSentences = typedData.learnerSentences;
   const profileIntro = typedData.profileIntro;
   const contextLine = typedData.contextLine;
-  const interestTags = typedData.interestTags;
   const currentStage = typedData.currentStage;
   const recentActivity = typedData.recentActivity;
   const selfAnswers = typedData.selfAnswers;
@@ -140,7 +139,7 @@ export default function LearnerDetailPage({ loaderData }: Route.ComponentProps) 
   ];
 
   const activityLine = buildActivityLine(recentActivity);
-  const hasProfileContent = profileIntro || interestTags.length > 0 || activityLine || learner.currentQuestion || contextLine;
+  const hasProfileContent = profileIntro || activityLine || learner.currentQuestion || contextLine;
 
   return (
     <div className="min-h-screen" data-testid="learner-profile-page">
@@ -176,20 +175,6 @@ export default function LearnerDetailPage({ loaderData }: Route.ComponentProps) 
                 <p className="mt-3 text-base text-text-secondary leading-body max-w-2xl">
                   {profileIntro}
                 </p>
-              )}
-
-              {interestTags.length > 0 && (
-                <div data-testid="interest-tags" className="flex flex-wrap gap-2 mt-3">
-                  {interestTags.map((tag: { slug: string; name: string }) => (
-                    <Link
-                      key={tag.slug}
-                      to={`/tags/${tag.slug}`}
-                      className="rounded-full px-3 py-1.5 text-xs font-medium bg-surface border border-border text-text-secondary hover:bg-mist-blue hover:text-ocean-blue hover:border-reef-cyan/30 transition-all duration-normal no-underline"
-                    >
-                      #{tag.name}
-                    </Link>
-                  ))}
-                </div>
               )}
 
               {activityLine && (

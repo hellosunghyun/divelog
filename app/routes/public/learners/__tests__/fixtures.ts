@@ -14,11 +14,6 @@ export function buildPopulatedLearnerProfile(): EnrichedLearnerProfile {
     profileIntro:
       "기록과 질문을 통해 성장하는 러너입니다.",
     contextLine: "2026-1 코호트 · 현재 Bridge 단계",
-    interestTags: [
-      { slug: "reflection", name: "성찰" },
-      { slug: "learning", name: "학습" },
-      { slug: "design", name: "디자인" },
-    ],
     currentStage: {
       id: "stage-002",
       name: "Bridge",
@@ -59,7 +54,6 @@ export function buildEmptyLearnerProfile(): EnrichedLearnerProfile {
     },
     profileIntro: null,
     contextLine: null,
-    interestTags: [],
     currentStage: null,
     recentActivity: null,
     selfAnswers: [],

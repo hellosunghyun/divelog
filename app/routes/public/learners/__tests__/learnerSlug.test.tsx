@@ -143,7 +143,6 @@ function buildLoaderData(overrides?: Partial<LoaderData>): LoaderData {
     participantsByRecordId: {},
     profileIntro: fixture.profileIntro,
     contextLine: fixture.contextLine,
-    interestTags: fixture.interestTags,
     currentStage: fixture.currentStage,
     recentActivity: {
       recordCount: fixture.recentActivity?.recordCount ?? 0,
@@ -178,18 +177,6 @@ describe("learner slug route integration", () => {
     expect(screen.getByText(loaderData.profileIntro ?? "")).toBeInTheDocument();
     expect(screen.getByText(`"${loaderData.learner.currentQuestion}"`)).toBeInTheDocument();
     expect(screen.queryByText("지금 탐구 중인 질문")).not.toBeInTheDocument();
-  });
-
-  it("renders interest tags in Hero section", () => {
-    const loaderData = buildLoaderData();
-
-    renderPage(loaderData);
-
-    const tagsContainer = screen.getByTestId("interest-tags");
-    expect(tagsContainer).toBeInTheDocument();
-    expect(within(tagsContainer).getByText("#성찰")).toBeInTheDocument();
-    expect(within(tagsContainer).getByText("#학습")).toBeInTheDocument();
-    expect(within(tagsContainer).getByText("#디자인")).toBeInTheDocument();
   });
 
   it("renders current stage block", () => {
@@ -245,7 +232,6 @@ describe("learner slug route integration", () => {
       learnerSentences: [],
       profileIntro: emptyFixture.profileIntro,
       contextLine: emptyFixture.contextLine,
-      interestTags: emptyFixture.interestTags,
       currentStage: emptyFixture.currentStage,
       selfAnswers: emptyFixture.selfAnswers,
     });

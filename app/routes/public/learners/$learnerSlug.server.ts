@@ -3,7 +3,7 @@ import { data } from "react-router";
 import type { Route } from "./+types/$learnerSlug";
 import { getRecordsWithMention } from "~/db/queries/dialogue/mentions.server";
 import { getLearnerSelfAnswerSummary } from "~/db/queries/dialogue/selfAnswers.server";
-import { getLearnerInterestTags, getLearnerStageActivity } from "~/db/queries/learners/learners.server";
+import { getLearnerStageActivity } from "~/db/queries/learners/learners.server";
 import { getRecordsWithParticipant, getParticipantsBatch } from "~/db/queries/records/participants.server";
 import { db } from "~/db/client.server";
 import { learnerProfiles, questions, records, sentences } from "~/db/schema.server";
@@ -63,8 +63,7 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
         record.visibility === "public",
     );
 
-  const [interestTags, stageActivity, selfAnswers, adaProfile] = await Promise.all([
-    getLearnerInterestTags(d1, learner.userId),
+  const [stageActivity, selfAnswers, adaProfile] = await Promise.all([
     getLearnerStageActivity(d1, learner.userId, isOwner),
     getLearnerSelfAnswerSummary(d1, learner.userId),
     fetchAdaProfile(learner.userId, context.cloudflare.env.ADAKRPOS_API_KEY),
@@ -101,7 +100,6 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
     participantsByRecordId: Object.fromEntries(participantsByRecordId),
     profileIntro,
     contextLine,
-    interestTags,
     currentStage: stageActivity.currentStage,
     recentActivity: stageActivity.recentActivity,
     selfAnswers,
