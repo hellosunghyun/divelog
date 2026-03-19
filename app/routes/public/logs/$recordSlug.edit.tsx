@@ -325,6 +325,7 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
   const formError = actionData && "error" in actionData ? actionData.error : undefined;
   const titleError = errors?.title?.[0];
   const contentError = errors?.content?.[0];
+  const dateError = errors?.recordedAt?.[0];
 
   const hasChanges =
     title !== record.title ||
@@ -419,6 +420,7 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
             <RhythmDateInput
               rhythm={rhythm}
               stages={stages}
+              error={dateError}
               initialValues={{
                 recordedAt: record.recordedAt
                   ? format(new Date(record.recordedAt * 1000), "yyyy-MM-dd")

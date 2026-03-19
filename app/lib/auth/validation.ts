@@ -57,6 +57,19 @@ export const createRecordSchema = z
         message: "글 형식 본문은 올바른 에디터 JSON이어야 합니다",
       });
     }
+  })
+  .superRefine((data, ctx) => {
+    const requiresDateRange = ["weekly", "monthly", "stage"].includes(
+      data.rhythm,
+    );
+
+    if (requiresDateRange && !data.recordedAt) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["recordedAt"],
+        message: "날짜를 선택해주세요",
+      });
+    }
   });
 
 export type CreateRecordInput = z.infer<typeof createRecordSchema>;
@@ -163,6 +176,19 @@ export const createArticleSchema = z
         code: z.ZodIssueCode.custom,
         path: ["content"],
         message: "글 형식 본문은 올바른 에디터 JSON이어야 합니다",
+      });
+    }
+  })
+  .superRefine((data, ctx) => {
+    const requiresDateRange = ["weekly", "monthly", "stage"].includes(
+      data.rhythm,
+    );
+
+    if (requiresDateRange && !data.recordedAt) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["recordedAt"],
+        message: "날짜를 선택해주세요",
       });
     }
   });

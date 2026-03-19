@@ -22,6 +22,7 @@ import { cn } from "~/lib/utils/utils";
 interface RhythmDateInputProps {
   rhythm: string;
   stages?: StageForPicker[];
+  error?: string;
   initialValues?: {
     recordedAt?: string;
     recordedEndAt?: string;
@@ -68,6 +69,7 @@ function parseDate(value?: string): Date | undefined {
 export function RhythmDateInput({
   rhythm,
   stages = [],
+  error,
   initialValues,
 }: RhythmDateInputProps) {
   const initialRecordedAt = parseDate(initialValues?.recordedAt);
@@ -149,6 +151,7 @@ export function RhythmDateInput({
   })();
 
   const isSingleDateRhythm = rhythm === "free";
+  const isDateRequired = ["weekly", "monthly", "stage"].includes(rhythm);
 
   return (
     <>
@@ -194,7 +197,7 @@ export function RhythmDateInput({
       {rhythm === "weekly" && (
         <div>
           <Label className="mb-2 block text-meta font-medium text-text-secondary">
-            주 선택
+            주 선택 <span className="text-error">*</span>
           </Label>
           <WeekPicker
             selectedWeek={dateRange}
@@ -206,7 +209,7 @@ export function RhythmDateInput({
       {rhythm === "monthly" && (
         <div>
           <Label className="mb-2 block text-meta font-medium text-text-secondary">
-            월 선택
+            월 선택 <span className="text-error">*</span>
           </Label>
           <MonthPicker
             selectedMonth={monthlySelection}
@@ -230,6 +233,10 @@ export function RhythmDateInput({
             })
           }
         />
+      )}
+
+      {isDateRequired && error && (
+        <p className="text-meta text-error">{error}</p>
       )}
 
       <input type="hidden" name="recordedAt" value={recordedAtValue} />
