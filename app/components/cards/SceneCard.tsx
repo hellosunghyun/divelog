@@ -22,6 +22,7 @@ interface SceneCardProps {
     createdAt: number;
     updatedAt?: number;
     recordedAt?: number | null;
+    viewCount?: number;
   };
   contentSnippet?: string;
   author?: {
@@ -199,6 +200,12 @@ export default function SceneCard({
                 <EditedIndicator createdAt={record.createdAt} updatedAt={record.updatedAt} />
               )}
             </div>
+
+            {typeof record.viewCount === "number" && (
+              <span className={cn("text-[11px]", isRead ? "text-[#A0A4AB]" : "text-text-tertiary/70")}>
+                조회 {record.viewCount}
+              </span>
+            )}
 
             {participants && participants.length > 0 && (
               <div className="flex items-center">

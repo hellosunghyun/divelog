@@ -25,6 +25,7 @@ import {
 } from "~/components/ui/select";
 import { Textarea } from "~/components/ui/textarea";
 import { useReadTracking } from "~/hooks/useReadTracking";
+import { useRecordViewTracking } from "~/hooks/useRecordViewTracking";
 import { RECORD_TYPE_LABELS, type RecordType } from "~/lib/constants/record-types";
 import { normalizeContentFormat } from "~/lib/content/editor-extensions";
 import { buildResponseTree, type ThreadedResponse } from "~/lib/utils/thread-tree";
@@ -485,6 +486,7 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
     isSaved: initialIsSaved,
     references,
     incomingResponseRefs,
+    viewCount: initialViewCount,
   } = loaderData as LoaderData;
   const actionData = useActionData<Action>();
   const submit = useSubmit();
@@ -529,6 +531,7 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
   });
 
   const bookmarkFetcher = useFetcher<{ saved: boolean }>();
+  const { viewCount } = useRecordViewTracking(record.id, initialViewCount);
   const optimisticSaved = bookmarkFetcher.formData
     ? !initialIsSaved
     : initialIsSaved;
@@ -830,6 +833,13 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
           <time className="text-sm text-text-tertiary">
             {new Date(record.createdAt * 1000).toLocaleDateString("ko-KR")}
           </time>
+          <span className="inline-flex items-center gap-1.5 text-sm text-text-secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0" aria-hidden="true">
+              <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+            조회 {viewCount}
+          </span>
           <EditedIndicator
             createdAt={record.createdAt}
             updatedAt={record.updatedAt}

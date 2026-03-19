@@ -17,6 +17,7 @@ import {
   recordReferences,
   recordRevisions,
   recordTags,
+  recordViews,
   records,
   responseMentions,
   responseRecordRefs,
@@ -104,6 +105,7 @@ export const recordsRelations = relations(records, ({ many, one }) => ({
   savedRecords: many(savedRecords),
   revisions: many(recordRevisions),
   reads: many(recordReads),
+  views: many(recordViews),
   participants: many(recordParticipants),
   references: many(recordReferences),
   incomingResponseRefs: many(responseRecordRefs, {
@@ -295,6 +297,13 @@ export const savedRecordsRelations = relations(savedRecords, ({ one }) => ({
   }),
   record: one(records, {
     fields: [savedRecords.recordId],
+    references: [records.id],
+  }),
+}));
+
+export const recordViewsRelations = relations(recordViews, ({ one }) => ({
+  record: one(records, {
+    fields: [recordViews.recordId],
     references: [records.id],
   }),
 }));
