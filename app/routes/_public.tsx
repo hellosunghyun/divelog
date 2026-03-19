@@ -1,4 +1,5 @@
-import { Outlet, data } from "react-router";
+import { Outlet, data, useRevalidator } from "react-router";
+import * as React from "react";
 import * as Sentry from "@sentry/react-router/cloudflare";
 import type { Route } from "./+types/_public";
 import { ensureAdminByEmail } from "~/lib/auth/auth.middleware.server";
@@ -86,6 +87,47 @@ export function headers({ loaderHeaders }: { loaderHeaders: Headers }) {
 }
 
 export default function PublicLayout() {
+  const revalidator = useRevalidator();
+
+  React.useEffect(() => {
+    let lastRevalidatedAt = 0;
+
+    const revalidateIfNeeded = () => {
+      const now = Date.now();
+      if (document.visibilityState !== "visible") return;
+      if (revalidator.state !== "idle") return;
+      if (now - lastRevalidatedAt < 1000) return;
+      lastRevalidatedAt = now;
+      revalidator.revalidate();
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        revalidateIfNeeded();
+      }
+    };
+
+    const handleWindowFocus = () => {
+      revalidateIfNeeded();
+    };
+
+    const handlePageShow = (event: PageTransitionEvent) => {
+      if (event.persisted) {
+        revalidateIfNeeded();
+      }
+    };
+
+    window.addEventListener("focus", handleWindowFocus);
+    window.addEventListener("pageshow", handlePageShow);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener("focus", handleWindowFocus);
+      window.removeEventListener("pageshow", handlePageShow);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [revalidator]);
+
   return (
     <div className="min-h-screen flex flex-col bg-bg">
       <GlobalNav />
