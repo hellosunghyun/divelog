@@ -76,8 +76,6 @@
 
   body {
     min-height: 100dvh;
-    /* Radix react-remove-scroll이 overlay 열 때 inline padding-right를 추가하는데,
-       html의 scrollbar-gutter: stable과 이중 보상되어 레이아웃 시프트 발생 방지 */
     scrollbar-gutter: stable;
   }
 
@@ -130,6 +128,14 @@
 ::-webkit-scrollbar-thumb {
   background: var(--color-border);
   border-radius: var(--radius-full);
+}
+
+/* react-remove-scroll(Radix Select/Dialog)가 scroll lock 시
+   margin-right: {scrollbar-width} !important 를 동적 주입하지만,
+   html scrollbar-gutter: stable이 이미 공간을 보존하므로 이중 보상 발생.
+   doubled attribute selector로 동적 주입보다 높은 specificity 확보. */
+body[data-scroll-locked][data-scroll-locked] {
+  margin-right: 0 !important;
 }
 
 .user-mention {
