@@ -99,7 +99,7 @@ export const records = sqliteTable("records", {
   content: text("content").notNull(),
   contentText: text("content_text").default(""),
   format: text("format").notNull().default("note"),
-  type: text("type").notNull().default("personal"),
+  type: text("type").notNull().default("exploration"),
   rhythm: text("rhythm").notNull().default("free"),
   visibility: text("visibility").notNull().default("public"),
   responsePreference: text("response_preference").notNull().default("open"),
