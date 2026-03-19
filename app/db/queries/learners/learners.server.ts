@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray, isNotNull, sql } from "drizzle-orm";
+import { and, asc, count, eq, inArray, isNotNull, max, sql } from "drizzle-orm";
 
 import { nanoid } from "../../../lib/utils/utils.server";
 import { db } from "../../client.server";
@@ -380,18 +380,18 @@ export async function getLearnerStageActivity(
 
   const recordsQuery = isOwner
     ? database
-        .select({ createdAt: records.createdAt })
+        .select({ cnt: count(), maxCreatedAt: max(records.createdAt) })
         .from(records)
         .where(eq(records.authorId, learnerId))
     : database
-        .select({ createdAt: records.createdAt })
+        .select({ cnt: count(), maxCreatedAt: max(records.createdAt) })
         .from(records)
         .where(
           sql`${records.authorId} = ${learnerId} AND ${records.visibility} IN ('cohort', 'public')`,
         );
 
   const questionsQuery = database
-    .select({ createdAt: questions.createdAt })
+    .select({ cnt: count(), maxCreatedAt: max(questions.createdAt) })
     .from(questions)
     .leftJoin(records, eq(questions.recordId, records.id))
     .where(eq(records.authorId, learnerId));
@@ -412,21 +412,26 @@ export async function getLearnerStageActivity(
 
   const currentStage = stageResult[0] ?? null;
 
-  const allTimestamps = [
-    ...recordsList.map((r) => r.createdAt),
-    ...questionsList.map((q) => q.createdAt),
-  ];
+  const recordCount = recordsList[0]?.cnt ?? 0;
+  const recordMaxTime = recordsList[0]?.maxCreatedAt ?? null;
+  const questionCount = questionsList[0]?.cnt ?? 0;
+  const questionMaxTime = questionsList[0]?.maxCreatedAt ?? null;
+
+  const maxTime = Math.max(
+    recordMaxTime ?? 0,
+    questionMaxTime ?? 0,
+  );
 
   const lastActiveAt =
-    allTimestamps.length > 0
-      ? new Date(Math.max(...allTimestamps) * 1000).toISOString()
+    maxTime > 0
+      ? new Date(maxTime * 1000).toISOString()
       : null;
 
   return {
     currentStage,
     recentActivity: {
-      recordCount: recordsList.length,
-      questionCount: questionsList.length,
+      recordCount,
+      questionCount,
       lastActiveAt,
     },
   };
