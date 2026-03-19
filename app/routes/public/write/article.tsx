@@ -11,7 +11,7 @@ import { NavigationBlockerDialog } from "~/components/feedback/NavigationBlocker
 import { SubmitButton } from "~/components/feedback/SubmitButton";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
+
 import {
   Select,
   SelectContent,
@@ -190,6 +190,7 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
    const actionData = useActionData<typeof action>();
    const [title, setTitle] = useState("");
    const [articleContent, setArticleContent] = useState("");
+   const [type, setType] = useState(DEFAULT_RECORD_TYPE);
    const [rhythm, setRhythm] = useState("free");
    const errors = actionData?.errors;
   const titleError = errors && "title" in errors ? errors.title?.[0] : undefined;
@@ -227,14 +228,27 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
 
           <div>
             <Label className="mb-2 block text-sm font-medium text-text-secondary">유형</Label>
-            <RadioGroup name="type" defaultValue={DEFAULT_RECORD_TYPE} className="flex flex-wrap gap-2">
-              {RECORD_TYPES.map((type) => (
-                <div key={type} className="flex items-center gap-1.5">
-                  <RadioGroupItem value={type} id={`article-type-${type}`} />
-                  <Label htmlFor={`article-type-${type}`} className="text-sm cursor-pointer">{RECORD_TYPE_LABELS[type]}</Label>
-                </div>
+            <input type="hidden" name="type" value={type} />
+            <div className="flex flex-wrap gap-2">
+              {RECORD_TYPES.map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  aria-pressed={type === t}
+                  onClick={() => setType(t)}
+                  className={cn(
+                    "rounded-full px-3.5 py-1.5 text-sm font-medium border transition-all duration-[var(--duration-fast)]",
+                    "hover:bg-surface-secondary active:scale-[0.98]",
+                    "focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2 focus-visible:outline-none",
+                    type === t
+                      ? "bg-mist-blue text-ocean-blue border-ocean-blue/30"
+                      : "bg-surface text-text-secondary border-border",
+                  )}
+                >
+                  {RECORD_TYPE_LABELS[t]}
+                </button>
               ))}
-            </RadioGroup>
+            </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-4">

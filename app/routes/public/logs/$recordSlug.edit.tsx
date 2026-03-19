@@ -16,7 +16,7 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { SubmitButton } from "~/components/feedback/SubmitButton";
-import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
+
 import {
   Select,
   SelectContent,
@@ -302,6 +302,9 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
   const actionData = useActionData<typeof action>();
 
   const isArticleRecord = record.format === "article";
+  const [type, setType] = useState(
+    (RECORD_TYPES as readonly string[]).includes(record.type) ? record.type : DEFAULT_RECORD_TYPE
+  );
   const [rhythm, setRhythm] = useState(record.rhythm ?? "free");
   const [selectedTags, setSelectedTags] = useState<Set<string>>(
     new Set(currentTags.map((t: TagOption) => t.id))
@@ -359,24 +362,30 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
       <Form method="post" className="flex flex-col gap-6">
         <input type="hidden" name="format" value={record.format} />
 
-        <fieldset className="border-0 m-0 p-0">
-          <legend className="block text-meta font-medium text-text-secondary mb-2">유형</legend>
-          <RadioGroup
-            name="type"
-            defaultValue={(RECORD_TYPES as readonly string[]).includes(record.type) ? record.type : DEFAULT_RECORD_TYPE}
-            className="flex flex-wrap gap-3"
-            aria-label="유형"
-          >
-            {RECORD_TYPES.map((type) => (
-              <div key={type} className="flex items-center gap-2">
-                <RadioGroupItem value={type} id={`type-${type}`} />
-                <Label htmlFor={`type-${type}`} className="cursor-pointer text-base text-text-primary">
-                  {RECORD_TYPE_LABELS[type]}
-                </Label>
-              </div>
+        <div>
+          <Label className="mb-2 block text-meta font-medium text-text-secondary">유형</Label>
+          <input type="hidden" name="type" value={type} />
+          <div className="flex flex-wrap gap-2">
+            {RECORD_TYPES.map((t) => (
+              <button
+                key={t}
+                type="button"
+                aria-pressed={type === t}
+                onClick={() => setType(t)}
+                className={cn(
+                  "rounded-full px-3.5 py-1.5 text-sm font-medium border transition-all duration-[var(--duration-fast)]",
+                  "hover:bg-surface-secondary active:scale-[0.98]",
+                  "focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2 focus-visible:outline-none",
+                  type === t
+                    ? "bg-mist-blue text-ocean-blue border-ocean-blue/30"
+                    : "bg-surface text-text-secondary border-border",
+                )}
+              >
+                {RECORD_TYPE_LABELS[t]}
+              </button>
             ))}
-          </RadioGroup>
-        </fieldset>
+          </div>
+        </div>
 
         {isArticleRecord ? (
           <div className="space-y-4">
