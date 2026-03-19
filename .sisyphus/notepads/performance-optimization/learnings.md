@@ -177,3 +177,30 @@ Task 9: Link component lazy loading (SmartLink audit + CTA conversion)
 ### Verification snapshot
 - `app/routes/public/logs/$recordSlug.server.ts`에 OR 단일 쿼리 + slug 우선 정렬 확인
 - `pnpm typecheck 2>&1 | grep -c "error TS"` 결과 `12` (pre-existing와 동일)
+
+## Task 8: Composite Index Migration
+
+### What Was Done
+- Created migration file `0016_composite_index_records.sql`
+- Added composite index: `idx_records_author_visibility_created` on `records(author_id, visibility, created_at DESC)`
+- Fixed migration 0013 to handle SQLite foreign key constraints properly
+
+### Key Learnings
+1. **SQLite Foreign Key Constraints**: SQLite doesn't support direct column drops when foreign keys reference them. Must use table recreation approach.
+2. **Migration Numbering**: Next migration after 0015 is 0016. Check `drizzle/migrations/` for highest number.
+3. **Index Syntax**: SQLite composite indexes use `ON table(col1, col2 DESC)` syntax. DESC is important for reverse chronological sorting.
+
+### Composite Index Benefits
+- Optimizes queries filtering by author + visibility + creation date
+- Improves pagination performance on author timelines
+- Reduces query execution time for visibility-filtered chronological queries
+
+### Pre-existing Issues Encountered
+- Migration 0013 had SQLite compatibility issue with dropping columns that have foreign key constraints
+- Fixed by using table recreation pattern (CREATE TABLE AS SELECT, DROP, RENAME)
+- This is a pre-existing codebase issue, not related to the index task
+
+### Files Modified
+- `drizzle/migrations/0016_composite_index_records.sql` (new)
+- `drizzle/migrations/0013_remove_stage_from_records.sql` (fixed FK issue)
+- `.sisyphus/evidence/task-8-migration.txt` (evidence)
