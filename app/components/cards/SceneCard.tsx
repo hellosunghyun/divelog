@@ -3,6 +3,7 @@ import { EditedIndicator } from "~/components/ui/EditedIndicator";
 import { motion } from "~/lib/motion/motion";
 
 import { cn } from "~/lib/utils/cn";
+import { RECORD_TYPE_LABELS, type RecordType } from "~/lib/constants/record-types";
 
 interface Participant {
   displayName: string | null;
@@ -120,7 +121,7 @@ export default function SceneCard({
         "group relative p-1.5 rounded-2xl ring-1",
         "hover:shadow-tinted-md transition-premium cursor-pointer",
         isRead
-          ? "bg-read-bg ring-read-ring"
+          ? "bg-[#ECEEF1] ring-[#D8DCE3]"
           : "bg-surface-secondary ring-border"
       )}
       whileHover={{ y: -2 }}
@@ -129,7 +130,7 @@ export default function SceneCard({
     >
       <div className={cn(
         "rounded-xl p-5 md:p-6 h-full flex flex-col gap-4",
-        isRead ? "bg-read-surface" : "bg-surface"
+        isRead ? "bg-[#F0F2F5]" : "bg-surface"
       )}>
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-caption px-2.5 py-0.5 rounded-full bg-border text-text-secondary">
@@ -161,7 +162,7 @@ export default function SceneCard({
 
         <p className={cn(
           "text-base leading-body m-0",
-          isRead ? "text-read-text" : "text-text-secondary"
+          isRead ? "text-[#A0A4AB]" : "text-text-secondary"
         )}>
           {snippet}
         </p>
@@ -184,7 +185,7 @@ export default function SceneCard({
                   )
                 )}
                 <span
-                  className={cn("text-[11px]", isRead ? "text-read-text" : "text-text-tertiary/70")}
+                  className={cn("text-[11px]", isRead ? "text-[#A0A4AB]" : "text-text-tertiary/70")}
                   suppressHydrationWarning
                 >
                   {formatRelativeTime(record.createdAt)}

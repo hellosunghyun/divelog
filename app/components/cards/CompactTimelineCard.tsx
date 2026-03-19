@@ -51,7 +51,7 @@ export default function CompactTimelineCard({
         "no-underline",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2",
         isRead
-          ? "bg-read-surface border-read-ring"
+          ? "bg-[#F0F2F5] border-[#D8DCE3]"
           : "bg-surface border-subtle",
         className
       )}
@@ -61,7 +61,7 @@ export default function CompactTimelineCard({
           className={cn(
             "text-xs font-medium px-2 py-0.5 rounded-full",
             isRead
-              ? "bg-read-badge-bg text-read-badge-text"
+              ? "bg-[#E0E3E8] text-[#8C8F96]"
               : format === "note"
                 ? "bg-mist-blue/60 text-ocean-blue"
                 : "bg-surface-secondary text-text-secondary"
@@ -72,7 +72,7 @@ export default function CompactTimelineCard({
         <span
           className={cn(
             "text-xs",
-            isRead ? "text-read-text" : "text-text-tertiary"
+            isRead ? "text-[#A0A4AB]" : "text-text-tertiary"
           )}
           suppressHydrationWarning
         >
@@ -90,7 +90,7 @@ export default function CompactTimelineCard({
       {contentSnippet && (
         <p className={cn(
           "text-sm line-clamp-3 mt-1.5 m-0 leading-relaxed",
-          isRead ? "text-read-text" : "text-text-secondary"
+          isRead ? "text-[#A0A4AB]" : "text-text-secondary"
         )}>
           {contentSnippet}
         </p>
