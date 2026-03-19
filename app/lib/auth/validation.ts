@@ -200,7 +200,7 @@ export const createQuestionSchema = z.object({
 export type CreateQuestionInput = z.infer<typeof createQuestionSchema>;
 
 export const createResponseSchema = z.object({
-  content: z.string().min(1, "내용을 입력해주세요").max(10000),
+  content: z.string().min(1, "내용을 입력해주세요").max(200000),
   type: z.enum(["resonance", "question", "connection", "suggestion", "self_answer"]),
   visibility: z.enum(["cohort", "public"]).default("public"),
   recordId: z.string().min(1),
@@ -212,7 +212,7 @@ export type CreateResponseInput = z.infer<typeof createResponseSchema>;
 
 export const updateResponseSchema = z.object({
   responseId: z.string().min(1),
-  content: z.string().min(1, "내용을 입력해주세요").max(10000).optional(),
+  content: z.string().min(1, "내용을 입력해주세요").max(200000).optional(),
   type: z.enum(["resonance", "question", "connection", "suggestion", "self_answer"]).optional(),
   visibility: z.enum(["cohort", "public"]).optional(),
 });
@@ -283,4 +283,49 @@ export function parseReferencesFromFormData(
     index++;
   }
   return references;
+}
+
+import { getPlainText } from "~/lib/content/content.server";
+import { extractUserMentions, extractRecordRefs } from "~/lib/content/extract-references.server";
+
+/**
+ * Validates that the actual plaintext content of a response doesn't exceed 10000 chars.
+ * Works for both plain text and Tiptap JSON content.
+ */
+export function validateResponseContentLength(jsonStr: string): boolean {
+  try {
+    const parsed = JSON.parse(jsonStr);
+    if (parsed && parsed.type === "doc") {
+      const plainText = getPlainText(jsonStr, "article");
+      return plainText.length <= 10000;
+    }
+  } catch {
+    // Not JSON — treat as plain text
+  }
+  return jsonStr.length <= 10000;
+}
+
+/**
+ * Validates mention limits (max 10 @mentions, max 10 [[recordRefs]] per response).
+ */
+export function validateMentionLimits(jsonStr: string): {
+  userMentions: number;
+  recordRefs: number;
+  valid: boolean;
+} {
+  try {
+    const parsed = JSON.parse(jsonStr);
+    if (parsed && parsed.type === "doc") {
+      const mentions = extractUserMentions(jsonStr);
+      const refs = extractRecordRefs(jsonStr);
+      return {
+        userMentions: mentions.length,
+        recordRefs: refs.length,
+        valid: mentions.length <= 10 && refs.length <= 10,
+      };
+    }
+  } catch {
+    // Plain text — no mentions to count
+  }
+  return { userMentions: 0, recordRefs: 0, valid: true };
 }
