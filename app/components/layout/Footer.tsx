@@ -95,7 +95,7 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-border mt-12 pt-8 flex items-center justify-between">
-          <p className="text-sm text-text-secondary">
+          <p className="text-sm text-text-secondary" suppressHydrationWarning>
             © {currentYear} DiveLog. All rights reserved.
           </p>
           <a

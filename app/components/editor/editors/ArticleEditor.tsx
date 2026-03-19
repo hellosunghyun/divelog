@@ -334,9 +334,13 @@ export function ArticleEditor({
     content: parsedContent,
     editorProps: {
       handlePaste: (view, event) => {
-        // 코드블록 안에서는 기본 ProseMirror 동작 사용 (plain text 삽입)
         const { $from } = view.state.selection;
         if ($from.parent.type.name === "codeBlock") {
+          const plainText = event.clipboardData?.getData("text/plain");
+          if (plainText) {
+            view.dispatch(view.state.tr.insertText(plainText));
+            return true;
+          }
           return false;
         }
 

@@ -1,7 +1,7 @@
 import { and, eq, inArray } from "drizzle-orm";
 
 import { db } from "../../client.server";
-import { recordReads } from "../../schema.server";
+import { records, recordReads } from "../../schema.server";
 
 export type RecordRead = typeof recordReads.$inferSelect;
 
@@ -62,8 +62,20 @@ export async function bulkMarkAsRead(
 
   const database = db(d1);
 
+  const requestedIds = [...new Set(entries.map((e) => e.recordId))];
+  const existingRows = await database
+    .select({ id: records.id })
+    .from(records)
+    .where(inArray(records.id, requestedIds));
+  const validIds = new Set(existingRows.map((r) => r.id));
+
+  const validEntries = entries.filter((e) => validIds.has(e.recordId));
+  if (validEntries.length === 0) {
+    return;
+  }
+
   await database
     .insert(recordReads)
-    .values(entries.map((entry) => ({ learnerId, ...entry })))
+    .values(validEntries.map((entry) => ({ learnerId, ...entry })))
     .onConflictDoNothing({ target: [recordReads.learnerId, recordReads.recordId] });
 }

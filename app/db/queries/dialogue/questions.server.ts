@@ -33,7 +33,7 @@ export async function getOpenQuestions(d1: D1Database, cohort?: string) {
   const selfAnswerCounts = database
     .select({
       questionId: selfAnswers.questionId,
-      count: sql<number>`count(*)`.as("self_answer_cnt"),
+      cnt: sql<number>`count(*)`.as("self_answer_cnt"),
     })
     .from(selfAnswers)
     .groupBy(selfAnswers.questionId)
@@ -42,7 +42,7 @@ export async function getOpenQuestions(d1: D1Database, cohort?: string) {
   const responseCounts = database
     .select({
       questionId: responses.questionId,
-      count: sql<number>`count(*)`.as("response_cnt"),
+      cnt: sql<number>`count(*)`.as("response_cnt"),
     })
     .from(responses)
     .where(and(sql`${responses.questionId} is not null`, sql`${responses.type} != 'self_answer'`))
@@ -60,8 +60,8 @@ export async function getOpenQuestions(d1: D1Database, cohort?: string) {
       authorName: learnerProfiles.displayName,
       createdAt: questions.createdAt,
       type: sql<RecordType>`coalesce(${records.type}, 'exploration')`.as("type"),
-      selfAnswerCount: sql<number>`coalesce(${selfAnswerCounts.count}, 0)`.as("self_answer_count"),
-      responseCount: sql<number>`coalesce(${responseCounts.count}, 0)`.as("response_count"),
+      selfAnswerCount: sql<number>`coalesce(${selfAnswerCounts.cnt}, 0)`.as("self_answer_count"),
+      responseCount: sql<number>`coalesce(${responseCounts.cnt}, 0)`.as("response_count"),
     })
     .from(questions)
     .leftJoin(records, eq(questions.recordId, records.id))
