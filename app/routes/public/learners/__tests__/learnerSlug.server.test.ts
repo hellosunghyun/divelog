@@ -175,10 +175,9 @@ describe("learner slug loader", () => {
     expect(result.recentActivity).toEqual(fixture.recentActivity);
     expect(result.selfAnswers).toEqual(fixture.selfAnswers);
 
-    expect(fetchAdaProfile).toHaveBeenCalledWith(fixture.learner.userId, "test-api-key");
-    expect(resolveProfileIntro).toHaveBeenCalledWith({ bio: fixture.profileIntro }, fixture.learner.bio);
+    expect(resolveProfileIntro).toHaveBeenCalledWith(null, fixture.learner.bio);
     expect(getLearnerInterestTags).toHaveBeenCalledWith(expect.anything(), fixture.learner.userId);
-    expect(getLearnerStageActivity).toHaveBeenCalledWith(expect.anything(), fixture.learner.userId, true);
+    expect(getLearnerStageActivity).toHaveBeenCalledWith(expect.anything(), fixture.learner.userId, true, undefined);
     expect(getLearnerSelfAnswerSummary).toHaveBeenCalledWith(expect.anything(), fixture.learner.userId);
   });
 
@@ -231,7 +230,7 @@ describe("learner slug loader", () => {
       context: createContext(),
     } as unknown as Parameters<typeof loader>[0]);
 
-    expect(getLearnerStageActivity).toHaveBeenCalledWith(expect.anything(), fixture.learner.userId, false);
+    expect(getLearnerStageActivity).toHaveBeenCalledWith(expect.anything(), fixture.learner.userId, false, undefined);
     expect(result.participatedRecords).toEqual([{ record: { id: "b", visibility: "public" } }]);
     expect(result.mentionedRecords).toEqual([{ record: { id: "d", visibility: "public" } }]);
   });

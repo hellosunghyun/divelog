@@ -393,7 +393,7 @@ export async function getLearnerStageActivity(
   const questionsQuery = database
     .select({ createdAt: questions.createdAt })
     .from(questions)
-    .innerJoin(records, eq(questions.recordId, records.id))
+    .leftJoin(records, eq(questions.recordId, records.id))
     .where(eq(records.authorId, learnerId));
 
   const stageQuery = resolvedCurrentStageId

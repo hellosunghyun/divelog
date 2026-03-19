@@ -116,20 +116,21 @@ function createStageActivityDatabaseMock(
   const stageSelectWhere = vi.fn(() => ({ limit: stageSelectLimit }));
   const stageSelectFrom = vi.fn(() => ({ where: stageSelectWhere }));
 
-  const questionsSelectWhere = vi.fn(async () => questions);
-  const questionsInnerJoin = vi.fn(() => ({ where: questionsSelectWhere }));
-  const questionsSelectFrom = vi.fn(() => ({ innerJoin: questionsInnerJoin }));
+   const questionsSelectWhere = vi.fn(async () => questions);
+   const questionsInnerJoin = vi.fn(() => ({ where: questionsSelectWhere }));
+   const questionsLeftJoin = vi.fn(() => ({ where: questionsSelectWhere }));
+   const questionsSelectFrom = vi.fn(() => ({ innerJoin: questionsInnerJoin, leftJoin: questionsLeftJoin }));
 
   const selectFn = vi.fn(() => {
     selectCallCount += 1;
     if (selectCallCount === 1) {
-      return { from: selectFrom };
-    } else if (hasStage && selectCallCount === 2) {
-      return { from: stageSelectFrom };
-    } else if ((hasStage && selectCallCount === 3) || (!hasStage && selectCallCount === 2)) {
-      return { from: recordsSelectFrom };
+      return { from: selectFrom };       // learner profile (when currentStageId=undefined)
+    } else if (selectCallCount === 2) {
+      return { from: recordsSelectFrom }; // records query (always 2nd)
+    } else if (selectCallCount === 3) {
+      return { from: questionsSelectFrom }; // questions query (always 3rd)
     } else {
-      return { from: questionsSelectFrom };
+      return { from: stageSelectFrom };   // stage query (4th, if hasStage)
     }
   });
 
