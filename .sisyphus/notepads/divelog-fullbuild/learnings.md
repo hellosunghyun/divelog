@@ -167,3 +167,9 @@
 - 2026-03-18: article write route mirrors note tag flow by passing currentUserId into PersonSearch hidden JSON fields, and participant notifications require createNotification to accept participant_added before deduping mention alerts.
 - 2026-03-18: 기록 편집 폼도 생성 폼과 같은 `PersonSearch` hidden JSON 패턴을 그대로 재사용하면 `participantsJson`/`mentionUserIds` 직렬화와 서버 sync 함수를 추가 상태 관리 없이 연결할 수 있다.
 - 2026-03-18: Drizzle `.select({ ...table })`는 일부 쿼리에서 `SelectedFields` 타입 오류를 내므로, 전체 컬럼 확장이 필요할 때는 `getTableColumns(table)` 결과를 spread 하는 편이 안정적이다.
+- 2026-03-19: 서버 렌더러의 `codeBlock`에서 `children`은 이미 escape된 HTML 문자열이므로 하이라이팅 입력은 `node.content` 텍스트를 직접 재조합해야 한다.
+- 2026-03-19: `lowlight.highlight()` 결과를 `toHtml()`로 직렬화하면 `hljs-keyword` 같은 토큰 span을 서버 HTML에 그대로 포함시켜 에디터와 게시글 스타일 일관성을 맞출 수 있다.
+
+## [2026-03-19] Task: Record type constant rollout
+- `app/lib/constants/record-types.ts`의 `RECORD_TYPES`/`RECORD_TYPE_LABELS`를 UI 라벨, 필터 옵션, `SceneCard` 전달 타입 캐스팅의 단일 기준으로 쓰면 구 문자열 리터럴 제거와 타입 추론 정리를 동시에 처리할 수 있다.
+- Cloudflare `wrangler types` 결과에 secret 바인딩이 빠져도 `app/env.d.ts`에서 `Env`를 전역 보강하면 런타임 설정을 건드리지 않고 `context.cloudflare.env.ADAKRPOS_API_KEY` 타입 오류를 해소할 수 있다.

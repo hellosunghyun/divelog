@@ -12,6 +12,7 @@ import { SubmitButton } from "~/components/feedback/SubmitButton";
 import { Spinner } from "~/components/feedback/Spinner";
 import { eq } from "drizzle-orm";
 import { requireRole } from "~/lib/auth/auth.middleware.server";
+import { RECORD_TYPES, RECORD_TYPE_LABELS } from "~/lib/constants/record-types";
 
 const ALL_VALUE = "__all__";
 
@@ -83,12 +84,13 @@ export default function AdminTemplateEditPage({ loaderData }: Route.ComponentPro
                <SelectTrigger id="ctx" className="h-10 rounded-md border-admin-border bg-admin-surface px-3 py-2 text-sm text-admin-text">
                  <SelectValue placeholder="유형 선택" />
                </SelectTrigger>
-               <SelectContent>
-                 <SelectItem value={ALL_VALUE}>전체</SelectItem>
-                 <SelectItem value="personal">개인</SelectItem>
-                 <SelectItem value="challenge">챌린지</SelectItem>
-                 {/* [COLLAB_DISABLED] <SelectItem value="collaboration">협업</SelectItem> */}
-               </SelectContent>
+                <SelectContent>
+                  <SelectItem value={ALL_VALUE}>전체</SelectItem>
+                  {RECORD_TYPES.map((type) => (
+                    <SelectItem key={type} value={type}>{RECORD_TYPE_LABELS[type]}</SelectItem>
+                  ))}
+                  {/* [COLLAB_DISABLED] <SelectItem value="collaboration">협업</SelectItem> */}
+                </SelectContent>
              </Select>
            </div>
            <div>

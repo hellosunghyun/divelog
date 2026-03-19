@@ -2,6 +2,7 @@ import { and, asc, desc, eq, like, or, sql } from "drizzle-orm";
 import * as Sentry from "@sentry/react-router/cloudflare";
 
 import type { CreateRecordInput, RecordFilterInput } from "../../../lib/auth/validation";
+import { DEFAULT_RECORD_TYPE, type RecordType } from "../../../lib/constants/record-types";
 import { parseDateToUnix } from "../../../lib/utils/date";
 import { compareRecordStates, computeTagDiff, hasActualChanges } from "../../../lib/utils/record-diff";
 import { nanoid } from "../../../lib/utils/utils.server";
@@ -117,7 +118,7 @@ export async function createRecord(d1: D1Database, authorId: string, data: Creat
     content: data.content,
     contentText: data.contentText ?? "",
     format: data.format ?? "note",
-    type: data.type ?? "personal",
+    type: data.type ?? DEFAULT_RECORD_TYPE,
     rhythm: data.rhythm ?? "free",
     visibility: data.visibility ?? "public",
     responsePreference: data.responsePreference ?? "open",
@@ -173,9 +174,14 @@ export async function updateRecord(
   const currentRecordForDiff = {
     ...currentRecord,
     contentText: currentRecord.contentText ?? undefined,
+    type: currentRecord.type as RecordType,
   };
   const auditAfterState = { ...currentRecord, ...data };
-  const nextRecordState = { ...currentRecordForDiff, ...data };
+  const nextRecordState = {
+    ...currentRecordForDiff,
+    ...data,
+    type: (data.type ?? currentRecordForDiff.type) as RecordType,
+  };
   const fieldChanges = compareRecordStates(currentRecordForDiff, nextRecordState);
   const tagDiff = computeTagDiff(options?.oldTags ?? [], options?.newTags ?? []);
   const hasTagChanges = tagDiff.added.length > 0 || tagDiff.removed.length > 0;
@@ -295,7 +301,7 @@ export interface LinkedRecord {
     title: string;
     content: string;
     format: "note" | "article";
-    type: "personal" | "challenge" | "collaboration";
+    type: RecordType;
     createdAt: number;
   };
   author: {
@@ -345,7 +351,7 @@ export async function getLinkedRecords(
         record: {
           ...row.record,
           format: row.record.format as "note" | "article",
-          type: row.record.type as "personal" | "challenge" | "collaboration",
+          type: row.record.type as RecordType,
         },
         author: row.author,
         direction: "outgoing",
@@ -385,7 +391,7 @@ export async function getLinkedRecords(
       record: {
         ...row.record,
         format: row.record.format as "note" | "article",
-        type: row.record.type as "personal" | "challenge" | "collaboration",
+        type: row.record.type as RecordType,
       },
       author: row.author,
       direction: "incoming",

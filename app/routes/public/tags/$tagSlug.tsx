@@ -1,6 +1,7 @@
 import type { Route } from "./+types/$tagSlug";
 import { Link } from "~/components/content/SmartLink";
 import { data } from "react-router";
+import type { RecordType } from "~/lib/constants/record-types";
 import { normalizeContentFormat } from "~/lib/content/editor-extensions";
 import SceneCard from "~/components/cards/SceneCard";
 import EmptyState from "~/components/feedback/EmptyState";
@@ -93,7 +94,7 @@ export default function TagDetailPage({ loaderData }: Route.ComponentProps) {
                   title: record.title,
                   content: record.content,
                   format: record.format as "note" | "article",
-                  type: record.type as "personal" | "challenge" | "collaboration",
+                  type: record.type as RecordType,
                   rhythm: record.rhythm ?? undefined,
                   createdAt: record.createdAt,
                   recordedAt: record.recordedAt ?? undefined,

@@ -10,6 +10,7 @@ import HighlightedSentenceCard from "~/components/cards/HighlightedSentenceCard"
 import LoadingSkeleton from "~/components/feedback/LoadingSkeleton";
 import { db } from "~/db/client.server";
 import { learnerProfiles, questions, records, sentences } from "~/db/schema.server";
+import type { RecordType } from "~/lib/constants/record-types";
 import { getPlainText } from "~/lib/content/content.server";
 import { normalizeContentFormat } from "~/lib/content/editor-extensions";
 import { createLogger } from "~/lib/infra/logger.server";
@@ -294,12 +295,7 @@ export default function SearchPage({ loaderData }: Route.ComponentProps) {
                            record={{
                              ...item.record,
                              format: normalizeContentFormat(item.record.format),
-                             type:
-                               item.record.type === "challenge"
-                                 ? "challenge"
-                                 : item.record.type === "collaboration"
-                                   ? "collaboration"
-                                   : "personal",
+                             type: item.record.type as RecordType,
                              recordedAt: item.record.recordedAt ?? undefined,
                            }}
                            author={item.author ?? undefined}

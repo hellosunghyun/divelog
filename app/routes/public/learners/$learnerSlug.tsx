@@ -7,6 +7,7 @@ import HighlightedSentenceCard from "~/components/cards/HighlightedSentenceCard"
 import EmptyState from "~/components/feedback/EmptyState";
 import { StarterLinksBlock } from "~/components/learner/DiscoveryHelperBlocks";
 import SelfAnswerSection from "~/components/learner/SelfAnswerSection";
+import type { RecordType } from "~/lib/constants/record-types";
 import { cn } from "~/lib/utils/cn";
 import { useState } from "react";
 
@@ -236,14 +237,14 @@ export default function LearnerDetailPage({ loaderData }: Route.ComponentProps) 
                     <div key={record.id}>
                       <SceneCard
                          record={{
-                           slug: record.slug,
-                           title: record.title,
-                           content: record.content,
-                           format: record.format as "note" | "article",
-                           type: record.type as "personal" | "challenge" | "collaboration",
-                           rhythm: record.rhythm ?? undefined,
-                           createdAt: record.createdAt,
-                           recordedAt: record.recordedAt ?? undefined,
+                            slug: record.slug,
+                            title: record.title,
+                            content: record.content,
+                            format: record.format as "note" | "article",
+                            type: record.type as RecordType,
+                            rhythm: record.rhythm ?? undefined,
+                            createdAt: record.createdAt,
+                            recordedAt: record.recordedAt ?? undefined,
                          }}
                          participants={participantsByRecordId?.[record.id]}
                        />
@@ -267,7 +268,7 @@ export default function LearnerDetailPage({ loaderData }: Route.ComponentProps) 
                            title: record.title,
                            content: record.content,
                            format: record.format as "note" | "article",
-                           type: record.type as "personal" | "challenge" | "collaboration",
+                           type: record.type as RecordType,
                            rhythm: record.rhythm ?? undefined,
                            createdAt: record.createdAt,
                            updatedAt: record.updatedAt ?? undefined,
@@ -299,7 +300,7 @@ export default function LearnerDetailPage({ loaderData }: Route.ComponentProps) 
                            title: record.title,
                            content: record.content,
                            format: record.format as "note" | "article",
-                           type: record.type as "personal" | "challenge" | "collaboration",
+                           type: record.type as RecordType,
                            rhythm: record.rhythm ?? undefined,
                            createdAt: record.createdAt,
                            updatedAt: record.updatedAt ?? undefined,

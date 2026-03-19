@@ -13,6 +13,7 @@ import { Button } from "~/components/ui/button";
 import { db } from "~/db/client.server";
 import { learnerProfiles, records } from "~/db/schema.server";
 import { getParticipantsBatch } from "~/db/queries/records/participants.server";
+import { RECORD_TYPES, RECORD_TYPE_LABELS, type RecordType } from "~/lib/constants/record-types";
 import { getPlainText } from "~/lib/content/content.server";
 import { normalizeContentFormat } from "~/lib/content/editor-extensions";
 import { createLogger } from "~/lib/infra/logger.server";
@@ -90,8 +91,8 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   if (format && (format === "note" || format === "article")) {
     conditions.push(eq(records.format, format));
   }
-  if (type && (type === "personal" || type === "collaboration")) {
-    conditions.push(eq(records.type, type));
+  if (type && RECORD_TYPES.includes(type as RecordType)) {
+    conditions.push(eq(records.type, type as RecordType));
   }
   if (rhythm && ["moment", "weekly", "monthly", "stage", "free"].includes(rhythm)) {
     conditions.push(eq(records.rhythm, rhythm));
@@ -201,10 +202,7 @@ const FILTER_OPTIONS = [
   {
     key: "type",
     label: "유형",
-    values: [
-      { value: "personal", label: "개인" },
-      // [COLLAB_DISABLED] { value: "collaboration", label: "협업" },
-    ],
+    values: RECORD_TYPES.map((type) => ({ value: type, label: RECORD_TYPE_LABELS[type] })),
   },
   {
     key: "rhythm",
@@ -273,7 +271,7 @@ export default function LogsPage({ loaderData }: Route.ComponentProps) {
                 title: record.title,
                 content: record.content,
                 format: record.format as "note" | "article",
-                type: record.type as "personal" | "challenge" | "collaboration",
+                type: record.type as RecordType,
                 rhythm: record.rhythm ?? undefined,
                 createdAt: record.createdAt,
                 recordedAt: record.recordedAt,
