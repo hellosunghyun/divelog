@@ -39,17 +39,37 @@ export function buildResponseTree<T extends { id: string; parentResponseId: stri
   }
 
   // Second pass: build parent-child relationships and calculate depths
+  const placed = new Set<string>();
   for (const response of flat) {
     const node = map.get(response.id)!;
 
-    if (response.parentResponseId && map.has(response.parentResponseId)) {
-      // Parent exists: add to parent's children and set depth
+    if (response.parentResponseId && map.has(response.parentResponseId) && !placed.has(response.id)) {
       const parent = map.get(response.parentResponseId)!;
-      node.depth = parent.depth + 1;
-      parent.children.push(node);
-    } else {
-      // No parent or parent doesn't exist: treat as root
+
+      let ancestor: ThreadedResponse<T> | undefined = parent;
+      let isCycle = false;
+
+      while (ancestor) {
+        if (ancestor.id === node.id) {
+          isCycle = true;
+          break;
+        }
+
+        const ancestorParentId = flat.find((item) => item.id === ancestor!.id)?.parentResponseId;
+        ancestor = ancestorParentId ? map.get(ancestorParentId) : undefined;
+      }
+
+      if (!isCycle) {
+        node.depth = parent.depth + 1;
+        parent.children.push(node);
+        placed.add(response.id);
+      } else {
+        roots.push(node);
+        placed.add(response.id);
+      }
+    } else if (!placed.has(response.id)) {
       roots.push(node);
+      placed.add(response.id);
     }
   }
 
