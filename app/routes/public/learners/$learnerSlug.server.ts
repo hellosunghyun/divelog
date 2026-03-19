@@ -7,7 +7,7 @@ import { getLearnerInterestTags, getLearnerStageActivity } from "~/db/queries/le
 import { getRecordsWithParticipant, getParticipantsBatch } from "~/db/queries/records/participants.server";
 import { db } from "~/db/client.server";
 import { learnerProfiles, questions, records, sentences } from "~/db/schema.server";
-import { resolveContextLine, resolveProfileIntro } from "~/lib/auth/ada-profile.server";
+import { fetchAdaProfile, resolveContextLine, resolveProfileIntro } from "~/lib/auth/ada-profile.server";
 import { getAuth } from "~/lib/auth/auth.server";
 import { createLogger } from "~/lib/infra/logger.server";
 
@@ -71,7 +71,8 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
         record.visibility === "public",
     );
 
-  const profileIntro = resolveProfileIntro(null, learner.bio);
+  const adaProfile = await fetchAdaProfile(learner.userId, context.cloudflare.env.ADAKRPOS_API_KEY);
+  const profileIntro = resolveProfileIntro(adaProfile, learner.bio);
   const contextLine = resolveContextLine(learner.cohort, stageActivity.currentStage?.name ?? null);
 
   const recordIds = learnerRecords.map((item: { record: { id: string } }) => item.record.id);

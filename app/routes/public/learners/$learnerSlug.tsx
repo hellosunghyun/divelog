@@ -5,7 +5,6 @@ import SceneCard from "~/components/cards/SceneCard";
 import QuestionCard from "~/components/cards/QuestionCard";
 import HighlightedSentenceCard from "~/components/cards/HighlightedSentenceCard";
 import EmptyState from "~/components/feedback/EmptyState";
-import { StarterLinksBlock } from "~/components/learner/DiscoveryHelperBlocks";
 import SelfAnswerSection from "~/components/learner/SelfAnswerSection";
 import type { RecordType } from "~/lib/constants/record-types";
 import { cn } from "~/lib/utils/cn";
@@ -120,9 +119,6 @@ export default function LearnerDetailPage({ loaderData }: Route.ComponentProps) 
   const participatedRecords = typedData.participatedRecords ?? [];
   const mentionedRecords = typedData.mentionedRecords ?? [];
   const participantsByRecordId = typedData.participantsByRecordId ?? {};
-  const starterRecords = learnerRecords
-    .slice(0, 2)
-    .map((item) => ({ slug: item.record.slug, title: item.record.title }));
   const publicData = useRouteLoaderData<PublicLoaderData>("routes/_public");
   const [activeTab, setActiveTab] = useState<TabKey>("records");
   const authData = publicData as { isAuthenticated?: boolean; user?: { id: string } } | undefined;
@@ -223,10 +219,6 @@ export default function LearnerDetailPage({ loaderData }: Route.ComponentProps) 
 
         {activeTab === "records" && (
           <section key="records">
-            {starterRecords.length > 0 && (
-              <StarterLinksBlock records={starterRecords} />
-            )}
-
             {learnerRecords.length === 0 ? (
               <EmptyState variant="records" message="아직 작성한 기록이 없습니다." />
             ) : (
