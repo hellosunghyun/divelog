@@ -570,6 +570,47 @@ export async function action({ request, context }: Route.ActionArgs) {
     }
 
     const updatedContent = parsed.data.content ?? targetResponse.content;
+    const previousMentionIds = new Set(extractMentionUserIdsFromContent(targetResponse.content));
+    const newlyAddedMentionIds = Array.from(new Set(extractMentionUserIdsFromContent(updatedContent))).filter(
+      (userId) => userId !== auth.user.id && !previousMentionIds.has(userId),
+    );
+
+    let mentionNotificationJobs: Promise<void>[] = [];
+    if (newlyAddedMentionIds.length > 0) {
+      const authorProfile = await database
+        .select({ displayName: learnerProfiles.displayName })
+        .from(learnerProfiles)
+        .where(eq(learnerProfiles.userId, auth.user.id))
+        .limit(1);
+
+      const actorName = authorProfile[0]?.displayName ?? "누군가";
+      const visibility = parsed.data.visibility ?? targetResponse.visibility;
+
+      mentionNotificationJobs = newlyAddedMentionIds.map(async (recipientId) => {
+        const notifyResult = await publishNotification(
+          context.cloudflare.env.QUEUE,
+          {
+            actorId: auth.user.id,
+            recipientId,
+            type: "mention",
+            title: `${actorName}님이 회원님을 언급했습니다`,
+            recordId: targetResponse.recordId,
+            visibility,
+          },
+          context.cloudflare.env.DB,
+        );
+
+        if (!notifyResult.success) {
+          logger.warn("notification_create_failed", {
+            responseId: parsed.data.responseId,
+            recipientId,
+            recordId: targetResponse.recordId,
+            error: notifyResult.error ?? "알림 생성에 실패했습니다.",
+          });
+        }
+      });
+    }
+
     context.cloudflare.ctx.waitUntil(
       Promise.all([
         syncMentionsForResponse(
@@ -584,6 +625,7 @@ export async function action({ request, context }: Route.ActionArgs) {
           parsed.data.responseId,
           updatedContent,
         ),
+        ...mentionNotificationJobs,
       ]).catch((error) => {
         logger.warn("response_reference_sync_failed", {
           responseId: parsed.data.responseId,

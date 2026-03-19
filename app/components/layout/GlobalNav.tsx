@@ -7,6 +7,7 @@ import { User, Envelope, GearSix, ArrowSquareOut, SignOut } from "@phosphor-icon
 import { AnimatePresence, motion } from "~/lib/motion/motion";
 import { staggerContainer, staggerItem } from "~/lib/motion/motion-utils";
 import { cn } from "~/lib/utils/cn";
+import type { NotificationType } from "~/lib/constants/notificationTypes";
 
 interface PublicLoaderData {
   isAuthenticated: boolean;
@@ -55,17 +56,19 @@ interface SearchData {
 
 const focusRing = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2";
 
-const NOTIF_TYPE_LABEL: Record<string, string> = {
+const NOTIF_TYPE_LABEL: Record<NotificationType, string> = {
   response: "응답",
-  question: "질문",
+  reply: "답글",
   mention: "언급",
-  memory: "공동 기억",
-  system: "시스템",
+  participant_added: "함께한 사람",
   reminder: "알림",
   reread_reminder: "다시 읽기",
-  carry_over: "이어가기",
-  stage_closing: "마무리 알림",
+  stage_transition: "스테이지 이동",
 };
+
+function getNotificationTypeLabel(type: string): string {
+  return type in NOTIF_TYPE_LABEL ? NOTIF_TYPE_LABEL[type as NotificationType] : type;
+}
 
 const navLinks = [
   { to: "/logs", label: "기록" },
@@ -214,7 +217,8 @@ function GlobalNav() {
 
   // --- Computed URLs ---
   const loginUrl = `https://ada-kr-pos.com/login?callbackUrl=${encodeURIComponent(currentUrl)}`;
-  const logoutUrl = `https://ada-kr-pos.com/api/auth/logout?callbackUrl=${encodeURIComponent(currentUrl)}`;
+  const logoutReturnUrl = currentUrl === "/" ? "https://divelog.ada-kr-pos.com/" : new URL("/", currentUrl).toString();
+  const logoutUrl = `https://ada-kr-pos.com/api/auth/logout?callbackUrl=${encodeURIComponent(logoutReturnUrl)}`;
   const profileEditUrl = `https://ada-kr-pos.com/mypage?returnTo=${encodeURIComponent(currentUrl)}`;
 
   const isActive = (path: string) =>
@@ -609,7 +613,7 @@ function GlobalNav() {
                                   <div className={cn("flex-1 min-w-0", notif.isRead && "ml-5")}>
                                     <div className="flex items-center gap-2 mb-0.5">
                                       <span className="text-caption text-ocean-blue font-medium">
-                                        {NOTIF_TYPE_LABEL[notif.type] ?? notif.type}
+                                        {getNotificationTypeLabel(notif.type)}
                                       </span>
                                       <span className="text-caption text-text-tertiary">
                                         {timeAgo(notif.createdAt)}

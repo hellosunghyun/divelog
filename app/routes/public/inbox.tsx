@@ -8,6 +8,8 @@ import { Button } from "~/components/ui/button";
 import { SubmitButton } from "~/components/feedback/SubmitButton";
 import { db } from "~/db/client.server";
 import { notifications, records } from "~/db/schema.server";
+import { getUnreadCount } from "~/db/queries/social/notifications.server";
+import type { NotificationType } from "~/lib/constants/notificationTypes";
 import { createLogger } from "~/lib/infra/logger.server";
 import { Form } from "react-router";
 
@@ -36,28 +38,30 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const url = new URL(request.url);
   const tab = url.searchParams.get("tab") ?? "all";
 
-  const allNotifs = await database
-    .select({
-      id: notifications.id,
-      type: notifications.type,
-      title: notifications.title,
-      content: notifications.content,
-      recordId: notifications.recordId,
-      recordSlug: records.slug,
-      questionId: notifications.questionId,
-      isRead: notifications.isRead,
-      createdAt: notifications.createdAt,
-    })
-    .from(notifications)
-    .leftJoin(records, eq(notifications.recordId, records.id))
-    .where(eq(notifications.recipientId, auth.user.id))
-    .orderBy(desc(notifications.createdAt))
-    .limit(50);
+  const [allNotifs, unreadCount] = await Promise.all([
+    database
+      .select({
+        id: notifications.id,
+        type: notifications.type,
+        title: notifications.title,
+        content: notifications.content,
+        recordId: notifications.recordId,
+        recordSlug: records.slug,
+        questionId: notifications.questionId,
+        isRead: notifications.isRead,
+        createdAt: notifications.createdAt,
+      })
+      .from(notifications)
+      .leftJoin(records, eq(notifications.recordId, records.id))
+      .where(eq(notifications.recipientId, auth.user.id))
+      .orderBy(desc(notifications.createdAt))
+      .limit(50),
+    getUnreadCount(context.cloudflare.env.DB, auth.user.id),
+  ]);
 
-  const unread = allNotifs.filter((n) => !n.isRead);
-  const displayed = tab === "unread" ? unread : allNotifs;
+  const displayed = tab === "unread" ? allNotifs.filter((n) => !n.isRead) : allNotifs;
 
-  return { notifications: displayed, unreadCount: unread.length, tab };
+  return { notifications: displayed, unreadCount, tab };
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
@@ -90,13 +94,19 @@ export async function action({ request, context }: Route.ActionArgs) {
   return null;
 }
 
-const NOTIF_TYPE: Record<string, string> = {
+const NOTIF_TYPE: Record<NotificationType, string> = {
   response: "응답",
-  question: "질문",
+  reply: "답글",
   mention: "언급",
-  memory: "공동 기억",
-  system: "시스템",
+  participant_added: "함께한 사람",
+  reminder: "알림",
+  reread_reminder: "다시 읽기",
+  stage_transition: "스테이지 이동",
 };
+
+function getNotificationTypeLabel(type: string): string {
+  return type in NOTIF_TYPE ? NOTIF_TYPE[type as NotificationType] : type;
+}
 
 export default function InboxPage({ loaderData }: Route.ComponentProps) {
   const { notifications: notifs, unreadCount, tab } = loaderData;
@@ -156,7 +166,7 @@ export default function InboxPage({ loaderData }: Route.ComponentProps) {
               >
                 <div className="flex-1">
                   <span className="text-caption text-ocean-blue">
-                    {NOTIF_TYPE[n.type] ?? n.type}
+                    {getNotificationTypeLabel(n.type)}
                   </span>
                   <p className="text-base text-text-primary mt-1">
                     {n.title}
