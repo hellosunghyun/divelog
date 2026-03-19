@@ -1,0 +1,22 @@
+getLearnersWithActivity over-fetch 제거 확인
+
+파일: app/db/queries/learners/learners.server.ts
+
+핵심 변경:
+- 기존: inArray(authorId, userIds)로 visible records 전체 로드 후 JS Map에서 author별 최신 1건 선택
+- 변경: SQL 상관 서브쿼리로 author별 최신 visible record 1건만 조회
+
+적용 쿼리 조건(발췌):
+sql`${records.id} = (
+  SELECT r2.id
+  FROM records r2
+  WHERE r2.author_id = ${records.authorId}
+    AND r2.visibility IN ('cohort', 'public')
+  ORDER BY r2.created_at DESC, r2.id DESC
+  LIMIT 1
+)`
+
+보존 사항:
+- visibility 필터 유지: ('cohort', 'public')
+- 반환 shape 유지: recentRecord, stage, lastActivityAt 포함
+- stages 조회는 latestRecords 조회와 Promise.all 병렬화

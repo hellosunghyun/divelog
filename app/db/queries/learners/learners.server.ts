@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray, isNotNull, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, isNotNull, sql } from "drizzle-orm";
 
 import { nanoid } from "../../../lib/utils/utils.server";
 import { db } from "../../client.server";
@@ -215,32 +215,6 @@ export async function getLearnersWithActivity(
   }
 
   const userIds = learners.map((l) => l.userId);
-
-  const allRecords = await database
-    .select({
-      authorId: records.authorId,
-      slug: records.slug,
-      title: records.title,
-      createdAt: records.createdAt,
-    })
-    .from(records)
-    .where(and(inArray(records.authorId, userIds), sql`${records.visibility} IN ('cohort', 'public')`))
-    .orderBy(desc(records.createdAt));
-
-  const mostRecentRecordByAuthor = new Map<
-    string,
-    { slug: string; title: string; createdAt: number }
-  >();
-  for (const record of allRecords) {
-    if (!mostRecentRecordByAuthor.has(record.authorId)) {
-      mostRecentRecordByAuthor.set(record.authorId, {
-        slug: record.slug,
-        title: record.title,
-        createdAt: record.createdAt,
-      });
-    }
-  }
-
   const stageIds = [
     ...new Set(
       learners
@@ -249,16 +223,52 @@ export async function getLearnersWithActivity(
     ),
   ];
 
-  const stageMap = new Map<string, { name: string }>();
-  if (stageIds.length > 0) {
-    const stagesData = await database
-      .select({ id: stages.id, name: stages.name })
-      .from(stages)
-      .where(inArray(stages.id, stageIds as string[]));
+  const [latestRecords, stagesData] = await Promise.all([
+    database
+      .select({
+        authorId: records.authorId,
+        slug: records.slug,
+        title: records.title,
+        createdAt: records.createdAt,
+      })
+      .from(records)
+      .where(
+        and(
+          inArray(records.authorId, userIds),
+          sql`${records.visibility} IN ('cohort', 'public')`,
+          sql`${records.id} = (
+            SELECT r2.id
+            FROM records r2
+            WHERE r2.author_id = ${records.authorId}
+              AND r2.visibility IN ('cohort', 'public')
+            ORDER BY r2.created_at DESC, r2.id DESC
+            LIMIT 1
+          )`,
+        ),
+      ),
+    stageIds.length > 0
+      ? database
+          .select({ id: stages.id, name: stages.name })
+          .from(stages)
+          .where(inArray(stages.id, stageIds as string[]))
+      : Promise.resolve([]),
+  ]);
 
-    for (const stage of stagesData) {
-      stageMap.set(stage.id, { name: stage.name });
-    }
+  const mostRecentRecordByAuthor = new Map<
+    string,
+    { slug: string; title: string; createdAt: number }
+  >();
+  for (const record of latestRecords) {
+    mostRecentRecordByAuthor.set(record.authorId, {
+      slug: record.slug,
+      title: record.title,
+      createdAt: record.createdAt,
+    });
+  }
+
+  const stageMap = new Map<string, { name: string }>();
+  for (const stage of stagesData) {
+    stageMap.set(stage.id, { name: stage.name });
   }
 
   const learnersWithActivity: LearnerWithActivity[] = learners.map((learner) => {
