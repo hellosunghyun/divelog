@@ -97,7 +97,7 @@ export default function EmptyState({
       {action && (
         <Link
           to={action.href}
-          prefetch="viewport"
+          prefetch="intent"
           className={cn(
             "inline-flex items-center justify-center gap-2",
             "px-6 py-3 rounded-full",

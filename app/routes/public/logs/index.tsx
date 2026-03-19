@@ -352,7 +352,7 @@ export default function LogsPage({ loaderData }: Route.ComponentProps) {
             ) : (
               <Link
                 to={buildLogsPageHref(searchParams, page - 1)}
-                prefetch="viewport"
+                prefetch="intent"
                 className="rounded-full px-4 py-2 border border-border text-sm font-medium text-text-secondary hover:bg-surface-secondary transition-colors no-underline"
               >
                 이전
@@ -375,7 +375,7 @@ export default function LogsPage({ loaderData }: Route.ComponentProps) {
                   <Link
                     key={pageNum}
                     to={buildLogsPageHref(searchParams, pageNum)}
-                    prefetch="viewport"
+                    prefetch="intent"
                     className={`rounded-full w-10 h-10 text-sm font-medium transition-colors ${
                       pageNum === page
                         ? "bg-ocean-blue text-white"
@@ -396,7 +396,7 @@ export default function LogsPage({ loaderData }: Route.ComponentProps) {
             ) : (
               <Link
                 to={buildLogsPageHref(searchParams, page + 1)}
-                prefetch="viewport"
+                prefetch="intent"
                 className="rounded-full px-4 py-2 border border-border text-sm font-medium text-text-secondary hover:bg-surface-secondary transition-colors no-underline"
               >
                 다음

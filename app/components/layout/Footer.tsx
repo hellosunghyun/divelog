@@ -57,6 +57,7 @@ export default function Footer() {
                   <li key={link.to}>
                     <Link
                       to={link.to}
+                      prefetch="none"
                       className={cn(
                         "text-[15px] text-text-secondary hover:text-ocean-blue transition-colors no-underline",
                         focusRing
@@ -78,6 +79,7 @@ export default function Footer() {
                   <li key={link.to}>
                     <Link
                       to={link.to}
+                      prefetch="none"
                       className={cn(
                         "text-[15px] text-text-secondary hover:text-ocean-blue transition-colors no-underline",
                         focusRing

@@ -64,7 +64,7 @@ export default function LearnerCard({ learner, recentRecord }: LearnerCardProps)
         <div className="min-w-0 flex-1">
           <Link
             to={`/learners/${learner.slug}`}
-            prefetch="viewport"
+            prefetch="intent"
             className="text-sm font-semibold text-text-primary no-underline hover:text-ocean-blue transition-colors truncate block"
           >
             {learner.displayName}
@@ -78,7 +78,7 @@ export default function LearnerCard({ learner, recentRecord }: LearnerCardProps)
       {recentRecord && (
         <Link
           to={`/logs/${recentRecord.slug}`}
-          prefetch="viewport"
+          prefetch="intent"
           className="block mt-3 text-xs text-text-tertiary no-underline hover:text-ocean-blue transition-colors truncate"
         >
           최근: {recentRecord.title}

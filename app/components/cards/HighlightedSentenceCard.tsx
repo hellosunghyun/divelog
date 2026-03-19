@@ -54,7 +54,7 @@ export default function HighlightedSentenceCard({ sentence, savedBy, record }: H
         {savedBy && (
           <Link
             to={`/learners/${savedBy.slug}`}
-            prefetch="viewport"
+            prefetch="intent"
             className="text-xs text-text-tertiary no-underline hover:text-ocean-blue transition-colors"
           >
             — {savedBy.displayName}
@@ -63,7 +63,7 @@ export default function HighlightedSentenceCard({ sentence, savedBy, record }: H
         {record && (
           <Link
             to={`/logs/${record.slug}`}
-            prefetch="viewport"
+            prefetch="intent"
             className="text-xs text-text-tertiary no-underline hover:text-ocean-blue transition-colors ml-auto"
           >
             ← {record.title}

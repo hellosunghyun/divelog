@@ -150,7 +150,7 @@ export default function SceneCard({
 
         <Link
           to={`/logs/${record.slug}`}
-          prefetch="viewport"
+          prefetch="intent"
           className={cn(
             "text-lg font-semibold leading-title no-underline",
             "after:absolute after:inset-0 after:rounded-2xl",
@@ -175,7 +175,7 @@ export default function SceneCard({
                   author.slug ? (
                     <Link
                       to={`/learners/${author.slug}`}
-                      prefetch="viewport"
+                      prefetch="intent"
                       className="relative z-10 text-meta text-text-secondary no-underline hover:text-ocean-blue transition-colors"
                     >
                       {author.displayName}

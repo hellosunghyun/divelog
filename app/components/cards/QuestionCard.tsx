@@ -53,7 +53,7 @@ export default function QuestionCard({
         <div className="mb-4">
           <Link
             to={`/logs/${record.slug}`}
-            prefetch="viewport"
+            prefetch="intent"
             className="text-sm text-text-tertiary no-underline hover:text-ocean-blue transition-colors"
           >
             ← {record.title}

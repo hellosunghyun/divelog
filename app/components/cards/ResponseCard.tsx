@@ -110,7 +110,7 @@ export default function ResponseCard({
         {author && (
           <Link
             to={`/learners/${author.slug}`}
-            prefetch="viewport"
+            prefetch="intent"
             className="no-underline hover:text-ocean-blue transition-colors"
           >
             {author.displayName}

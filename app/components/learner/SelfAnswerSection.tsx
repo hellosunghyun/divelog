@@ -47,7 +47,7 @@ export default function SelfAnswerSection({
           <Link
             key={selfAnswer.id}
             to={`/logs/${selfAnswer.recordSlug}`}
-            prefetch="viewport"
+            prefetch="intent"
             className="block min-w-0 no-underline"
           >
             <article
