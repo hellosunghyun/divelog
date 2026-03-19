@@ -7,9 +7,14 @@ export interface EnrichedLearnerProfile {
     bio: string | null;
     profilePhotoUrl: string | null;
     currentQuestion: string | null;
+    currentStageId?: string | null;
   };
   profileIntro: string | null;
   contextLine: string | null;
+  interestTags: Array<{
+    slug: string;
+    name: string;
+  }>;
   currentStage: {
     id: string;
     name: string;
