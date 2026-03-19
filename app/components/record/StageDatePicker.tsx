@@ -10,6 +10,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
 import { cn } from "~/lib/utils/utils";
 
 export interface StageForPicker {
@@ -215,7 +222,7 @@ export function StageDatePicker({
   };
 
   return (
-    <div className={cn("space-y-3", className)}>
+    <div className={cn("space-y-4", className)}>
       <Label className="block text-meta font-medium text-text-secondary">
         {label}
       </Label>
@@ -343,88 +350,56 @@ export function StageDatePicker({
       {mode === "stage" && (
         <div className="space-y-2">
           {stages.length === 0 ? (
-              <p className="text-sm text-text-tertiary">
-                선택할 수 있는 Stage가 없습니다
-              </p>
-            ) : (
-              <div
-                className="grid gap-2"
-                role="radiogroup"
-                aria-label="Stage 선택"
-              >
-              {stages.map((stage) => {
-                const isSelected = selectedStageId === stage.id;
-                const startDate = stage.startDate;
-                const endDate = stage.endDate;
-                let dateRangeText = "날짜 미지정";
+            <p className="text-sm text-text-tertiary">
+              선택할 수 있는 Stage가 없습니다
+            </p>
+          ) : (
+            <Select
+              value={selectedStageId ?? ""}
+              onValueChange={(value) =>
+                handleStageSelect(value || undefined)
+              }
+              disabled={disabled}
+            >
+              <SelectTrigger className="w-[320px]">
+                <SelectValue placeholder="여정을 선택하세요" />
+              </SelectTrigger>
+              <SelectContent>
+                {stages.map((stage) => {
+                  const startDate = stage.startDate;
+                  const endDate = stage.endDate;
+                  let dateRangeText = "날짜 미지정";
 
-                if (startDate != null && endDate != null) {
-                  const stageStartDate = fromUnixTime(startDate);
-                  const stageEndDate = fromUnixTime(endDate);
-                  dateRangeText = `${format(stageStartDate, "M월 d일", { locale: ko })} — ${format(stageEndDate, "M월 d일", { locale: ko })}`;
-                }
+                  if (startDate != null && endDate != null) {
+                    const stageStartDate = fromUnixTime(startDate);
+                    const stageEndDate = fromUnixTime(endDate);
+                    dateRangeText = `${format(stageStartDate, "M월 d일", { locale: ko })} — ${format(stageEndDate, "M월 d일", { locale: ko })}`;
+                  }
 
-                return (
-                  <button
-                    key={stage.id}
-                    type="button"
-                    aria-pressed={isSelected}
-                    disabled={disabled}
-                    onClick={() =>
-                      handleStageSelect(isSelected ? undefined : stage.id)
-                    }
-                    className={cn(
-                      "flex items-start gap-3 rounded-xl border p-4 text-left transition-all",
-                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-1",
-                      "disabled:cursor-not-allowed disabled:opacity-50",
-                      isSelected
-                        ? "border-ocean-blue bg-mist-blue/40"
-                        : "border-border bg-surface hover:border-border/80 hover:bg-surface-secondary",
-                    )}
-                  >
-                    <div
-                      className={cn(
-                        "mt-0.5 h-4 w-4 shrink-0 rounded-full border-2 transition-colors",
-                        isSelected
-                          ? "border-ocean-blue bg-ocean-blue"
-                          : "border-border",
-                      )}
-                      aria-hidden="true"
-                    >
-                      {isSelected && (
-                        <div className="h-full w-full scale-50 rounded-full bg-white" />
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={cn(
-                            "font-medium",
-                            isSelected ? "text-text-primary" : "text-text-primary",
-                          )}
-                        >
-                          {stage.name}
-                        </span>
+                  return (
+                    <SelectItem key={stage.id} value={stage.id}>
+                      <span className="flex items-center gap-2">
+                        <span className="font-medium">{stage.name}</span>
                         {stage.isCurrent && (
-                          <span className="inline-flex items-center rounded-full bg-ocean-blue/10 px-2 py-0.5 text-xs font-medium text-ocean-blue">
-                            현재 Stage
+                          <span className="inline-flex items-center rounded-full bg-ocean-blue/10 px-1.5 py-0.5 text-xs font-medium text-ocean-blue">
+                            현재
                           </span>
                         )}
-                      </div>
-                      <p className="mt-0.5 text-sm text-text-tertiary">
-                        {dateRangeText}
-                      </p>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
+                        <span className="text-xs text-text-tertiary">
+                          {dateRangeText}
+                        </span>
+                      </span>
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
           )}
 
           {selectedStage && (
-              <p className="text-sm text-text-secondary">
-                선택한 Stage의 기간이 자동으로 적용됩니다
-              </p>
+            <p className="text-sm text-text-secondary">
+              선택한 Stage의 기간이 자동으로 적용됩니다
+            </p>
           )}
         </div>
       )}
