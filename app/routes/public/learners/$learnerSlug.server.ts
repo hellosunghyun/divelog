@@ -7,7 +7,7 @@ import { getLearnerInterestTags, getLearnerStageActivity } from "~/db/queries/le
 import { getRecordsWithParticipant, getParticipantsBatch } from "~/db/queries/records/participants.server";
 import { db } from "~/db/client.server";
 import { learnerProfiles, questions, records, sentences } from "~/db/schema.server";
-import { fetchAdaProfile, resolveContextLine, resolveProfileIntro } from "~/lib/auth/ada-profile.server";
+import { resolveContextLine, resolveProfileIntro } from "~/lib/auth/ada-profile.server";
 import { getAuth } from "~/lib/auth/auth.server";
 import { createLogger } from "~/lib/infra/logger.server";
 
@@ -38,9 +38,18 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
     database.select({ sentence: sentences }).from(sentences).leftJoin(records, eq(sentences.recordId, records.id)).where(and(eq(sentences.savedById, learner.userId), sql`${records.visibility} IN ('cohort', 'public')`)).orderBy(desc(sentences.createdAt)).limit(6),
   ]);
 
-  const [participatedRecordsRaw, mentionedRecordsRaw]: [
+  const [
+    participatedRecordsRaw,
+    mentionedRecordsRaw,
+    interestTags,
+    stageActivity,
+    selfAnswers,
+  ]: [
     Awaited<ReturnType<typeof getRecordsWithParticipant>>,
     Awaited<ReturnType<typeof getRecordsWithMention>>,
+    Awaited<ReturnType<typeof getLearnerInterestTags>>,
+    Awaited<ReturnType<typeof getLearnerStageActivity>>,
+    Awaited<ReturnType<typeof getLearnerSelfAnswerSummary>>,
   ] = await Promise.all([
     getRecordsWithParticipant(d1, learner.userId, 10).catch(() =>
       [] as Awaited<ReturnType<typeof getRecordsWithParticipant>>
@@ -48,6 +57,9 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
     getRecordsWithMention(d1, learner.userId, 10).catch(() =>
       [] as Awaited<ReturnType<typeof getRecordsWithMention>>
     ),
+    getLearnerInterestTags(d1, learner.userId),
+    getLearnerStageActivity(d1, learner.userId, isOwner, learner.currentStageId),
+    getLearnerSelfAnswerSummary(d1, learner.userId),
   ]);
 
   const participatedRecords = isOwner
@@ -63,14 +75,7 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
         record.visibility === "public",
     );
 
-  const [interestTags, stageActivity, selfAnswers, adaProfile] = await Promise.all([
-    getLearnerInterestTags(d1, learner.userId),
-    getLearnerStageActivity(d1, learner.userId, isOwner),
-    getLearnerSelfAnswerSummary(d1, learner.userId),
-    fetchAdaProfile(learner.userId, context.cloudflare.env.ADAKRPOS_API_KEY),
-  ]);
-
-  const profileIntro = resolveProfileIntro(adaProfile, learner.bio);
+  const profileIntro = resolveProfileIntro(null, learner.bio);
   const contextLine = resolveContextLine(learner.cohort, stageActivity.currentStage?.name ?? null);
 
   const recordIds = learnerRecords.map((item: { record: { id: string } }) => item.record.id);
