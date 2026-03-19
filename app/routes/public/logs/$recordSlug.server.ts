@@ -85,13 +85,31 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
 
   const currentUserId = optionalAuth?.isAuthenticated ? optionalAuth.user.id : null;
   const isAuthor = currentUserId === recordData.record.authorId;
+  const viewerCohort = currentUserId
+    ? await getUserCohort(database, currentUserId)
+    : null;
 
-  if ((recordData.record.visibility === "draft" || recordData.record.visibility === "private") && !isAuthor) {
+  const canViewRecord = canAccessRecordVisibility({
+    visibility: recordData.record.visibility,
+    recordCohort: recordData.record.cohort,
+    isAuthor,
+    viewerCohort,
+  });
+
+  if (!canViewRecord) {
     logger.info("not_found", { slug: recordSlug });
     throw data("기록을 찾을 수 없습니다.", { status: 404 });
   }
 
   const mentionSlugMapPromise = buildMentionSlugMap(database, recordData.record.content);
+
+  const responseVisibilityCondition = isAuthor
+    ? sql`1=1`
+    : buildResponseVisibilityCondition({
+        viewerUserId: currentUserId,
+        viewerCohort,
+        recordCohort: recordData.record.cohort,
+      });
 
   const [recordQuestions, recordResponses, recordSentences] = await database.batch([
     database.select().from(questions).where(eq(questions.recordId, recordData.record.id)).orderBy(desc(questions.createdAt)),
@@ -106,7 +124,11 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
       })
       .from(responses)
       .leftJoin(learnerProfiles, eq(responses.authorId, learnerProfiles.userId))
-      .where(and(eq(responses.recordId, recordData.record.id), eq(responses.moderationStatus, "clean")))
+      .where(and(
+        eq(responses.recordId, recordData.record.id),
+        eq(responses.moderationStatus, "clean"),
+        responseVisibilityCondition,
+      ))
       .orderBy(desc(responses.createdAt)),
     database
       .select({
@@ -122,15 +144,24 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
       .orderBy(desc(sentences.createdAt)),
   ]);
 
-  const [linkedRecordsRaw, selfAnswersData, recordTags, incomingLinks, isAdmin, isSaved, participants, mentions, recordReferences, incomingResponseRefs] = await Promise.all([
+  const [linkedRecordsRaw, selfAnswersData, recordTags, incomingLinks, isAdmin, isSaved, participants, mentions, recordReferences] = await Promise.all([
     getLinkedRecords(
       context.cloudflare.env.DB,
       recordData.record.id,
       recordData.record.linkedRecordId,
+      {
+        viewerUserId: currentUserId,
+        viewerCohort,
+        includeRestricted: isAuthor,
+      },
     ),
     getSelfAnswersByRecord(context.cloudflare.env.DB, recordData.record.id),
     getTagsByRecord(context.cloudflare.env.DB, recordData.record.id),
-    getIncomingLinks(context.cloudflare.env.DB, recordData.record.id).catch((err) => {
+    getIncomingLinks(context.cloudflare.env.DB, recordData.record.id, {
+      viewerUserId: currentUserId,
+      viewerCohort,
+      includeRestricted: isAuthor,
+    }).catch((err) => {
       logger.warn("incoming_links_query_failed", {
         error: err instanceof Error ? err.message : String(err),
         recordId: recordData.record.id,
@@ -161,9 +192,6 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
           [] as Awaited<ReturnType<typeof getRecordReferences>>
         )
       : Promise.resolve([]),
-    getResponsesByReferencedRecord(context.cloudflare.env.DB, recordData.record.id).catch(() =>
-      [] as Awaited<ReturnType<typeof getResponsesByReferencedRecord>>
-    ),
   ]);
 
   const linkedRecords = linkedRecordsRaw.map((lr) => ({
@@ -175,6 +203,17 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
   }));
 
   const isAuthorOrAdmin = isAuthor || isAdmin;
+
+  const incomingResponseRefs = await getResponsesByReferencedRecord(
+    context.cloudflare.env.DB,
+    recordData.record.id,
+    {
+      viewerUserId: currentUserId,
+      viewerCohort,
+      includeRestricted: isAuthorOrAdmin,
+    },
+  ).catch(() => [] as Awaited<ReturnType<typeof getResponsesByReferencedRecord>>);
+
   const recordFormat = normalizeContentFormat(recordData.record.format);
   const shouldLoadRevisions =
     isAuthorOrAdmin && recordData.record.updatedAt > recordData.record.createdAt;
@@ -249,8 +288,10 @@ export async function action({ request, context }: Route.ActionArgs) {
       return data({ error: "멘션은 각각 10개까지 가능합니다" }, { status: 400 });
     }
 
+    const viewerCohort = await getUserCohort(database, auth.user.id);
+
     const targetRecord = await database
-      .select({ responsePreference: records.responsePreference, visibility: records.visibility, authorId: records.authorId })
+      .select({ responsePreference: records.responsePreference, visibility: records.visibility, authorId: records.authorId, cohort: records.cohort })
       .from(records)
       .where(eq(records.id, parsed.data.recordId))
       .limit(1);
@@ -263,8 +304,16 @@ export async function action({ request, context }: Route.ActionArgs) {
       const pref = targetRecord[0].responsePreference;
       const visibility = targetRecord[0].visibility;
       const authorId = targetRecord[0].authorId;
+      const recordCohort = targetRecord[0].cohort;
 
-      if ((visibility === "draft" || visibility === "private") && authorId !== auth.user.id) {
+      const canRespond = canAccessRecordVisibility({
+        visibility,
+        recordCohort,
+        isAuthor: authorId === auth.user.id,
+        viewerCohort,
+      });
+
+      if (!canRespond) {
         return data({ error: "이 기록에 응답할 수 없습니다." }, { status: 403 });
       }
 
@@ -470,8 +519,10 @@ export async function action({ request, context }: Route.ActionArgs) {
       return data({ error: parsed.error.issues[0]?.message ?? "문장을 확인해주세요." }, { status: 400 });
     }
 
+    const viewerCohort = await getUserCohort(database, auth.user.id);
+
     const targetRecord = await database
-      .select({ visibility: records.visibility, authorId: records.authorId })
+      .select({ visibility: records.visibility, authorId: records.authorId, cohort: records.cohort })
       .from(records)
       .where(eq(records.id, parsed.data.recordId))
       .limit(1);
@@ -479,8 +530,16 @@ export async function action({ request, context }: Route.ActionArgs) {
     if (targetRecord.length > 0) {
       const visibility = targetRecord[0].visibility;
       const authorId = targetRecord[0].authorId;
+      const recordCohort = targetRecord[0].cohort;
 
-      if ((visibility === "draft" || visibility === "private") && authorId !== auth.user.id) {
+      const canSaveSentence = canAccessRecordVisibility({
+        visibility,
+        recordCohort,
+        isAuthor: authorId === auth.user.id,
+        viewerCohort,
+      });
+
+      if (!canSaveSentence) {
         return data({ error: "이 기록에 문장을 저장할 수 없습니다." }, { status: 403 });
       }
     }
@@ -683,6 +742,63 @@ export async function action({ request, context }: Route.ActionArgs) {
 }
 
 type DrizzleDB = ReturnType<typeof db>;
+
+interface RecordAccessParams {
+  visibility: string;
+  recordCohort: string | null;
+  isAuthor: boolean;
+  viewerCohort: string | null;
+}
+
+function canAccessRecordVisibility({ visibility, recordCohort, isAuthor, viewerCohort }: RecordAccessParams): boolean {
+  if (isAuthor) {
+    return true;
+  }
+
+  if (visibility === "public") {
+    return true;
+  }
+
+  if (visibility === "cohort") {
+    return !!viewerCohort && !!recordCohort && viewerCohort === recordCohort;
+  }
+
+  return false;
+}
+
+function buildResponseVisibilityCondition({
+  viewerUserId,
+  viewerCohort,
+  recordCohort,
+}: {
+  viewerUserId: string | null;
+  viewerCohort: string | null;
+  recordCohort: string | null;
+}) {
+  if (!viewerUserId) {
+    return eq(responses.visibility, "public");
+  }
+
+  if (viewerCohort && recordCohort && viewerCohort === recordCohort) {
+    return or(
+      eq(responses.authorId, viewerUserId),
+      eq(responses.visibility, "public"),
+      eq(responses.visibility, "cohort"),
+    );
+  }
+
+  return or(eq(responses.authorId, viewerUserId), eq(responses.visibility, "public"));
+}
+
+async function getUserCohort(database: DrizzleDB, userId: string): Promise<string | null> {
+  const result = await database
+    .select({ cohort: learnerProfiles.cohort })
+    .from(learnerProfiles)
+    .where(eq(learnerProfiles.userId, userId))
+    .limit(1);
+
+  return result[0]?.cohort ?? null;
+}
 
 async function buildMentionSlugMap(
   database: DrizzleDB,

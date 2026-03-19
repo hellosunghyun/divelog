@@ -5,8 +5,43 @@ import { nanoid } from "../../../lib/utils/utils.server";
 import { db } from "../../client.server";
 import { learnerProfiles, records, responses } from "../../schema.server";
 
-export async function getResponsesByRecord(d1: D1Database, recordId: string) {
+interface ResponseVisibilityScope {
+  viewerUserId: string | null;
+  viewerCohort: string | null;
+  includeRestricted?: boolean;
+}
+
+function buildAccessibleResponseCondition(scope: ResponseVisibilityScope) {
+  if (scope.includeRestricted) {
+    return sql`1=1`;
+  }
+
+  if (!scope.viewerUserId) {
+    return eq(responses.visibility, "public");
+  }
+
+  if (scope.viewerCohort) {
+    return sql`(
+      ${responses.authorId} = ${scope.viewerUserId}
+      OR ${responses.visibility} = 'public'
+      OR (${responses.visibility} = 'cohort' AND ${records.cohort} = ${scope.viewerCohort})
+    )`;
+  }
+
+  return sql`(${responses.authorId} = ${scope.viewerUserId} OR ${responses.visibility} = 'public')`;
+}
+
+export async function getResponsesByRecord(
+  d1: D1Database,
+  recordId: string,
+  scope: ResponseVisibilityScope = {
+    viewerUserId: null,
+    viewerCohort: null,
+    includeRestricted: false,
+  },
+) {
   const database = db(d1);
+  const visibilityCondition = buildAccessibleResponseCondition(scope);
 
   return database
     .select({
@@ -19,7 +54,12 @@ export async function getResponsesByRecord(d1: D1Database, recordId: string) {
     })
     .from(responses)
     .leftJoin(learnerProfiles, eq(responses.authorId, learnerProfiles.userId))
-    .where(and(eq(responses.recordId, recordId), inArray(responses.moderationStatus, ["clean", "tombstone"])))
+    .leftJoin(records, eq(responses.recordId, records.id))
+    .where(and(
+      eq(responses.recordId, recordId),
+      inArray(responses.moderationStatus, ["clean", "tombstone"]),
+      visibilityCondition,
+    ))
     .orderBy(asc(responses.createdAt));
 }
 

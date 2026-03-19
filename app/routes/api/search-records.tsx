@@ -1,4 +1,4 @@
-import { sql, and } from "drizzle-orm";
+import { sql, and, eq } from "drizzle-orm";
 import type { LoaderFunctionArgs } from "react-router";
 import { db } from "~/db/client.server";
 import { records, learnerProfiles } from "~/db/schema.server";
@@ -28,6 +28,12 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   try {
     const database = db(context.cloudflare.env.DB);
+    const viewerProfile = await database
+      .select({ cohort: learnerProfiles.cohort })
+      .from(learnerProfiles)
+      .where(eq(learnerProfiles.userId, auth.user.id))
+      .limit(1);
+    const viewerCohort = viewerProfile[0]?.cohort ?? null;
 
     const baseQuery = database
       .select({
@@ -40,9 +46,13 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       .from(records)
       .leftJoin(learnerProfiles, sql`${records.authorId} = ${learnerProfiles.userId}`);
 
+    const cohortVisibilityFilter = viewerCohort
+      ? sql`(${records.visibility} = 'public' OR (${records.visibility} = 'cohort' AND ${records.cohort} = ${viewerCohort}))`
+      : eq(records.visibility, "public");
+
     const visibilityFilter = includeOwn && currentUserId
-      ? sql`(${records.visibility} IN ('cohort', 'public') OR ${records.authorId} = ${currentUserId})`
-      : sql`${records.visibility} IN ('cohort', 'public')`;
+      ? sql`(${cohortVisibilityFilter} OR ${records.authorId} = ${currentUserId})`
+      : cohortVisibilityFilter;
 
     const isEditorPreload = url.searchParams.get("all") === "true";
 

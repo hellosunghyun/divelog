@@ -17,6 +17,7 @@ import { RECORD_TYPES, RECORD_TYPE_LABELS, type RecordType } from "~/lib/constan
 import { getPlainText } from "~/lib/content/content.server";
 import { normalizeContentFormat } from "~/lib/content/editor-extensions";
 import { createLogger } from "~/lib/infra/logger.server";
+import { getOptionalUser } from "~/lib/auth/auth.middleware.server";
 import { useReadState } from "~/hooks/useReadState";
 
 type LogSort = "recent" | "oldest";
@@ -86,8 +87,22 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const page = shouldLoadAllRecords ? 1 : Math.max(1, Number(url.searchParams.get("page") ?? "1"));
 
   const database = db(context.cloudflare.env.DB);
+  const auth = await getOptionalUser(request, context);
+  const currentUserId = auth?.isAuthenticated ? auth.user.id : null;
+  const viewerProfile = currentUserId
+    ? await database
+        .select({ cohort: learnerProfiles.cohort })
+        .from(learnerProfiles)
+        .where(eq(learnerProfiles.userId, currentUserId))
+        .limit(1)
+    : [];
+  const viewerCohort = viewerProfile[0]?.cohort ?? null;
 
-  const conditions = [sql`${records.visibility} IN ('cohort', 'public')`];
+  const visibilityCondition = viewerCohort
+    ? sql`(${records.visibility} = 'public' OR (${records.visibility} = 'cohort' AND ${records.cohort} = ${viewerCohort}))`
+    : eq(records.visibility, "public");
+
+  const conditions = [visibilityCondition];
   if (format && (format === "note" || format === "article")) {
     conditions.push(eq(records.format, format));
   }

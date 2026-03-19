@@ -1,4 +1,4 @@
-import { sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import type { LoaderFunctionArgs } from "react-router";
 import { db } from "~/db/client.server";
 import { learnerProfiles } from "~/db/schema.server";
@@ -26,6 +26,17 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   try {
     const database = db(context.cloudflare.env.DB);
+    const currentUserId = auth.user.id;
+    const viewerProfile = await database
+      .select({ cohort: learnerProfiles.cohort })
+      .from(learnerProfiles)
+      .where(eq(learnerProfiles.userId, currentUserId))
+      .limit(1);
+    const viewerCohort = viewerProfile[0]?.cohort ?? null;
+
+    const cohortFilter = viewerCohort
+      ? sql`(${learnerProfiles.cohort} = ${viewerCohort} OR ${learnerProfiles.userId} = ${currentUserId})`
+      : eq(learnerProfiles.userId, currentUserId);
 
     const baseQuery = database
       .select({
@@ -37,8 +48,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       .from(learnerProfiles);
 
      const results = q.length > 0
-       ? await baseQuery.where(sql`${learnerProfiles.displayName} LIKE ${"%" + escapeLikeWildcards(q) + "%"} OR ${learnerProfiles.slug} LIKE ${"%" + escapeLikeWildcards(q) + "%"}`).limit(8)
-       : await baseQuery.limit(8);
+       ? await baseQuery.where(sql`(${learnerProfiles.displayName} LIKE ${"%" + escapeLikeWildcards(q) + "%"} OR ${learnerProfiles.slug} LIKE ${"%" + escapeLikeWildcards(q) + "%"}) AND ${cohortFilter}`).limit(8)
+       : await baseQuery.where(cohortFilter).limit(8);
 
     logger.info("search_results", { count: results.length });
     return Response.json({ results });

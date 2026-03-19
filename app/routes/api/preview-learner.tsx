@@ -2,6 +2,7 @@ import { eq, sql } from "drizzle-orm";
 import type { LoaderFunctionArgs } from "react-router";
 import { db } from "~/db/client.server";
 import { learnerProfiles, stages } from "~/db/schema.server";
+import { getOptionalUser } from "~/lib/auth/auth.middleware.server";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const url = new URL(request.url);
@@ -43,6 +44,18 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     return Response.json({ error: "not found" }, { status: 404 });
   }
 
+  const auth = await getOptionalUser(request, context);
+  const currentUserId = auth?.isAuthenticated ? auth.user.id : null;
+  const viewerProfile = currentUserId
+    ? await database
+        .select({ cohort: learnerProfiles.cohort })
+        .from(learnerProfiles)
+        .where(eq(learnerProfiles.userId, currentUserId))
+        .limit(1)
+    : [];
+  const viewerCohort = viewerProfile[0]?.cohort ?? null;
+  const canViewCohort = currentUserId === learner.userId || (!!viewerCohort && viewerCohort === learner.cohort);
+
   let stageName: string | null = null;
   if (learner.currentStageId) {
     const stageResult = await database
@@ -57,7 +70,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     slug: learner.slug,
     displayName: learner.displayName,
     profilePhotoUrl: learner.profilePhotoUrl,
-    cohort: learner.cohort,
+    cohort: canViewCohort ? learner.cohort : null,
     bio: learner.bio,
     currentQuestion: learner.currentQuestion,
     stageName,
