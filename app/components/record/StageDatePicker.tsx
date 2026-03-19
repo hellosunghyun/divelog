@@ -45,6 +45,7 @@ interface StageDatePickerProps {
   }) => void;
   className?: string;
   label?: string;
+  required?: boolean;
   disabled?: boolean;
 }
 
@@ -103,6 +104,7 @@ export function StageDatePicker({
   onDatesChange,
   className,
   label = "기간 설정",
+  required = false,
   disabled = false,
 }: StageDatePickerProps) {
   const [dateRange, setDateRange] = React.useState<
@@ -224,13 +226,13 @@ export function StageDatePicker({
   return (
     <div className={cn("space-y-4", className)}>
       <Label className="block text-meta font-medium text-text-secondary">
-        {label}
+        {label} {required && <span className="text-error">*</span>}
       </Label>
 
       <div
-        className="inline-flex rounded-lg border border-border bg-surface-secondary p-1"
+        className="flex w-fit rounded-lg border border-border bg-surface-secondary p-1"
         role="radiogroup"
-          aria-label="구간 날짜 선택 방식"
+        aria-label="구간 날짜 선택 방식"
       >
         <button
           type="button"

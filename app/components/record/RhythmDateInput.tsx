@@ -223,6 +223,7 @@ export function RhythmDateInput({
           mode={stageDateMode}
           onModeChange={setStageDateMode}
           stages={stages}
+          required
           initialRange={dateRange}
           initialStageId={selectedStageId}
           onStageChange={(stageId) => setSelectedStageId(stageId)}
