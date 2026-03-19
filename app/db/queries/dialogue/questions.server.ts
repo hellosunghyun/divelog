@@ -32,7 +32,7 @@ export async function getOpenQuestions(d1: D1Database, cohort?: string) {
   const selfAnswerCounts = database
     .select({
       questionId: selfAnswers.questionId,
-      count: sql<number>`count(*)`.as("count"),
+      count: sql<number>`count(*)`.as("self_answer_cnt"),
     })
     .from(selfAnswers)
     .groupBy(selfAnswers.questionId)
@@ -41,7 +41,7 @@ export async function getOpenQuestions(d1: D1Database, cohort?: string) {
   const responseCounts = database
     .select({
       questionId: responses.questionId,
-      count: sql<number>`count(*)`.as("count"),
+      count: sql<number>`count(*)`.as("response_cnt"),
     })
     .from(responses)
     .where(and(sql`${responses.questionId} is not null`, sql`${responses.type} != 'self_answer'`))
