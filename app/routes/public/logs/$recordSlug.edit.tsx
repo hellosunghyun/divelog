@@ -37,7 +37,7 @@ import {
 import { syncRecordLinksForRecord } from "~/db/queries/records/recordLinks.server";
 import { getRecordBySlug, updateRecord } from "~/db/queries/records/records.server";
 import { getAllTags, getTagsByRecord, findOrCreateTag, syncTagsForRecord } from "~/db/queries/records/tags.server";
-import { recordReferences, templates } from "~/db/schema.server";
+import { recordReferences } from "~/db/schema.server";
 import { requireVerified } from "~/lib/auth/auth.middleware.server";
 import { createRecordSchema, parseReferencesFromFormData } from "~/lib/auth/validation";
 import { getPlainText } from "~/lib/content/content.server";
@@ -48,8 +48,6 @@ import { deliverMentionNotifications } from "~/lib/notifications/mention-deliver
 import { cn } from "~/lib/utils/cn";
 import { useUnsavedWarning } from "~/hooks/useUnsavedWarning";
 
-const NO_SELECTION_VALUE = "__none__";
-
 const RHYTHM_OPTIONS = [
   { value: "free", label: "자유" },
   { value: "moment", label: "순간" },
@@ -59,7 +57,6 @@ const RHYTHM_OPTIONS = [
 ] as const;
 
 type TagOption = { id: string; name: string };
-type TemplateOption = { id: string; name: string };
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "기록 수정 — DiveLog" }];
@@ -86,8 +83,7 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
     throw new Response("Forbidden", { status: 403 });
   }
 
-  const [activeTemplates, allTags, currentTags, existingParticipants, existingMentions, references, stages] = await Promise.all([
-    database.select().from(templates).where(eq(templates.active, true)),
+  const [allTags, currentTags, existingParticipants, existingMentions, references, stages] = await Promise.all([
     getAllTags(context.cloudflare.env.DB),
     getTagsByRecord(context.cloudflare.env.DB, recordData.record.id),
     getParticipantsByRecord(context.cloudflare.env.DB, recordData.record.id).catch(() =>
@@ -106,7 +102,6 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
 
   return {
     record: recordData.record,
-    templates: activeTemplates,
     collaborations: [] as never[], // [COLLAB_DISABLED]
     tags: allTags,
     currentTags,
@@ -297,7 +292,6 @@ export async function action({ params, request, context }: Route.ActionArgs) {
 export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
   const {
     record,
-    templates: availableTemplates,
     collaborations,
     tags,
     currentTags,
@@ -321,7 +315,6 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
       title: reference.title ?? "",
     }))
   );
-  const [templateValue, setTemplateValue] = useState(NO_SELECTION_VALUE);
   // [COLLAB_DISABLED] const [collaborationValue, setCollaborationValue] = useState(record.collaborationUnitId ?? NO_SELECTION_VALUE);
 
   const errors = actionData && "errors" in actionData ? actionData.errors : undefined;
@@ -448,28 +441,6 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
           </div>
         )}
 
-        {availableTemplates.length > 0 ? (
-          <div>
-            <Label htmlFor="templateId" className="mb-2 block text-meta font-medium text-text-secondary">
-              템플릿 (선택)
-            </Label>
-            <input type="hidden" name="templateId" value={templateValue === NO_SELECTION_VALUE ? "" : templateValue} />
-            <Select value={templateValue} onValueChange={setTemplateValue}>
-              <SelectTrigger id="templateId" className="w-full bg-surface">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={NO_SELECTION_VALUE}>템플릿 없이 작성 중</SelectItem>
-               {availableTemplates.map((tmpl: TemplateOption) => (
-                 <SelectItem key={tmpl.id} value={tmpl.id}>
-                   {tmpl.name}
-                 </SelectItem>
-              ))}
-              </SelectContent>
-            </Select>
-          </div>
-        ) : null}
-
         {/* [COLLAB_DISABLED] collaboration selector removed */}
 
         <div>
@@ -489,24 +460,6 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
           />
           {titleError ? <p className="text-error text-meta mt-1">{titleError}</p> : null}
         </div>
-
-        {record.format === "article" ? (
-          <div className="space-y-2">
-            <label htmlFor="originalUrl" className="block text-sm font-medium text-[#6E6E73]">
-              원문 링크 <span className="text-xs text-[#8C8C91]">(선택)</span>
-            </label>
-            <input
-              type="text"
-              inputMode="url"
-              id="originalUrl"
-              name="originalUrl"
-              value={originalUrl}
-              onChange={(event) => setOriginalUrl(event.target.value)}
-              placeholder="블로그나 원본 글의 URL을 입력하세요"
-              className="w-full rounded-xl border border-[#E3E8EF] bg-white px-4 py-3 text-sm text-[#1D1D1F] placeholder:text-[#8C8C91] focus:border-[#146C94] focus:outline-none focus:ring-2 focus:ring-[#146C94]/20"
-            />
-          </div>
-        ) : null}
 
         <div>
           <p className="block text-meta font-medium text-text-secondary mb-2">
@@ -532,6 +485,24 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
            )}
           {contentError ? <p className="text-error text-meta mt-1">{contentError}</p> : null}
         </div>
+
+        {record.format === "article" ? (
+          <div className="space-y-2">
+            <label htmlFor="originalUrl" className="block text-sm font-medium text-[#6E6E73]">
+              원문 링크 <span className="text-xs text-[#8C8C91]">(선택)</span>
+            </label>
+            <input
+              type="text"
+              inputMode="url"
+              id="originalUrl"
+              name="originalUrl"
+              value={originalUrl}
+              onChange={(event) => setOriginalUrl(event.target.value)}
+              placeholder="블로그나 원본 글의 URL을 입력하세요"
+              className="w-full rounded-xl border border-[#E3E8EF] bg-white px-4 py-3 text-sm text-[#1D1D1F] placeholder:text-[#8C8C91] focus:border-[#146C94] focus:outline-none focus:ring-2 focus:ring-[#146C94]/20"
+            />
+          </div>
+        ) : null}
 
         {record.format === "article" ? (
           <div className="space-y-3">
