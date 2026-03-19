@@ -1,4 +1,4 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 
 import { db } from "../../client.server";
 import { learnerProfiles, records, responseRecordRefs, responses } from "../../schema.server";
@@ -61,6 +61,52 @@ export interface IncomingResponseRef {
   createdAt: number;
 }
 
+interface IncomingResponseScope {
+  viewerUserId: string | null;
+  viewerCohort: string | null;
+  includeRestricted?: boolean;
+}
+
+function buildAccessibleResponseCondition(scope: IncomingResponseScope) {
+  if (scope.includeRestricted) {
+    return sql`1=1`;
+  }
+
+  if (!scope.viewerUserId) {
+    return eq(responses.visibility, "public");
+  }
+
+  if (scope.viewerCohort) {
+    return sql`(
+      ${responses.authorId} = ${scope.viewerUserId}
+      OR ${responses.visibility} = 'public'
+      OR (${responses.visibility} = 'cohort' AND ${records.cohort} = ${scope.viewerCohort})
+    )`;
+  }
+
+  return sql`(${responses.authorId} = ${scope.viewerUserId} OR ${responses.visibility} = 'public')`;
+}
+
+function buildAccessibleSourceRecordCondition(scope: IncomingResponseScope) {
+  if (scope.includeRestricted) {
+    return sql`1=1`;
+  }
+
+  if (!scope.viewerUserId) {
+    return eq(records.visibility, "public");
+  }
+
+  if (scope.viewerCohort) {
+    return sql`(
+      ${records.authorId} = ${scope.viewerUserId}
+      OR ${records.visibility} = 'public'
+      OR (${records.visibility} = 'cohort' AND ${records.cohort} = ${scope.viewerCohort})
+    )`;
+  }
+
+  return sql`(${records.authorId} = ${scope.viewerUserId} OR ${records.visibility} = 'public')`;
+}
+
 /**
  * Get all responses that reference a given record.
  * Used for "이 글을 언급한 응답" (back-reference) section.
@@ -69,9 +115,16 @@ export interface IncomingResponseRef {
 export async function getResponsesByReferencedRecord(
   d1: D1Database,
   recordId: string,
+  scope: IncomingResponseScope = {
+    viewerUserId: null,
+    viewerCohort: null,
+    includeRestricted: false,
+  },
   limit = 10,
 ): Promise<IncomingResponseRef[]> {
   const database = db(d1);
+  const responseVisibilityCondition = buildAccessibleResponseCondition(scope);
+  const sourceRecordVisibilityCondition = buildAccessibleSourceRecordCondition(scope);
 
   const rows = await database
     .select({
@@ -94,6 +147,8 @@ export async function getResponsesByReferencedRecord(
       and(
         eq(responseRecordRefs.referencedRecordId, recordId),
         eq(responses.moderationStatus, "clean"),
+        responseVisibilityCondition,
+        sourceRecordVisibilityCondition,
       ),
     )
     .orderBy(desc(responses.createdAt))

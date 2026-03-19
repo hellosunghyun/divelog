@@ -3,6 +3,32 @@ import { db } from "../../client.server";
 import { recordLinks, records, learnerProfiles } from "../../schema.server";
 import { nanoid } from "../../../lib/utils/utils.server";
 
+interface RecordLinkVisibilityScope {
+  viewerUserId: string | null;
+  viewerCohort: string | null;
+  includeRestricted?: boolean;
+}
+
+function buildAccessibleSourceRecordCondition(scope: RecordLinkVisibilityScope) {
+  if (scope.includeRestricted) {
+    return sql`1=1`;
+  }
+
+  if (!scope.viewerUserId) {
+    return eq(records.visibility, "public");
+  }
+
+  if (scope.viewerCohort) {
+    return sql`(
+      ${records.authorId} = ${scope.viewerUserId}
+      OR ${records.visibility} = 'public'
+      OR (${records.visibility} = 'cohort' AND ${records.cohort} = ${scope.viewerCohort})
+    )`;
+  }
+
+  return sql`(${records.authorId} = ${scope.viewerUserId} OR ${records.visibility} = 'public')`;
+}
+
 interface CreateLinkInput {
   sourceRecordId: string;
   targetRecordId: string;
@@ -72,8 +98,14 @@ export async function getRecordLinksByRecord(d1: D1Database, recordId: string) {
     );
 }
 
-export async function getIncomingLinks(d1: D1Database, targetRecordId: string) {
+export async function getIncomingLinks(
+  d1: D1Database,
+  targetRecordId: string,
+  scope: RecordLinkVisibilityScope,
+) {
   const database = db(d1);
+  const visibilityCondition = buildAccessibleSourceRecordCondition(scope);
+
   return database
     .select({
       linkId: recordLinks.id,
@@ -90,7 +122,7 @@ export async function getIncomingLinks(d1: D1Database, targetRecordId: string) {
     .where(
       and(
         eq(recordLinks.targetRecordId, targetRecordId),
-        sql`${records.visibility} IN ('cohort', 'public')`,
+        visibilityCondition,
       ),
     );
 }

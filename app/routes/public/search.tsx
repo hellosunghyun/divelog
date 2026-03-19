@@ -15,6 +15,7 @@ import { getPlainText } from "~/lib/content/content.server";
 import { normalizeContentFormat } from "~/lib/content/editor-extensions";
 import { createLogger } from "~/lib/infra/logger.server";
 import { hangulIncludes } from "~/lib/utils/hangul";
+import { getOptionalUser } from "~/lib/auth/auth.middleware.server";
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "검색 — DiveLog" }];
@@ -61,7 +62,20 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const broadFetch = trimmedQuery.length <= 2 || isJamoQuery(trimmedQuery);
   const fetchLimit = broadFetch ? 50 : 10;
   const database = db(context.cloudflare.env.DB);
-  const recordVisibilityFilter = sql`${records.visibility} IN ('cohort', 'public')`;
+  const auth = await getOptionalUser(request, context);
+  const currentUserId = auth?.isAuthenticated ? auth.user.id : null;
+  const viewerProfile = currentUserId
+    ? await database
+        .select({ cohort: learnerProfiles.cohort })
+        .from(learnerProfiles)
+        .where(eq(learnerProfiles.userId, currentUserId))
+        .limit(1)
+    : [];
+  const viewerCohort = viewerProfile[0]?.cohort ?? null;
+
+  const recordVisibilityFilter = viewerCohort
+    ? sql`(${records.visibility} = 'public' OR (${records.visibility} = 'cohort' AND ${records.cohort} = ${viewerCohort}))`
+    : eq(records.visibility, "public");
   const learnersQuery = broadFetch
     ? database
         .select()

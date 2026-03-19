@@ -11,6 +11,32 @@ import { createRevision, getLatestRevisionNumber } from "./revisions.server";
 import { db } from "../../client.server";
 import { learnerProfiles, records } from "../../schema.server";
 
+interface RecordVisibilityScope {
+  viewerUserId: string | null;
+  viewerCohort: string | null;
+  includeRestricted?: boolean;
+}
+
+function buildAccessibleRecordVisibilityCondition(scope: RecordVisibilityScope) {
+  if (scope.includeRestricted) {
+    return sql`1=1`;
+  }
+
+  if (!scope.viewerUserId) {
+    return eq(records.visibility, "public");
+  }
+
+  if (scope.viewerCohort) {
+    return sql`(
+      ${records.authorId} = ${scope.viewerUserId}
+      OR ${records.visibility} = 'public'
+      OR (${records.visibility} = 'cohort' AND ${records.cohort} = ${scope.viewerCohort})
+    )`;
+  }
+
+  return sql`(${records.authorId} = ${scope.viewerUserId} OR ${records.visibility} = 'public')`;
+}
+
 export async function getNextRecordSlug(d1: D1Database): Promise<string> {
   const database = db(d1);
   const result = await database
@@ -315,9 +341,11 @@ export async function getLinkedRecords(
   d1: D1Database,
   recordId: string,
   linkedRecordId: string | null,
+  scope: RecordVisibilityScope,
 ): Promise<LinkedRecord[]> {
   const database = db(d1);
   const results: LinkedRecord[] = [];
+  const visibilityCondition = buildAccessibleRecordVisibilityCondition(scope);
 
   if (linkedRecordId) {
     const outgoing = await database
@@ -341,7 +369,7 @@ export async function getLinkedRecords(
       .where(
         and(
           eq(records.id, linkedRecordId),
-          sql`${records.visibility} IN ('cohort', 'public')`,
+          visibilityCondition,
         ),
       )
       .limit(1);
@@ -380,7 +408,7 @@ export async function getLinkedRecords(
     .where(
       and(
         eq(records.linkedRecordId, recordId),
-        sql`${records.visibility} IN ('cohort', 'public')`,
+        visibilityCondition,
       ),
     )
     .orderBy(desc(records.createdAt))
