@@ -4,5 +4,8 @@
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
 
+/__manifest
+  Cache-Control: public, max-age=60, stale-while-revalidate=600
+
 /*.html
   Cache-Control: no-cache, no-store, must-revalidate

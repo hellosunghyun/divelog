@@ -19,7 +19,27 @@ const requestHandler = createRequestHandler(
 );
 
 function withHtmlCacheHeaders(response: Response, request: Request) {
+  const url = new URL(request.url);
   const contentType = response.headers.get("Content-Type") ?? "";
+
+  if (request.method === "GET" && url.pathname === "/__manifest" && response.ok) {
+    const headers = new Headers(response.headers);
+    const existingVary = headers.get("Vary");
+    headers.set(
+      "Vary",
+      existingVary ? `${existingVary}, Accept-Encoding` : "Accept-Encoding",
+    );
+    headers.set(
+      "Cache-Control",
+      "public, max-age=60, s-maxage=300, stale-while-revalidate=600",
+    );
+
+    return new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers,
+    });
+  }
 
   if (!contentType.includes("text/html")) {
     return response;
