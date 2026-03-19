@@ -1,4 +1,5 @@
 import { Link } from "~/components/content/SmartLink";
+import { ContentRenderer } from "~/components/content/ContentRenderer";
 import { cn } from "~/lib/utils/cn";
 import { Spinner } from "~/components/feedback/Spinner";
 import {
@@ -39,6 +40,7 @@ interface ResponseCardProps {
   onEdit?: (responseId: string) => void;
   onDelete?: (responseId: string) => void;
   onReply?: (responseId: string) => void;
+  contentHtml?: string;
   isSelfAnswer?: boolean;
   className?: string;
   isDeleting?: boolean;
@@ -74,6 +76,7 @@ export default function ResponseCard({
   onEdit,
   onDelete,
   onReply,
+  contentHtml,
   isSelfAnswer,
   className,
   isDeleting = false,
@@ -102,9 +105,13 @@ export default function ResponseCard({
         </span>
       </div>
 
-      <p className="text-base leading-relaxed text-text-primary">
-        {response.content}
-      </p>
+      {contentHtml ? (
+        <ContentRenderer contentHtml={contentHtml} format="article" />
+      ) : (
+        <p className="text-base leading-relaxed text-text-primary">
+          {response.content}
+        </p>
+      )}
 
       <div className="mt-4 flex items-center gap-3 text-text-tertiary text-sm flex-wrap">
         {author && (

@@ -7,6 +7,7 @@ import {
   curationSlots,
   drafts,
   learnerProfiles,
+  mentions,
   notificationPreferences,
   notifications,
   questionReminders,
@@ -17,6 +18,8 @@ import {
   recordRevisions,
   recordTags,
   records,
+  responseMentions,
+  responseRecordRefs,
   responses,
   savedRecords,
   selfAnswers,
@@ -47,6 +50,8 @@ export const learnerProfilesRelations = relations(learnerProfiles, ({ many, one 
   recordReads: many(recordReads),
   recordParticipantsAsParticipant: many(recordParticipants, { relationName: "participant" }),
   recordParticipantsAsAddedBy: many(recordParticipants, { relationName: "added_by" }),
+  responseMentionsReceived: many(responseMentions, { relationName: "response_mentions_received" }),
+  responseMentionsSent: many(responseMentions, { relationName: "response_mentions_sent" }),
 }));
 
 export const stagesRelations = relations(stages, ({ many }) => ({
@@ -101,6 +106,9 @@ export const recordsRelations = relations(records, ({ many, one }) => ({
   reads: many(recordReads),
   participants: many(recordParticipants),
   references: many(recordReferences),
+  incomingResponseRefs: many(responseRecordRefs, {
+    relationName: "incoming_response_refs",
+  }),
 }));
 
 export const recordRevisionsRelations = relations(recordRevisions, ({ one }) => ({
@@ -156,6 +164,8 @@ export const responsesRelations = relations(responses, ({ one, many }) => ({
   childResponses: many(responses, {
     relationName: "response_replies",
   }),
+  responseMentions: many(responseMentions),
+  responseRecordRefs: many(responseRecordRefs),
 }));
 
 export const sentencesRelations = relations(sentences, ({ many, one }) => ({
@@ -166,6 +176,39 @@ export const sentencesRelations = relations(sentences, ({ many, one }) => ({
   savedBy: one(learnerProfiles, {
     fields: [sentences.savedById],
     references: [learnerProfiles.userId],
+  }),
+}));
+
+export const responseMentionsRelations = relations(responseMentions, ({ one }) => ({
+  response: one(responses, {
+    fields: [responseMentions.responseId],
+    references: [responses.id],
+  }),
+  record: one(records, {
+    fields: [responseMentions.recordId],
+    references: [records.id],
+  }),
+  mentionedUser: one(learnerProfiles, {
+    fields: [responseMentions.mentionedUserId],
+    references: [learnerProfiles.userId],
+    relationName: "response_mentions_received",
+  }),
+  mentionedBy: one(learnerProfiles, {
+    fields: [responseMentions.mentionedById],
+    references: [learnerProfiles.userId],
+    relationName: "response_mentions_sent",
+  }),
+}));
+
+export const responseRecordRefsRelations = relations(responseRecordRefs, ({ one }) => ({
+  response: one(responses, {
+    fields: [responseRecordRefs.responseId],
+    references: [responses.id],
+  }),
+  referencedRecord: one(records, {
+    fields: [responseRecordRefs.referencedRecordId],
+    references: [records.id],
+    relationName: "incoming_response_refs",
   }),
 }));
 

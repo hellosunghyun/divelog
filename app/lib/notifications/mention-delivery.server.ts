@@ -23,7 +23,9 @@ export async function deliverMentionNotifications(
     return;
   }
 
-  const recipientIds = Array.from(new Set(extractMentionUserIdsFromContent(content)));
+  const recipientIds = Array.from(new Set(extractMentionUserIdsFromContent(content))).filter(
+    (id) => id !== params.actorId,
+  );
   if (recipientIds.length === 0) {
     return;
   }

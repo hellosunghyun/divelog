@@ -3,7 +3,13 @@ import { data } from "react-router";
 import type { Route } from "./+types/$recordSlug";
 import { db } from "~/db/client.server";
 import { requireVerified, getOptionalUser } from "~/lib/auth/auth.middleware.server";
-import { createResponseSchema, saveSentenceSchema, updateResponseSchema } from "~/lib/auth/validation";
+import {
+  createResponseSchema,
+  saveSentenceSchema,
+  updateResponseSchema,
+  validateMentionLimits,
+  validateResponseContentLength,
+} from "~/lib/auth/validation";
 import { normalizeContentFormat } from "~/lib/content/editor-extensions";
 import { getPlainText, renderContentToHtml, type MentionSlugMap } from "~/lib/content/content.server";
 import { createLogger } from "~/lib/infra/logger.server";
@@ -22,6 +28,15 @@ import { getTagsByRecord } from "~/db/queries/records/tags.server";
 import { getParticipantsByRecord } from "~/db/queries/records/participants.server";
 import { getMentionsByRecord } from "~/db/queries/dialogue/mentions.server";
 import { extractMentionUserIdsFromContent } from "~/db/queries/dialogue/mentions.server";
+import {
+  deleteMentionsForResponse,
+  syncMentionsForResponse,
+} from "~/db/queries/dialogue/responseMentions.server";
+import {
+  deleteRecordRefsForResponse,
+  getResponsesByReferencedRecord,
+  syncRecordRefsForResponse,
+} from "~/db/queries/dialogue/responseRecordRefs.server";
 import {
   learnerProfiles,
   questions,
@@ -107,7 +122,7 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
       .orderBy(desc(sentences.createdAt)),
   ]);
 
-  const [linkedRecordsRaw, selfAnswersData, recordTags, incomingLinks, isAdmin, isSaved, participants, mentions, recordReferences] = await Promise.all([
+  const [linkedRecordsRaw, selfAnswersData, recordTags, incomingLinks, isAdmin, isSaved, participants, mentions, recordReferences, incomingResponseRefs] = await Promise.all([
     getLinkedRecords(
       context.cloudflare.env.DB,
       recordData.record.id,
@@ -146,6 +161,9 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
           [] as Awaited<ReturnType<typeof getRecordReferences>>
         )
       : Promise.resolve([]),
+    getResponsesByReferencedRecord(context.cloudflare.env.DB, recordData.record.id).catch(() =>
+      [] as Awaited<ReturnType<typeof getResponsesByReferencedRecord>>
+    ),
   ]);
 
   const linkedRecords = linkedRecordsRaw.map((lr) => ({
@@ -170,12 +188,19 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
 
   const contentHtml = renderContentToHtml(recordData.record.content, recordFormat, mentionSlugMap);
   const plainTextContent = getPlainText(recordData.record.content, recordFormat);
+  const responsesWithHtml = recordResponses.map((entry: (typeof recordResponses)[number]) => ({
+    ...entry,
+    response: {
+      ...entry.response,
+      contentHtml: renderContentToHtml(entry.response.content, "article"),
+    },
+  }));
 
   return {
     record: recordData.record,
     author: recordData.author,
     questions: recordQuestions,
-    responses: recordResponses,
+    responses: responsesWithHtml,
     sentences: recordSentences,
     linkedRecords,
     incomingLinks,
@@ -190,6 +215,7 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
     isAuthorOrAdmin,
     isSaved,
     references: recordReferences,
+    incomingResponseRefs,
   };
 }
 
@@ -212,6 +238,15 @@ export async function action({ request, context }: Route.ActionArgs) {
 
     if (!parsed.success) {
       return data({ error: parsed.error.issues[0]?.message ?? "입력값을 확인해주세요." }, { status: 400 });
+    }
+
+    if (!validateResponseContentLength(parsed.data.content)) {
+      return data({ error: "응답 내용이 너무 깁니다" }, { status: 400 });
+    }
+
+    const mentionCheck = validateMentionLimits(parsed.data.content);
+    if (!mentionCheck.valid) {
+      return data({ error: "멘션은 각각 10개까지 가능합니다" }, { status: 400 });
     }
 
     const targetRecord = await database
@@ -283,6 +318,30 @@ export async function action({ request, context }: Route.ActionArgs) {
       updatedAt: now,
     });
 
+    const currentUserId = auth.user.id;
+    context.cloudflare.ctx.waitUntil(
+      Promise.all([
+        syncMentionsForResponse(
+          context.cloudflare.env.DB,
+          id,
+          parsed.data.recordId,
+          parsed.data.content,
+          currentUserId,
+        ),
+        syncRecordRefsForResponse(
+          context.cloudflare.env.DB,
+          id,
+          parsed.data.content,
+        ),
+      ]).catch((error) => {
+        logger.warn("response_reference_sync_failed", {
+          responseId: id,
+          recordId: parsed.data.recordId,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }),
+    );
+
     // 알림 생성 (자기 응답 및 self_answer 제외)
     if (parsed.data.type !== "self_answer") {
       const TYPE_LABELS: Record<string, string> = {
@@ -303,7 +362,6 @@ export async function action({ request, context }: Route.ActionArgs) {
 
       const recordAuthorId = targetRecord[0].authorId;
       const recordVisibility = targetRecord[0]?.visibility;
-      const currentUserId = auth.user.id;
 
       context.cloudflare.ctx.waitUntil(
         deliverMentionNotifications({
@@ -485,6 +543,16 @@ export async function action({ request, context }: Route.ActionArgs) {
       return data({ error: parsed.error.issues[0]?.message ?? "입력값을 확인해주세요." }, { status: 400 });
     }
 
+    if (parsed.data.content) {
+      if (!validateResponseContentLength(parsed.data.content)) {
+        return data({ error: "응답 내용이 너무 깁니다" }, { status: 400 });
+      }
+      const mentionCheck = validateMentionLimits(parsed.data.content);
+      if (!mentionCheck.valid) {
+        return data({ error: "멘션은 각각 10개까지 가능합니다" }, { status: 400 });
+      }
+    }
+
     const targetResponse = await getResponseById(context.cloudflare.env.DB, parsed.data.responseId);
 
     if (!targetResponse) {
@@ -500,6 +568,30 @@ export async function action({ request, context }: Route.ActionArgs) {
     if (result === null) {
       return data({ error: "응답을 수정할 수 없습니다." }, { status: 500 });
     }
+
+    const updatedContent = parsed.data.content ?? targetResponse.content;
+    context.cloudflare.ctx.waitUntil(
+      Promise.all([
+        syncMentionsForResponse(
+          context.cloudflare.env.DB,
+          parsed.data.responseId,
+          targetResponse.recordId,
+          updatedContent,
+          auth.user.id,
+        ),
+        syncRecordRefsForResponse(
+          context.cloudflare.env.DB,
+          parsed.data.responseId,
+          updatedContent,
+        ),
+      ]).catch((error) => {
+        logger.warn("response_reference_sync_failed", {
+          responseId: parsed.data.responseId,
+          recordId: targetResponse.recordId,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }),
+    );
 
     logger.info("response_update", { responseId: parsed.data.responseId });
     return data({ success: "응답이 수정되었습니다." });
@@ -527,6 +619,19 @@ export async function action({ request, context }: Route.ActionArgs) {
     if (!result) {
       return data({ error: "응답을 삭제할 수 없습니다." }, { status: 500 });
     }
+
+    context.cloudflare.ctx.waitUntil(
+      Promise.all([
+        deleteMentionsForResponse(context.cloudflare.env.DB, responseId),
+        deleteRecordRefsForResponse(context.cloudflare.env.DB, responseId),
+      ]).catch((error) => {
+        logger.warn("response_reference_cleanup_failed", {
+          responseId,
+          recordId: targetResponse.recordId,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }),
+    );
 
     logger.info("response_delete", { responseId });
     return data({ success: "응답이 삭제되었습니다." });

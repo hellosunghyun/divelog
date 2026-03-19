@@ -706,3 +706,47 @@
   font-size: 12px;
   color: var(--color-text-tertiary);
 }
+
+/* === Response Editor === */
+.response-editor {
+  border: 1px solid #E3E8EF;
+  border-radius: 12px;
+  padding: 12px 16px;
+  min-height: 80px;
+  max-height: 300px;
+  overflow-y: auto;
+  font-size: 16px;
+  line-height: 1.6;
+  color: #1D1D1F;
+  transition: border-color 0.15s ease;
+  cursor: text;
+}
+
+.response-editor:focus-within {
+  border-color: #146C94;
+  outline: none;
+}
+
+.response-editor .ProseMirror {
+  outline: none;
+  min-height: 52px;
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
+.response-editor .ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: #8C8C91;
+  pointer-events: none;
+  height: 0;
+}
+
+.response-editor .ProseMirror p {
+  margin: 0 0 4px;
+}
+
+.response-editor .ProseMirror p:last-child {
+  margin-bottom: 0;
+}

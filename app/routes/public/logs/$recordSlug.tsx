@@ -1,6 +1,6 @@
 import { Link } from "~/components/content/SmartLink";
 import { useFetcher, useActionData, useNavigation, useSubmit, isRouteErrorResponse, useRouteError } from "react-router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Suspense, lazy, useCallback, useEffect, useRef, useState } from "react";
 import * as Sentry from "@sentry/react-router/cloudflare";
 
 import { cn } from "~/lib/utils/cn";
@@ -11,6 +11,7 @@ import QuestionCard from "~/components/cards/QuestionCard";
 import ResponseCard from "~/components/cards/ResponseCard";
 import SelfAnswerCard from "~/components/cards/SelfAnswerCard";
 import SceneCard from "~/components/cards/SceneCard";
+import { IncomingResponseRefs } from "~/components/sections/IncomingResponseRefs";
 import { ContentRenderer } from "~/components/content/ContentRenderer";
 import { EditedIndicator } from "~/components/ui/EditedIndicator";
 import { Button } from "~/components/ui/button";
@@ -34,6 +35,8 @@ export { action, loader } from "./$recordSlug.server";
 
 type Action = typeof import("./$recordSlug.server").action;
 type LoaderData = Awaited<ReturnType<typeof import("./$recordSlug.server").loader>>;
+
+const LazyResponseEditor = lazy(() => import("~/components/editor/editors/ResponseEditor"));
 
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 const CACHE_MAX_SIZE = 50;
@@ -220,15 +223,16 @@ type ResponseNode = {
   authorId: string;
   moderationStatus: string;
   parentResponseId: string | null;
+  contentHtml?: string;
   author?: { displayName: string | null; slug: string | null; profilePhotoUrl: string | null } | null;
   [key: string]: unknown;
 };
 
 type RenderThreadContext = {
   editingResponseId: string | null;
-  editingContent: string;
+  editingContent: object | null;
   editingResponseType: string;
-  setEditingContent: (v: string) => void;
+  setEditingContent: (v: object | null) => void;
   setEditingResponseId: (v: string | null) => void;
   setEditingResponseType: (v: string) => void;
   handleEditResponse: (id: string) => void;
@@ -237,6 +241,8 @@ type RenderThreadContext = {
   setReplyingToId: (id: string | null) => void;
   replyResponseType: string;
   setReplyResponseType: (v: string) => void;
+  replyContent: object | null;
+  setReplyContent: (v: object | null) => void;
   currentUserId: string | null | undefined;
   loaderData: LoaderData;
   deletingResponseId: string | null;
@@ -250,6 +256,40 @@ const DEPTH_INDENT_CLASSES: Record<number, string> = {
 };
 
 const MAX_THREAD_DEPTH = 10;
+
+function textToTiptapDoc(text: string): object {
+  return {
+    type: "doc",
+    content: [
+      {
+        type: "paragraph",
+        content: text
+          ? [{ type: "text", text }]
+          : [],
+      },
+    ],
+  };
+}
+
+function parseResponseContent(value: string): object {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return textToTiptapDoc("");
+  }
+
+  if (trimmed.startsWith("{")) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (parsed && typeof parsed === "object") {
+        return parsed;
+      }
+    } catch {
+      return textToTiptapDoc(value);
+    }
+  }
+
+  return textToTiptapDoc(value);
+}
 
 function renderResponseThread(
   node: ThreadedResponse<ResponseNode>,
@@ -313,13 +353,16 @@ function renderResponseThread(
               ))}
             </div>
 
-            <Textarea
+            <Suspense fallback={<div className="h-20 bg-[#F6F8FB] rounded-xl animate-pulse" />}>
+              <LazyResponseEditor
+                content={ctx.editingContent ?? undefined}
+                onChange={(json: object) => ctx.setEditingContent(json)}
+              />
+            </Suspense>
+            <input
+              type="hidden"
               name="content"
-              value={ctx.editingContent}
-              onChange={(e) => ctx.setEditingContent(e.target.value)}
-              rows={4}
-              required
-              className="w-full bg-surface"
+              value={ctx.editingContent ? JSON.stringify(ctx.editingContent) : ""}
             />
             <div className="flex gap-3">
               <SubmitButton
@@ -337,11 +380,12 @@ function renderResponseThread(
           </form>
          ) : (
            <>
-              <ResponseCard
-                response={node}
-                author={authorForCard}
-                isSelfAnswer={node.type === "self_answer"}
-                currentUserId={ctx.currentUserId}
+               <ResponseCard
+                 response={node}
+                 contentHtml={typeof node.contentHtml === "string" ? node.contentHtml : undefined}
+                 author={authorForCard}
+                 isSelfAnswer={node.type === "self_answer"}
+                 currentUserId={ctx.currentUserId}
                 onEdit={ctx.handleEditResponse}
                 onDelete={ctx.handleDeleteResponse}
                 onReply={ctx.setReplyingToId}
@@ -378,7 +422,18 @@ function renderResponseThread(
                       ))}
                     </div>
                     
-                    <Textarea name="content" rows={3} placeholder="답글을 입력하세요..." required className="bg-surface" />
+                    <Suspense fallback={<div className="h-20 bg-[#F6F8FB] rounded-xl animate-pulse" />}>
+                      <LazyResponseEditor
+                        content={ctx.replyContent ?? undefined}
+                        onChange={(json: object) => ctx.setReplyContent(json)}
+                        placeholder="답글을 입력하세요..."
+                      />
+                    </Suspense>
+                    <input
+                      type="hidden"
+                      name="content"
+                      value={ctx.replyContent ? JSON.stringify(ctx.replyContent) : ""}
+                    />
                     <input type="hidden" name="visibility" value="public" />
                     
                     <div className="flex gap-2">
@@ -429,6 +484,7 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
     isAuthorOrAdmin,
     isSaved: initialIsSaved,
     references,
+    incomingResponseRefs,
   } = loaderData as LoaderData;
   const actionData = useActionData<Action>();
   const submit = useSubmit();
@@ -440,12 +496,15 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
 
   const [expandedQuestionId, setExpandedQuestionId] = useState<string | null>(null);
   const [editingResponseId, setEditingResponseId] = useState<string | null>(null);
-  const [editingContent, setEditingContent] = useState("");
+  const [editingContent, setEditingContent] = useState<object | null>(null);
   const [editingResponseType, setEditingResponseType] = useState("");
   const [replyingToId, setReplyingToIdRaw] = useState<string | null>(null);
   const [replyResponseType, setReplyResponseType] = useState(ALL_RESPONSE_TYPE_OPTIONS[0]?.value ?? "resonance");
+  const [replyContent, setReplyContent] = useState<object | null>(null);
+  const [createContent, setCreateContent] = useState<object | null>(null);
   const setReplyingToId = useCallback((id: string | null) => {
     setReplyingToIdRaw(id);
+    setReplyContent(null);
     if (id !== null) {
       setReplyResponseType(ALL_RESPONSE_TYPE_OPTIONS[0]?.value ?? "resonance");
     }
@@ -544,10 +603,18 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
     const response = recordResponses.find(r => r.response.id === responseId);
     if (response) {
       setEditingResponseId(responseId);
-      setEditingContent(response.response.content);
+      setEditingContent(parseResponseContent(response.response.content));
       setEditingResponseType(response.response.type);
     }
   }, [recordResponses]);
+
+  const setEditingResponseIdWithReset = useCallback((id: string | null) => {
+    setEditingResponseId(id);
+    if (id === null) {
+      setEditingContent(null);
+      setEditingResponseType("");
+    }
+  }, []);
 
   const handleDeleteResponse = useCallback((responseId: string) => {
     submit({ intent: "delete_response", responseId }, { method: "post" });
@@ -1077,16 +1144,20 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
               ) : null}
 
               <div>
-                <Label htmlFor="response-content" className="text-sm font-medium text-text-secondary mb-2 block">
+                <Label className="text-sm font-medium text-text-secondary mb-2 block">
                   내용
                 </Label>
-                <Textarea
-                  id="response-content"
+                <Suspense fallback={<div className="h-20 bg-[#F6F8FB] rounded-xl animate-pulse" />}>
+                  <LazyResponseEditor
+                    content={createContent ?? undefined}
+                    onChange={(json: object) => setCreateContent(json)}
+                    placeholder={RESPONSE_PLACEHOLDERS[selectedResponseType] ?? "이 기록에 응답해보세요."}
+                  />
+                </Suspense>
+                <input
+                  type="hidden"
                   name="content"
-                  required
-                  rows={5}
-                  placeholder={RESPONSE_PLACEHOLDERS[selectedResponseType] ?? "이 기록에 응답해보세요."}
-                  className="min-h-[120px] bg-surface"
+                  value={createContent ? JSON.stringify(createContent) : ""}
                 />
               </div>
 
@@ -1121,6 +1192,7 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
                     authorId: r.response.authorId,
                     moderationStatus: r.response.moderationStatus,
                     parentResponseId: r.response.parentResponseId ?? null,
+                    contentHtml: r.response.contentHtml,
                     author: r.author,
                   }))
                 );
@@ -1129,19 +1201,21 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
                    renderResponseThread(rootNode, 0, {
                      editingResponseId,
                      editingContent,
-                     editingResponseType,
-                     setEditingContent,
-                     setEditingResponseId,
-                     setEditingResponseType,
-                     handleEditResponse,
-                     handleDeleteResponse,
-                     replyingToId,
-                     setReplyingToId,
-                     replyResponseType,
-                     setReplyResponseType,
-                     currentUserId,
-                     loaderData,
-                     deletingResponseId,
+                      editingResponseType,
+                      setEditingContent,
+                      setEditingResponseId: setEditingResponseIdWithReset,
+                      setEditingResponseType,
+                      handleEditResponse,
+                      handleDeleteResponse,
+                      replyingToId,
+                      setReplyingToId,
+                      replyResponseType,
+                      setReplyResponseType,
+                      replyContent,
+                      setReplyContent,
+                      currentUserId,
+                      loaderData,
+                      deletingResponseId,
                    })
                  );
               })()}
@@ -1151,7 +1225,9 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
           )}
         </section>
 
-      
+        <IncomingResponseRefs refs={incomingResponseRefs} />
+
+
 
       
 
