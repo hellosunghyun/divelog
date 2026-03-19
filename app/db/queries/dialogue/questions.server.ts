@@ -1,6 +1,7 @@
 import { and, desc, eq, getTableColumns, sql } from "drizzle-orm";
 
 import type { CreateQuestionInput } from "../../../lib/auth/validation";
+import type { RecordType } from "../../../lib/constants/record-types";
 import { nanoid } from "../../../lib/utils/utils.server";
 import { db } from "../../client.server";
 import { learnerProfiles, questions, records, responses, selfAnswers } from "../../schema.server";
@@ -14,7 +15,7 @@ export interface OpenQuestionListItem {
   recordTitle: string | null;
   authorName: string;
   createdAt: number;
-  type: "personal" | "challenge";
+  type: RecordType;
   selfAnswerCount: number;
   responseCount: number;
   isCarryOver: false;
@@ -58,7 +59,7 @@ export async function getOpenQuestions(d1: D1Database, cohort?: string) {
       recordTitle: records.title,
       authorName: learnerProfiles.displayName,
       createdAt: questions.createdAt,
-      type: sql<"personal" | "challenge">`case when ${records.challengeId} is not null then 'challenge' else 'personal' end`.as("type"),
+      type: sql<RecordType>`coalesce(${records.type}, 'exploration')`.as("type"),
       selfAnswerCount: sql<number>`coalesce(${selfAnswerCounts.count}, 0)`.as("self_answer_count"),
       responseCount: sql<number>`coalesce(${responseCounts.count}, 0)`.as("response_count"),
     })
