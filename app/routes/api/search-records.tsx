@@ -44,12 +44,16 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       ? sql`(${records.visibility} IN ('cohort', 'public') OR ${records.authorId} = ${currentUserId})`
       : sql`${records.visibility} IN ('cohort', 'public')`;
 
+    const isEditorPreload = url.searchParams.get("all") === "true";
+
      const results = q.length > 0
        ? await baseQuery.where(and(
            visibilityFilter,
            sql`(${records.title} LIKE ${"%" + escapeLikeWildcards(q) + "%"} OR ${records.contentText} LIKE ${"%" + escapeLikeWildcards(q) + "%"})`,
          )).limit(8)
-       : await baseQuery.where(visibilityFilter).orderBy(sql`${records.createdAt} DESC`).limit(8);
+       : isEditorPreload
+         ? await baseQuery.where(visibilityFilter).orderBy(sql`${records.createdAt} DESC`)
+         : await baseQuery.where(visibilityFilter).orderBy(sql`${records.createdAt} DESC`).limit(8);
 
     logger.info("search_results", { count: results.length });
     return Response.json({ results });

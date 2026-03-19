@@ -5,7 +5,7 @@ import { data, Form, redirect, useActionData } from "react-router";
 import { useState, Suspense, lazy } from "react";
 
 import type { Route } from "./+types/$recordSlug.edit";
-import { RECORD_TYPES, RECORD_TYPE_LABELS } from "~/lib/constants/record-types";
+import { RECORD_TYPES, RECORD_TYPE_LABELS, DEFAULT_RECORD_TYPE } from "~/lib/constants/record-types";
 
 const ArticleEditor = lazy(() =>
   import("~/components/editor/editors/ArticleEditor").then(m => ({ default: m.ArticleEditor }))
@@ -363,7 +363,7 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
           <legend className="block text-meta font-medium text-text-secondary mb-2">유형</legend>
           <RadioGroup
             name="type"
-            defaultValue={RECORD_TYPES.includes(record.type as any) ? record.type : "exploration"}
+            defaultValue={(RECORD_TYPES as readonly string[]).includes(record.type) ? record.type : DEFAULT_RECORD_TYPE}
             className="flex flex-wrap gap-3"
             aria-label="유형"
           >

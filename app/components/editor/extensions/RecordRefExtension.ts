@@ -32,7 +32,7 @@ function loadAllRecords(): Promise<RecordItem[]> {
   if (allRecords !== null) return Promise.resolve(allRecords);
   if (loadPromise) return loadPromise;
 
-  loadPromise = fetch("/api/search-records?q=")
+  loadPromise = fetch("/api/search-records?q=&all=true")
     .then((res) => (res.ok ? (res.json() as Promise<{ results: RecordItem[] }>) : { results: [] as RecordItem[] }))
     .then((data) => {
       allRecords = data.results ?? [];
