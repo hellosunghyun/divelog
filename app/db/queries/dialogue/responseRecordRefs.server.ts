@@ -4,6 +4,7 @@ import { db } from "../../client.server";
 import { learnerProfiles, records, responseRecordRefs, responses } from "../../schema.server";
 import { extractRecordRefs } from "../../../lib/content/extract-references.server";
 import { nanoid } from "../../../lib/utils/utils.server";
+import { getPlainText } from "../../../lib/content/content.server";
 
 export async function syncRecordRefsForResponse(
   d1: D1Database,
@@ -113,7 +114,7 @@ export async function getResponsesByReferencedRecord(
     }) => ({
       responseId: row.responseId,
       responseType: row.responseType,
-      contentExcerpt: row.content.slice(0, 120),
+      contentExcerpt: getPlainText(row.content, "article").slice(0, 120),
       authorDisplayName: row.authorDisplayName,
       authorSlug: row.authorSlug,
       authorPhotoUrl: row.authorPhotoUrl,
