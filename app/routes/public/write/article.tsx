@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { useState, Suspense, lazy } from "react";
+import { useCallback, useEffect, useState, Suspense, lazy } from "react";
 import { Link } from "~/components/content/SmartLink";
 import { Form, redirect, useActionData, isRouteErrorResponse, useRouteError } from "react-router";
 import type { Route } from "./+types/article";
@@ -7,6 +7,8 @@ import type { Route } from "./+types/article";
 const ArticleEditor = lazy(() =>
   import("~/components/editor/editors/ArticleEditor").then(m => ({ default: m.ArticleEditor }))
 );
+import { DraftRecoveryPrompt } from "~/components/content/DraftRecoveryPrompt";
+import { AutosaveIndicator } from "~/components/feedback/AutosaveIndicator";
 import { NavigationBlockerDialog } from "~/components/feedback/NavigationBlockerDialog";
 import { SubmitButton } from "~/components/feedback/SubmitButton";
 import { Input } from "~/components/ui/input";
@@ -25,11 +27,13 @@ import { db } from "~/db/client.server";
 import { getStages } from "~/db/queries/journey/stages.server";
 import { syncRecordLinksForRecord } from "~/db/queries/records/recordLinks.server";
 import { learnerProfiles, records } from "~/db/schema.server";
+import { useAutosave } from "~/hooks/useAutosave";
 import { useUnsavedWarning } from "~/hooks/useUnsavedWarning";
 import { requireVerified } from "~/lib/auth/auth.middleware.server";
 import { createArticleSchema } from "~/lib/auth/validation";
 import { getPlainText } from "~/lib/content/content.server";
 import { extractRecordRefs } from "~/lib/content/extract-references.server";
+import { clearLocalDraft, loadDraftFromLocal, type DraftData } from "~/lib/infra/draft-storage";
 import { parseDateToUnix } from "~/lib/utils/date";
 import { cn } from "~/lib/utils/cn";
 import { getNextRecordSlug } from "~/db/queries/records/records.server";
@@ -42,6 +46,14 @@ const RHYTHM_OPTIONS = [
   { value: "monthly", label: "월간" },
   { value: "stage", label: "구간" },
 ] as const;
+
+export async function clientAction({ serverAction }: Route.ClientActionArgs) {
+  if (typeof sessionStorage !== "undefined") {
+    sessionStorage.setItem("divelog:invalidate-record-cache", "1");
+  }
+  clearLocalDraft("article");
+  return await serverAction();
+}
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "글쓰기 — DiveLog" }];
@@ -186,21 +198,59 @@ export function ErrorBoundary() {
 }
 
 export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
-   const { learnerDefaults, stages } = loaderData;
-   const actionData = useActionData<typeof action>();
-   const [title, setTitle] = useState("");
-   const [articleContent, setArticleContent] = useState("");
-   const [type, setType] = useState(DEFAULT_RECORD_TYPE);
-   const [rhythm, setRhythm] = useState("free");
-   const errors = actionData?.errors;
+  const { learnerDefaults, stages } = loaderData;
+  const actionData = useActionData<typeof action>();
+  const [title, setTitle] = useState("");
+  const [articleContent, setArticleContent] = useState("");
+  const [articleContentJson, setArticleContentJson] = useState("");
+  const [type, setType] = useState(DEFAULT_RECORD_TYPE);
+  const [rhythm, setRhythm] = useState("free");
+  const [visibility, setVisibility] = useState(learnerDefaults.defaultVisibility);
+  const [savedDraft, setSavedDraft] = useState<DraftData | null>(null);
+  const errors = actionData?.errors;
   const titleError = errors && "title" in errors ? errors.title?.[0] : undefined;
   const contentError = errors && "content" in errors ? errors.content?.[0] : undefined;
+  const dateError = errors && "recordedAt" in errors ? errors.recordedAt?.[0] : undefined;
 
   const blocker = useUnsavedWarning(title.length > 0 || articleContent.length > 0);
 
-  function handleRhythmChange(newRhythm: string) {
-    setRhythm(newRhythm);
-  }
+  useEffect(() => {
+    const draft = loadDraftFromLocal("article");
+    if (draft) {
+      setSavedDraft(draft);
+    }
+  }, []);
+
+  const handleRecover = () => {
+    if (savedDraft) {
+      if (savedDraft.title) setTitle(savedDraft.title);
+      setArticleContentJson(savedDraft.content);
+      if (savedDraft.rhythm) setRhythm(savedDraft.rhythm);
+      if (savedDraft.visibility) setVisibility(savedDraft.visibility);
+    }
+    setSavedDraft(null);
+  };
+
+  const handleDiscard = () => {
+    setSavedDraft(null);
+  };
+
+  const getFormData = useCallback(
+    () => ({
+      content: articleContentJson || articleContent,
+      contentJson: articleContentJson,
+      title,
+      rhythm,
+      visibility,
+      responsePreference: learnerDefaults.defaultResponsePreference,
+    }),
+    [articleContent, articleContentJson, title, rhythm, visibility, learnerDefaults.defaultResponsePreference],
+  );
+
+  const { status: autosaveStatus, lastSavedAt } = useAutosave({
+    format: "article",
+    getFormData,
+  });
 
   return (
     <div className="min-h-screen bg-background">
@@ -213,6 +263,7 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
             <div className="flex items-center justify-between">
               <h1 className="text-lg font-semibold text-text-primary m-0">글쓰기</h1>
               <div className="flex items-center gap-3">
+                <AutosaveIndicator status={autosaveStatus} lastSavedAt={lastSavedAt} />
                 <Link
                   to="/write"
                   className="inline-flex h-10 items-center justify-center rounded-md border border-border px-4 py-2 text-sm font-medium text-text-secondary no-underline transition-colors hover:bg-surface-secondary"
@@ -225,6 +276,15 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
               </div>
             </div>
           </div>
+
+          {savedDraft ? (
+            <DraftRecoveryPrompt
+              draft={savedDraft}
+              format="article"
+              onRecover={handleRecover}
+              onDiscard={handleDiscard}
+            />
+          ) : null}
 
           <div>
             <Label className="mb-2 block text-sm font-medium text-text-secondary">유형</Label>
@@ -259,7 +319,7 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
               >
                 공개 범위
               </Label>
-              <Select name="visibility" defaultValue={learnerDefaults.defaultVisibility}>
+              <Select name="visibility" value={visibility} onValueChange={setVisibility}>
                 <SelectTrigger id="visibility" className="w-auto min-w-36 bg-surface">
                   <SelectValue />
                 </SelectTrigger>
@@ -290,7 +350,7 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
                   key={option.value}
                   type="button"
                   aria-pressed={rhythm === option.value}
-                  onClick={() => handleRhythmChange(option.value)}
+                  onClick={() => setRhythm(option.value)}
                   className={cn(
                     "rounded-full px-3.5 py-1.5 text-sm font-medium border transition-all duration-[var(--duration-fast)]",
                     "hover:bg-surface-secondary active:scale-[0.98]",
@@ -306,7 +366,7 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
             </div>
           </div>
 
-          <RhythmDateInput rhythm={rhythm} stages={stages} />
+          <RhythmDateInput rhythm={rhythm} stages={stages} error={dateError} />
 
           <div>
             <Label htmlFor="title" className="mb-2 block text-meta font-medium text-text-secondary">
@@ -326,23 +386,26 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
             {titleError ? <p className="mt-1 text-meta text-error">{titleError}</p> : null}
           </div>
 
-           <div>
-             <p className="mb-2 block text-meta font-medium text-text-secondary">
-               내용 <span className="text-error">*</span>
-             </p>
-             <Suspense fallback={<div className="animate-pulse bg-surface-secondary rounded-lg h-64" />}>
-               <ArticleEditor
-                 name="content"
-                 content={articleContent}
-                 onChange={(_json, text) => setArticleContent(text)}
-                 placeholder="여기에 글을 쓰세요. `/`를 입력하면 블록을 추가할 수 있습니다."
-               />
-             </Suspense>
-             {contentError ? <p className="mt-1 text-meta text-error">{contentError}</p> : null}
-           </div>
-         </Form>
-         <NavigationBlockerDialog blocker={blocker} />
-       </div>
-     </div>
-   );
- }
+          <div>
+            <p className="mb-2 block text-meta font-medium text-text-secondary">
+              내용 <span className="text-error">*</span>
+            </p>
+            <Suspense fallback={<div className="animate-pulse bg-surface-secondary rounded-lg h-64" />}>
+              <ArticleEditor
+                name="content"
+                content={articleContentJson}
+                onChange={(json, text) => {
+                  setArticleContent(text);
+                  setArticleContentJson(JSON.stringify(json));
+                }}
+                placeholder="여기에 글을 쓰세요. `/`를 입력하면 블록을 추가할 수 있습니다."
+              />
+            </Suspense>
+            {contentError ? <p className="mt-1 text-meta text-error">{contentError}</p> : null}
+          </div>
+        </Form>
+        <NavigationBlockerDialog blocker={blocker} />
+      </div>
+    </div>
+  );
+}

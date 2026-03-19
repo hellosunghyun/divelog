@@ -1,12 +1,14 @@
 import { eq } from "drizzle-orm";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "~/components/content/SmartLink";
 import { Form, redirect, useActionData, isRouteErrorResponse, useRouteError } from "react-router";
 import type { Route } from "./+types/note";
 
 import { NoteEditor } from "~/components/editor/editors/NoteEditor";
+import { AutosaveIndicator } from "~/components/feedback/AutosaveIndicator";
 import { NavigationBlockerDialog } from "~/components/feedback/NavigationBlockerDialog";
 import { SubmitButton } from "~/components/feedback/SubmitButton";
+import { DraftRecoveryPrompt } from "~/components/content/DraftRecoveryPrompt";
 import { Label } from "~/components/ui/label";
 import { cn } from "~/lib/utils/cn";
 import {
@@ -19,10 +21,12 @@ import {
 import { RECORD_TYPES, RECORD_TYPE_LABELS, DEFAULT_RECORD_TYPE } from "~/lib/constants/record-types";
 import { db } from "~/db/client.server";
 import { learnerProfiles, records } from "~/db/schema.server";
+import { useAutosave } from "~/hooks/useAutosave";
 import { useUnsavedWarning } from "~/hooks/useUnsavedWarning";
 import { requireVerified } from "~/lib/auth/auth.middleware.server";
 import { createNoteSchema } from "~/lib/auth/validation";
 import { getPlainText } from "~/lib/content/content.server";
+import { clearLocalDraft, loadDraftFromLocal, type DraftData } from "~/lib/infra/draft-storage";
 import { generateNoteTitle } from "~/lib/utils/title.server";
 import { getNextRecordSlug } from "~/db/queries/records/records.server";
 import { nanoid } from "~/lib/utils/utils.server";
@@ -31,6 +35,7 @@ export async function clientAction({ serverAction }: Route.ClientActionArgs) {
   if (typeof sessionStorage !== "undefined") {
     sessionStorage.setItem("divelog:invalidate-record-cache", "1");
   }
+  clearLocalDraft("note");
   return await serverAction();
 }
 
@@ -141,13 +146,50 @@ export function ErrorBoundary() {
 }
 
 export default function WriteNotePage({ loaderData }: Route.ComponentProps) {
-   const { learnerDefaults } = loaderData;
-   const actionData = useActionData<typeof action>();
-   const [noteContent, setNoteContent] = useState("");
-   const [type, setType] = useState(DEFAULT_RECORD_TYPE);
-   const contentError = actionData?.errors?.content?.[0];
+  const { learnerDefaults } = loaderData;
+  const actionData = useActionData<typeof action>();
+  const [noteContent, setNoteContent] = useState("");
+  const [type, setType] = useState(DEFAULT_RECORD_TYPE);
+  const [visibility, setVisibility] = useState(learnerDefaults.defaultVisibility);
+  const [editorKey, setEditorKey] = useState(0);
+  const [savedDraft, setSavedDraft] = useState<DraftData | null>(null);
+  const contentError = actionData?.errors?.content?.[0];
 
   const blocker = useUnsavedWarning(noteContent.length > 0);
+
+  useEffect(() => {
+    const draft = loadDraftFromLocal("note");
+    if (draft) {
+      setSavedDraft(draft);
+    }
+  }, []);
+
+  const handleRecover = () => {
+    if (savedDraft) {
+      setNoteContent(savedDraft.content);
+      if (savedDraft.visibility) setVisibility(savedDraft.visibility);
+      setEditorKey((k) => k + 1);
+    }
+    setSavedDraft(null);
+  };
+
+  const handleDiscard = () => {
+    setSavedDraft(null);
+  };
+
+  const getFormData = useCallback(
+    () => ({
+      content: noteContent,
+      visibility,
+      responsePreference: learnerDefaults.defaultResponsePreference,
+    }),
+    [noteContent, visibility, learnerDefaults.defaultResponsePreference],
+  );
+
+  const { status: autosaveStatus, lastSavedAt } = useAutosave({
+    format: "note",
+    getFormData,
+  });
 
   return (
     <div className="min-h-screen bg-background">
@@ -160,6 +202,7 @@ export default function WriteNotePage({ loaderData }: Route.ComponentProps) {
             <div className="flex items-center justify-between">
               <h1 className="text-lg font-semibold text-text-primary m-0">짧은 메모</h1>
               <div className="flex items-center gap-3">
+                <AutosaveIndicator status={autosaveStatus} lastSavedAt={lastSavedAt} />
                 <Link
                   to="/write"
                   className="inline-flex h-10 items-center justify-center rounded-md border border-border px-4 py-2 text-sm font-medium text-text-secondary no-underline transition-colors hover:bg-surface-secondary"
@@ -172,6 +215,15 @@ export default function WriteNotePage({ loaderData }: Route.ComponentProps) {
               </div>
             </div>
           </div>
+
+          {savedDraft ? (
+            <DraftRecoveryPrompt
+              draft={savedDraft}
+              format="note"
+              onRecover={handleRecover}
+              onDiscard={handleDiscard}
+            />
+          ) : null}
 
           <div>
             <Label className="mb-2 block text-sm font-medium text-text-secondary">유형</Label>
@@ -206,7 +258,7 @@ export default function WriteNotePage({ loaderData }: Route.ComponentProps) {
               >
                 공개 범위
               </Label>
-              <Select name="visibility" defaultValue={learnerDefaults.defaultVisibility}>
+              <Select name="visibility" value={visibility} onValueChange={setVisibility}>
                 <SelectTrigger id="visibility" className="w-auto min-w-36 bg-surface">
                   <SelectValue />
                 </SelectTrigger>
@@ -228,6 +280,7 @@ export default function WriteNotePage({ loaderData }: Route.ComponentProps) {
 
           <div>
             <NoteEditor
+              key={editorKey}
               name="content"
               defaultValue={noteContent}
               onChange={setNoteContent}
