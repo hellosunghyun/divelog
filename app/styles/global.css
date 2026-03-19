@@ -76,6 +76,9 @@
 
   body {
     min-height: 100dvh;
+    /* Radix react-remove-scroll이 overlay 열 때 inline padding-right를 추가하는데,
+       html의 scrollbar-gutter: stable과 이중 보상되어 레이아웃 시프트 발생 방지 */
+    scrollbar-gutter: stable;
   }
 
   h1, h2, h3, h4, h5, h6 {
