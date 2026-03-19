@@ -168,7 +168,7 @@ describe("learner slug route integration", () => {
     vi.mocked(useRouteLoaderData).mockReturnValue({ user: { id: "another-user" } } as never);
   });
 
-  it("renders ProfileIntroBlock with enriched data", () => {
+  it("renders profile intro block with enriched data integrated into Hero", () => {
     const loaderData = buildLoaderData();
 
     renderPage(loaderData);
@@ -176,18 +176,35 @@ describe("learner slug route integration", () => {
     expect(screen.getByTestId("learner-profile-page")).toBeInTheDocument();
     expect(screen.getByTestId("profile-intro-block")).toBeInTheDocument();
     expect(screen.getByText(loaderData.profileIntro ?? "")).toBeInTheDocument();
-    expect(screen.getByText(loaderData.contextLine ?? "")).toBeInTheDocument();
     expect(screen.getByText(`"${loaderData.learner.currentQuestion}"`)).toBeInTheDocument();
     expect(screen.queryByText("지금 탐구 중인 질문")).not.toBeInTheDocument();
   });
 
-  it("renders DiscoveryHelperBlocks", () => {
+  it("renders interest tags in Hero section", () => {
+    const loaderData = buildLoaderData();
+
+    renderPage(loaderData);
+
+    const tagsContainer = screen.getByTestId("interest-tags");
+    expect(tagsContainer).toBeInTheDocument();
+    expect(within(tagsContainer).getByText("#성찰")).toBeInTheDocument();
+    expect(within(tagsContainer).getByText("#학습")).toBeInTheDocument();
+    expect(within(tagsContainer).getByText("#디자인")).toBeInTheDocument();
+  });
+
+  it("renders current stage block", () => {
     const loaderData = buildLoaderData();
 
     renderPage(loaderData);
 
     expect(screen.getByTestId("current-stage-block")).toBeInTheDocument();
-    expect(screen.getByTestId("recent-activity-block")).toBeInTheDocument();
+  });
+
+  it("renders starter links in records tab", () => {
+    const loaderData = buildLoaderData();
+
+    renderPage(loaderData);
+
     const starterLinks = screen.getByTestId("starter-links");
     expect(starterLinks).toBeInTheDocument();
     expect(within(starterLinks).getByRole("link", { name: "첫 번째 기록" })).toHaveAttribute(
@@ -241,9 +258,8 @@ describe("learner slug route integration", () => {
 
     renderPage(loaderData);
 
-    expect(screen.queryByTestId("profile-intro-block")).not.toBeInTheDocument();
+    expect(screen.getByTestId("profile-intro-block")).toBeInTheDocument();
     expect(screen.queryByTestId("current-stage-block")).not.toBeInTheDocument();
-    expect(screen.queryByTestId("recent-activity-block")).not.toBeInTheDocument();
     expect(screen.queryByTestId("starter-links")).not.toBeInTheDocument();
     expect(screen.getByTestId("self-answer-section")).toBeInTheDocument();
     expect(screen.getByText("아직 자기답변이 없습니다")).toBeInTheDocument();

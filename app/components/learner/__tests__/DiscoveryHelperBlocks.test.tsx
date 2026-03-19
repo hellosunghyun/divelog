@@ -1,8 +1,7 @@
-// @ts-nocheck
 import "@testing-library/jest-dom";
 import { describe, it, expect } from "vitest";
 import { render, screen } from "~/lib/test-utils";
-import { DiscoveryHelperBlocks } from "../DiscoveryHelperBlocks";
+import { DiscoveryHelperBlocks, StarterLinksBlock, CurrentStageBlock } from "../DiscoveryHelperBlocks";
 
 describe("DiscoveryHelperBlocks", () => {
   const defaultProps = {
@@ -12,32 +11,25 @@ describe("DiscoveryHelperBlocks", () => {
       { slug: "record-1", title: "첫 번째 기록" },
       { slug: "record-2", title: "두 번째 기록" },
     ],
-    learnerSlug: "john-doe",
   };
 
-  describe("renders stage, recent activity, and starter links", () => {
-    it("renders current stage block with stage name and link", () => {
-      render(<DiscoveryHelperBlocks {...defaultProps} />);
+  describe("CurrentStageBlock", () => {
+    it("renders current stage with link", () => {
+      render(<CurrentStageBlock stage={defaultProps.currentStage} />);
 
       const stageBlock = screen.getByTestId("current-stage-block");
       expect(stageBlock).toBeInTheDocument();
+      expect(stageBlock).toHaveTextContent("현재 여정");
       expect(stageBlock).toHaveTextContent("Prelude");
 
       const stageLink = screen.getByRole("link", { name: /Prelude/ });
       expect(stageLink).toHaveAttribute("href", "/journey/prelude");
     });
+  });
 
-    it("renders recent activity block with record and question counts", () => {
-      render(<DiscoveryHelperBlocks {...defaultProps} />);
-
-      const activityBlock = screen.getByTestId("recent-activity-block");
-      expect(activityBlock).toBeInTheDocument();
-      expect(activityBlock).toHaveTextContent("기록 5개");
-      expect(activityBlock).toHaveTextContent("질문 3개");
-    });
-
-    it("renders starter links block with record links", () => {
-      render(<DiscoveryHelperBlocks {...defaultProps} />);
+  describe("StarterLinksBlock", () => {
+    it("renders starter links with record links", () => {
+      render(<StarterLinksBlock records={defaultProps.starterRecords} />);
 
       const starterLinksBlock = screen.getByTestId("starter-links");
       expect(starterLinksBlock).toBeInTheDocument();
@@ -49,14 +41,73 @@ describe("DiscoveryHelperBlocks", () => {
       const secondRecordLink = screen.getByRole("link", { name: "두 번째 기록" });
       expect(secondRecordLink).toHaveAttribute("href", "/logs/record-2");
     });
+
+    it("hides starter links block when records is empty", () => {
+      const { container } = render(<StarterLinksBlock records={[]} />);
+      expect(container.firstChild).toBeNull();
+    });
+
+    it("shows only up to 2 starter record links even when more are provided", () => {
+      render(
+        <StarterLinksBlock
+          records={[
+            { slug: "record-1", title: "첫 번째 기록" },
+            { slug: "record-2", title: "두 번째 기록" },
+            { slug: "record-3", title: "세 번째 기록" },
+          ]}
+        />
+      );
+
+      const recordLinks = screen.getAllByRole("link", { name: /기록$/ });
+      expect(recordLinks).toHaveLength(2);
+    });
+
+    it("shows only 1 starter link when only 1 is available", () => {
+      render(
+        <StarterLinksBlock
+          records={[{ slug: "only-record", title: "유일한 기록" }]}
+        />
+      );
+
+      expect(screen.getByRole("link", { name: "유일한 기록" })).toBeInTheDocument();
+      expect(screen.queryByRole("link", { name: /두 번째/ })).not.toBeInTheDocument();
+    });
+
+    it("links navigate to /logs/:recordSlug", () => {
+      render(<StarterLinksBlock records={defaultProps.starterRecords} />);
+
+      const links = screen.getAllByRole("link");
+      const recordLinks = links.filter(
+        (link) => link.getAttribute("href")?.startsWith("/logs/")
+      );
+
+      expect(recordLinks[0]).toHaveAttribute("href", "/logs/record-1");
+      expect(recordLinks[1]).toHaveAttribute("href", "/logs/record-2");
+    });
   });
 
-  describe("hides unavailable sections gracefully", () => {
+  describe("DiscoveryHelperBlocks composite", () => {
+    it("renders stage, recent activity, and starter links", () => {
+      render(<DiscoveryHelperBlocks {...defaultProps} />);
+
+      expect(screen.getByTestId("current-stage-block")).toBeInTheDocument();
+      expect(screen.getByTestId("recent-activity-block")).toBeInTheDocument();
+      expect(screen.getByTestId("starter-links")).toBeInTheDocument();
+    });
+
+    it("renders recent activity as inline text with record and question counts", () => {
+      render(<DiscoveryHelperBlocks {...defaultProps} />);
+
+      const activityBlock = screen.getByTestId("recent-activity-block");
+      expect(activityBlock).toBeInTheDocument();
+      expect(activityBlock).toHaveTextContent("기록 5개");
+      expect(activityBlock).toHaveTextContent("질문 3개");
+    });
+
     it("hides stage block when currentStage is null", () => {
       render(<DiscoveryHelperBlocks {...defaultProps} currentStage={null} />);
 
       expect(screen.queryByTestId("current-stage-block")).not.toBeInTheDocument();
-      // Other blocks should still render
       expect(screen.getByTestId("recent-activity-block")).toBeInTheDocument();
       expect(screen.getByTestId("starter-links")).toBeInTheDocument();
     });
@@ -65,7 +116,6 @@ describe("DiscoveryHelperBlocks", () => {
       render(<DiscoveryHelperBlocks {...defaultProps} recentActivity={null} />);
 
       expect(screen.queryByTestId("recent-activity-block")).not.toBeInTheDocument();
-      // Other blocks should still render
       expect(screen.getByTestId("current-stage-block")).toBeInTheDocument();
       expect(screen.getByTestId("starter-links")).toBeInTheDocument();
     });
@@ -113,63 +163,32 @@ describe("DiscoveryHelperBlocks", () => {
       render(<DiscoveryHelperBlocks {...defaultProps} starterRecords={[]} />);
 
       expect(screen.queryByTestId("starter-links")).not.toBeInTheDocument();
-      // Other blocks should still render
       expect(screen.getByTestId("current-stage-block")).toBeInTheDocument();
       expect(screen.getByTestId("recent-activity-block")).toBeInTheDocument();
     });
 
-    it("shows only up to 2 starter record links even when more are provided", () => {
-      render(
+    it("returns null when all sections are empty", () => {
+      const { container } = render(
         <DiscoveryHelperBlocks
-          {...defaultProps}
-          starterRecords={[
-            { slug: "record-1", title: "첫 번째 기록" },
-            { slug: "record-2", title: "두 번째 기록" },
-            { slug: "record-3", title: "세 번째 기록" },
-          ]}
+          currentStage={null}
+          recentActivity={null}
+          starterRecords={[]}
         />
       );
 
-      const recordLinks = screen.getAllByRole("link", { name: /기록$/ });
-      expect(recordLinks).toHaveLength(2);
-    });
-
-    it("shows only 1 starter link when only 1 is available", () => {
-      render(
-        <DiscoveryHelperBlocks
-          {...defaultProps}
-          starterRecords={[{ slug: "only-record", title: "유일한 기록" }]}
-        />
-      );
-
-      expect(screen.getByRole("link", { name: "유일한 기록" })).toBeInTheDocument();
-      expect(screen.queryByRole("link", { name: /두 번째/ })).not.toBeInTheDocument();
-    });
-  });
-
-  describe("starter links navigate to correct record URLs", () => {
-    it("links navigate to /logs/:recordSlug", () => {
-      render(<DiscoveryHelperBlocks {...defaultProps} />);
-
-      const links = screen.getAllByRole("link");
-      const recordLinks = links.filter(
-        (link) => link.getAttribute("href")?.startsWith("/logs/")
-      );
-
-      expect(recordLinks[0]).toHaveAttribute("href", "/logs/record-1");
-      expect(recordLinks[1]).toHaveAttribute("href", "/logs/record-2");
+      expect(container.firstChild).toBeNull();
     });
   });
 
   describe("copy tone is warm, plain, non-judgmental", () => {
     it("uses warm language for starter links header", () => {
-      render(<DiscoveryHelperBlocks {...defaultProps} />);
+      render(<StarterLinksBlock records={defaultProps.starterRecords} />);
 
       expect(screen.getByText("여기서 시작해보세요")).toBeInTheDocument();
     });
 
     it("does NOT use popularity language", () => {
-      render(<DiscoveryHelperBlocks {...defaultProps} />);
+      render(<StarterLinksBlock records={defaultProps.starterRecords} />);
 
       const container = screen.getByTestId("starter-links");
       expect(container).not.toHaveTextContent(/인기/);

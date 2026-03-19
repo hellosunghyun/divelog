@@ -78,38 +78,23 @@ export function resolveProfileIntro(
 }
 
 /**
- * Derives a short context line from local data only (cohort + stage name).
+ * Derives stage-only context line for display in profile.
+ *
+ * Note: Cohort is displayed separately in the Hero section, so this returns
+ * ONLY the stage name to avoid duplication.
  *
  * Format examples:
- * - "2기 · Bridge 단계" (both cohort and stage)
- * - "2기" (cohort only)
  * - "Bridge 단계" (stage only)
- * - null (both absent or empty)
+ * - null (no stage)
  *
- * Note: This function uses LOCAL data only, never external ada fields.
- *
- * @param cohort - Cohort identifier from learner_profiles (e.g., "2기")
+ * @param _cohort - Cohort identifier (unused, kept for API compatibility)
  * @param stageName - Stage name from stages table (e.g., "Bridge 단계")
- * @returns Context line string or null
+ * @returns Stage name string or null
  */
 export function resolveContextLine(
-  cohort: string | null,
+  _cohort: string | null,
   stageName: string | null
 ): string | null {
-  const cohortTrimmed = cohort?.trim() ?? null;
   const stageNameTrimmed = stageName?.trim() ?? null;
-
-  if (cohortTrimmed && stageNameTrimmed) {
-    return `${cohortTrimmed} · ${stageNameTrimmed}`;
-  }
-
-  if (cohortTrimmed) {
-    return cohortTrimmed;
-  }
-
-  if (stageNameTrimmed) {
-    return stageNameTrimmed;
-  }
-
-  return null;
+  return stageNameTrimmed || null;
 }

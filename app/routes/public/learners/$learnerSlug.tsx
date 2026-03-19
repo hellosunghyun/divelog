@@ -4,10 +4,8 @@ import { Link } from "~/components/content/SmartLink";
 import SceneCard from "~/components/cards/SceneCard";
 import QuestionCard from "~/components/cards/QuestionCard";
 import HighlightedSentenceCard from "~/components/cards/HighlightedSentenceCard";
-// [COLLAB_DISABLED] import CollaborationUnitCard from "~/components/cards/CollaborationUnitCard";
 import EmptyState from "~/components/feedback/EmptyState";
-import { DiscoveryHelperBlocks } from "~/components/learner/DiscoveryHelperBlocks";
-import ProfileIntroBlock from "~/components/learner/ProfileIntroBlock";
+import { StarterLinksBlock } from "~/components/learner/DiscoveryHelperBlocks";
 import SelfAnswerSection from "~/components/learner/SelfAnswerSection";
 import { cn } from "~/lib/utils/cn";
 import { useState } from "react";
@@ -17,7 +15,7 @@ export { loader } from "./$learnerSlug.server";
 type LoaderData = Awaited<ReturnType<typeof import("./$learnerSlug.server").loader>>;
 type PublicLoaderData = Awaited<ReturnType<typeof import("../../_public").loader>>;
 
-const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const CACHE_TTL_MS = 5 * 60 * 1000;
 const CACHE_MAX_SIZE = 50;
 
 type CacheEntry<T> = { data: T; timestamp: number };
@@ -34,7 +32,6 @@ function getCached<T>(key: string): T | null {
 }
 
 function setCached(key: string, data: unknown): void {
-  // Evict oldest entry if at max size
   if (cache.size >= CACHE_MAX_SIZE) {
     const firstKey = cache.keys().next().value;
     if (firstKey !== undefined) cache.delete(firstKey);
@@ -96,6 +93,18 @@ function TabButton({ active, onClick, children }: TabButtonProps) {
   );
 }
 
+function buildActivityLine(recentActivity: LoaderData["recentActivity"]): string | null {
+  if (!recentActivity) return null;
+  const parts: string[] = [];
+  if (recentActivity.recordCount > 0) {
+    parts.push(`기록 ${recentActivity.recordCount}개`);
+  }
+  if (recentActivity.questionCount > 0) {
+    parts.push(`질문 ${recentActivity.questionCount}개`);
+  }
+  return parts.length > 0 ? parts.join(" · ") : null;
+}
+
 export default function LearnerDetailPage({ loaderData }: Route.ComponentProps) {
   const typedData = loaderData as LoaderData;
   const learner = typedData.learner;
@@ -130,6 +139,9 @@ export default function LearnerDetailPage({ loaderData }: Route.ComponentProps) 
     { key: "questions", label: "질문", count: learnerQuestions.length },
   ];
 
+  const activityLine = buildActivityLine(recentActivity);
+  const hasProfileContent = profileIntro || interestTags.length > 0 || activityLine || learner.currentQuestion || contextLine;
+
   return (
     <div className="min-h-screen" data-testid="learner-profile-page">
       <section className="bg-gradient-to-b from-mist-blue/60 via-mist-blue/30 to-bg -mt-15 sm:-mt-16 pt-[6.75rem] sm:pt-28 md:pt-32 pb-12 md:pb-16">
@@ -149,12 +161,49 @@ export default function LearnerDetailPage({ loaderData }: Route.ComponentProps) 
               )}
             </div>
 
-            <div className="flex-1">
+            <div className="flex-1 min-w-0" data-testid="profile-intro-block">
               <h1 className="text-3xl md:text-4xl font-semibold tracking-tight text-text-primary">
                 {learner.displayName}
               </h1>
-              {learner.cohort && (
-                <p className="text-meta text-text-secondary mt-1">{learner.cohort}</p>
+
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1 text-meta text-text-secondary">
+                {learner.cohort && <span>{learner.cohort}</span>}
+                {learner.cohort && contextLine && <span>·</span>}
+                {contextLine && <span>{contextLine}</span>}
+              </div>
+
+              {profileIntro && (
+                <p className="mt-3 text-base text-text-secondary leading-body max-w-2xl">
+                  {profileIntro}
+                </p>
+              )}
+
+              {interestTags.length > 0 && (
+                <div data-testid="interest-tags" className="flex flex-wrap gap-2 mt-3">
+                  {interestTags.map((tag: { slug: string; name: string }) => (
+                    <Link
+                      key={tag.slug}
+                      to={`/tags/${tag.slug}`}
+                      className="rounded-full px-3 py-1.5 text-xs font-medium bg-surface border border-border text-text-secondary hover:bg-mist-blue hover:text-ocean-blue hover:border-reef-cyan/30 transition-all duration-normal no-underline"
+                    >
+                      #{tag.name}
+                    </Link>
+                  ))}
+                </div>
+              )}
+
+              {activityLine && (
+                <p className="mt-3 text-sm text-text-tertiary">
+                  {activityLine}
+                </p>
+              )}
+
+              {learner.currentQuestion && (
+                <div data-testid="current-question" className="mt-6 pl-4 border-l-2 border-ocean-blue/30">
+                  <p className="text-lg md:text-xl font-medium leading-relaxed text-text-primary italic">
+                    "{learner.currentQuestion}"
+                  </p>
+                </div>
               )}
             </div>
           </div>
@@ -162,19 +211,17 @@ export default function LearnerDetailPage({ loaderData }: Route.ComponentProps) 
       </section>
 
       <div className="max-w-content mx-auto px-6 pt-8">
-        <div className="space-y-4 mb-8">
-          <ProfileIntroBlock
-            profileIntro={profileIntro}
-            contextLine={contextLine}
-            interestTags={interestTags}
-            currentQuestion={learner.currentQuestion}
-          />
-          <DiscoveryHelperBlocks
-            currentStage={currentStage}
-            recentActivity={recentActivity}
-            starterRecords={starterRecords}
-          />
-        </div>
+        {currentStage && (
+          <div data-testid="current-stage-block" className="mb-6">
+            <Link
+              to={`/journey/${currentStage.slug}`}
+              className="inline-flex items-center gap-2 rounded-full bg-mist-blue px-4 py-2 text-sm font-medium text-ocean-blue transition-colors no-underline hover:bg-reef-cyan/30"
+            >
+              <span className="text-text-tertiary">현재 여정</span>
+              <span>{currentStage.name}</span>
+            </Link>
+          </div>
+        )}
 
         <div className="flex gap-2 mb-8">
           {tabItems.map((tab) => (
@@ -190,6 +237,10 @@ export default function LearnerDetailPage({ loaderData }: Route.ComponentProps) 
 
         {activeTab === "records" && (
           <section key="records">
+            {starterRecords.length > 0 && (
+              <StarterLinksBlock records={starterRecords} />
+            )}
+
             {learnerRecords.length === 0 ? (
               <EmptyState variant="records" message="아직 작성한 기록이 없습니다." />
             ) : (
@@ -324,8 +375,6 @@ export default function LearnerDetailPage({ loaderData }: Route.ComponentProps) 
           </div>
         </section>
       )}
-
-      {/* [COLLAB_DISABLED] collaboration section removed */}
     </div>
   );
 }
