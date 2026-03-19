@@ -5,6 +5,7 @@ import { data, Form, redirect, useActionData } from "react-router";
 import { useState, Suspense, lazy } from "react";
 
 import type { Route } from "./+types/$recordSlug.edit";
+import { RECORD_TYPES, RECORD_TYPE_LABELS } from "~/lib/constants/record-types";
 
 const ArticleEditor = lazy(() =>
   import("~/components/editor/editors/ArticleEditor").then(m => ({ default: m.ArticleEditor }))
@@ -362,18 +363,15 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
           <legend className="block text-meta font-medium text-text-secondary mb-2">유형</legend>
           <RadioGroup
             name="type"
-            defaultValue={record.type}
+            defaultValue={RECORD_TYPES.includes(record.type as any) ? record.type : "exploration"}
             className="flex flex-wrap gap-3"
             aria-label="유형"
           >
-            {[
-              { value: "personal", label: "개인 탐구" },
-              // [COLLAB_DISABLED] { value: "collaboration", label: "협업" },
-            ].map((opt) => (
-              <div key={opt.value} className="flex items-center gap-2">
-                <RadioGroupItem value={opt.value} id={`type-${opt.value}`} />
-                <Label htmlFor={`type-${opt.value}`} className="cursor-pointer text-base text-text-primary">
-                  {opt.label}
+            {RECORD_TYPES.map((type) => (
+              <div key={type} className="flex items-center gap-2">
+                <RadioGroupItem value={type} id={`type-${type}`} />
+                <Label htmlFor={`type-${type}`} className="cursor-pointer text-base text-text-primary">
+                  {RECORD_TYPE_LABELS[type]}
                 </Label>
               </div>
             ))}
