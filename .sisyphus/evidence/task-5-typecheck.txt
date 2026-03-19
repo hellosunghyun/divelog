@@ -1,26 +1,13 @@
-app/components/admin/AdminSidebar.tsx(39,46): error TS2322: Type 'Icon' is not assignable to type 'ComponentType<{ size?: number | undefined; weight?: string | undefined; className?: string | undefined; }>'.
-app/components/admin/AdminSidebar.tsx(44,51): error TS2322: Type 'Icon' is not assignable to type 'ComponentType<{ size?: number | undefined; weight?: string | undefined; className?: string | undefined; }>'.
-app/components/admin/AdminSidebar.tsx(45,53): error TS2322: Type 'Icon' is not assignable to type 'ComponentType<{ size?: number | undefined; weight?: string | undefined; className?: string | undefined; }>'.
-app/components/admin/AdminSidebar.tsx(46,49): error TS2322: Type 'Icon' is not assignable to type 'ComponentType<{ size?: number | undefined; weight?: string | undefined; className?: string | undefined; }>'.
-app/components/admin/AdminSidebar.tsx(47,49): error TS2322: Type 'Icon' is not assignable to type 'ComponentType<{ size?: number | undefined; weight?: string | undefined; className?: string | undefined; }>'.
-app/components/admin/AdminSidebar.tsx(48,46): error TS2322: Type 'Icon' is not assignable to type 'ComponentType<{ size?: number | undefined; weight?: string | undefined; className?: string | undefined; }>'.
-app/components/admin/AdminSidebar.tsx(54,50): error TS2322: Type 'Icon' is not assignable to type 'ComponentType<{ size?: number | undefined; weight?: string | undefined; className?: string | undefined; }>'.
-app/components/admin/AdminSidebar.tsx(55,56): error TS2322: Type 'Icon' is not assignable to type 'ComponentType<{ size?: number | undefined; weight?: string | undefined; className?: string | undefined; }>'.
-app/components/admin/AdminSidebar.tsx(56,66): error TS2322: Type 'Icon' is not assignable to type 'ComponentType<{ size?: number | undefined; weight?: string | undefined; className?: string | undefined; }>'.
-app/components/admin/AdminSidebar.tsx(62,49): error TS2322: Type 'Icon' is not assignable to type 'ComponentType<{ size?: number | undefined; weight?: string | undefined; className?: string | undefined; }>'.
-app/components/admin/AdminSidebar.tsx(63,62): error TS2322: Type 'Icon' is not assignable to type 'ComponentType<{ size?: number | undefined; weight?: string | undefined; className?: string | undefined; }>'.
-app/components/admin/AdminSidebar.tsx(69,51): error TS2322: Type 'Icon' is not assignable to type 'ComponentType<{ size?: number | undefined; weight?: string | undefined; className?: string | undefined; }>'.
-app/components/admin/AdminSidebar.tsx(70,51): error TS2322: Type 'Icon' is not assignable to type 'ComponentType<{ size?: number | undefined; weight?: string | undefined; className?: string | undefined; }>'.
-app/components/admin/AdminSidebar.tsx(71,49): error TS2322: Type 'Icon' is not assignable to type 'ComponentType<{ size?: number | undefined; weight?: string | undefined; className?: string | undefined; }>'.
-app/components/admin/AdminSidebar.tsx(72,47): error TS2322: Type 'Icon' is not assignable to type 'ComponentType<{ size?: number | undefined; weight?: string | undefined; className?: string | undefined; }>'.
-app/db/queries/dialogue/questions.server.ts(210,3): error TS2322: Type '{ [x: string]: unknown; }[]' is not assignable to type 'UnansweredQuestionByAuthor[]'.
-app/db/queries/dialogue/questions.server.ts(211,13): error TS2345: Argument of type '{ recordSlug: SQLiteColumn<{ name: "slug"; tableName: "records"; dataType: "string"; columnType: "SQLiteText"; data: string; driverParam: string; notNull: true; hasDefault: false; isPrimaryKey: false; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, { ...; }>; ... 13 more ...; closedAt: SQLiteCol...' is not assignable to parameter of type 'SelectedFields'.
-app/db/queries/dialogue/responses.server.ts(70,3): error TS2322: Type '{ [x: string]: unknown; }[]' is not assignable to type 'RecentlyRespondedRecord[]'.
-app/db/queries/dialogue/responses.server.ts(71,13): error TS2345: Argument of type '{ recentResponseCount: SQL.Aliased<number>; lastResponseAt: SQL.Aliased<number>; _: { readonly brand: "Table"; readonly config: { name: "records"; schema: undefined; columns: { id: SQLiteColumn<{ name: "id"; ... 13 more ...; generated: undefined; }, {}, { ...; }>; ... 21 more ...; updatedAt: SQLiteColumn<...>; }; di...' is not assignable to parameter of type 'SelectedFields'.
-app/routes/admin/analytics.tsx(123,35): error TS2339: Property 'weekNumber' does not exist on type '{ id: string; name: string; slug: string; type: string; status: string; description: string | null; accentTone: string | null; order: number; startDate: number | null; endDate: number | null; ... 4 more ...; updatedAt: number; }'.
-app/routes/admin/analytics.tsx(129,35): error TS2339: Property 'phase' does not exist on type '{ id: string; name: string; slug: string; type: string; status: string; description: string | null; accentTone: string | null; order: number; startDate: number | null; endDate: number | null; ... 4 more ...; updatedAt: number; }'.
-app/routes/admin/curation.tsx(23,28): error TS2304: Cannot find name 'curationSlots'.
-app/routes/admin/index.tsx(24,29): error TS2304: Cannot find name 'records'.
-app/routes/admin/index.tsx(26,18): error TS2304: Cannot find name 'records'.
-app/routes/admin/roles.tsx(102,16): error TS2304: Cannot find name 'userRoles'.
-app/routes/admin/settings.tsx(13,26): error TS2304: Cannot find name 'settings'.
+app/lib/auth/auth.middleware.server.ts(27,64): error TS2339: Property 'ADAKRPOS_API_KEY' does not exist on type 'Env'.
+app/lib/auth/auth.middleware.server.ts(40,62): error TS2339: Property 'ADAKRPOS_API_KEY' does not exist on type 'Env'.
+app/lib/auth/auth.middleware.server.ts(50,45): error TS2339: Property 'ADAKRPOS_API_KEY' does not exist on type 'Env'.
+app/lib/auth/auth.middleware.server.ts(59,45): error TS2339: Property 'ADAKRPOS_API_KEY' does not exist on type 'Env'.
+app/lib/auth/auth.middleware.ts(27,64): error TS2339: Property 'ADAKRPOS_API_KEY' does not exist on type 'Env'.
+app/lib/auth/auth.middleware.ts(40,62): error TS2339: Property 'ADAKRPOS_API_KEY' does not exist on type 'Env'.
+app/lib/auth/auth.middleware.ts(50,45): error TS2339: Property 'ADAKRPOS_API_KEY' does not exist on type 'Env'.
+app/lib/auth/auth.middleware.ts(60,45): error TS2339: Property 'ADAKRPOS_API_KEY' does not exist on type 'Env'.
+app/routes/_public.tsx(18,62): error TS2339: Property 'ADAKRPOS_API_KEY' does not exist on type 'Env'.
+app/routes/api/autosave.tsx(33,62): error TS2339: Property 'ADAKRPOS_API_KEY' does not exist on type 'Env'.
+app/routes/api/upload.tsx(20,62): error TS2339: Property 'ADAKRPOS_API_KEY' does not exist on type 'Env'.
+app/routes/public/learners/$learnerSlug.server.ts(28,62): error TS2339: Property 'ADAKRPOS_API_KEY' does not exist on type 'Env'.
+app/routes/public/learners/$learnerSlug.server.ts(61,58): error TS2554: Expected 3 arguments, but got 4.
