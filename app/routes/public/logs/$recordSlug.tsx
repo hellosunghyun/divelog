@@ -462,7 +462,7 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
   const savedRangeRef = useRef<Range | null>(null);
   const highlightCleanupRef = useRef<(() => void) | null>(null);
   const highlightOverlayRef = useRef<HTMLDivElement | null>(null);
-  const { unmarkRead } = useReadTracking({
+  const { isRead, toggleRead } = useReadTracking({
     recordId: record.id,
     format: record.format,
     isAuthenticated: !!currentUserId,
@@ -823,10 +823,15 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
               {isArticleRecord && (
                 <button
                   type="button"
-                  onClick={unmarkRead}
-                  className="inline-flex items-center rounded-full border border-border px-3 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:bg-surface-secondary hover:text-text-primary"
+                  onClick={toggleRead}
+                  className={cn(
+                    "inline-flex items-center rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+                    isRead
+                      ? "border-border text-text-secondary hover:bg-surface-secondary hover:text-text-primary"
+                      : "border-reef-cyan/40 bg-mist-blue text-ocean-blue hover:bg-mist-blue/70"
+                  )}
                 >
-                  읽지 않음으로 표시
+                  {isRead ? "읽지 않음으로 표시" : "읽음으로 표시"}
                 </button>
               )}
 

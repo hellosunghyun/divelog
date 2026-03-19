@@ -1,11 +1,13 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useFetcher } from "react-router";
 
 import {
   markLocalRead,
   unmarkLocalRead,
+  isLocalRead,
   addToSessionReadCache,
   removeFromSessionReadCache,
+  getSessionReadCache,
 } from "~/lib/infra/read-storage";
 
 interface UseReadTrackingOptions {
@@ -15,7 +17,17 @@ interface UseReadTrackingOptions {
 }
 
 interface UseReadTrackingResult {
-  unmarkRead: () => void;
+  isRead: boolean;
+  toggleRead: () => void;
+}
+
+function getInitialReadState(recordId: string, isAuthenticated: boolean): boolean {
+  if (typeof window === "undefined") return false;
+  if (isAuthenticated) {
+    const cache = getSessionReadCache();
+    return cache ? cache.has(recordId) : false;
+  }
+  return isLocalRead(recordId);
 }
 
 export function useReadTracking({
@@ -32,8 +44,13 @@ export function useReadTracking({
   const isAuthenticatedRef = useRef(isAuthenticated);
   isAuthenticatedRef.current = isAuthenticated;
 
+  const [isRead, setIsRead] = useState(() =>
+    getInitialReadState(recordId, isAuthenticated)
+  );
+
   useEffect(() => {
     skipAutoMarkRef.current = false;
+    setIsRead(getInitialReadState(recordId, isAuthenticated));
 
     if (format !== "article") {
       return;
@@ -53,6 +70,7 @@ export function useReadTracking({
       } else {
         markLocalRead(recordId);
       }
+      setIsRead(true);
     }, 3000);
 
     return () => {
@@ -61,31 +79,46 @@ export function useReadTracking({
         markTimeoutRef.current = null;
       }
     };
-  }, [format, recordId]);
+  }, [format, recordId, isAuthenticated]);
 
-  const unmarkRead = useCallback(() => {
+  const toggleRead = useCallback(() => {
     if (format !== "article") {
       return;
     }
 
-    skipAutoMarkRef.current = true;
+    if (isRead) {
+      skipAutoMarkRef.current = true;
 
-    if (markTimeoutRef.current) {
-      clearTimeout(markTimeoutRef.current);
-      markTimeoutRef.current = null;
+      if (markTimeoutRef.current) {
+        clearTimeout(markTimeoutRef.current);
+        markTimeoutRef.current = null;
+      }
+
+      if (isAuthenticatedRef.current) {
+        fetcherRef.current.submit(
+          { intent: "unmark_read", recordId },
+          { method: "POST", action: "/api/track-read" }
+        );
+        removeFromSessionReadCache(recordId);
+      } else {
+        unmarkLocalRead(recordId);
+      }
+      setIsRead(false);
+    } else {
+      skipAutoMarkRef.current = false;
+
+      if (isAuthenticatedRef.current) {
+        fetcherRef.current.submit(
+          { intent: "mark_read", recordId },
+          { method: "POST", action: "/api/track-read" }
+        );
+        addToSessionReadCache(recordId);
+      } else {
+        markLocalRead(recordId);
+      }
+      setIsRead(true);
     }
+  }, [format, recordId, isRead]);
 
-    if (isAuthenticatedRef.current) {
-      fetcherRef.current.submit(
-        { intent: "unmark_read", recordId },
-        { method: "POST", action: "/api/track-read" }
-      );
-      removeFromSessionReadCache(recordId);
-      return;
-    }
-
-    unmarkLocalRead(recordId);
-  }, [format, recordId]);
-
-  return { unmarkRead };
+  return { isRead, toggleRead };
 }
