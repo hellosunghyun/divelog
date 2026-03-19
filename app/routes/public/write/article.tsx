@@ -38,6 +38,7 @@ import { parseDateToUnix } from "~/lib/utils/date";
 import { cn } from "~/lib/utils/cn";
 import { getNextRecordSlug } from "~/db/queries/records/records.server";
 import { nanoid } from "~/lib/utils/utils.server";
+import { captureRouteBoundaryError } from "~/lib/infra/sentry-error";
 
 const RHYTHM_OPTIONS = [
   { value: "free", label: "자유" },
@@ -166,6 +167,7 @@ export async function action({ request, context }: Route.ActionArgs) {
 
 export function ErrorBoundary() {
   const error = useRouteError();
+  captureRouteBoundaryError(error, { route: "public/write/article" });
   const is404 = isRouteErrorResponse(error) && error.status === 404;
 
   return (

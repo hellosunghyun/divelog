@@ -10,6 +10,7 @@ import { learnerProfiles, questions, records, sentences } from "~/db/schema.serv
 import { fetchAdaProfile, resolveContextLine, resolveProfileIntro } from "~/lib/auth/ada-profile.server";
 import { getAuth } from "~/lib/auth/auth.server";
 import { createLogger } from "~/lib/infra/logger.server";
+import * as Sentry from "@sentry/react-router/cloudflare";
 
 export async function loader({ params, request, context }: Route.LoaderArgs) {
   const { learnerSlug } = params;
@@ -47,12 +48,34 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
         .where(and(eq(records.authorId, learner.userId), eq(questions.isOpen, true), sql`${records.visibility} IN ('cohort', 'public')`)).orderBy(desc(questions.createdAt)).limit(5),
       database.select({ sentence: sentences }).from(sentences).leftJoin(records, eq(sentences.recordId, records.id)).where(and(eq(sentences.savedById, learner.userId), sql`${records.visibility} IN ('cohort', 'public')`)).orderBy(desc(sentences.createdAt)).limit(6),
     ]),
-    getRecordsWithParticipant(d1, learner.userId, 10).catch(() =>
-      [] as Awaited<ReturnType<typeof getRecordsWithParticipant>>
-    ),
-    getRecordsWithMention(d1, learner.userId, 10).catch(() =>
-      [] as Awaited<ReturnType<typeof getRecordsWithMention>>
-    ),
+    getRecordsWithParticipant(d1, learner.userId, 10).catch((error) => {
+      Sentry.captureException(error, {
+        tags: {
+          type: "learner_detail_fallback",
+          operation: "participated_records",
+          route: "public/learners/$learnerSlug.loader",
+        },
+        extra: {
+          learnerUserId: learner.userId,
+        },
+      });
+
+      return [] as Awaited<ReturnType<typeof getRecordsWithParticipant>>;
+    }),
+    getRecordsWithMention(d1, learner.userId, 10).catch((error) => {
+      Sentry.captureException(error, {
+        tags: {
+          type: "learner_detail_fallback",
+          operation: "mentioned_records",
+          route: "public/learners/$learnerSlug.loader",
+        },
+        extra: {
+          learnerUserId: learner.userId,
+        },
+      });
+
+      return [] as Awaited<ReturnType<typeof getRecordsWithMention>>;
+    }),
     getLearnerInterestTags(d1, learner.userId),
     getLearnerStageActivity(d1, learner.userId, isOwner, learner.currentStageId),
     getLearnerSelfAnswerSummary(d1, learner.userId),
@@ -80,6 +103,18 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
   try {
     participantsRaw = await getParticipantsBatch(d1, recordIds);
   } catch (error) {
+    Sentry.captureException(error, {
+      tags: {
+        type: "learner_detail_fallback",
+        operation: "participants_batch",
+        route: "public/learners/$learnerSlug.loader",
+      },
+      extra: {
+        learnerUserId: learner.userId,
+        recordCount: recordIds.length,
+      },
+    });
+
     logger.warn("participants_batch_failed", {
       error: error instanceof Error ? error.message : String(error),
     });

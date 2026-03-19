@@ -3,6 +3,8 @@
  * Provides temporary save/recovery for note and article drafts
  */
 
+import * as Sentry from "@sentry/react-router/cloudflare";
+
 export interface DraftData {
   title?: string;
   content: string;
@@ -19,6 +21,40 @@ const STORAGE_KEYS = {
   note: 'divelog-draft-note',
   article: 'divelog-draft-article',
 } as const;
+
+const capturedStorageErrors = new Set<string>();
+
+function trimCapturedStorageErrors(): void {
+  if (capturedStorageErrors.size > 100) {
+    capturedStorageErrors.clear();
+  }
+}
+
+function captureDraftStorageError(
+  operation: "save" | "load" | "clear",
+  format: "note" | "article",
+  error: unknown,
+): void {
+  const message = error instanceof Error ? error.message : String(error);
+  const signature = `${operation}:${format}:${message}`;
+  if (capturedStorageErrors.has(signature)) {
+    return;
+  }
+
+  capturedStorageErrors.add(signature);
+  trimCapturedStorageErrors();
+
+  Sentry.captureException(error, {
+    tags: {
+      type: "draft_storage",
+      operation,
+      format,
+    },
+    extra: {
+      signature,
+    },
+  });
+}
 
 /**
  * Save draft to localStorage
@@ -43,8 +79,7 @@ export function saveDraftToLocal(
 
     localStorage.setItem(key, JSON.stringify(draftData));
   } catch (error) {
-    // Silently fail if localStorage is unavailable (SSR, quota exceeded, etc.)
-    // In production, you might want to log this to a monitoring service
+    captureDraftStorageError("save", format, error);
   }
 }
 
@@ -77,7 +112,7 @@ export function loadDraftFromLocal(format: 'note' | 'article'): DraftData | null
 
     return draft;
   } catch (error) {
-    // Silently fail if localStorage is unavailable or JSON parse fails
+    captureDraftStorageError("load", format, error);
     return null;
   }
 }
@@ -91,7 +126,7 @@ export function clearLocalDraft(format: 'note' | 'article'): void {
     const key = STORAGE_KEYS[format];
     localStorage.removeItem(key);
   } catch (error) {
-    // Silently fail if localStorage is unavailable
+    captureDraftStorageError("clear", format, error);
   }
 }
 

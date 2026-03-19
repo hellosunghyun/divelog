@@ -5,7 +5,7 @@ import { buildEmptyLearnerProfile, buildPopulatedLearnerProfile } from "./fixtur
 import { db } from "~/db/client.server";
 import { getRecordsWithMention } from "~/db/queries/dialogue/mentions.server";
 import { getLearnerSelfAnswerSummary } from "~/db/queries/dialogue/selfAnswers.server";
-import { getLearnerStageActivity } from "~/db/queries/learners/learners.server";
+import { getLearnerInterestTags, getLearnerStageActivity } from "~/db/queries/learners/learners.server";
 import { getParticipantsBatch, getRecordsWithParticipant } from "~/db/queries/records/participants.server";
 import { fetchAdaProfile, resolveContextLine, resolveProfileIntro } from "~/lib/auth/ada-profile.server";
 import { getAuth } from "~/lib/auth/auth.server";
@@ -24,6 +24,7 @@ vi.mock("~/db/queries/dialogue/mentions.server", () => ({
 }));
 
 vi.mock("~/db/queries/learners/learners.server", () => ({
+  getLearnerInterestTags: vi.fn(),
   getLearnerStageActivity: vi.fn(),
 }));
 
@@ -115,6 +116,7 @@ describe("learner slug loader", () => {
     vi.mocked(getRecordsWithMention).mockResolvedValue([]);
     vi.mocked(getParticipantsBatch).mockResolvedValue([]);
     vi.mocked(getLearnerSelfAnswerSummary).mockResolvedValue([]);
+    vi.mocked(getLearnerInterestTags).mockResolvedValue([]);
     vi.mocked(fetchAdaProfile).mockResolvedValue(null);
     vi.mocked(getAuth).mockResolvedValue({
       isAuthenticated: false,
@@ -171,7 +173,10 @@ describe("learner slug loader", () => {
     expect(result.recentActivity).toEqual(fixture.recentActivity);
     expect(result.selfAnswers).toEqual(fixture.selfAnswers);
 
-    expect(resolveProfileIntro).toHaveBeenCalledWith(null, fixture.learner.bio);
+    expect(resolveProfileIntro).toHaveBeenCalledWith(
+      expect.objectContaining({ bio: fixture.profileIntro }),
+      fixture.learner.bio
+    );
     expect(getLearnerStageActivity).toHaveBeenCalledWith(expect.anything(), fixture.learner.userId, true, fixture.learner.currentStageId);
     expect(getLearnerSelfAnswerSummary).toHaveBeenCalledWith(expect.anything(), fixture.learner.userId);
   });
@@ -225,7 +230,12 @@ describe("learner slug loader", () => {
       context: createContext(),
     } as unknown as Parameters<typeof loader>[0]);
 
-    expect(getLearnerStageActivity).toHaveBeenCalledWith(expect.anything(), fixture.learner.userId, false, undefined);
+    expect(getLearnerStageActivity).toHaveBeenCalledWith(
+      expect.anything(),
+      fixture.learner.userId,
+      false,
+      fixture.learner.currentStageId
+    );
     expect(result.participatedRecords).toEqual([{ record: { id: "b", visibility: "public" } }]);
     expect(result.mentionedRecords).toEqual([{ record: { id: "d", visibility: "public" } }]);
   });

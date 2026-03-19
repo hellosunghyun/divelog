@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
 import { generateNoteTitle } from "../utils/title.server";
+import {
+  createArticleSchema,
+  createNoteSchema,
+  updateRecordMetadataSchema,
+} from "../auth/validation";
 
 describe("generateNoteTitle", () => {
   it("returns content as-is when under 30 chars", () => {
@@ -57,28 +62,24 @@ describe("generateNoteTitle", () => {
 });
 
 describe("createNoteSchema", () => {
-  it("passes with content only", async () => {
-    const { createNoteSchema } = await import("../auth/validation");
+  it("passes with content only", () => {
     const result = createNoteSchema.safeParse({ content: "테스트 내용" });
     expect(result.success).toBe(true);
   });
 
-  it("fails with empty content", async () => {
-    const { createNoteSchema } = await import("../auth/validation");
+  it("fails with empty content", () => {
     const result = createNoteSchema.safeParse({ content: "" });
     expect(result.success).toBe(false);
   });
 
-  it("does not require title", async () => {
-    const { createNoteSchema } = await import("../auth/validation");
+  it("does not require title", () => {
     const result = createNoteSchema.safeParse({ content: "내용만 있어요" });
     expect(result.success).toBe(true);
   });
 });
 
 describe("createArticleSchema", () => {
-  it("passes with title and valid JSON content", async () => {
-    const { createArticleSchema } = await import("../auth/validation");
+  it("passes with title and valid JSON content", () => {
     const result = createArticleSchema.safeParse({
       title: "아티클 제목",
       content: JSON.stringify({ type: "doc", content: [] }),
@@ -86,8 +87,7 @@ describe("createArticleSchema", () => {
     expect(result.success).toBe(true);
   });
 
-  it("sets 기본 제목 when title is missing", async () => {
-    const { createArticleSchema } = await import("../auth/validation");
+  it("sets 기본 제목 when title is missing", () => {
     const result = createArticleSchema.safeParse({
       content: JSON.stringify({ type: "doc", content: [] }),
     });
@@ -98,8 +98,7 @@ describe("createArticleSchema", () => {
     }
   });
 
-  it("sets 기본 제목 when title is empty", async () => {
-    const { createArticleSchema } = await import("../auth/validation");
+  it("sets 기본 제목 when title is empty", () => {
     const result = createArticleSchema.safeParse({
       title: "",
       content: JSON.stringify({ type: "doc", content: [] }),
@@ -111,8 +110,7 @@ describe("createArticleSchema", () => {
     }
   });
 
-  it("fails with invalid JSON content", async () => {
-    const { createArticleSchema } = await import("../auth/validation");
+  it("fails with invalid JSON content", () => {
     const result = createArticleSchema.safeParse({
       title: "제목",
       content: "일반 텍스트",
@@ -122,14 +120,12 @@ describe("createArticleSchema", () => {
 });
 
 describe("updateRecordMetadataSchema", () => {
-  it("passes with no fields (all optional)", async () => {
-    const { updateRecordMetadataSchema } = await import("../auth/validation");
+  it("passes with no fields (all optional)", () => {
     const result = updateRecordMetadataSchema.safeParse({});
     expect(result.success).toBe(true);
   });
 
-  it("passes with question only", async () => {
-    const { updateRecordMetadataSchema } = await import("../auth/validation");
+  it("passes with question only", () => {
     const result = updateRecordMetadataSchema.safeParse({ question: "이 경험에서 뭘 배웠나요?" });
     expect(result.success).toBe(true);
   });

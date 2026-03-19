@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { screen, within } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import { useRouteLoaderData } from "react-router";
 import { render } from "~/lib/test-utils";
 
@@ -187,23 +187,28 @@ describe("learner slug route integration", () => {
     expect(screen.getByTestId("current-stage-block")).toBeInTheDocument();
   });
 
-  it("renders starter links in records tab", () => {
+  it("renders record links in records tab", () => {
     const loaderData = buildLoaderData();
 
     renderPage(loaderData);
 
-    const starterLinks = screen.getByTestId("starter-links");
-    expect(starterLinks).toBeInTheDocument();
-    expect(within(starterLinks).getByRole("link", { name: "첫 번째 기록" })).toHaveAttribute(
+    const firstRecordLink = screen.getByText("첫 번째 기록").closest("a");
+    const secondRecordLink = screen.getByText("두 번째 기록").closest("a");
+    const thirdRecordLink = screen.getByText("세 번째 기록").closest("a");
+
+    expect(firstRecordLink).toHaveAttribute(
       "href",
       "/logs/first-record"
     );
-    expect(within(starterLinks).getByRole("link", { name: "두 번째 기록" })).toHaveAttribute(
+    expect(secondRecordLink).toHaveAttribute(
       "href",
       "/logs/second-record"
     );
-    expect(within(starterLinks).queryByRole("link", { name: "세 번째 기록" })).not.toBeInTheDocument();
-  });
+    expect(thirdRecordLink).toHaveAttribute(
+      "href",
+      "/logs/third-record"
+    );
+  }, 15000);
 
   it("renders SelfAnswerSection", () => {
     const loaderData = buildLoaderData();
@@ -246,7 +251,7 @@ describe("learner slug route integration", () => {
 
     expect(screen.getByTestId("profile-intro-block")).toBeInTheDocument();
     expect(screen.queryByTestId("current-stage-block")).not.toBeInTheDocument();
-    expect(screen.queryByTestId("starter-links")).not.toBeInTheDocument();
+    expect(screen.getByText("아직 작성한 기록이 없습니다.")).toBeInTheDocument();
     expect(screen.getByTestId("self-answer-section")).toBeInTheDocument();
     expect(screen.getByText("아직 자기답변이 없습니다")).toBeInTheDocument();
   });

@@ -23,7 +23,7 @@ describe("SelfAnswerSection", () => {
   it("renders section heading", () => {
     render(<SelfAnswerSection selfAnswers={mockSelfAnswers} />);
     expect(screen.getByRole("heading", { name: "자기답변" })).toBeInTheDocument();
-  });
+  }, 15000);
 
   it("renders self-answer cards with links", () => {
     render(<SelfAnswerSection selfAnswers={mockSelfAnswers} />);

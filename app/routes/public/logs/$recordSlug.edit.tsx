@@ -48,6 +48,7 @@ import { cleanupRemovedImages } from "~/lib/infra/r2-cleanup.server";
 import { deliverMentionNotifications } from "~/lib/notifications/mention-delivery.server";
 import { cn } from "~/lib/utils/cn";
 import { useUnsavedWarning } from "~/hooks/useUnsavedWarning";
+import { captureRouteBoundaryError } from "~/lib/infra/sentry-error";
 
 const RHYTHM_OPTIONS = [
   { value: "free", label: "자유" },
@@ -635,7 +636,9 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
   );
 }
 
-export function ErrorBoundary() {
+export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
+  captureRouteBoundaryError(error, { route: "public/logs/$recordSlug.edit" });
+
   return (
     <div className="text-center py-16 px-4">
       <p className="text-xl font-semibold text-text-primary">수정할 기록을 찾을 수 없습니다.</p>
