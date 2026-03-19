@@ -123,8 +123,8 @@ export default function MySpacePage({ loaderData }: Route.ComponentProps) {
   const [activeTab, setActiveTab] = useState<"records" | "questions" | "responses" | "saved">("records");
 
   return (
-    <div>
-      <div className="bg-surface border-b border-border">
+    <div className="bg-surface">
+      <div className="border-b border-border">
         <div className="max-w-content mx-auto px-6 py-12 flex flex-col items-center text-center">
           <div className="w-20 h-20 rounded-full overflow-hidden bg-surface-secondary border border-border mb-4">
             {learner?.profilePhotoUrl ? (

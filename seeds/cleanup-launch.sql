@@ -1,5 +1,3 @@
-BEGIN TRANSACTION;
-
 DELETE FROM curation_slots
 WHERE id IN ('slot-001', 'slot-002', 'slot-003', 'slot-004', 'slot-005')
    OR target_id IN ('record-001', 'record-022', 'q-004', 'sent-011', 'hana');
@@ -54,4 +52,57 @@ DELETE FROM stages
 WHERE id = 'stage-test-closed'
    OR slug = 'test-closed-stage';
 
-COMMIT;
+DELETE FROM curation_slots
+WHERE target_id IN (
+  SELECT id FROM records WHERE author_id IN (
+    SELECT user_id FROM learner_profiles WHERE slug IN ('sunkima26', 'jaejung26')
+  )
+)
+   OR target_id IN (
+     SELECT q.id
+     FROM questions q
+     JOIN records r ON r.id = q.record_id
+     WHERE r.author_id IN (
+       SELECT user_id FROM learner_profiles WHERE slug IN ('sunkima26', 'jaejung26')
+     )
+   );
+
+DELETE FROM notifications
+WHERE recipient_id IN (
+  SELECT user_id FROM learner_profiles WHERE slug IN ('sunkima26', 'jaejung26')
+)
+   OR record_id IN (
+     SELECT id FROM records WHERE author_id IN (
+       SELECT user_id FROM learner_profiles WHERE slug IN ('sunkima26', 'jaejung26')
+     )
+   )
+   OR question_id IN (
+     SELECT q.id
+     FROM questions q
+     JOIN records r ON r.id = q.record_id
+     WHERE r.author_id IN (
+       SELECT user_id FROM learner_profiles WHERE slug IN ('sunkima26', 'jaejung26')
+     )
+   );
+
+DELETE FROM responses
+WHERE author_id IN (
+  SELECT user_id FROM learner_profiles WHERE slug IN ('sunkima26', 'jaejung26')
+)
+   OR record_id IN (
+     SELECT id FROM records WHERE author_id IN (
+       SELECT user_id FROM learner_profiles WHERE slug IN ('sunkima26', 'jaejung26')
+     )
+   );
+
+DELETE FROM questions
+WHERE record_id IN (
+  SELECT id FROM records WHERE author_id IN (
+    SELECT user_id FROM learner_profiles WHERE slug IN ('sunkima26', 'jaejung26')
+  )
+);
+
+DELETE FROM records
+WHERE author_id IN (
+  SELECT user_id FROM learner_profiles WHERE slug IN ('sunkima26', 'jaejung26')
+);
