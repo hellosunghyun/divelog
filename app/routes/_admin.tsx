@@ -1,9 +1,10 @@
 import { Outlet, isRouteErrorResponse } from "react-router";
-import * as Sentry from "@sentry/react-router/cloudflare";
 import type { Route } from "./+types/_admin";
 import { requireRole, bootstrapAdmin } from "~/lib/auth/auth.middleware.server";
 import AdminSidebar from "~/components/admin/AdminSidebar";
 import AdminContextBar from "~/components/admin/AdminContextBar";
+import * as Sentry from "@sentry/react-router/cloudflare";
+import { captureRouteBoundaryError } from "~/lib/infra/sentry-error";
 
 export async function loader({ request, context }: Route.LoaderArgs) {
   const { createLogger } = await import("~/lib/infra/logger.server");
@@ -50,9 +51,7 @@ export default function AdminLayout() {
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
-  if (error instanceof Error) {
-    Sentry.captureException(error);
-  }
+  captureRouteBoundaryError(error, { route: "admin/_layout" });
 
   let message = "Admin 오류";
   let details = "예상치 못한 오류가 발생했습니다.";

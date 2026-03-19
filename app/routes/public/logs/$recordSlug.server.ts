@@ -48,6 +48,7 @@ import {
 import { deliverMentionNotifications } from "~/lib/notifications/mention-delivery.server";
 import { publishNotification } from "~/lib/notifications/publish.server";
 import { updateResponse, deleteResponse, getResponseById } from "~/db/queries/dialogue/responses.server";
+import * as Sentry from "@sentry/react-router/cloudflare";
 
 export async function loader({ params, context, request }: Route.LoaderArgs) {
   const { recordSlug } = params;
@@ -131,6 +132,17 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
     getSelfAnswersByRecord(context.cloudflare.env.DB, recordData.record.id),
     getTagsByRecord(context.cloudflare.env.DB, recordData.record.id),
     getIncomingLinks(context.cloudflare.env.DB, recordData.record.id).catch((err) => {
+      Sentry.captureException(err, {
+        tags: {
+          type: "record_detail_fallback",
+          operation: "incoming_links",
+          route: "public/logs/$recordSlug.loader",
+        },
+        extra: {
+          recordId: recordData.record.id,
+        },
+      });
+
       logger.warn("incoming_links_query_failed", {
         error: err instanceof Error ? err.message : String(err),
         recordId: recordData.record.id,
@@ -150,20 +162,64 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
     currentUserId
       ? isRecordSaved(context.cloudflare.env.DB, currentUserId, recordData.record.id)
       : Promise.resolve(false),
-    getParticipantsByRecord(context.cloudflare.env.DB, recordData.record.id).catch(() =>
-      [] as Awaited<ReturnType<typeof getParticipantsByRecord>>
-    ),
-    getMentionsByRecord(context.cloudflare.env.DB, recordData.record.id).catch(() =>
-      [] as Awaited<ReturnType<typeof getMentionsByRecord>>
-    ),
+    getParticipantsByRecord(context.cloudflare.env.DB, recordData.record.id).catch((err) => {
+      Sentry.captureException(err, {
+        tags: {
+          type: "record_detail_fallback",
+          operation: "participants",
+          route: "public/logs/$recordSlug.loader",
+        },
+        extra: {
+          recordId: recordData.record.id,
+        },
+      });
+
+      return [] as Awaited<ReturnType<typeof getParticipantsByRecord>>;
+    }),
+    getMentionsByRecord(context.cloudflare.env.DB, recordData.record.id).catch((err) => {
+      Sentry.captureException(err, {
+        tags: {
+          type: "record_detail_fallback",
+          operation: "mentions",
+          route: "public/logs/$recordSlug.loader",
+        },
+        extra: {
+          recordId: recordData.record.id,
+        },
+      });
+
+      return [] as Awaited<ReturnType<typeof getMentionsByRecord>>;
+    }),
     recordData.record.format === "article"
-      ? getRecordReferences(context.cloudflare.env.DB, recordData.record.id).catch(() =>
-          [] as Awaited<ReturnType<typeof getRecordReferences>>
-        )
+      ? getRecordReferences(context.cloudflare.env.DB, recordData.record.id).catch((err) => {
+          Sentry.captureException(err, {
+            tags: {
+              type: "record_detail_fallback",
+              operation: "references",
+              route: "public/logs/$recordSlug.loader",
+            },
+            extra: {
+              recordId: recordData.record.id,
+            },
+          });
+
+          return [] as Awaited<ReturnType<typeof getRecordReferences>>;
+        })
       : Promise.resolve([]),
-    getResponsesByReferencedRecord(context.cloudflare.env.DB, recordData.record.id).catch(() =>
-      [] as Awaited<ReturnType<typeof getResponsesByReferencedRecord>>
-    ),
+    getResponsesByReferencedRecord(context.cloudflare.env.DB, recordData.record.id).catch((err) => {
+      Sentry.captureException(err, {
+        tags: {
+          type: "record_detail_fallback",
+          operation: "incoming_response_refs",
+          route: "public/logs/$recordSlug.loader",
+        },
+        extra: {
+          recordId: recordData.record.id,
+        },
+      });
+
+      return [] as Awaited<ReturnType<typeof getResponsesByReferencedRecord>>;
+    }),
   ]);
 
   const linkedRecords = linkedRecordsRaw.map((lr) => ({
@@ -334,6 +390,18 @@ export async function action({ request, context }: Route.ActionArgs) {
           parsed.data.content,
         ),
       ]).catch((error) => {
+        Sentry.captureException(error, {
+          tags: {
+            type: "record_detail_background",
+            operation: "response_reference_sync",
+            route: "public/logs/$recordSlug.action",
+          },
+          extra: {
+            responseId: id,
+            recordId: parsed.data.recordId,
+          },
+        });
+
         logger.warn("response_reference_sync_failed", {
           responseId: id,
           recordId: parsed.data.recordId,
@@ -627,6 +695,18 @@ export async function action({ request, context }: Route.ActionArgs) {
         ),
         ...mentionNotificationJobs,
       ]).catch((error) => {
+        Sentry.captureException(error, {
+          tags: {
+            type: "record_detail_background",
+            operation: "response_reference_sync",
+            route: "public/logs/$recordSlug.action",
+          },
+          extra: {
+            responseId: parsed.data.responseId,
+            recordId: targetResponse.recordId,
+          },
+        });
+
         logger.warn("response_reference_sync_failed", {
           responseId: parsed.data.responseId,
           recordId: targetResponse.recordId,
@@ -667,6 +747,18 @@ export async function action({ request, context }: Route.ActionArgs) {
         deleteMentionsForResponse(context.cloudflare.env.DB, responseId),
         deleteRecordRefsForResponse(context.cloudflare.env.DB, responseId),
       ]).catch((error) => {
+        Sentry.captureException(error, {
+          tags: {
+            type: "record_detail_background",
+            operation: "response_reference_cleanup",
+            route: "public/logs/$recordSlug.action",
+          },
+          extra: {
+            responseId,
+            recordId: targetResponse.recordId,
+          },
+        });
+
         logger.warn("response_reference_cleanup_failed", {
           responseId,
           recordId: targetResponse.recordId,

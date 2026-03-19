@@ -172,16 +172,16 @@ describe("ada-profile.server", () => {
   });
 
   describe("resolveContextLine", () => {
-    it("should derive context line from cohort and stage name", () => {
+    it("should return stage name when cohort and stage are both present", () => {
       const result = resolveContextLine("2기", "Bridge 단계");
 
-      expect(result).toBe("2기 · Bridge 단계");
+      expect(result).toBe("Bridge 단계");
     });
 
-    it("should return only cohort when stage name is null", () => {
+    it("should return null when stage name is null", () => {
       const result = resolveContextLine("2기", null);
 
-      expect(result).toBe("2기");
+      expect(result).toBeNull();
     });
 
     it("should return only stage name when cohort is null", () => {
@@ -211,7 +211,7 @@ describe("ada-profile.server", () => {
     it("should handle valid cohort with empty stage name", () => {
       const result = resolveContextLine("2기", "");
 
-      expect(result).toBe("2기");
+      expect(result).toBeNull();
     });
   });
 });

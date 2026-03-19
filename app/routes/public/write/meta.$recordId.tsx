@@ -27,6 +27,7 @@ import { requireVerified } from "~/lib/auth/auth.middleware.server";
 import { parseReferencesFromFormData } from "~/lib/auth/validation";
 import { deliverMentionNotifications } from "~/lib/notifications/mention-delivery.server";
 import { notify } from "~/lib/notifications/notify.server";
+import * as Sentry from "@sentry/react-router/cloudflare";
 
 type ReferenceField = { id: string; url: string; title: string };
 type LoaderTag = { id: string };
@@ -66,9 +67,35 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
     await Promise.all([
       getAllTags(context.cloudflare.env.DB),
       getTagsByRecord(context.cloudflare.env.DB, record.id),
-      getParticipantsByRecord(context.cloudflare.env.DB, record.id).catch(() => []),
+      getParticipantsByRecord(context.cloudflare.env.DB, record.id).catch((error) => {
+        Sentry.captureException(error, {
+          tags: {
+            type: "write_meta_fallback",
+            operation: "participants",
+            route: "public/write/meta.$recordId.loader",
+          },
+          extra: {
+            recordId: record.id,
+          },
+        });
+
+        return [];
+      }),
       getTypedRecordLinks(context.cloudflare.env.DB, record.id, "mentioned"),
-      getRecordReferences(context.cloudflare.env.DB, record.id).catch(() => []),
+      getRecordReferences(context.cloudflare.env.DB, record.id).catch((error) => {
+        Sentry.captureException(error, {
+          tags: {
+            type: "write_meta_fallback",
+            operation: "references",
+            route: "public/write/meta.$recordId.loader",
+          },
+          extra: {
+            recordId: record.id,
+          },
+        });
+
+        return [];
+      }),
       database.select().from(questions).where(eq(questions.recordId, record.id)).limit(1),
     ]);
 
@@ -224,8 +251,18 @@ export async function action({ params, request, context }: Route.ActionArgs) {
   if (record.visibility !== "draft") {
     try {
       await markAsRead(context.cloudflare.env.DB, auth.user.id, record.id);
-    } catch {
-      // silent fail — 읽음 처리 실패가 저장을 막지 않음
+    } catch (error) {
+      Sentry.captureException(error, {
+        tags: {
+          type: "write_meta_background",
+          operation: "mark_as_read",
+          route: "public/write/meta.$recordId.action",
+        },
+        extra: {
+          recordId: record.id,
+          actorId: auth.user.id,
+        },
+      });
     }
   }
 

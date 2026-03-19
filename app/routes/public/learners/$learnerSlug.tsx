@@ -9,6 +9,7 @@ import SelfAnswerSection from "~/components/learner/SelfAnswerSection";
 import type { RecordType } from "~/lib/constants/record-types";
 import { cn } from "~/lib/utils/cn";
 import { useState } from "react";
+import { captureRouteBoundaryError } from "~/lib/infra/sentry-error";
 
 export { loader } from "./$learnerSlug.server";
 
@@ -357,7 +358,9 @@ export default function LearnerDetailPage({ loaderData }: Route.ComponentProps) 
   );
 }
 
-export function ErrorBoundary() {
+export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
+  captureRouteBoundaryError(error, { route: "public/learners/$learnerSlug" });
+
   return (
     <div className="text-center py-16 px-4">
       <p className="text-xl font-semibold text-text-primary">러너를 찾을 수 없습니다</p>

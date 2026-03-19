@@ -30,6 +30,7 @@ import { clearLocalDraft, loadDraftFromLocal, type DraftData } from "~/lib/infra
 import { generateNoteTitle } from "~/lib/utils/title.server";
 import { getNextRecordSlug } from "~/db/queries/records/records.server";
 import { nanoid } from "~/lib/utils/utils.server";
+import { captureRouteBoundaryError } from "~/lib/infra/sentry-error";
 
 export async function clientAction({ serverAction }: Route.ClientActionArgs) {
   if (typeof sessionStorage !== "undefined") {
@@ -114,6 +115,7 @@ export async function action({ request, context }: Route.ActionArgs) {
 
 export function ErrorBoundary() {
   const error = useRouteError();
+  captureRouteBoundaryError(error, { route: "public/write/note" });
   const is404 = isRouteErrorResponse(error) && error.status === 404;
 
   return (

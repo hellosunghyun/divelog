@@ -3,6 +3,7 @@ import { FileText, Article } from "@phosphor-icons/react";
 import { isRouteErrorResponse, useRouteError } from "react-router";
 import type { Route } from "./+types/index";
 import { requireVerified } from "~/lib/auth/auth.middleware.server";
+import { captureRouteBoundaryError } from "~/lib/infra/sentry-error";
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "기록하기 — DiveLog" }];
@@ -15,6 +16,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 
 export function ErrorBoundary() {
   const error = useRouteError();
+  captureRouteBoundaryError(error, { route: "public/write/index" });
   const is404 = isRouteErrorResponse(error) && error.status === 404;
 
   return (
