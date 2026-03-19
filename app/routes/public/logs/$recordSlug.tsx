@@ -69,9 +69,16 @@ export async function clientLoader({ params, serverLoader }: Route.ClientLoaderA
 
   const cached = getCached<LoaderData>(key);
   if (cached) return cached;
-  const data = await serverLoader();
-  setCached(key, data);
-  return data;
+
+  try {
+    const data = await serverLoader();
+    setCached(key, data);
+    return data;
+  } catch (error) {
+    const staleEntry = cache.get(key);
+    if (staleEntry) return staleEntry.data as LoaderData;
+    throw error;
+  }
 }
 
 
@@ -97,24 +104,26 @@ export function meta({ data: loaderData }: Route.MetaArgs) {
 
 export function shouldRevalidate({
   formMethod,
+  formAction,
   currentParams,
   nextParams,
   defaultShouldRevalidate,
 }: {
   formMethod?: string;
+  formAction?: string;
   currentParams: Record<string, string>;
   nextParams: Record<string, string>;
   defaultShouldRevalidate: boolean;
 }): boolean {
-  // params가 변경되면 반드시 재로드 (다른 record로 이동)
   if (currentParams.recordSlug !== nextParams.recordSlug) {
     return true;
   }
-  // POST 등 mutation 후에는 기본 정책 따름
+  if (formAction?.startsWith("/api/")) {
+    return false;
+  }
   if (formMethod && formMethod !== "GET") {
     return defaultShouldRevalidate;
   }
-  // 같은 record 내 GET 네비게이션은 캐시 활용
   return false;
 }
 
