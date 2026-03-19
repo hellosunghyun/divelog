@@ -164,3 +164,16 @@ Task 9: Link component lazy loading (SmartLink audit + CTA conversion)
 - `app/db/queries/learners/learners.server.ts`에 최신 1건 상관 서브쿼리 적용 확인
 - `pnpm typecheck` 결과 `error TS` 개수 `12` 유지(기존 Env 타입 이슈)
 - 반환 shape(`recentRecord`, `stage`, `lastActivityAt`) 변경 없음
+
+## Task 4: /logs/:recordSlug slug/ID 조회 통합
+
+**Completed**: 2026-03-19
+
+### What worked
+- slug/ID 식별은 `where(or(eq(records.slug, recordSlug), eq(records.id, recordSlug)))` 단일 조회로 합치고, `CASE WHEN` 정렬로 slug 우선 매치를 보장했다.
+- `buildMentionSlugMap`은 record 조회 직후 `mentionSlugMapPromise`로 시작해 이후 revisions와 함께 `Promise.all`로 합류시켜 대기 경로를 단축했다.
+- visibility 필터, `.catch()` 기반 방어 로직, revisions 조건부 로직, loader 반환 shape를 그대로 유지했다.
+
+### Verification snapshot
+- `app/routes/public/logs/$recordSlug.server.ts`에 OR 단일 쿼리 + slug 우선 정렬 확인
+- `pnpm typecheck 2>&1 | grep -c "error TS"` 결과 `12` (pre-existing와 동일)

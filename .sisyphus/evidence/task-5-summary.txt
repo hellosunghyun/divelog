@@ -1,0 +1,86 @@
+# Task 5: `/tags` Loader Optimization — COMPLETED ✓
+
+## Objective
+Optimize `getAllTags()` by merging 2 sequential queries into 1 LEFT JOIN + GROUP BY query.
+
+## Changes Made
+
+### File: app/db/queries/records/tags.server.ts
+
+**Before:**
+```typescript
+export async function getAllTags(d1: D1Database): Promise<TagWithUsage[]> {
+  const database = db(d1);
+
+  const allTags = await database.select().from(tags).orderBy(asc(tags.name));
+
+  const usageCounts = await database
+    .select({ tagId: recordTags.tagId, count: count() })
+    .from(recordTags)
+    .groupBy(recordTags.tagId);
+
+  const countMap = new Map(usageCounts.map((uc) => [uc.tagId, uc.count]));
+
+  return allTags.map((tag) => ({
+    ...tag,
+    usageCount: countMap.get(tag.id) ?? 0,
+  }));
+}
+```
+
+**After:**
+```typescript
+export async function getAllTags(d1: D1Database): Promise<TagWithUsage[]> {
+  const database = db(d1);
+
+  const result = await database
+    .select({
+      ...getTableColumns(tags),
+      usageCount: count(recordTags.tagId),
+    })
+    .from(tags)
+    .leftJoin(recordTags, eq(tags.id, recordTags.tagId))
+    .groupBy(tags.id)
+    .orderBy(asc(tags.name));
+
+  return result;
+}
+```
+
+### Key Changes:
+1. Added `getTableColumns` import from drizzle-orm
+2. Replaced 2 sequential queries with 1 LEFT JOIN + GROUP BY
+3. Eliminated JavaScript-side mapping logic
+4. Preserved return type `TagWithUsage[]` (no breaking changes)
+
+## Verification Results
+
+✓ **Single Query Execution**: Confirmed 1 await statement in getAllTags()
+✓ **Type Safety**: No errors in tags.server.ts (typecheck passed)
+✓ **Backward Compatibility**: All 5 routes using getAllTags() remain compatible:
+  - app/routes/admin/tags.tsx
+  - app/routes/public/write/meta.$recordId.tsx
+  - app/routes/public/tags/index.tsx
+  - app/routes/public/logs/$recordSlug.edit.tsx
+  - app/routes/public/logs/$recordSlug.details.tsx
+
+## Performance Impact
+
+**Before**: 2 sequential database queries + JavaScript mapping
+**After**: 1 database query with LEFT JOIN + GROUP BY
+
+**Benefit**: 
+- Reduced database round trips from 2 to 1
+- Eliminated JavaScript-side data transformation
+- Improved `/tags` loader performance
+
+## Commit
+
+Commit: 4b62ac8
+Message: perf(tags): merge 2 sequential queries into LEFT JOIN + GROUP BY
+
+## Evidence Files
+
+- .sisyphus/evidence/task-5-single-query.txt
+- .sisyphus/evidence/task-5-typecheck.txt
+- .sisyphus/evidence/task-5-summary.txt (this file)

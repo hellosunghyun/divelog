@@ -1,0 +1,4 @@
+58: .where(or(eq(records.slug, recordSlug), eq(records.id, recordSlug)))
+59: .orderBy(sql`CASE WHEN ${records.slug} = ${recordSlug} THEN 0 ELSE 1 END`)
+79: const mentionSlugMapPromise = buildMentionSlugMap(database, recordData.record.content);
+168: mentionSlugMapPromise,
