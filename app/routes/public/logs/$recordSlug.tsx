@@ -73,7 +73,7 @@ export async function clientLoader({ params, serverLoader }: Route.ClientLoaderA
   setCached(key, data);
   return data;
 }
-clientLoader.hydrate = true as const;
+
 
 export async function clientAction({ params, serverAction }: Route.ClientActionArgs) {
   const result = await serverAction();
