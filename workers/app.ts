@@ -1,5 +1,6 @@
 import { createRequestHandler } from "react-router";
-import { wrapRequestHandler } from "@sentry/cloudflare";
+import { withSentry } from "@sentry/cloudflare";
+import * as Sentry from "@sentry/cloudflare";
 import { createLogger } from "../app/lib/infra/logger.server";
 import { notify } from "../app/lib/notifications/notify.server";
 import type { NotificationQueueMessage } from "../app/lib/notifications/publish.server";
@@ -17,6 +18,14 @@ const requestHandler = createRequestHandler(
   () => import("virtual:react-router/server-build"),
   import.meta.env.MODE
 );
+
+const SENTRY_DSN = "https://eb0588c8197661ea070258e9aca009e4@o4509761661304832.ingest.us.sentry.io/4511052944572416";
+
+const sentryOptions = {
+  dsn: SENTRY_DSN,
+  tracesSampleRate: 0.1,
+  sendDefaultPii: true,
+};
 
 function withHtmlCacheHeaders(response: Response, request: Request) {
   const url = new URL(request.url);
@@ -72,7 +81,9 @@ function withHtmlCacheHeaders(response: Response, request: Request) {
   });
 }
 
-export default {
+export default withSentry<Env, NotificationQueueMessage>(
+  (_env: Env) => sentryOptions,
+  {
   async fetch(request: Request, env: Env, ctx: ExecutionContext) {
     const logger = createLogger(request, env as { LOG_LEVEL?: string });
     const url = new URL(request.url);
@@ -92,21 +103,9 @@ export default {
     });
 
     const handleRequest = async () => {
-      const response = await wrapRequestHandler(
-        {
-          options: {
-            dsn: "https://eb0588c8197661ea070258e9aca009e4@o4509761661304832.ingest.us.sentry.io/4511052944572416",
-            tracesSampleRate: 0.1,
-            sendDefaultPii: true,
-          },
-          request,
-          context: ctx,
-        },
-        () =>
-          requestHandler(request, {
-            cloudflare: { env, ctx },
-          }),
-      );
+      const response = await requestHandler(request, {
+        cloudflare: { env, ctx },
+      });
       logger.info("request_end", {
         method: request.method,
         path: url.pathname,
@@ -160,6 +159,19 @@ export default {
         });
 
         if (!result.success) {
+          Sentry.captureMessage("queue_notification_delivery_failed", {
+            level: "error",
+            tags: {
+              type: "queue_notification_delivery",
+              route: "workers.queue",
+            },
+            extra: {
+              recipientId: message.body.recipientId,
+              notificationType: message.body.type,
+              error: result.error ?? "알림 생성에 실패했습니다.",
+            },
+          });
+
           console.warn("queue_notification_delivery_failed", {
             recipientId: message.body.recipientId,
             type: message.body.type,
@@ -167,6 +179,17 @@ export default {
           });
         }
       } catch (error) {
+        Sentry.captureException(error, {
+          tags: {
+            type: "queue_notification_delivery",
+            route: "workers.queue",
+          },
+          extra: {
+            recipientId: message.body.recipientId,
+            notificationType: message.body.type,
+          },
+        });
+
         console.error("queue_notification_delivery_failed", {
           recipientId: message.body.recipientId,
           type: message.body.type,
@@ -175,4 +198,4 @@ export default {
       }
     }
   },
-} satisfies ExportedHandler<Env, NotificationQueueMessage>;
+} satisfies ExportedHandler<Env, NotificationQueueMessage>);

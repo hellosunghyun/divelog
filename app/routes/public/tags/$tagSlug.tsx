@@ -9,6 +9,7 @@ import HeroSection from "~/components/sections/HeroSection";
 import { getTagBySlug, getRecordsByTag } from "~/db/queries/records/tags.server";
 import { getPlainText } from "~/lib/content/content.server";
 import { createLogger } from "~/lib/infra/logger.server";
+import { captureRouteBoundaryError } from "~/lib/infra/sentry-error";
 
 export function meta({ data: loaderData }: Route.MetaArgs) {
   if (!loaderData?.tag) {
@@ -117,7 +118,9 @@ export default function TagDetailPage({ loaderData }: Route.ComponentProps) {
   );
 }
 
-export function ErrorBoundary() {
+export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
+  captureRouteBoundaryError(error, { route: "public/tags/$tagSlug" });
+
   return (
     <div className="text-center py-16 px-4">
       <p className="text-xl font-semibold text-text-primary">태그를 찾을 수 없습니다.</p>

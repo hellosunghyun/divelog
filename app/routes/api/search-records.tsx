@@ -4,6 +4,7 @@ import { db } from "~/db/client.server";
 import { records, learnerProfiles } from "~/db/schema.server";
 import { getOptionalUser } from "~/lib/auth/auth.middleware.server";
 import { createLogger } from "~/lib/infra/logger.server";
+import * as Sentry from "@sentry/react-router/cloudflare";
 
 function escapeLikeWildcards(s: string): string {
   return s.replace(/[%_\\]/g, "\\$&");
@@ -23,6 +24,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const q = url.searchParams.get("q")?.trim() ?? "";
   const includeOwn = url.searchParams.get("includeOwn") === "true";
   const currentUserId = auth.isAuthenticated ? auth.user.id : null;
+  const queryLength = q.length;
 
   logger.info("search_query", { query: q || "(empty)" });
 
@@ -58,6 +60,18 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     logger.info("search_results", { count: results.length });
     return Response.json({ results });
   } catch (error) {
+    Sentry.captureException(error, {
+      tags: {
+        type: "api_search_records",
+        route: "api/search-records",
+      },
+      extra: {
+        queryLength,
+        includeOwn,
+        hasCurrentUser: Boolean(currentUserId),
+      },
+    });
+
     logger.error("search_db_error", { error: error instanceof Error ? error.message : String(error) });
     return Response.json({ results: [], _error: true }, { status: 500 });
   }
