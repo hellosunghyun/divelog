@@ -119,6 +119,8 @@ function GlobalNav() {
   // Fetchers
   const searchFetcher = useFetcher({});
   const notifFetcher = useFetcher({});
+  const notifFetcherRef = useRef(notifFetcher);
+  notifFetcherRef.current = notifFetcher;
 
   // Derived
   const notifData = notifFetcher.data as NotifData | undefined;
@@ -152,14 +154,14 @@ function GlobalNav() {
   useEffect(() => {
     if (!data?.isAuthenticated) return;
 
-    notifFetcher.load("/api/notifications");
+    notifFetcherRef.current.load("/api/notifications");
 
     const intervalId = setInterval(() => {
-      notifFetcher.load("/api/notifications");
+      notifFetcherRef.current.load("/api/notifications");
     }, 30000);
 
     return () => clearInterval(intervalId);
-  }, [data?.isAuthenticated, notifFetcher]);
+  }, [data?.isAuthenticated]);
 
   // Unified outside-click + Escape handler
   useEffect(() => {
