@@ -315,6 +315,44 @@ export const mentions = sqliteTable("mentions", {
   createdAt: integer("created_at").notNull().default(now()),
 });
 
+export const responseMentions = sqliteTable(
+  "response_mentions",
+  {
+    id: text("id").primaryKey(),
+    responseId: text("response_id")
+      .notNull()
+      .references(() => responses.id, { onDelete: "cascade" }),
+    recordId: text("record_id")
+      .notNull()
+      .references(() => records.id, { onDelete: "cascade" }),
+    mentionedUserId: text("mentioned_user_id")
+      .notNull()
+      .references(() => learnerProfiles.userId, { onDelete: "cascade" }),
+    mentionedById: text("mentioned_by_id")
+      .notNull()
+      .references(() => learnerProfiles.userId, { onDelete: "cascade" }),
+    createdAt: integer("created_at")
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+);
+
+export const responseRecordRefs = sqliteTable(
+  "response_record_refs",
+  {
+    id: text("id").primaryKey(),
+    responseId: text("response_id")
+      .notNull()
+      .references(() => responses.id, { onDelete: "cascade" }),
+    referencedRecordId: text("referenced_record_id")
+      .notNull()
+      .references(() => records.id, { onDelete: "cascade" }),
+    createdAt: integer("created_at")
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+);
+
 export const recordLinks = sqliteTable(
   "record_links",
   {
