@@ -1,4 +1,4 @@
-import { count, eq, asc } from "drizzle-orm";
+import { count, eq, asc, getTableColumns } from "drizzle-orm";
 
 import { db } from "../../client.server";
 import { tags, recordTags } from "../../schema.server";
@@ -18,19 +18,17 @@ export type TagWithUsage = {
 export async function getAllTags(d1: D1Database): Promise<TagWithUsage[]> {
   const database = db(d1);
 
-  const allTags = await database.select().from(tags).orderBy(asc(tags.name));
+  const result = await database
+    .select({
+      ...getTableColumns(tags),
+      usageCount: count(recordTags.tagId),
+    })
+    .from(tags)
+    .leftJoin(recordTags, eq(tags.id, recordTags.tagId))
+    .groupBy(tags.id)
+    .orderBy(asc(tags.name));
 
-  const usageCounts = await database
-    .select({ tagId: recordTags.tagId, count: count() })
-    .from(recordTags)
-    .groupBy(recordTags.tagId);
-
-  const countMap = new Map(usageCounts.map((uc) => [uc.tagId, uc.count]));
-
-  return allTags.map((tag) => ({
-    ...tag,
-    usageCount: countMap.get(tag.id) ?? 0,
-  }));
+  return result;
 }
 
 export async function getTagById(d1: D1Database, id: string) {

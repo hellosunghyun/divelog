@@ -53,7 +53,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 
   const learnerCount = learnerCountResult[0]?.total ?? 0;
 
-  const [recentRecords, recentSentences, allStages] = await Promise.all([
+  const [recentRecords, recentSentences, allStages, recentActivityPromise] = await Promise.all([
     database
       .select({
         id: records.id,
@@ -96,14 +96,13 @@ export async function loader({ request, context }: Route.LoaderArgs) {
       .orderBy(desc(sentences.createdAt))
       .limit(4),
     getStages(context.cloudflare.env.DB),
+    getRecentActivity(context.cloudflare.env.DB, {
+      limit: 8,
+      cohort: null,
+    }),
   ]);
 
   const currentStage = allStages.find((stage) => stage.isCurrent) ?? null;
-
-  const recentActivityPromise = getRecentActivity(context.cloudflare.env.DB, {
-    limit: 8,
-    cohort: null,
-  });
 
   // Pre-compute plain text snippets and relative times on server to avoid hydration mismatch
   const nowMs = Date.now();

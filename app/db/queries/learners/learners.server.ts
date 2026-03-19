@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray, isNotNull, sql } from "drizzle-orm";
+import { and, asc, count, eq, inArray, isNotNull, max, sql } from "drizzle-orm";
 
 import { nanoid } from "../../../lib/utils/utils.server";
 import { db } from "../../client.server";
@@ -215,32 +215,6 @@ export async function getLearnersWithActivity(
   }
 
   const userIds = learners.map((l) => l.userId);
-
-  const allRecords = await database
-    .select({
-      authorId: records.authorId,
-      slug: records.slug,
-      title: records.title,
-      createdAt: records.createdAt,
-    })
-    .from(records)
-    .where(and(inArray(records.authorId, userIds), sql`${records.visibility} IN ('cohort', 'public')`))
-    .orderBy(desc(records.createdAt));
-
-  const mostRecentRecordByAuthor = new Map<
-    string,
-    { slug: string; title: string; createdAt: number }
-  >();
-  for (const record of allRecords) {
-    if (!mostRecentRecordByAuthor.has(record.authorId)) {
-      mostRecentRecordByAuthor.set(record.authorId, {
-        slug: record.slug,
-        title: record.title,
-        createdAt: record.createdAt,
-      });
-    }
-  }
-
   const stageIds = [
     ...new Set(
       learners
@@ -249,16 +223,52 @@ export async function getLearnersWithActivity(
     ),
   ];
 
-  const stageMap = new Map<string, { name: string }>();
-  if (stageIds.length > 0) {
-    const stagesData = await database
-      .select({ id: stages.id, name: stages.name })
-      .from(stages)
-      .where(inArray(stages.id, stageIds as string[]));
+  const [latestRecords, stagesData] = await Promise.all([
+    database
+      .select({
+        authorId: records.authorId,
+        slug: records.slug,
+        title: records.title,
+        createdAt: records.createdAt,
+      })
+      .from(records)
+      .where(
+        and(
+          inArray(records.authorId, userIds),
+          sql`${records.visibility} IN ('cohort', 'public')`,
+          sql`${records.id} = (
+            SELECT r2.id
+            FROM records r2
+            WHERE r2.author_id = ${records.authorId}
+              AND r2.visibility IN ('cohort', 'public')
+            ORDER BY r2.created_at DESC, r2.id DESC
+            LIMIT 1
+          )`,
+        ),
+      ),
+    stageIds.length > 0
+      ? database
+          .select({ id: stages.id, name: stages.name })
+          .from(stages)
+          .where(inArray(stages.id, stageIds as string[]))
+      : Promise.resolve([]),
+  ]);
 
-    for (const stage of stagesData) {
-      stageMap.set(stage.id, { name: stage.name });
-    }
+  const mostRecentRecordByAuthor = new Map<
+    string,
+    { slug: string; title: string; createdAt: number }
+  >();
+  for (const record of latestRecords) {
+    mostRecentRecordByAuthor.set(record.authorId, {
+      slug: record.slug,
+      title: record.title,
+      createdAt: record.createdAt,
+    });
+  }
+
+  const stageMap = new Map<string, { name: string }>();
+  for (const stage of stagesData) {
+    stageMap.set(stage.id, { name: stage.name });
   }
 
   const learnersWithActivity: LearnerWithActivity[] = learners.map((learner) => {
@@ -353,63 +363,75 @@ export async function getLearnerStageActivity(
   d1: D1Database,
   learnerId: string,
   isOwner: boolean,
+  currentStageId?: string | null,
 ): Promise<LearnerStageActivityResult> {
   const database = db(d1);
 
-  const learner = await database
-    .select({ currentStageId: learnerProfiles.currentStageId })
-    .from(learnerProfiles)
-    .where(eq(learnerProfiles.userId, learnerId))
-    .limit(1);
-
-  const learnerProfile = learner[0] ?? null;
-  let currentStage: { id: string; name: string; slug: string } | null = null;
-
-  if (learnerProfile?.currentStageId) {
-    const stageResult = await database
-      .select({ id: stages.id, name: stages.name, slug: stages.slug })
-      .from(stages)
-      .where(eq(stages.id, learnerProfile.currentStageId))
+  let resolvedCurrentStageId = currentStageId;
+  if (resolvedCurrentStageId === undefined) {
+    const learner = await database
+      .select({ currentStageId: learnerProfiles.currentStageId })
+      .from(learnerProfiles)
+      .where(eq(learnerProfiles.userId, learnerId))
       .limit(1);
 
-    currentStage = stageResult[0] ?? null;
+    resolvedCurrentStageId = learner[0]?.currentStageId ?? null;
   }
 
   const recordsQuery = isOwner
     ? database
-        .select({ createdAt: records.createdAt })
+        .select({ cnt: count(), maxCreatedAt: max(records.createdAt) })
         .from(records)
         .where(eq(records.authorId, learnerId))
     : database
-        .select({ createdAt: records.createdAt })
+        .select({ cnt: count(), maxCreatedAt: max(records.createdAt) })
         .from(records)
         .where(
           sql`${records.authorId} = ${learnerId} AND ${records.visibility} IN ('cohort', 'public')`,
         );
 
-  const recordsList = await recordsQuery;
-
-  const questionsList = await database
-    .select({ createdAt: questions.createdAt })
+  const questionsQuery = database
+    .select({ cnt: count(), maxCreatedAt: max(questions.createdAt) })
     .from(questions)
-    .innerJoin(records, eq(questions.recordId, records.id))
+    .leftJoin(records, eq(questions.recordId, records.id))
     .where(eq(records.authorId, learnerId));
 
-  const allTimestamps = [
-    ...recordsList.map((r) => r.createdAt),
-    ...questionsList.map((q) => q.createdAt),
-  ];
+  const stageQuery = resolvedCurrentStageId
+    ? database
+        .select({ id: stages.id, name: stages.name, slug: stages.slug })
+        .from(stages)
+        .where(eq(stages.id, resolvedCurrentStageId))
+        .limit(1)
+    : Promise.resolve([] as Array<{ id: string; name: string; slug: string }>);
+
+  const [recordsList, questionsList, stageResult] = await Promise.all([
+    recordsQuery,
+    questionsQuery,
+    stageQuery,
+  ]);
+
+  const currentStage = stageResult[0] ?? null;
+
+  const recordCount = recordsList[0]?.cnt ?? 0;
+  const recordMaxTime = recordsList[0]?.maxCreatedAt ?? null;
+  const questionCount = questionsList[0]?.cnt ?? 0;
+  const questionMaxTime = questionsList[0]?.maxCreatedAt ?? null;
+
+  const maxTime = Math.max(
+    recordMaxTime ?? 0,
+    questionMaxTime ?? 0,
+  );
 
   const lastActiveAt =
-    allTimestamps.length > 0
-      ? new Date(Math.max(...allTimestamps) * 1000).toISOString()
+    maxTime > 0
+      ? new Date(maxTime * 1000).toISOString()
       : null;
 
   return {
     currentStage,
     recentActivity: {
-      recordCount: recordsList.length,
-      questionCount: questionsList.length,
+      recordCount,
+      questionCount,
       lastActiveAt,
     },
   };

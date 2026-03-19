@@ -1,0 +1,6 @@
+2026-03-19 Task 2 evidence
+Command: grep -n "fetchAdaProfile" 'app/routes/public/learners/$learnerSlug.server.ts'
+Result: no matches
+
+Command: grep -n "fetchAdaProfile" 'app/routes/public/learners/$learnerSlug.server.ts' | wc -l
+Expected: 0

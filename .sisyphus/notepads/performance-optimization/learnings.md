@@ -135,3 +135,72 @@ Task 9: Link component lazy loading (SmartLink audit + CTA conversion)
 
 ### Evidence File
 - `.sisyphus/evidence/f3-manual-qa.txt`
+
+## Task 2: learners/:slug loader optimization
+
+**Completed**: 2026-03-19
+
+### What worked
+- `fetchAdaProfile()` 외부 HTTP 호출을 제거하고 `resolveProfileIntro(null, learner.bio)`로 로컬 프로필 기반 처리해 worker 외부 왕복을 없앴다.
+- `database.batch([...])`를 별도 await 하지 않고 같은 `Promise.all`에 포함해 후반 쿼리 체인을 1단계로 축소했다.
+- `getLearnerStageActivity`에 `currentStageId?: string | null`을 받아, 이미 loader에서 확보한 stage id가 있을 때 learner 재조회 쿼리를 스킵했다.
+- stage/records/questions 쿼리를 `Promise.all`로 병렬화해 순차 대기 시간을 줄였다.
+
+### Verification snapshot
+- `grep -n "fetchAdaProfile" 'app/routes/public/learners/$learnerSlug.server.ts'` 결과 없음
+- `pnpm typecheck 2>&1 | grep -c "error TS"` 결과: `12`
+- `learnerSlug` 관련 신규 에러 없음(기존 Env 타입 에러만 확인)
+
+## Task 3: /learners list over-fetch 제거
+
+**Completed**: 2026-03-19
+
+### What worked
+- `getLearnersWithActivity()`에서 `records` 전체를 불러온 뒤 JS에서 author별 첫 레코드를 고르는 패턴을 제거했다.
+- `records.id = (SELECT ... ORDER BY created_at DESC, id DESC LIMIT 1)` 상관 서브쿼리로 author별 최신 visible record 1건만 DB에서 반환하도록 축소했다.
+- `stages` 조회를 latest record 조회와 `Promise.all`로 병렬화해 순차 대기를 줄였다.
+
+### Verification snapshot
+- `app/db/queries/learners/learners.server.ts`에 최신 1건 상관 서브쿼리 적용 확인
+- `pnpm typecheck` 결과 `error TS` 개수 `12` 유지(기존 Env 타입 이슈)
+- 반환 shape(`recentRecord`, `stage`, `lastActivityAt`) 변경 없음
+
+## Task 4: /logs/:recordSlug slug/ID 조회 통합
+
+**Completed**: 2026-03-19
+
+### What worked
+- slug/ID 식별은 `where(or(eq(records.slug, recordSlug), eq(records.id, recordSlug)))` 단일 조회로 합치고, `CASE WHEN` 정렬로 slug 우선 매치를 보장했다.
+- `buildMentionSlugMap`은 record 조회 직후 `mentionSlugMapPromise`로 시작해 이후 revisions와 함께 `Promise.all`로 합류시켜 대기 경로를 단축했다.
+- visibility 필터, `.catch()` 기반 방어 로직, revisions 조건부 로직, loader 반환 shape를 그대로 유지했다.
+
+### Verification snapshot
+- `app/routes/public/logs/$recordSlug.server.ts`에 OR 단일 쿼리 + slug 우선 정렬 확인
+- `pnpm typecheck 2>&1 | grep -c "error TS"` 결과 `12` (pre-existing와 동일)
+
+## Task 8: Composite Index Migration
+
+### What Was Done
+- Created migration file `0016_composite_index_records.sql`
+- Added composite index: `idx_records_author_visibility_created` on `records(author_id, visibility, created_at DESC)`
+- Fixed migration 0013 to handle SQLite foreign key constraints properly
+
+### Key Learnings
+1. **SQLite Foreign Key Constraints**: SQLite doesn't support direct column drops when foreign keys reference them. Must use table recreation approach.
+2. **Migration Numbering**: Next migration after 0015 is 0016. Check `drizzle/migrations/` for highest number.
+3. **Index Syntax**: SQLite composite indexes use `ON table(col1, col2 DESC)` syntax. DESC is important for reverse chronological sorting.
+
+### Composite Index Benefits
+- Optimizes queries filtering by author + visibility + creation date
+- Improves pagination performance on author timelines
+- Reduces query execution time for visibility-filtered chronological queries
+
+### Pre-existing Issues Encountered
+- Migration 0013 had SQLite compatibility issue with dropping columns that have foreign key constraints
+- Fixed by using table recreation pattern (CREATE TABLE AS SELECT, DROP, RENAME)
+- This is a pre-existing codebase issue, not related to the index task
+
+### Files Modified
+- `drizzle/migrations/0016_composite_index_records.sql` (new)
+- `drizzle/migrations/0013_remove_stage_from_records.sql` (fixed FK issue)
+- `.sisyphus/evidence/task-8-migration.txt` (evidence)

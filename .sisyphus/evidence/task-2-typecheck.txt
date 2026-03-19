@@ -48,3 +48,12 @@ app/routes/api/autosave.tsx(36,62): error TS2339: Property 'ADAKRPOS_API_KEY' do
 app/routes/api/upload.tsx(20,62): error TS2339: Property 'ADAKRPOS_API_KEY' does not exist on type 'Env'.
 app/routes/public/me.tsx(442,25): error TS2740: Type '{ [x: string]: any; }' is missing the following properties from type '{ id: string; type: string; content: string; createdAt: number; updatedAt: number; authorId: string; moderationStatus?: string | undefined; }': id, type, content, createdAt, and 2 more.
  ELIFECYCLE  Command failed with exit code 1.
+2026-03-19 Task 2 evidence
+Command: pnpm typecheck 2>&1 | grep -c "error TS"
+Result: 12
+
+Command: pnpm typecheck 2>&1 | grep "learnerSlug"
+Result:
+app/routes/public/learners/$learnerSlug.server.ts(23,45): error TS2339: Property 'ADAKRPOS_API_KEY' does not exist on type 'Env'.
+
+Interpretation: no new learnerSlug error introduced by this task (previous 4-arg call mismatch resolved).

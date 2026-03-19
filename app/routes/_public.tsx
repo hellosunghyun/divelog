@@ -14,19 +14,15 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   logger.info("loader_start");
   const auth = await getAuth(request, context.cloudflare.env.ADAKRPOS_API_KEY);
 
-  let isAdmin = false;
+  const adminEmails = ((context.cloudflare.env as { ADMIN_EMAILS?: string }).ADMIN_EMAILS ?? "")
+    .split(",")
+    .map((e: string) => e.trim().toLowerCase())
+    .filter(Boolean);
+  const isAdmin = auth.isAuthenticated && auth.user
+    ? adminEmails.includes((auth.user.verifiedEmail ?? "").toLowerCase())
+    : false;
 
   if (auth.isAuthenticated && auth.user) {
-    // Check admin status via ADMIN_EMAILS env var (no DB query)
-    const adminEmailsRaw = (context.cloudflare.env as { ADMIN_EMAILS?: string }).ADMIN_EMAILS ?? "";
-    const adminEmails = adminEmailsRaw
-      .split(",")
-      .map((e: string) => e.trim().toLowerCase())
-      .filter(Boolean);
-    isAdmin = auth.user.verifiedEmail
-      ? adminEmails.includes(auth.user.verifiedEmail.toLowerCase())
-      : false;
-
     Sentry.setUser({
       id: auth.user.id,
       username: auth.user.nickname ?? auth.user.name ?? undefined,

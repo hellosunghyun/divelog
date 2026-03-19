@@ -56,6 +56,7 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
     .from(records)
     .leftJoin(learnerProfiles, eq(records.authorId, learnerProfiles.userId))
     .where(or(eq(records.slug, recordSlug), eq(records.id, recordSlug)))
+    .orderBy(sql`CASE WHEN ${records.slug} = ${recordSlug} THEN 0 ELSE 1 END`)
     .limit(1);
 
   const recordData = recordResult[0];
@@ -74,6 +75,8 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
     logger.info("not_found", { slug: recordSlug });
     throw data("기록을 찾을 수 없습니다.", { status: 404 });
   }
+
+  const mentionSlugMapPromise = buildMentionSlugMap(database, recordData.record.content);
 
   const [recordQuestions, recordResponses, recordSentences] = await database.batch([
     database.select().from(questions).where(eq(questions.recordId, recordData.record.id)).orderBy(desc(questions.createdAt)),
@@ -162,7 +165,7 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
     shouldLoadRevisions
       ? getRevisionsByRecord(context.cloudflare.env.DB, recordData.record.id)
       : Promise.resolve([]),
-    buildMentionSlugMap(database, recordData.record.content),
+    mentionSlugMapPromise,
   ]);
 
   const contentHtml = renderContentToHtml(recordData.record.content, recordFormat, mentionSlugMap);

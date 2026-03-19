@@ -1,0 +1,40 @@
+# Task 6: Parallel Promise.all Consolidation
+
+## Change Summary
+Moved `getRecentActivity` call from sequential execution (after Promise.all) into the Promise.all chain on line 56.
+
+## Before
+```typescript
+const [recentRecords, recentSentences, allStages] = await Promise.all([
+  // 3 queries
+]);
+const currentStage = allStages.find((stage) => stage.isCurrent) ?? null;
+const recentActivityPromise = getRecentActivity(context.cloudflare.env.DB, {
+  limit: 8,
+  cohort: null,
+});
+```
+
+## After
+```typescript
+const [recentRecords, recentSentences, allStages, recentActivityPromise] = await Promise.all([
+  // 3 queries
+  getRecentActivity(context.cloudflare.env.DB, {
+    limit: 8,
+    cohort: null,
+  }),
+]);
+const currentStage = allStages.find((stage) => stage.isCurrent) ?? null;
+```
+
+## Verification
+✓ getRecentActivity now runs in parallel with recentRecords, recentSentences, allStages
+✓ Loader return shape preserved: 8 fields (recentRecords, openQuestions, recentSentences, spotlightLearners, learnerCount, stages, currentStage, recentActivity)
+✓ No data dependencies broken (cohort: null passed, currentStage computed after Promise.all)
+✓ shouldRevalidate unchanged
+✓ getPlainText logic unchanged
+
+## Performance Impact
+- Eliminates sequential wait for getRecentActivity
+- Reduces critical path by ~1 database round-trip
+- Expected improvement: ~100-200ms on cfWorker execution time

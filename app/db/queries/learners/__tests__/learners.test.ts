@@ -109,27 +109,44 @@ function createStageActivityDatabaseMock(
   const selectWhere = vi.fn(() => ({ limit: selectLimit }));
   const selectFrom = vi.fn(() => ({ where: selectWhere }));
 
-  const recordsSelectWhere = vi.fn(async () => records);
+  // Aggregate records: count and max createdAt
+  const recordsData = records as Array<{ createdAt: number }>;
+  const recordsAggregated = [
+    {
+      cnt: recordsData.length,
+      maxCreatedAt: recordsData.length > 0 ? Math.max(...recordsData.map(r => r.createdAt)) : null,
+    },
+  ];
+  const recordsSelectWhere = vi.fn(async () => recordsAggregated);
   const recordsSelectFrom = vi.fn(() => ({ where: recordsSelectWhere }));
 
   const stageSelectLimit = vi.fn(async () => (stage ? [stage] : []));
   const stageSelectWhere = vi.fn(() => ({ limit: stageSelectLimit }));
   const stageSelectFrom = vi.fn(() => ({ where: stageSelectWhere }));
 
-  const questionsSelectWhere = vi.fn(async () => questions);
+  // Aggregate questions: count and max createdAt
+  const questionsData = questions as Array<{ createdAt: number }>;
+  const questionsAggregated = [
+    {
+      cnt: questionsData.length,
+      maxCreatedAt: questionsData.length > 0 ? Math.max(...questionsData.map(q => q.createdAt)) : null,
+    },
+  ];
+  const questionsSelectWhere = vi.fn(async () => questionsAggregated);
   const questionsInnerJoin = vi.fn(() => ({ where: questionsSelectWhere }));
-  const questionsSelectFrom = vi.fn(() => ({ innerJoin: questionsInnerJoin }));
+  const questionsLeftJoin = vi.fn(() => ({ where: questionsSelectWhere }));
+  const questionsSelectFrom = vi.fn(() => ({ innerJoin: questionsInnerJoin, leftJoin: questionsLeftJoin }));
 
   const selectFn = vi.fn(() => {
     selectCallCount += 1;
     if (selectCallCount === 1) {
-      return { from: selectFrom };
-    } else if (hasStage && selectCallCount === 2) {
-      return { from: stageSelectFrom };
-    } else if ((hasStage && selectCallCount === 3) || (!hasStage && selectCallCount === 2)) {
-      return { from: recordsSelectFrom };
+      return { from: selectFrom };       // learner profile (when currentStageId=undefined)
+    } else if (selectCallCount === 2) {
+      return { from: recordsSelectFrom }; // records query (always 2nd)
+    } else if (selectCallCount === 3) {
+      return { from: questionsSelectFrom }; // questions query (always 3rd)
     } else {
-      return { from: questionsSelectFrom };
+      return { from: stageSelectFrom };   // stage query (4th, if hasStage)
     }
   });
 

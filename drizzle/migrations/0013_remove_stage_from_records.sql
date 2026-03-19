@@ -15,9 +15,43 @@ DROP TABLE IF EXISTS personal_stage_reflections;
 DROP TABLE IF EXISTS question_carry_overs;
 
 -- 4. 게시글/초안/협업에서 stage_id 컬럼 제거
-ALTER TABLE records DROP COLUMN stage_id;
-ALTER TABLE drafts DROP COLUMN stage_id;
-ALTER TABLE collaboration_units DROP COLUMN stage_id;
+-- SQLite는 외래키 제약이 있는 컬럼 삭제를 지원하지 않으므로 테이블 재생성 필요
+PRAGMA foreign_keys = OFF;
 
--- 5. 템플릿에서 stage_kind 컬럼 제거
-ALTER TABLE templates DROP COLUMN stage_kind;
+-- records 테이블 재생성 (stage_id 제외)
+CREATE TABLE records_new AS
+SELECT id, slug, author_id, challenge_id, collaboration_unit_id, linked_record_id, 
+       original_url, original_title, original_description, title, content, content_text,
+       format, type, rhythm, visibility, response_preference, is_featured, 
+       moderation_status, moderation_note, cohort, recorded_at, recorded_end_at, 
+       created_at, updated_at
+FROM records;
+DROP TABLE records;
+ALTER TABLE records_new RENAME TO records;
+
+-- drafts 테이블 재생성 (stage_id 제외)
+CREATE TABLE drafts_new AS
+SELECT id, author_id, challenge_id, collaboration_unit_id, title, content, 
+       format, type, rhythm, visibility, response_preference, cohort, 
+       recorded_at, recorded_end_at, created_at, updated_at
+FROM drafts;
+DROP TABLE drafts;
+ALTER TABLE drafts_new RENAME TO drafts;
+
+-- collaboration_units 테이블 재생성 (stage_id 제외)
+CREATE TABLE collaboration_units_new AS
+SELECT id, name, slug, challenge_id, status, current_question, description, 
+       cohort, created_at, updated_at
+FROM collaboration_units;
+DROP TABLE collaboration_units;
+ALTER TABLE collaboration_units_new RENAME TO collaboration_units;
+
+-- 템플릿에서 stage_kind 컬럼 제거
+CREATE TABLE templates_new AS
+SELECT id, name, slug, description, content, format, type, rhythm, 
+       visibility, response_preference, cohort, created_at, updated_at
+FROM templates;
+DROP TABLE templates;
+ALTER TABLE templates_new RENAME TO templates;
+
+PRAGMA foreign_keys = ON;

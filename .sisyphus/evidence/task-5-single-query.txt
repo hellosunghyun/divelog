@@ -1,0 +1,45 @@
+# Task 5: Single Query Optimization for getAllTags()
+
+## Verification: Single await statement in getAllTags
+
+Command: awk '/^export async function getAllTags/,/^}/' app/db/queries/records/tags.server.ts | grep -c "await "
+
+Result: 1
+
+This confirms that getAllTags() now executes only 1 query (single await statement).
+
+## Implementation Details
+
+### Before (2 sequential queries):
+1. SELECT * FROM tags ORDER BY name
+2. SELECT tagId, COUNT(*) FROM record_tags GROUP BY tagId
+3. Map results in JavaScript
+
+### After (1 LEFT JOIN + GROUP BY):
+SELECT 
+  tags.*,
+  COUNT(record_tags.tag_id) as usageCount
+FROM tags
+LEFT JOIN record_tags ON tags.id = record_tags.tag_id
+GROUP BY tags.id
+ORDER BY tags.name
+
+## Code Changes
+
+File: app/db/queries/records/tags.server.ts
+
+- Added import: getTableColumns from drizzle-orm
+- Replaced getAllTags() implementation with single LEFT JOIN query
+- Return type TagWithUsage[] preserved (includes usageCount field)
+- All 5 routes using getAllTags() remain compatible
+
+## Type Safety
+
+✓ No type errors in tags.server.ts
+✓ Return type TagWithUsage[] unchanged
+✓ All usages in routes remain compatible:
+  - app/routes/admin/tags.tsx
+  - app/routes/public/write/meta.$recordId.tsx
+  - app/routes/public/tags/index.tsx
+  - app/routes/public/logs/$recordSlug.edit.tsx
+  - app/routes/public/logs/$recordSlug.details.tsx

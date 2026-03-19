@@ -1,2 +1,56 @@
-TagSelector and recordSlug files: 0 errors
-(Pre-existing error in AdminSidebar.tsx unrelated to this refactoring)
+
+> divelog@ typecheck /Users/hellosunghyun/Documents/Github/divelog-perf-opt
+> npm run cf-typegen && react-router typegen && tsc -b
+
+npm warn Unknown env config "npm-globalconfig". This will stop working in the next major version of npm.
+npm warn Unknown env config "verify-deps-before-run". This will stop working in the next major version of npm.
+npm warn Unknown env config "_jsr-registry". This will stop working in the next major version of npm.
+
+> cf-typegen
+> wrangler types
+
+
+ ⛅️ wrangler 4.73.0 (update available 4.75.0)
+─────────────────────────────────────────────
+Generating project types...
+
+declare namespace Cloudflare {
+	interface GlobalProps {
+		mainModule: typeof import("./workers/app");
+	}
+	interface Env {
+		R2: R2Bucket;
+		DB: D1Database;
+		QUEUE: Queue;
+		ADMIN_USER_ID: "usr_placeholder_replace_with_real_admin_id";
+		ADMIN_EMAILS: "sunkima26@pos.idserve.net";
+		LOG_LEVEL: "INFO";
+	}
+}
+interface Env extends Cloudflare.Env {}
+
+Generating runtime types...
+
+Runtime types generated.
+
+
+✨ Types written to worker-configuration.d.ts
+
+📖 Read about runtime types
+https://developers.cloudflare.com/workers/languages/typescript/#generate-types
+📣 Remember to rerun 'wrangler types' after you change your wrangler.toml file.
+
+[sentry-vite-plugin] Info: Sending telemetry data on issues and performance to Sentry. To disable telemetry, set `options.telemetry` to `false`.
+app/lib/auth/auth.middleware.server.ts(27,64): error TS2339: Property 'ADAKRPOS_API_KEY' does not exist on type 'Env'.
+app/lib/auth/auth.middleware.server.ts(40,62): error TS2339: Property 'ADAKRPOS_API_KEY' does not exist on type 'Env'.
+app/lib/auth/auth.middleware.server.ts(50,45): error TS2339: Property 'ADAKRPOS_API_KEY' does not exist on type 'Env'.
+app/lib/auth/auth.middleware.server.ts(59,45): error TS2339: Property 'ADAKRPOS_API_KEY' does not exist on type 'Env'.
+app/lib/auth/auth.middleware.ts(27,64): error TS2339: Property 'ADAKRPOS_API_KEY' does not exist on type 'Env'.
+app/lib/auth/auth.middleware.ts(40,62): error TS2339: Property 'ADAKRPOS_API_KEY' does not exist on type 'Env'.
+app/lib/auth/auth.middleware.ts(50,45): error TS2339: Property 'ADAKRPOS_API_KEY' does not exist on type 'Env'.
+app/lib/auth/auth.middleware.ts(60,45): error TS2339: Property 'ADAKRPOS_API_KEY' does not exist on type 'Env'.
+app/routes/_public.tsx(18,62): error TS2339: Property 'ADAKRPOS_API_KEY' does not exist on type 'Env'.
+app/routes/api/autosave.tsx(33,62): error TS2339: Property 'ADAKRPOS_API_KEY' does not exist on type 'Env'.
+app/routes/api/upload.tsx(20,62): error TS2339: Property 'ADAKRPOS_API_KEY' does not exist on type 'Env'.
+app/routes/public/learners/$learnerSlug.server.ts(23,45): error TS2339: Property 'ADAKRPOS_API_KEY' does not exist on type 'Env'.
+ ELIFECYCLE  Command failed with exit code 1.
