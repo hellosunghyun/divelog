@@ -1,0 +1,511 @@
+/* ===== Syntax Highlighting Theme — Quiet Depth ===== */
+/* Based on highlight.js standard class names */
+/* Palette: Quiet Depth (muted, readable, non-saturated) */
+
+/* Base code block styling */
+.hljs {
+  background-color: var(--color-surface-secondary);
+  color: var(--color-text-primary);
+  padding: 0;
+  border-radius: 0;
+}
+
+/* Keywords — Deep Ocean, brightened */
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-literal,
+.hljs-section,
+.hljs-link {
+  color: #1a5276;
+}
+
+/* Strings — Muted green */
+.hljs-string,
+.hljs-title.class_,
+.hljs-title.class_.inherited__ {
+  color: #1a7a4a;
+}
+
+/* Comments — Text tertiary */
+.hljs-comment,
+.hljs-quote {
+  color: #8C8C91;
+}
+
+/* Function names and titles — Ocean Blue, darkened */
+.hljs-function .hljs-title,
+.hljs-function,
+.hljs-title {
+  color: #0D8BA0;
+}
+
+/* Numbers and literals — Warm orange, muted */
+.hljs-number,
+.hljs-literal,
+.hljs-attr {
+  color: #a04000;
+}
+
+/* Built-in types and functions — Muted purple */
+.hljs-built_in,
+.hljs-type {
+  color: #5b2d8a;
+}
+
+/* Attributes — Ocean Blue */
+.hljs-attr,
+.hljs-attribute {
+  color: #146C94;
+}
+
+/* Variables — Text primary */
+.hljs-variable,
+.hljs-template-variable {
+  color: var(--color-text-primary);
+}
+
+/* Meta and directives — Neutral gray */
+.hljs-meta,
+.hljs-meta .hljs-keyword,
+.hljs-meta .hljs-string {
+  color: #6b6b6b;
+}
+
+/* Operators and punctuation — Dark gray */
+.hljs-operator,
+.hljs-punctuation {
+  color: #555555;
+}
+
+/* Tags (HTML/XML) — Ocean Blue */
+.hljs-tag,
+.hljs-tag .hljs-name,
+.hljs-tag .hljs-attr {
+  color: #146C94;
+}
+
+/* Tag punctuation — Neutral gray */
+.hljs-tag .hljs-punctuation {
+  color: #6b6b6b;
+}
+
+/* Emphasis and strong — Text primary with weight */
+.hljs-emphasis {
+  font-style: italic;
+}
+
+.hljs-strong {
+  font-weight: 600;
+}
+
+/* Subst (substitution) — Text primary */
+.hljs-subst {
+  color: var(--color-text-primary);
+}
+
+/* Doctag — Muted purple */
+.hljs-doctag {
+  color: #5b2d8a;
+}
+
+/* Name — Ocean Blue */
+.hljs-name {
+  color: #146C94;
+}
+
+/* Bullet — Text secondary */
+.hljs-bullet {
+  color: #6E6E73;
+}
+
+/* Code — Text primary */
+.hljs-code {
+  color: var(--color-text-primary);
+}
+
+/* Addition — Muted green (for diff) */
+.hljs-addition {
+  background-color: rgba(26, 122, 74, 0.1);
+  color: #1a7a4a;
+}
+
+/* Deletion — Warm orange (for diff) */
+.hljs-deletion {
+  background-color: rgba(160, 64, 0, 0.1);
+  color: #a04000;
+}
+
+/* Selector ID — Ocean Blue */
+.hljs-selector-id {
+  color: #146C94;
+}
+
+/* Selector class — Ocean Blue */
+.hljs-selector-class {
+  color: #146C94;
+}
+
+/* Selector pseudo — Muted purple */
+.hljs-selector-pseudo {
+  color: #5b2d8a;
+}
+
+/* Selector attr — Ocean Blue */
+.hljs-selector-attr {
+  color: #146C94;
+}
+
+/* Regexp — Warm orange */
+.hljs-regexp {
+  color: #a04000;
+}
+
+/* Symbol — Warm orange */
+.hljs-symbol {
+  color: #a04000;
+}
+
+/* Template tag — Ocean Blue */
+.hljs-template-tag {
+  color: #146C94;
+}
+
+/* Params — Text primary */
+.hljs-params {
+  color: var(--color-text-primary);
+}
+
+/* Property — Ocean Blue */
+.hljs-property {
+  color: #146C94;
+}
+
+/* Title function — Ocean Blue */
+.hljs-title.function_ {
+  color: #0D8BA0;
+}
+
+/* Title function invoke — Ocean Blue */
+.hljs-title.function_.invoke__ {
+  color: #0D8BA0;
+}
+
+/* Number — Warm orange */
+.hljs-number {
+  color: #a04000;
+}
+
+/* Char — Muted green */
+.hljs-char {
+  color: #1a7a4a;
+}
+
+/* Variable language — Text secondary */
+.hljs-variable.language_ {
+  color: #6E6E73;
+}
+
+/* Selector pseudo class — Muted purple */
+.hljs-selector-pseudo-element {
+  color: #5b2d8a;
+}
+
+/* Keyword namespace — Deep Ocean */
+.hljs-keyword.namespace {
+  color: #1a5276;
+}
+
+/* Keyword control — Deep Ocean */
+.hljs-keyword.control {
+  color: #1a5276;
+}
+
+/* Keyword operator — Deep Ocean */
+.hljs-keyword.operator {
+  color: #1a5276;
+}
+
+/* Keyword type — Muted purple */
+.hljs-keyword.type {
+  color: #5b2d8a;
+}
+
+/* Keyword import — Deep Ocean */
+.hljs-keyword.import {
+  color: #1a5276;
+}
+
+/* Keyword export — Deep Ocean */
+.hljs-keyword.export {
+  color: #1a5276;
+}
+
+/* Keyword module — Deep Ocean */
+.hljs-keyword.module {
+  color: #1a5276;
+}
+
+/* Keyword async — Deep Ocean */
+.hljs-keyword.async {
+  color: #1a5276;
+}
+
+/* Keyword await — Deep Ocean */
+.hljs-keyword.await {
+  color: #1a5276;
+}
+
+/* Keyword return — Deep Ocean */
+.hljs-keyword.return {
+  color: #1a5276;
+}
+
+/* Keyword throw — Deep Ocean */
+.hljs-keyword.throw {
+  color: #1a5276;
+}
+
+/* Keyword try — Deep Ocean */
+.hljs-keyword.try {
+  color: #1a5276;
+}
+
+/* Keyword catch — Deep Ocean */
+.hljs-keyword.catch {
+  color: #1a5276;
+}
+
+/* Keyword finally — Deep Ocean */
+.hljs-keyword.finally {
+  color: #1a5276;
+}
+
+/* Keyword if — Deep Ocean */
+.hljs-keyword.if {
+  color: #1a5276;
+}
+
+/* Keyword else — Deep Ocean */
+.hljs-keyword.else {
+  color: #1a5276;
+}
+
+/* Keyword for — Deep Ocean */
+.hljs-keyword.for {
+  color: #1a5276;
+}
+
+/* Keyword while — Deep Ocean */
+.hljs-keyword.while {
+  color: #1a5276;
+}
+
+/* Keyword do — Deep Ocean */
+.hljs-keyword.do {
+  color: #1a5276;
+}
+
+/* Keyword switch — Deep Ocean */
+.hljs-keyword.switch {
+  color: #1a5276;
+}
+
+/* Keyword case — Deep Ocean */
+.hljs-keyword.case {
+  color: #1a5276;
+}
+
+/* Keyword default — Deep Ocean */
+.hljs-keyword.default {
+  color: #1a5276;
+}
+
+/* Keyword break — Deep Ocean */
+.hljs-keyword.break {
+  color: #1a5276;
+}
+
+/* Keyword continue — Deep Ocean */
+.hljs-keyword.continue {
+  color: #1a5276;
+}
+
+/* Keyword function — Deep Ocean */
+.hljs-keyword.function {
+  color: #1a5276;
+}
+
+/* Keyword class — Deep Ocean */
+.hljs-keyword.class {
+  color: #1a5276;
+}
+
+/* Keyword extends — Deep Ocean */
+.hljs-keyword.extends {
+  color: #1a5276;
+}
+
+/* Keyword implements — Deep Ocean */
+.hljs-keyword.implements {
+  color: #1a5276;
+}
+
+/* Keyword interface — Deep Ocean */
+.hljs-keyword.interface {
+  color: #1a5276;
+}
+
+/* Keyword new — Deep Ocean */
+.hljs-keyword.new {
+  color: #1a5276;
+}
+
+/* Keyword instanceof — Deep Ocean */
+.hljs-keyword.instanceof {
+  color: #1a5276;
+}
+
+/* Keyword typeof — Deep Ocean */
+.hljs-keyword.typeof {
+  color: #1a5276;
+}
+
+/* Keyword void — Deep Ocean */
+.hljs-keyword.void {
+  color: #1a5276;
+}
+
+/* Keyword delete — Deep Ocean */
+.hljs-keyword.delete {
+  color: #1a5276;
+}
+
+/* Keyword in — Deep Ocean */
+.hljs-keyword.in {
+  color: #1a5276;
+}
+
+/* Keyword of — Deep Ocean */
+.hljs-keyword.of {
+  color: #1a5276;
+}
+
+/* Keyword const — Deep Ocean */
+.hljs-keyword.const {
+  color: #1a5276;
+}
+
+/* Keyword let — Deep Ocean */
+.hljs-keyword.let {
+  color: #1a5276;
+}
+
+/* Keyword var — Deep Ocean */
+.hljs-keyword.var {
+  color: #1a5276;
+}
+
+/* Keyword static — Deep Ocean */
+.hljs-keyword.static {
+  color: #1a5276;
+}
+
+/* Keyword public — Deep Ocean */
+.hljs-keyword.public {
+  color: #1a5276;
+}
+
+/* Keyword private — Deep Ocean */
+.hljs-keyword.private {
+  color: #1a5276;
+}
+
+/* Keyword protected — Deep Ocean */
+.hljs-keyword.protected {
+  color: #1a5276;
+}
+
+/* Keyword readonly — Deep Ocean */
+.hljs-keyword.readonly {
+  color: #1a5276;
+}
+
+/* Keyword abstract — Deep Ocean */
+.hljs-keyword.abstract {
+  color: #1a5276;
+}
+
+/* Keyword async function — Deep Ocean */
+.hljs-keyword.async.function {
+  color: #1a5276;
+}
+
+/* Keyword await expression — Deep Ocean */
+.hljs-keyword.await.expression {
+  color: #1a5276;
+}
+
+/* Keyword yield — Deep Ocean */
+.hljs-keyword.yield {
+  color: #1a5276;
+}
+
+/* Keyword from — Deep Ocean */
+.hljs-keyword.from {
+  color: #1a5276;
+}
+
+/* Keyword as — Deep Ocean */
+.hljs-keyword.as {
+  color: #1a5276;
+}
+
+/* Keyword default export — Deep Ocean */
+.hljs-keyword.default.export {
+  color: #1a5276;
+}
+
+/* Keyword named export — Deep Ocean */
+.hljs-keyword.named.export {
+  color: #1a5276;
+}
+
+/* Keyword namespace import — Deep Ocean */
+.hljs-keyword.namespace.import {
+  color: #1a5276;
+}
+
+/* Keyword default import — Deep Ocean */
+.hljs-keyword.default.import {
+  color: #1a5276;
+}
+
+/* Keyword named import — Deep Ocean */
+.hljs-keyword.named.import {
+  color: #1a5276;
+}
+
+/* Keyword namespace export — Deep Ocean */
+.hljs-keyword.namespace.export {
+  color: #1a5276;
+}
+
+/* Keyword wildcard import — Deep Ocean */
+.hljs-keyword.wildcard.import {
+  color: #1a5276;
+}
+
+/* Keyword wildcard export — Deep Ocean */
+.hljs-keyword.wildcard.export {
+  color: #1a5276;
+}
+
+/* Keyword side effect import — Deep Ocean */
+.hljs-keyword.side.effect.import {
+  color: #1a5276;
+}
+
+/* Keyword side effect export — Deep Ocean */
+.hljs-keyword.side.effect.export {
+  color: #1a5276;
+}
