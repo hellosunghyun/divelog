@@ -250,11 +250,15 @@ const DEPTH_INDENT_CLASSES: Record<number, string> = {
   3: "ml-18",
 };
 
+const MAX_THREAD_DEPTH = 10;
+
 function renderResponseThread(
   node: ThreadedResponse<ResponseNode>,
   depth: number,
   ctx: RenderThreadContext
 ): React.ReactNode {
+  if (depth > MAX_THREAD_DEPTH) return null;
+
   const cappedDepth = Math.min(depth, 3);
   const isTombstone = node.moderationStatus === "tombstone";
   const indentClass = DEPTH_INDENT_CLASSES[cappedDepth] ?? "ml-18";
