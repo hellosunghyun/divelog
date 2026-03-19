@@ -448,6 +448,18 @@ export const recordReads = sqliteTable(
   (table) => [primaryKey({ columns: [table.learnerId, table.recordId] })],
 );
 
+export const recordViews = sqliteTable(
+  "record_views",
+  {
+    recordId: text("record_id")
+      .notNull()
+      .references(() => records.id, { onDelete: "cascade" }),
+    viewerKey: text("viewer_key").notNull(),
+    viewedAt: integer("viewed_at").notNull().default(now()),
+  },
+  (table) => [primaryKey({ columns: [table.recordId, table.viewerKey] })],
+);
+
 export const recordParticipants = sqliteTable(
   "record_participants",
   {

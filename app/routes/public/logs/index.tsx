@@ -13,6 +13,7 @@ import { Button } from "~/components/ui/button";
 import { db } from "~/db/client.server";
 import { learnerProfiles, records } from "~/db/schema.server";
 import { getParticipantsBatch } from "~/db/queries/records/participants.server";
+import { getRecordViewCounts } from "~/db/queries/records/recordViews.server";
 import { RECORD_TYPES, RECORD_TYPE_LABELS, type RecordType } from "~/lib/constants/record-types";
 import { getPlainText } from "~/lib/content/content.server";
 import { normalizeContentFormat } from "~/lib/content/editor-extensions";
@@ -155,6 +156,8 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     participantsByRecordId.set(p.recordId, existing);
   }
 
+  const viewCounts = await getRecordViewCounts(context.cloudflare.env.DB, recordIds);
+
   const recordsWithSnippets = filteredRecords.map((record) => {
     const plainTextContent = getPlainText(record.content, normalizeContentFormat(record.format));
 
@@ -162,6 +165,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
       ...record,
       contentSnippet:
         plainTextContent.substring(0, 120) + (plainTextContent.length > 120 ? "…" : ""),
+      viewCount: viewCounts.get(record.id) ?? 0,
     };
   });
 
