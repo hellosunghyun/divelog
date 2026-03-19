@@ -114,10 +114,9 @@ export default function AdminTemplateEditPage({ loaderData }: Route.ComponentPro
                </SelectTrigger>
                <SelectContent>
                  <SelectItem value={ALL_VALUE}>전체</SelectItem>
-                 <SelectItem value="sprint">스프린트</SelectItem>
-                 <SelectItem value="weekly">주간</SelectItem>
-                 <SelectItem value="monthly">월간</SelectItem>
-                 <SelectItem value="free">자유</SelectItem>
+                  <SelectItem value="weekly">주간</SelectItem>
+                  <SelectItem value="monthly">월간</SelectItem>
+                  <SelectItem value="free">자유</SelectItem>
                </SelectContent>
              </Select>
            </div>

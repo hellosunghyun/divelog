@@ -9,11 +9,9 @@ interface FilterBottomSheetProps {
 
 const RHYTHM_OPTIONS = [
   { value: "moment", label: "순간" },
-  { value: "sprint", label: "스프린트" },
   { value: "weekly", label: "주간" },
   { value: "monthly", label: "월간" },
-  { value: "stage", label: "구간 회고" },
-  { value: "reflection", label: "개인 회고" },
+  { value: "stage", label: "구간" },
   { value: "free", label: "자유" },
 ];
 

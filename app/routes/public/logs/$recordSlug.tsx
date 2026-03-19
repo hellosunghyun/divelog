@@ -130,11 +130,9 @@ export function shouldRevalidate({
 const RHYTHM_LABELS: Record<string, string> = {
   free: "자유",
   moment: "순간",
-  sprint: "스프린트",
   weekly: "주간",
   monthly: "월간",
   stage: "구간",
-  reflection: "회고",
 };
 
 const VISIBILITY_LABELS: Record<string, string> = {

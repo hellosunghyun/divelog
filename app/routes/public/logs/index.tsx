@@ -93,7 +93,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   if (type && (type === "personal" || type === "collaboration")) {
     conditions.push(eq(records.type, type));
   }
-  if (rhythm && ["moment", "sprint", "weekly", "monthly", "stage", "reflection", "free"].includes(rhythm)) {
+  if (rhythm && ["moment", "weekly", "monthly", "stage", "free"].includes(rhythm)) {
     conditions.push(eq(records.rhythm, rhythm));
   }
   if (view === "calendar") {
@@ -212,10 +212,8 @@ const FILTER_OPTIONS = [
     values: [
       { value: "moment", label: "순간" },
       { value: "weekly", label: "주간" },
-      { value: "sprint", label: "스프린트" },
       { value: "monthly", label: "월간" },
-      { value: "stage", label: "구간 회고" },
-      { value: "reflection", label: "개인 회고" },
+      { value: "stage", label: "구간" },
       { value: "free", label: "자유" },
     ],
   },

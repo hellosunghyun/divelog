@@ -352,10 +352,10 @@ export default function FullGuidePage() {
                 />
                 <FeatureCard
                   title="아티클"
-                  description="긴 글, 회고, 정리형 기록"
+                  description="긴 글, 정리형 기록"
                   details={[
                     "제목 직접 입력",
-                    "리듬(자유/순간/스프린트/주간/월간) 선택",
+                    "리듬(자유/순간/주간/월간/구간) 선택",
                     "작성 후 메타 단계에서 질문·태그·참조 링크 정리",
                   ]}
                 />

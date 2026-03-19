@@ -53,8 +53,6 @@ const NO_SELECTION_VALUE = "__none__";
 const RHYTHM_OPTIONS = [
   { value: "free", label: "자유" },
   { value: "moment", label: "순간" },
-  { value: "reflection", label: "회고" },
-  { value: "sprint", label: "스프린트" },
   { value: "weekly", label: "주간" },
   { value: "monthly", label: "월간" },
   { value: "stage", label: "구간" },
@@ -443,7 +441,6 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
               <SelectContent>
                 <SelectItem value="free">자유</SelectItem>
                 <SelectItem value="moment">순간</SelectItem>
-                <SelectItem value="sprint">스프린트</SelectItem>
                 <SelectItem value="weekly">주간</SelectItem>
                 <SelectItem value="monthly">월간</SelectItem>
               </SelectContent>

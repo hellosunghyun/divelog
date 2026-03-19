@@ -76,11 +76,9 @@ const VALUE_LABELS: Record<string, Record<string, string>> = {
   },
   rhythm: {
     moment: "순간",
-    sprint: "스프린트",
     weekly: "주간",
     monthly: "월간",
-    stage: "스테이지",
-    reflection: "성찰",
+    stage: "구간",
     free: "자유",
   },
    visibility: {

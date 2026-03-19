@@ -16,7 +16,7 @@ export const createRecordSchema = z
     contentText: z.string().max(50000).optional(),
     format: z.enum(["note", "article"]).default("note"),
     type: z.enum(["personal", "challenge", "collaboration"]).default("personal"),
-    rhythm: z.enum(["moment", "sprint", "weekly", "monthly", "stage", "reflection", "free"]).default("free"),
+    rhythm: z.enum(["moment", "weekly", "monthly", "stage", "free"]).default("free"),
     visibility: z.enum(["draft", "private", "cohort", "public"]).default("public"),
     responsePreference: z.enum(["open", "question_only", "closed"]).default("open"),
     challengeId: z.string().optional(),
@@ -78,7 +78,7 @@ export type AutosaveDraftInput = z.infer<typeof autosaveDraftSchema>;
 
 export const createNoteSchema = z.object({
   content: z.string().min(1, "내용을 입력해주세요").max(50000),
-  rhythm: z.enum(["moment", "sprint", "weekly", "monthly", "stage", "reflection", "free"]).default("free"),
+  rhythm: z.enum(["moment", "weekly", "monthly", "stage", "free"]).default("free"),
   visibility: z.enum(["draft", "private", "cohort", "public"]).default("public"),
   responsePreference: z.enum(["open", "question_only", "closed"]).default("open"),
   captureQuestion: z.string().optional(),
@@ -117,7 +117,7 @@ export const createArticleSchema = z
       z.string().max(200, "제목이 너무 깁니다").optional().default("(무제)"),
     ),
     content: z.string().min(1, "내용을 입력해주세요").max(50000),
-    rhythm: z.enum(["moment", "sprint", "weekly", "monthly", "stage", "reflection", "free"]).default("free"),
+    rhythm: z.enum(["moment", "weekly", "monthly", "stage", "free"]).default("free"),
     visibility: z.enum(["draft", "private", "cohort", "public"]).default("public"),
     recordedAt: z.string().optional(),
     recordedEndAt: z.string().optional(),
@@ -255,7 +255,7 @@ export type SearchInput = z.infer<typeof searchSchema>;
 export const recordFilterSchema = z.object({
   format: z.enum(["note", "article"]).optional(),
   type: z.enum(["personal", "challenge", "collaboration"]).optional(),
-  rhythm: z.enum(["moment", "sprint", "weekly", "monthly", "stage", "reflection", "free"]).optional(),
+  rhythm: z.enum(["moment", "weekly", "monthly", "stage", "free"]).optional(),
   visibility: z.enum(["draft", "private", "cohort", "public"]).optional(),
   cohort: z.string().optional(),
   sort: z.enum(["recent", "oldest"]).optional(),

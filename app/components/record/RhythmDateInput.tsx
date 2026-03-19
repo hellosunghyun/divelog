@@ -124,8 +124,6 @@ export function RhythmDateInput({
   const recordedAtValue = (() => {
     switch (rhythm) {
       case "free":
-      case "sprint":
-      case "reflection":
         return selectedDate ? format(selectedDate, "yyyy-MM-dd") : "";
       case "weekly":
       case "monthly":
@@ -150,8 +148,7 @@ export function RhythmDateInput({
     }
   })();
 
-  const isSingleDateRhythm =
-    rhythm === "free" || rhythm === "sprint" || rhythm === "reflection";
+  const isSingleDateRhythm = rhythm === "free";
 
   return (
     <>
