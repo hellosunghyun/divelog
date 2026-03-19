@@ -170,12 +170,19 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
 
   const contentHtml = renderContentToHtml(recordData.record.content, recordFormat, mentionSlugMap);
   const plainTextContent = getPlainText(recordData.record.content, recordFormat);
+  const responsesWithHtml = recordResponses.map((entry: (typeof recordResponses)[number]) => ({
+    ...entry,
+    response: {
+      ...entry.response,
+      contentHtml: renderContentToHtml(entry.response.content, "article"),
+    },
+  }));
 
   return {
     record: recordData.record,
     author: recordData.author,
     questions: recordQuestions,
-    responses: recordResponses,
+    responses: responsesWithHtml,
     sentences: recordSentences,
     linkedRecords,
     incomingLinks,
