@@ -7,6 +7,7 @@ import { db } from "~/db/client.server";
 import { getStages } from "~/db/queries/journey/stages.server";
 import { records, questions, sentences, learnerProfiles } from "~/db/schema.server";
 import { getRecentActivity } from "~/db/queries/social/activity.server";
+import { RECORD_TYPE_LABELS, type RecordType } from "~/lib/constants/record-types";
 import { getPlainText } from "~/lib/content/content.server";
 import { createLogger } from "~/lib/infra/logger.server";
 
@@ -151,12 +152,6 @@ function formatRelativeTime(timestamp: number | null, nowMs?: number): string {
 const FORMAT_LABELS: Record<string, string> = {
   note: "노트",
   article: "글",
-};
-
-const TYPE_LABELS: Record<string, string> = {
-  personal: "개인",
-  challenge: "챌린지",
-  collaboration: "협업",
 };
 
 export default function HomePage({ loaderData }: Route.ComponentProps) {
@@ -332,7 +327,7 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
                             {FORMAT_LABELS[row.format] ?? row.format}
                           </span>
                           <span className="bg-mist-blue text-ocean-blue text-xs font-semibold px-2.5 py-0.5 rounded-full">
-                            {TYPE_LABELS[row.type] ?? row.type}
+                            {RECORD_TYPE_LABELS[row.type as RecordType] ?? row.type}
                           </span>
                         </div>
                         <span className="text-xs text-text-tertiary font-medium">{row.relativeTime}</span>

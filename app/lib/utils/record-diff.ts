@@ -3,6 +3,8 @@
  * Pure functions - no database or external dependencies.
  */
 
+import { RECORD_TYPE_LABELS, type RecordType } from "~/lib/constants/record-types";
+
 export interface FieldChange {
   field: string;
   oldValue: unknown;
@@ -29,7 +31,7 @@ interface RecordState {
   content?: string;
   contentText?: string;
   format?: string;
-  type?: string;
+  type?: RecordType;
   rhythm?: string;
   visibility?: string;
   responsePreference?: string;
@@ -69,11 +71,7 @@ const VALUE_LABELS: Record<string, Record<string, string>> = {
     note: "노트",
     article: "글",
   },
-  type: {
-    personal: "개인",
-    challenge: "챌린지",
-    collaboration: "협업",
-  },
+  type: RECORD_TYPE_LABELS,
   rhythm: {
     moment: "순간",
     weekly: "주간",

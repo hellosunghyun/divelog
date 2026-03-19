@@ -12,6 +12,7 @@ import { db } from "~/db/client.server";
 import { getResponsesByAuthor } from "~/db/queries/dialogue/responses.server";
 import { getSavedRecordsWithDetails } from "~/db/queries/records/savedRecords.server";
 import { drafts, learnerProfiles, questions, records, sentences } from "~/db/schema.server";
+import type { RecordType } from "~/lib/constants/record-types";
 import { getPlainText } from "~/lib/content/content.server";
 import { createLogger } from "~/lib/infra/logger.server";
 import { cn } from "~/lib/utils/cn";
@@ -237,7 +238,7 @@ export default function MySpacePage({ loaderData }: Route.ComponentProps) {
                             title: record.title,
                             content: record.content,
                             format: record.format as "note" | "article",
-                            type: record.type as "personal" | "challenge" | "collaboration",
+                            type: record.type as RecordType,
                             rhythm: record.rhythm ?? undefined,
                             createdAt: record.createdAt,
                             recordedAt: record.recordedAt ?? undefined,
@@ -286,14 +287,14 @@ export default function MySpacePage({ loaderData }: Route.ComponentProps) {
                         <div key={record.id} className="relative group">
                            <SceneCard
                              record={{
-                               slug: record.slug,
-                               title: record.title,
-                               content: record.content,
-                               format: record.format as "note" | "article",
-                               type: record.type as "personal" | "challenge" | "collaboration",
-                               rhythm: record.rhythm ?? undefined,
-                               createdAt: record.createdAt,
-                               recordedAt: record.recordedAt ?? undefined,
+                                slug: record.slug,
+                                title: record.title,
+                                content: record.content,
+                                format: record.format as "note" | "article",
+                                type: record.type as RecordType,
+                                rhythm: record.rhythm ?? undefined,
+                                createdAt: record.createdAt,
+                                recordedAt: record.recordedAt ?? undefined,
                              }}
                            />
                            <div className="absolute inset-0 bg-surface/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-2xl">
@@ -427,7 +428,7 @@ export default function MySpacePage({ loaderData }: Route.ComponentProps) {
                          title: saved.record.title,
                          content: saved.record.content,
                          format: saved.record.format as "note" | "article",
-                         type: saved.record.type as "personal" | "challenge" | "collaboration",
+                         type: saved.record.type as RecordType,
                          rhythm: saved.record.rhythm ?? undefined,
                          createdAt: saved.record.createdAt,
                          recordedAt: saved.record.recordedAt ?? undefined,

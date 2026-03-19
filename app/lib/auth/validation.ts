@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { RECORD_TYPES, DEFAULT_RECORD_TYPE } from "../constants/record-types";
 
 // URL 정규화 헬퍼 함수
 function normalizeUrl(val: unknown): unknown {
@@ -15,7 +16,7 @@ export const createRecordSchema = z
     content: z.string().min(1, "내용을 입력해주세요").max(50000),
     contentText: z.string().max(50000).optional(),
     format: z.enum(["note", "article"]).default("note"),
-    type: z.enum(["personal", "challenge", "collaboration"]).default("personal"),
+    type: z.enum(RECORD_TYPES).default(DEFAULT_RECORD_TYPE),
     rhythm: z.enum(["moment", "weekly", "monthly", "stage", "free"]).default("free"),
     visibility: z.enum(["draft", "private", "cohort", "public"]).default("public"),
     responsePreference: z.enum(["open", "question_only", "closed"]).default("open"),
@@ -254,7 +255,7 @@ export type SearchInput = z.infer<typeof searchSchema>;
 
 export const recordFilterSchema = z.object({
   format: z.enum(["note", "article"]).optional(),
-  type: z.enum(["personal", "challenge", "collaboration"]).optional(),
+  type: z.enum(RECORD_TYPES).optional(),
   rhythm: z.enum(["moment", "weekly", "monthly", "stage", "free"]).optional(),
   visibility: z.enum(["draft", "private", "cohort", "public"]).optional(),
   cohort: z.string().optional(),

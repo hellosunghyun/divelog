@@ -121,11 +121,11 @@ describe("record-diff utilities", () => {
     });
 
     it("formats type field change", () => {
-      const result = formatFieldChange("type", "personal", "challenge");
+      const result = formatFieldChange("type", "exploration", "project");
 
       expect(result).toEqual({
         label: "유형",
-        summary: "개인 → 챌린지",
+        summary: "탐구 → 프로젝트",
       });
     });
 

@@ -57,6 +57,7 @@
     "drizzle-orm": "^0.45.1",
     "es-hangul": "^2.3.8",
     "framer-motion": "^12.37.0",
+    "hast-util-to-html": "^9.0.5",
     "isbot": "^5.1.31",
     "lowlight": "^3.3.0",
     "react": "^19.2.4",

@@ -1,8 +1,11 @@
 import type { ContentFormat } from "./editor-extensions";
 import * as Sentry from "@sentry/react-router/cloudflare";
+import { toHtml } from "hast-util-to-html";
+import { common, createLowlight } from "lowlight";
 import { createModuleLogger } from "../infra/logger.server";
 
 const logger = createModuleLogger("content.server");
+const lowlight = createLowlight(common);
 
 type StoredContentFormat = "json" | "plaintext";
 
@@ -152,9 +155,27 @@ function renderNode(node: TiptapNode, mentionSlugMap?: MentionSlugMap): string {
     case "blockquote":
       return `<blockquote>${children}</blockquote>`;
     case "codeBlock": {
-      const lang = (node.attrs?.language as string) ?? "";
-      const langAttr = lang ? ` class="language-${escapeHtml(lang)}"` : "";
-      return `<pre><code${langAttr}>${children}</code></pre>`;
+      const language = typeof node.attrs?.language === "string" ? node.attrs.language.trim().toLowerCase() : "";
+      const rawCode = extractCodeBlockText(node);
+
+      if (!rawCode) {
+        return "<pre><code></code></pre>";
+      }
+
+      if (language && lowlight.registered(language)) {
+        try {
+          const highlighted = lowlight.highlight(language, rawCode);
+          const highlightedHtml = toHtml(highlighted);
+          return `<pre><code class="hljs language-${escapeHtml(language)}">${highlightedHtml}</code></pre>`;
+        } catch (error) {
+          logger.warn("code_block_highlight_failed", {
+            error: error instanceof Error ? error.message : String(error),
+            language,
+          });
+        }
+      }
+
+      return `<pre><code>${escapeHtml(rawCode)}</code></pre>`;
     }
     case "horizontalRule":
       return "<hr>";
@@ -288,6 +309,30 @@ function renderPlainText(content: string): string {
   });
 
   return `<div class="whitespace-pre-wrap">${html}</div>`;
+}
+
+function extractCodeBlockText(node: TiptapNode): string {
+  if (!node.content || node.content.length === 0) {
+    return "";
+  }
+
+  return node.content.map(collectCodeText).join("");
+}
+
+function collectCodeText(node: TiptapNode): string {
+  if (node.type === "text") {
+    return node.text ?? "";
+  }
+
+  if (node.type === "hardBreak") {
+    return "\n";
+  }
+
+  if (!node.content || node.content.length === 0) {
+    return "";
+  }
+
+  return node.content.map(collectCodeText).join("");
 }
 
 function escapeHtml(text: string): string {

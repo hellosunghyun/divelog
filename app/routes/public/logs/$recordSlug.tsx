@@ -24,6 +24,7 @@ import {
 } from "~/components/ui/select";
 import { Textarea } from "~/components/ui/textarea";
 import { useReadTracking } from "~/hooks/useReadTracking";
+import { RECORD_TYPE_LABELS, type RecordType } from "~/lib/constants/record-types";
 import { normalizeContentFormat } from "~/lib/content/editor-extensions";
 import { buildResponseTree, type ThreadedResponse } from "~/lib/utils/thread-tree";
 
@@ -719,7 +720,7 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
             {record.format === "note" ? "노트" : "글"}
           </span>
           <span className="text-caption px-3 py-1 rounded-full border border-border bg-surface text-text-secondary">
-            {record.type === "personal" ? "개인" : record.type === "challenge" ? "챌린지" : "협업"}
+            {RECORD_TYPE_LABELS[record.type as RecordType] ?? record.type}
           </span>
           {record.rhythm && record.rhythm !== "free" && (
             <span className="text-caption px-3 py-1 rounded-full border border-border bg-surface text-text-secondary">

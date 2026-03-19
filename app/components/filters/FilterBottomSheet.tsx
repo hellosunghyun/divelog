@@ -1,6 +1,7 @@
 import { useNavigate, useSearchParams } from "react-router";
 import { Checkbox } from "~/components/ui/checkbox";
 import { Label } from "~/components/ui/label";
+import { RECORD_TYPES, RECORD_TYPE_LABELS } from "~/lib/constants/record-types";
 
 interface FilterBottomSheetProps {
   isOpen: boolean;
@@ -15,10 +16,7 @@ const RHYTHM_OPTIONS = [
   { value: "free", label: "자유" },
 ];
 
-const TYPE_OPTIONS = [
-  { value: "personal", label: "개인" },
-  // [COLLAB_DISABLED] { value: "collaboration", label: "협업" },
-];
+const TYPE_OPTIONS = RECORD_TYPES.map((type) => ({ value: type, label: RECORD_TYPE_LABELS[type] }));
 
 export function FilterBottomSheet({ isOpen, onClose }: FilterBottomSheetProps) {
   const [searchParams] = useSearchParams();
