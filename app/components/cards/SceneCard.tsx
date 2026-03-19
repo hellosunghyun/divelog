@@ -111,6 +111,7 @@ export default function SceneCard({
   }
 
   const rhythmLabel = record.rhythm ? (RHYTHM_LABELS[record.rhythm] ?? null) : null;
+  const typeLabel = RECORD_TYPE_LABELS[record.type as RecordType] ?? record.type;
   const showRecordedAt = record.recordedAt && record.recordedAt !== record.createdAt;
 
   return (
@@ -135,6 +136,9 @@ export default function SceneCard({
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-caption px-2.5 py-0.5 rounded-full bg-border text-text-secondary">
             {FORMAT_LABELS[record.format] ?? record.format}
+          </span>
+          <span className="text-caption px-2.5 py-0.5 rounded-full bg-mist-blue/50 text-ocean-blue">
+            {typeLabel}
           </span>
           {rhythmLabel && (
             <span className="text-caption px-2.5 py-0.5 rounded-full bg-border text-text-secondary">
