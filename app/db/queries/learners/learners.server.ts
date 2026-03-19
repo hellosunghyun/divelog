@@ -353,26 +353,19 @@ export async function getLearnerStageActivity(
   d1: D1Database,
   learnerId: string,
   isOwner: boolean,
+  currentStageId?: string | null,
 ): Promise<LearnerStageActivityResult> {
   const database = db(d1);
 
-  const learner = await database
-    .select({ currentStageId: learnerProfiles.currentStageId })
-    .from(learnerProfiles)
-    .where(eq(learnerProfiles.userId, learnerId))
-    .limit(1);
-
-  const learnerProfile = learner[0] ?? null;
-  let currentStage: { id: string; name: string; slug: string } | null = null;
-
-  if (learnerProfile?.currentStageId) {
-    const stageResult = await database
-      .select({ id: stages.id, name: stages.name, slug: stages.slug })
-      .from(stages)
-      .where(eq(stages.id, learnerProfile.currentStageId))
+  let resolvedCurrentStageId = currentStageId;
+  if (resolvedCurrentStageId === undefined) {
+    const learner = await database
+      .select({ currentStageId: learnerProfiles.currentStageId })
+      .from(learnerProfiles)
+      .where(eq(learnerProfiles.userId, learnerId))
       .limit(1);
 
-    currentStage = stageResult[0] ?? null;
+    resolvedCurrentStageId = learner[0]?.currentStageId ?? null;
   }
 
   const recordsQuery = isOwner
@@ -387,13 +380,27 @@ export async function getLearnerStageActivity(
           sql`${records.authorId} = ${learnerId} AND ${records.visibility} IN ('cohort', 'public')`,
         );
 
-  const recordsList = await recordsQuery;
-
-  const questionsList = await database
+  const questionsQuery = database
     .select({ createdAt: questions.createdAt })
     .from(questions)
     .innerJoin(records, eq(questions.recordId, records.id))
     .where(eq(records.authorId, learnerId));
+
+  const stageQuery = resolvedCurrentStageId
+    ? database
+        .select({ id: stages.id, name: stages.name, slug: stages.slug })
+        .from(stages)
+        .where(eq(stages.id, resolvedCurrentStageId))
+        .limit(1)
+    : Promise.resolve([] as Array<{ id: string; name: string; slug: string }>);
+
+  const [recordsList, questionsList, stageResult] = await Promise.all([
+    recordsQuery,
+    questionsQuery,
+    stageQuery,
+  ]);
+
+  const currentStage = stageResult[0] ?? null;
 
   const allTimestamps = [
     ...recordsList.map((r) => r.createdAt),

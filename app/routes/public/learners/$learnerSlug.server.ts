@@ -18,39 +18,35 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
   const d1 = context.cloudflare.env.DB;
   const database = db(d1);
 
-  const learnerResult = await database.select().from(learnerProfiles).where(eq(learnerProfiles.slug, learnerSlug)).limit(1);
+  const [learnerResult, auth] = await Promise.all([
+    database.select().from(learnerProfiles).where(eq(learnerProfiles.slug, learnerSlug)).limit(1),
+    getAuth(request, context.cloudflare.env.ADAKRPOS_API_KEY),
+  ]);
   const learner = learnerResult[0];
   if (!learner) {
     logger.info("not_found", { slug: learnerSlug });
     throw data("러너를 찾을 수 없습니다", { status: 404 });
   }
 
-  const auth = await getAuth(request, context.cloudflare.env.ADAKRPOS_API_KEY);
   const isOwner = auth.isAuthenticated && auth.user.id === learner.userId;
 
-  const [learnerRecords, learnerQuestions, learnerSentences] = await database.batch([
-    database.select({
-      record: records,
-    }).from(records).where(and(eq(records.authorId, learner.userId), sql`${records.visibility} IN ('cohort', 'public')`)).orderBy(desc(records.createdAt)).limit(12),
-    database.select({ question: questions, recordSlug: records.slug, recordTitle: records.title })
-      .from(questions).leftJoin(records, eq(questions.recordId, records.id))
-      .where(and(eq(records.authorId, learner.userId), eq(questions.isOpen, true), sql`${records.visibility} IN ('cohort', 'public')`)).orderBy(desc(questions.createdAt)).limit(5),
-    database.select({ sentence: sentences }).from(sentences).leftJoin(records, eq(sentences.recordId, records.id)).where(and(eq(sentences.savedById, learner.userId), sql`${records.visibility} IN ('cohort', 'public')`)).orderBy(desc(sentences.createdAt)).limit(6),
-  ]);
-
   const [
+    [learnerRecords, learnerQuestions, learnerSentences],
     participatedRecordsRaw,
     mentionedRecordsRaw,
     interestTags,
     stageActivity,
     selfAnswers,
-  ]: [
-    Awaited<ReturnType<typeof getRecordsWithParticipant>>,
-    Awaited<ReturnType<typeof getRecordsWithMention>>,
-    Awaited<ReturnType<typeof getLearnerInterestTags>>,
-    Awaited<ReturnType<typeof getLearnerStageActivity>>,
-    Awaited<ReturnType<typeof getLearnerSelfAnswerSummary>>,
   ] = await Promise.all([
+    database.batch([
+      database.select({
+        record: records,
+      }).from(records).where(and(eq(records.authorId, learner.userId), sql`${records.visibility} IN ('cohort', 'public')`)).orderBy(desc(records.createdAt)).limit(12),
+      database.select({ question: questions, recordSlug: records.slug, recordTitle: records.title })
+        .from(questions).leftJoin(records, eq(questions.recordId, records.id))
+        .where(and(eq(records.authorId, learner.userId), eq(questions.isOpen, true), sql`${records.visibility} IN ('cohort', 'public')`)).orderBy(desc(questions.createdAt)).limit(5),
+      database.select({ sentence: sentences }).from(sentences).leftJoin(records, eq(sentences.recordId, records.id)).where(and(eq(sentences.savedById, learner.userId), sql`${records.visibility} IN ('cohort', 'public')`)).orderBy(desc(sentences.createdAt)).limit(6),
+    ]),
     getRecordsWithParticipant(d1, learner.userId, 10).catch(() =>
       [] as Awaited<ReturnType<typeof getRecordsWithParticipant>>
     ),
