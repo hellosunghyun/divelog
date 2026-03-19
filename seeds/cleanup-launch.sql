@@ -10,7 +10,6 @@ WHERE id IN (
   'notif-005', 'notif-006', 'notif-007', 'notif-008'
 )
    OR recipient_id IN ('hana', 'jiwon', 'minjun', 'soyeon', 'hyunjin', 'jaemin')
-   OR actor_id IN ('hana', 'jiwon', 'minjun', 'soyeon', 'hyunjin', 'jaemin')
    OR record_id IN (
      'record-001', 'record-002', 'record-003', 'record-004', 'record-005', 'record-006',
      'record-007', 'record-008', 'record-009', 'record-010', 'record-011', 'record-012',
