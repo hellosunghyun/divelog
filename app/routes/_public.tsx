@@ -2,9 +2,6 @@ import { Outlet, data } from "react-router";
 import * as Sentry from "@sentry/react-router/cloudflare";
 import type { Route } from "./+types/_public";
 import { ensureAdminByEmail } from "~/lib/auth/auth.middleware.server";
-import { and, eq } from "drizzle-orm";
-import { db } from "~/db/client.server";
-import { userRoles } from "~/db/schema.server";
 import { getOrCreateLearnerProfile } from "~/db/queries/learners/learners.server";
 import { getAuth, getAuthDebug } from "~/lib/auth/auth.server";
 import { createLogger } from "~/lib/infra/logger.server";
@@ -20,24 +17,15 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   let isAdmin = false;
 
   if (auth.isAuthenticated && auth.user) {
-    try {
-      const database = db(context.cloudflare.env.DB);
-      const adminRole = await database
-        .select({ id: userRoles.id })
-        .from(userRoles)
-        .where(and(eq(userRoles.userId, auth.user.id), eq(userRoles.role, "admin")))
-        .limit(1);
-      isAdmin = adminRole.length > 0;
-    } catch (err) {
-      Sentry.captureException(err, {
-        tags: { type: "layout_db_query" },
-        extra: { userId: auth.user.id, query: "adminRole" },
-      });
-      logger.error("admin_role_query_error", {
-        userId: auth.user.id,
-        error: err instanceof Error ? err.message : String(err),
-      });
-    }
+    // Check admin status via ADMIN_EMAILS env var (no DB query)
+    const adminEmailsRaw = (context.cloudflare.env as { ADMIN_EMAILS?: string }).ADMIN_EMAILS ?? "";
+    const adminEmails = adminEmailsRaw
+      .split(",")
+      .map((e: string) => e.trim().toLowerCase())
+      .filter(Boolean);
+    isAdmin = auth.user.verifiedEmail
+      ? adminEmails.includes(auth.user.verifiedEmail.toLowerCase())
+      : false;
 
     Sentry.setUser({
       id: auth.user.id,
