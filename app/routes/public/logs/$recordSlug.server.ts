@@ -34,6 +34,7 @@ import {
 } from "~/db/queries/dialogue/responseMentions.server";
 import {
   deleteRecordRefsForResponse,
+  getResponsesByReferencedRecord,
   syncRecordRefsForResponse,
 } from "~/db/queries/dialogue/responseRecordRefs.server";
 import {
@@ -121,7 +122,7 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
       .orderBy(desc(sentences.createdAt)),
   ]);
 
-  const [linkedRecordsRaw, selfAnswersData, recordTags, incomingLinks, isAdmin, isSaved, participants, mentions, recordReferences] = await Promise.all([
+  const [linkedRecordsRaw, selfAnswersData, recordTags, incomingLinks, isAdmin, isSaved, participants, mentions, recordReferences, incomingResponseRefs] = await Promise.all([
     getLinkedRecords(
       context.cloudflare.env.DB,
       recordData.record.id,
@@ -160,6 +161,9 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
           [] as Awaited<ReturnType<typeof getRecordReferences>>
         )
       : Promise.resolve([]),
+    getResponsesByReferencedRecord(context.cloudflare.env.DB, recordData.record.id).catch(() =>
+      [] as Awaited<ReturnType<typeof getResponsesByReferencedRecord>>
+    ),
   ]);
 
   const linkedRecords = linkedRecordsRaw.map((lr) => ({
@@ -211,6 +215,7 @@ export async function loader({ params, context, request }: Route.LoaderArgs) {
     isAuthorOrAdmin,
     isSaved,
     references: recordReferences,
+    incomingResponseRefs,
   };
 }
 
