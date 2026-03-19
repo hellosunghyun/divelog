@@ -543,6 +543,16 @@ export async function action({ request, context }: Route.ActionArgs) {
       return data({ error: parsed.error.issues[0]?.message ?? "입력값을 확인해주세요." }, { status: 400 });
     }
 
+    if (parsed.data.content) {
+      if (!validateResponseContentLength(parsed.data.content)) {
+        return data({ error: "응답 내용이 너무 깁니다" }, { status: 400 });
+      }
+      const mentionCheck = validateMentionLimits(parsed.data.content);
+      if (!mentionCheck.valid) {
+        return data({ error: "멘션은 각각 10개까지 가능합니다" }, { status: 400 });
+      }
+    }
+
     const targetResponse = await getResponseById(context.cloudflare.env.DB, parsed.data.responseId);
 
     if (!targetResponse) {
