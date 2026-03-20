@@ -1,0 +1,51 @@
+{
+  "name": "@divelog/server",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "sideEffects": false,
+  "types": "./src/index.ts",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@divelog/domain": "workspace:*",
+    "@sentry/react-router": "^10.43.0",
+    "hast-util-to-html": "^9.0.5",
+    "lowlight": "^3.3.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./logger.server": {
+      "types": "./src/logger.server.ts",
+      "default": "./src/logger.server.ts"
+    },
+    "./extract-references.server": {
+      "types": "./src/extract-references.server.ts",
+      "default": "./src/extract-references.server.ts"
+    },
+    "./content.server": {
+      "types": "./src/content.server.ts",
+      "default": "./src/content.server.ts"
+    },
+    "./r2-cleanup.server": {
+      "types": "./src/r2-cleanup.server.ts",
+      "default": "./src/r2-cleanup.server.ts"
+    },
+    "./validation": {
+      "types": "./src/validation.ts",
+      "default": "./src/validation.ts"
+    },
+    "./title.server": {
+      "types": "./src/title.server.ts",
+      "default": "./src/title.server.ts"
+    }
+  }
+}

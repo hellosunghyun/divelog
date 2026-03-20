@@ -51,10 +51,10 @@ pnpm deploy
 
 ```bash
 # 마이그레이션 적용
-wrangler d1 migrations apply DB --local
+pnpm db:migrate:local
 
 # 시드 데이터
-wrangler d1 execute DB --local --file=seeds/seed.sql
+pnpm db:seed:local
 ```
 
 ---
@@ -62,25 +62,25 @@ wrangler d1 execute DB --local --file=seeds/seed.sql
 ## 프로젝트 구조
 
 ```
-app/
-├── routes/          # React Router flat routes
-│   ├── _public.tsx  # Public 레이아웃 (인증 1회)
-│   ├── _admin.tsx   # Admin 레이아웃 (역할 검증)
-│   ├── public/      # 공개 페이지
-│   ├── admin/       # 관리자 페이지
-│   └── api/         # API 엔드포인트
-├── components/      # 공통 컴포넌트
-├── db/
-│   ├── schema.server.ts     # Drizzle 스키마
-│   ├── relations.server.ts  # Drizzle relations
-│   ├── client.server.ts     # DB 클라이언트 팩토리
-│   └── queries/             # 도메인별 쿼리 모듈
-├── lib/             # 인증, 미들웨어, 유틸리티
-└── styles/          # CSS 토큰, 글로벌 스타일
+apps/
+├── web/
+│   ├── app/
+│   │   ├── routes/          # React Router flat routes
+│   │   ├── components/      # 공통 컴포넌트
+│   │   ├── db/              # Drizzle 스키마, relations, queries
+│   │   ├── lib/             # 인증, 미들웨어, 유틸리티
+│   │   └── styles/          # CSS 토큰, 글로벌 스타일
+│   ├── workers/             # Cloudflare Workers 진입점
+│   ├── drizzle/migrations/  # D1 마이그레이션
+│   ├── seeds/               # 시드 데이터
+│   └── wrangler.toml        # Cloudflare 바인딩
+└── apple/                   # 향후 iOS / macOS 앱 워크스페이스
 
-drizzle/migrations/  # D1 마이그레이션
-seeds/               # 시드 데이터
-workers/             # Cloudflare Workers 진입점
+packages/
+├── contracts/
+├── db/
+├── domain/
+└── server/
 ```
 
 ---

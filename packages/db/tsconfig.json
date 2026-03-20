@@ -1,0 +1,11 @@
+{
+  "extends": "../../apps/web/tsconfig.json",
+  "include": ["src/**/*", "../../types/cloudflare-runtime.d.ts"],
+  "compilerOptions": {
+    "composite": true,
+    "lib": ["ES2022"],
+    "target": "ES2022",
+    "module": "ES2022",
+    "moduleResolution": "bundler"
+  }
+}

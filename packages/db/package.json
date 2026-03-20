@@ -1,0 +1,35 @@
+{
+  "name": "@divelog/db",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "sideEffects": false,
+  "types": "./src/index.ts",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.45.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./schema.server": {
+      "types": "./src/schema.server.ts",
+      "default": "./src/schema.server.ts"
+    },
+    "./relations.server": {
+      "types": "./src/relations.server.ts",
+      "default": "./src/relations.server.ts"
+    },
+    "./client.server": {
+      "types": "./src/client.server.ts",
+      "default": "./src/client.server.ts"
+    }
+  }
+}

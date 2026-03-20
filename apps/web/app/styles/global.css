@@ -1,0 +1,174 @@
+@import "./tokens.css";
+
+/* ===== shadcn/ui Theme Variables — Quiet Depth Mapping ===== */
+/* maps to: https://ui.shadcn.com/docs/theming */
+:root {
+  --background: #F6F8FB;        /* Quiet Depth: color-bg */
+  --foreground: #1D1D1F;        /* Quiet Depth: color-text-primary */
+  --card: #FFFFFF;              /* Quiet Depth: color-surface */
+  --card-foreground: #1D1D1F;
+  --popover: #FFFFFF;
+  --popover-foreground: #1D1D1F;
+  --primary: #146C94;           /* Quiet Depth: color-ocean-blue */
+  --primary-foreground: #FFFFFF;
+  --secondary: #F2F5F8;         /* Quiet Depth: color-surface-secondary */
+  --secondary-foreground: #1D1D1F;
+  --muted: #F2F5F8;
+  --muted-foreground: #6E6E73;  /* Quiet Depth: color-text-secondary */
+  --accent: #EAF4FA;            /* Quiet Depth: color-mist-blue */
+  --accent-foreground: #0B2447; /* Quiet Depth: color-deep-ocean */
+  --destructive: #DC2626;       /* Quiet Depth: color-error */
+  --destructive-foreground: #FFFFFF;
+  --border: #E3E8EF;            /* Quiet Depth: color-border */
+  --input: #E3E8EF;
+  --ring: #146C94;              /* Quiet Depth: color-ocean-blue */
+  --radius: 0.75rem;            /* 12px — input elements (cards use 20-24px directly) */
+
+  /* Read state colors */
+  --color-read-bg: #ECEEF1;
+  --color-read-ring: #D8DCE3;
+  --color-read-surface: #F0F2F5;
+  --color-read-badge-bg: #E0E3E8;
+  --color-read-badge-text: #8C8F96;
+  --color-read-text: #A0A4AB;
+}
+
+/* Tailwind v4 — map shadcn CSS variables to utility classes (bg-primary, text-foreground, etc.) */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-read-bg: var(--color-read-bg);
+  --color-read-ring: var(--color-read-ring);
+  --color-read-surface: var(--color-read-surface);
+  --color-read-badge-bg: var(--color-read-badge-bg);
+  --color-read-badge-text: var(--color-read-badge-text);
+  --color-read-text: var(--color-read-text);
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-body);
+    color: var(--color-text-primary);
+    background-color: var(--color-bg);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scrollbar-gutter: stable;
+  }
+
+  body {
+    min-height: 100dvh;
+    scrollbar-gutter: stable;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    line-height: var(--line-height-title);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+  }
+
+  p {
+    line-height: var(--line-height-body);
+    color: var(--color-text-primary);
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+    transition: color var(--duration-fast) var(--ease-default);
+  }
+
+  a:hover {
+    text-decoration: underline;
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  button {
+    cursor: pointer;
+    font-family: inherit;
+    font-size: inherit;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-focus-ring);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: var(--radius-full);
+}
+
+/* react-remove-scroll(Radix Select/Dialog)가 scroll lock 시 body에
+   margin-right 또는 padding-right 보상을 동적 주입할 수 있다.
+   html/body scrollbar-gutter: stable이 이미 공간을 보존하므로 이중 보상을 막는다.
+   doubled attribute selector로 동적 주입보다 높은 specificity 확보. */
+body[data-scroll-locked][data-scroll-locked] {
+  margin-right: 0 !important;
+  padding-right: 0 !important;
+}
+
+.user-mention {
+  background: var(--color-mist-blue);
+  color: var(--color-ocean-blue);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-default);
+}
+
+.user-mention:hover {
+  background: var(--color-mist-blue-deep);
+  text-decoration: none;
+}
+
+.record-ref {
+  background: var(--color-surface-secondary);
+  color: var(--color-ocean-blue);
+  padding: 1px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--color-border);
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-default);
+}
+
+.record-ref:hover {
+  border-color: var(--color-reef-cyan);
+  background: var(--color-mist-blue);
+  text-decoration: none;
+}

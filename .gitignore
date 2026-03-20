@@ -8,22 +8,32 @@ node_modules/
 # React Router
 /.react-router/
 /build/
+apps/*/.react-router/
+apps/*/build/
+
+# Vite
+.vite/
+apps/*/.vite/
 
 # Playwright
 /test-results/
 /playwright-report/
+apps/*/test-results/
+apps/*/playwright-report/
 
 # Cloudflare
 .mf
 .wrangler/
+apps/*/.wrangler/
 worker-configuration.d.ts
+apps/*/worker-configuration.d.ts
 *.png
 *.jpeg
 *.jpg
 *.log
 
 # public 정적 자산은 추적
-!public/apple-touch-icon.png
-!public/favicon-48.png
-!public/icon-192.png
-!public/icon-512.png
+!apps/web/public/apple-touch-icon.png
+!apps/web/public/favicon-48.png
+!apps/web/public/icon-192.png
+!apps/web/public/icon-512.png

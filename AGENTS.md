@@ -50,231 +50,49 @@ Apple Developer Academy @ POSTECH Learner의 아홉 달을 **Journey-first refle
 ## 프로젝트 구조
 
 ```
-app/
-├── routes/
-│   ├── _public.tsx                    → Public 레이아웃 (verifyRequest 1회)
-│   ├── _admin.tsx                     → Admin 레이아웃 (requireRole)
-│   ├── public/
-│   │   ├── index.tsx                  → / (홈)
-│   │   ├── journey/
-│   │   │   └── index.tsx              → /journey
-│   │   ├── questions.tsx              → /questions (열린 질문)
-│   │   ├── logs/
-│   │   │   ├── index.tsx              → /logs
-│   │   │   ├── $recordSlug.tsx        → /logs/:recordSlug
-│   │   │   ├── $recordSlug.edit.tsx   → /logs/:recordSlug/edit
-│   │   │   └── $recordSlug.details.tsx→ /logs/:recordSlug/details
-│   │   ├── write/
-│   │   │   ├── index.tsx              → /write (requireVerified)
-│   │   │   ├── note.tsx               → /write/note
-│   │   │   ├── article.tsx            → /write/article
-│   │   │   └── meta.$recordId.tsx     → /write/meta/:recordId
-│   │   ├── learners/
-│   │   │   ├── index.tsx              → /learners
-│   │   │   └── $learnerSlug.tsx       → /learners/:learnerSlug
-│   │   ├── tags/
-│   │   │   ├── index.tsx              → /tags
-│   │   │   └── $tagSlug.tsx           → /tags/:tagSlug
-│   │   ├── search.tsx                 → /search
-│   │   ├── inbox.tsx                  → /inbox (requireAuth)
-│   │   ├── me.tsx                     → /me (requireAuth)
-│   │   ├── settings.tsx               → /settings (requireAuth)
-│   │   ├── guide.tsx                  → /guide
-│   │   ├── guide/
-│   │   │   └── full.tsx               → /guide/full
-│   │   ├── terms.tsx                  → /terms
-│   │   ├── privacy.tsx                → /privacy
-│   │   └── style-reference.tsx        → /style-reference
-│   │   # DISABLED:
-│   │   # ├── journey/$stageSlug.tsx   → /journey/:stageSlug [STAGE_DISABLED]
-│   │   # ├── groups/$groupSlug.tsx    → /groups/:groupSlug [COLLAB_DISABLED]
-│   │   # ├── memories/$stageSlug.tsx  → /memories/:stageSlug [STAGE_DISABLED]
-│   │   # 미구현:
-│   │   # ├── challenges/              → /challenges (아직 구현되지 않음)
-│   │   # └── challenges/$challengeSlug.tsx → /challenges/:challengeSlug
-│   ├── admin/
-│   │   ├── index.tsx                  → /admin (Dashboard)
-│   │   ├── stages/
-│   │   │   ├── index.tsx              → /admin/stages
-│   │   │   └── $stageId.tsx           → /admin/stages/:stageId
-│   │   ├── learners/
-│   │   │   ├── index.tsx              → /admin/learners
-│   │   │   └── $learnerId.tsx         → /admin/learners/:learnerId
-│   │   ├── records/
-│   │   │   ├── index.tsx              → /admin/records
-│   │   │   └── $recordId.tsx          → /admin/records/:recordId
-│   │   ├── dialogue/
-│   │   │   ├── index.tsx              → /admin/dialogue
-│   │   │   └── $responseId.tsx        → /admin/dialogue/:responseId
-│   │   ├── curation.tsx               → /admin/curation
-│   │   ├── templates/
-│   │   │   ├── index.tsx              → /admin/templates
-│   │   │   └── $templateId.tsx        → /admin/templates/:templateId
-│   │   ├── tags.tsx                   → /admin/tags
-│   │   ├── analytics.tsx              → /admin/analytics
-│   │   ├── settings.tsx               → /admin/settings
-│   │   ├── roles.tsx                  → /admin/roles
-│   │   ├── audit.tsx                  → /admin/audit
-│   │   # DISABLED:
-│   │   # ├── collaboration/           → [COLLAB_DISABLED]
-│   │   # ├── memories/
-│   │   # │   ├── index.tsx            → /admin/memories [STAGE_DISABLED]
-│   │   # │   └── $stageId.tsx         → /admin/memories/:stageId [STAGE_DISABLED]
-│   │   # 미구현:
-│   │   # ├── challenges/
-│   │   # │   ├── index.tsx            → /admin/challenges (아직 구현되지 않음)
-│   │   # │   └── $challengeId.tsx     → /admin/challenges/:challengeId
-│   └── api/
-│       ├── upload.tsx                 → POST /api/upload (R2 이미지)
-│       ├── images.$.tsx               → /api/images/* (이미지 서빙)
-│       ├── autosave.tsx               → POST /api/autosave (초안 자동저장)
-│       ├── notifications.tsx          → /api/notifications
-│       ├── search-records.tsx         → /api/search-records
-│       ├── search-learners.tsx        → /api/search-learners
-│       ├── track-read.tsx             → /api/track-read (읽음 추적)
-│       ├── toggle-bookmark.tsx        → /api/toggle-bookmark
-│       ├── preview-learner.tsx        → /api/preview-learner
-│       └── preview-record.tsx         → /api/preview-record
-├── components/
-│   ├── layout/
-│   │   ├── GlobalNav.tsx
-│   │   ├── Footer.tsx
-│   │   └── FloatingWriteCTA.tsx
-│   ├── cards/
-│   │   ├── SceneCard.tsx
-│   │   ├── QuestionCard.tsx
-│   │   ├── ResponseCard.tsx
-│   │   ├── LearnerCard.tsx
-│   │   ├── CompactTimelineCard.tsx
-│   │   ├── HighlightedSentenceCard.tsx
-│   │   ├── SelfAnswerCard.tsx
-│   │   └── CollaborationUnitCard.tsx
-│   ├── sections/
-│   │   ├── HeroSection.tsx
-│   │   ├── StageStrip.tsx
-│   │   └── CTABand.tsx
-│   ├── views/
-│   │   ├── TimelineView.tsx
-│   │   ├── CalendarView.tsx
-│   │   ├── QuestionTimeline.tsx
-│   │   └── ViewToggle.tsx
-│   ├── feedback/
-│   │   ├── EmptyState.tsx
-│   │   ├── ErrorState.tsx
-│   │   ├── LoadingSkeleton.tsx
-│   │   ├── Spinner.tsx
-│   │   ├── SubmitButton.tsx
-│   │   ├── AutosaveIndicator.tsx
-│   │   └── NavigationBlockerDialog.tsx
-│   ├── content/
-│   │   ├── ContentRenderer.tsx
-│   │   ├── SmartLink.tsx
-│   │   ├── MentionPreview.tsx
-│   │   └── DraftRecoveryPrompt.tsx
-│   ├── filters/
-│   │   ├── FilterBar.tsx
-│   │   ├── FilterBottomSheet.tsx
-│   │   └── SortBar.tsx
-│   ├── record/
-│   │   ├── RhythmDateInput.tsx
-│   │   ├── WeekPicker.tsx
-│   │   └── MonthPicker.tsx
-│   ├── editor/editors/
-│   │   ├── NoteEditor.tsx
-│   │   ├── ArticleEditor.tsx
-│   │   └── SlashCommandMenu.tsx
-│   ├── revision/
-│   │   ├── RevisionTimeline.tsx
-│   │   └── RevisionDiffView.tsx
-│   ├── activity/
-│   │   ├── ActivityFeed.tsx
-│   │   └── NarrativeDigest.tsx
-│   ├── admin/
-│   │   ├── AdminSidebar.tsx
-│   │   ├── AdminContextBar.tsx
-│   │   └── admin-patterns.tsx
-│   ├── ui/                            → Radix UI 기반 프리미티브 (13개)
-│   ├── PersonSearch.tsx
-│   ├── RecordSearch.tsx
-│   └── TagSelector.tsx
+apps/
+├── web/
+│   ├── app/
+│   │   ├── routes/
+│   │   │   ├── _public.tsx                    → Public 레이아웃 (verifyRequest 1회)
+│   │   │   ├── _admin.tsx                     → Admin 레이아웃 (requireRole)
+│   │   │   ├── public/
+│   │   │   │   ├── index.tsx                  → / (홈)
+│   │   │   │   ├── journey/index.tsx          → /journey
+│   │   │   │   ├── questions.tsx              → /questions (열린 질문)
+│   │   │   │   ├── logs/                      → /logs, /logs/:recordSlug, /edit, /details
+│   │   │   │   ├── write/                     → /write, /write/note, /write/article
+│   │   │   │   ├── learners/                  → /learners, /learners/:learnerSlug
+│   │   │   │   ├── tags/                      → /tags, /tags/:tagSlug
+│   │   │   │   ├── search.tsx                 → /search
+│   │   │   │   ├── inbox.tsx                  → /inbox (requireAuth)
+│   │   │   │   ├── me.tsx                     → /me (requireAuth)
+│   │   │   │   ├── settings.tsx               → /settings (requireAuth)
+│   │   │   │   ├── guide.tsx / guide/full.tsx → /guide, /guide/full
+│   │   │   │   ├── terms.tsx                  → /terms
+│   │   │   │   ├── privacy.tsx                → /privacy
+│   │   │   │   └── style-reference.tsx        → /style-reference
+│   │   │   ├── admin/                         → /admin 이하 관리 화면
+│   │   │   └── api/                           → /api/upload, /api/autosave 등 API 엔드포인트
+│   │   ├── components/                        → cards, sections, editor, admin, ui 프리미티브
+│   │   ├── db/                                → schema, relations, client, domain queries
+│   │   ├── lib/                               → auth, content, infra, notifications, utils
+│   │   └── styles/                            → global/editor/fonts/tokens CSS
+│   ├── workers/app.ts                         → Cloudflare Workers 진입점 (Sentry, 캐시 헤더)
+│   ├── drizzle/migrations/                    → D1 마이그레이션 파일
+│   ├── seeds/seed.sql                         → 한국어 seed data
+│   ├── wrangler.toml                          → D1, R2, Queues 바인딩
+│   └── .dev.vars                              → ADAKRPOS_API_KEY, ADMIN_USER_ID, ADMIN_EMAILS, LOG_LEVEL, TEST_*_SESSION
+└── apple/
+    └── Targets/
+        ├── iOSApp/
+        └── MacApp/
+
+packages/
+├── contracts/
 ├── db/
-│   ├── schema.server.ts        → Drizzle 스키마 (27 테이블, cohort 지원)
-│   ├── relations.server.ts     → Drizzle relations
-│   ├── client.server.ts        → Drizzle 클라이언트 팩토리
-│   └── queries/                → 도메인별 쿼리 모듈 (35+)
-│       ├── journey/
-│       │   └── stages.server.ts
-│       ├── records/
-│       │   ├── records.server.ts
-│       │   ├── tags.server.ts
-│       │   ├── drafts.server.ts
-│       │   ├── sentences.server.ts
-│       │   ├── savedRecords.server.ts
-│       │   ├── recordReads.server.ts
-│       │   ├── recordLinks.server.ts
-│       │   ├── references.server.ts
-│       │   ├── participants.server.ts
-│       │   └── revisions.server.ts
-│       ├── dialogue/
-│       │   ├── questions.server.ts
-│       │   ├── responses.server.ts
-│       │   ├── selfAnswers.server.ts
-│       │   └── mentions.server.ts
-│       ├── learners/
-│       │   └── learners.server.ts
-│       ├── social/
-│       │   ├── notifications.server.ts
-│       │   ├── activity.server.ts
-│       │   └── collaboration.server.ts
-│       ├── misc/
-│       │   ├── search.server.ts
-│       │   └── reminders.server.ts
-│       └── admin/
-│           ├── data/ (stages, learners, records, collaboration)
-│           ├── ops/ (curation, dialogue, roles, settings, templates)
-│           └── insights/ (analytics, audit)
-├── lib/
-│   ├── auth/
-│   │   ├── auth.server.ts      → getAuth (WeakMap 캐시, 요청당 1회)
-│   │   ├── auth.middleware.ts   → requireAuth, requireVerified, requireRole, getOptionalUser, bootstrapAdmin, ensureAdminByEmail
-│   │   └── validation.ts       → Zod 스키마 (15+ 스키마)
-│   ├── content/
-│   │   ├── content.server.ts   → Tiptap JSON 렌더링, plaintext 추출
-│   │   ├── editor-config.ts    → Tiptap 에디터 설정
-│   │   ├── editor-extensions.ts → Tiptap 확장 (link, image, mention 등)
-│   │   ├── compress-image.ts   → 이미지 압축
-│   │   └── extract-references.server.ts → 콘텐츠 참조 추출
-│   ├── infra/
-│   │   ├── logger.server.ts    → 구조화된 로깅 (요청 ID, 민감정보 마스킹)
-│   │   ├── draft-storage.ts    → localStorage 기반 초안 관리
-│   │   ├── read-storage.ts     → 읽음 상태 추적
-│   │   └── r2-cleanup.server.ts → R2 고아 이미지 정리
-│   ├── utils/
-│   │   ├── utils.server.ts     → nanoid() ID 생성
-│   │   ├── utils.ts            → cn() Tailwind 클래스 병합
-│   │   ├── hangul.ts           → 한글 검색 (초성 분리)
-│   │   ├── calendar.ts         → 캘린더 날짜 생성
-│   │   ├── date-groups.ts      → 날짜 그룹핑
-│   │   ├── record-diff.ts      → 기록 변경 감지
-│   │   └── thread-tree.ts      → 응답 스레드 트리 구성
-│   ├── motion/
-│   │   ├── motion.tsx          → Framer Motion 프로바이더
-│   │   └── motion-utils.ts     → 모션 유틸리티
-│   └── constants/
-│       └── visibility.ts       → Visibility 상수
-└── styles/
-    ├── global.css              → CSS custom properties (Quiet Depth 토큰), Tailwind v4 @theme
-    ├── editor.css              → ProseMirror 에디터 스타일 (708줄)
-    ├── fonts.css               → Geist 폰트 선언
-    └── tokens.css              → (비어있음 — 토큰은 global.css에 inline)
-
-workers/
-└── app.ts                      → Cloudflare Workers 진입점 (Sentry, 캐시 헤더)
-
-drizzle/migrations/             → D1 마이그레이션 파일 (16개)
-seeds/seed.sql                  → 한국어 seed data
-wrangler.toml                   → D1, R2, Queues 바인딩
-.dev.vars                       → ADAKRPOS_API_KEY, ADMIN_USER_ID, ADMIN_EMAILS, LOG_LEVEL, TEST_*_SESSION
+├── domain/
+└── server/
 ```
 
 ---
@@ -671,8 +489,8 @@ pnpm build                                  # 프로덕션 빌드 (react-router 
 pnpm typecheck                              # 타입 체크 (cf-typegen + react-router typegen + tsc)
 pnpm test                                   # 테스트 실행 (vitest)
 pnpm deploy                                 # 배포 (build + wrangler deploy)
-wrangler d1 migrations apply DB --local     # 마이그레이션 적용
-wrangler d1 execute DB --local --file=seeds/seed.sql  # 시드 데이터
+pnpm db:migrate:local                       # 로컬 D1 마이그레이션 적용
+pnpm db:seed:local                          # 로컬 D1 시드 데이터 적용
 ```
 
 ---

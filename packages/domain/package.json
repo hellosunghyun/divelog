@@ -1,0 +1,36 @@
+{
+  "name": "@divelog/domain",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "sideEffects": false,
+  "types": "./src/index.ts",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./record-types": {
+      "types": "./src/record-types.ts",
+      "default": "./src/record-types.ts"
+    },
+    "./notification-types": {
+      "types": "./src/notification-types.ts",
+      "default": "./src/notification-types.ts"
+    },
+    "./visibility": {
+      "types": "./src/visibility.ts",
+      "default": "./src/visibility.ts"
+    },
+    "./content-format": {
+      "types": "./src/content-format.ts",
+      "default": "./src/content-format.ts"
+    }
+  }
+}
