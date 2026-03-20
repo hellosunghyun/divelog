@@ -1,4 +1,6 @@
+import { Checkbox } from "~/components/ui/checkbox";
 import { Label } from "~/components/ui/label";
+import { cn } from "~/lib/utils/utils";
 
 type SearchIndexingOptOutFieldProps = {
   checked: boolean;
@@ -16,30 +18,16 @@ export function SearchIndexingOptOutField({
   return (
     <div className={className}>
       <div className="flex items-start gap-3 rounded-xl border border-border bg-surface-secondary p-4">
-        <div className="relative mt-0.5 flex items-center justify-center">
-          <input
-            type="checkbox"
-            id={id}
-            name="searchIndexingOptOut"
-            checked={checked}
-            onChange={(event) => onChange(event.target.checked)}
-            className="peer sr-only"
-          />
-          <div className="h-5 w-5 rounded-md border border-border bg-surface transition-colors peer-checked:border-ocean-blue peer-checked:bg-ocean-blue peer-focus-visible:ring-2 peer-focus-visible:ring-ocean-blue peer-focus-visible:ring-offset-2" />
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="pointer-events-none absolute h-3 w-3 text-white opacity-0 transition-opacity peer-checked:opacity-100"
-            aria-hidden="true"
-          >
-            <path d="M20 6 9 17l-5-5" />
-          </svg>
-        </div>
+        <Checkbox
+          id={id}
+          name="searchIndexingOptOut"
+          checked={checked}
+          onCheckedChange={(nextChecked) => onChange(nextChecked === true)}
+          className={cn(
+            "mt-0.5 border-border bg-surface",
+            "data-[state=checked]:border-ocean-blue data-[state=checked]:bg-ocean-blue",
+          )}
+        />
 
         <div className="min-w-0 space-y-1">
           <Label htmlFor={id} className="cursor-pointer text-sm font-medium text-text-primary">
