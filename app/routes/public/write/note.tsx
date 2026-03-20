@@ -9,6 +9,7 @@ import { AutosaveIndicator } from "~/components/feedback/AutosaveIndicator";
 import { NavigationBlockerDialog } from "~/components/feedback/NavigationBlockerDialog";
 import { SubmitButton } from "~/components/feedback/SubmitButton";
 import { DraftRecoveryPrompt } from "~/components/content/DraftRecoveryPrompt";
+import { SearchIndexingOptOutField } from "~/components/record/SearchIndexingOptOutField";
 import { Label } from "~/components/ui/label";
 import { cn } from "~/lib/utils/cn";
 import {
@@ -72,10 +73,12 @@ export async function action({ request, context }: Route.ActionArgs) {
   const content = typeof contentRaw === "string" ? contentRaw : "";
   const responsePreferenceRaw = formData.get("responsePreference");
   const responsePreference = typeof responsePreferenceRaw === "string" ? responsePreferenceRaw : "open";
+  const searchIndexingOptOut = formData.get("searchIndexingOptOut") === "on";
 
   const parsed = createNoteSchema.safeParse({
     content,
     visibility: formData.get("visibility") || "public",
+    searchIndexingOptOut,
   });
 
   if (!parsed.success) {
@@ -103,6 +106,7 @@ export async function action({ request, context }: Route.ActionArgs) {
     rhythm: "free",
     visibility: parsed.data.visibility,
     responsePreference,
+    searchIndexingOptOut: parsed.data.searchIndexingOptOut,
     challengeId: null,
     collaborationUnitId: null,
     originalUrl: null,
@@ -153,6 +157,7 @@ export default function WriteNotePage({ loaderData }: Route.ComponentProps) {
   const [noteContent, setNoteContent] = useState("");
   const [type, setType] = useState(DEFAULT_RECORD_TYPE);
   const [visibility, setVisibility] = useState(learnerDefaults.defaultVisibility);
+  const [searchIndexingOptOut, setSearchIndexingOptOut] = useState(false);
   const [editorKey, setEditorKey] = useState(0);
   const [savedDraft, setSavedDraft] = useState<DraftData | null>(null);
   const contentError = actionData?.errors?.content?.[0];
@@ -170,6 +175,7 @@ export default function WriteNotePage({ loaderData }: Route.ComponentProps) {
     if (savedDraft) {
       setNoteContent(savedDraft.content);
       if (savedDraft.visibility) setVisibility(savedDraft.visibility);
+      setSearchIndexingOptOut(savedDraft.searchIndexingOptOut ?? false);
       setEditorKey((k) => k + 1);
     }
     setSavedDraft(null);
@@ -184,8 +190,9 @@ export default function WriteNotePage({ loaderData }: Route.ComponentProps) {
       content: noteContent,
       visibility,
       responsePreference: learnerDefaults.defaultResponsePreference,
+      searchIndexingOptOut,
     }),
-    [noteContent, visibility, learnerDefaults.defaultResponsePreference],
+    [noteContent, visibility, learnerDefaults.defaultResponsePreference, searchIndexingOptOut],
   );
 
   const { status: autosaveStatus, lastSavedAt } = useAutosave({
@@ -279,6 +286,11 @@ export default function WriteNotePage({ loaderData }: Route.ComponentProps) {
               defaultValue={learnerDefaults.defaultResponsePreference}
             />
           </div>
+
+          <SearchIndexingOptOutField
+            checked={searchIndexingOptOut}
+            onChange={setSearchIndexingOptOut}
+          />
 
           <div>
             <NoteEditor

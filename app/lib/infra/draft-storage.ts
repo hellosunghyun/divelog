@@ -12,6 +12,7 @@ export interface DraftData {
   rhythm?: string;
   visibility?: 'draft' | 'private' | 'cohort' | 'public';
   responsePreference?: 'open' | 'question_only' | 'closed';
+  searchIndexingOptOut?: boolean;
   savedAt: number; // unix timestamp (ms)
 }
 

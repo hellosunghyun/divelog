@@ -127,6 +127,7 @@ export async function getRecentlyRespondedRecords(
       rhythm: records.rhythm,
       visibility: records.visibility,
       responsePreference: records.responsePreference,
+      searchIndexingOptOut: records.searchIndexingOptOut,
       isFeatured: records.isFeatured,
       moderationStatus: records.moderationStatus,
       moderationNote: records.moderationNote,

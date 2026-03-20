@@ -13,6 +13,7 @@ export interface UseAutosaveOptions {
     rhythm?: string;
     visibility?: string;
     responsePreference?: string;
+    searchIndexingOptOut?: boolean;
   };
   enabled?: boolean;
   debounceMs?: number;
@@ -82,6 +83,7 @@ export function useAutosave(options: UseAutosaveOptions): AutosaveState {
       rhythm: formData.rhythm ?? "free",
       visibility: formData.visibility ?? "public",
       responsePreference: formData.responsePreference ?? "open",
+      searchIndexingOptOut: formData.searchIndexingOptOut ?? false,
     });
 
     if (snapshot === previousSnapshotRef.current) {
@@ -103,6 +105,7 @@ export function useAutosave(options: UseAutosaveOptions): AutosaveState {
       rhythm: formData.rhythm,
       visibility: (formData.visibility as "draft" | "private" | "cohort" | "public") || "public",
       responsePreference: (formData.responsePreference as "open" | "question_only" | "closed") || "open",
+      searchIndexingOptOut: formData.searchIndexingOptOut ?? false,
     });
 
     // Debounce server save

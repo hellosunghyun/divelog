@@ -20,6 +20,7 @@ export const createRecordSchema = z
     rhythm: z.enum(["moment", "weekly", "monthly", "stage", "free"]).default("free"),
     visibility: z.enum(["draft", "private", "cohort", "public"]).default("public"),
     responsePreference: z.enum(["open", "question_only", "closed"]).default("open"),
+    searchIndexingOptOut: z.boolean().default(false),
     challengeId: z.string().optional(),
     collaborationUnitId: z.string().optional(),
     recordedAt: z.string().optional(),
@@ -95,6 +96,7 @@ export const createNoteSchema = z.object({
   rhythm: z.enum(["moment", "weekly", "monthly", "stage", "free"]).default("free"),
   visibility: z.enum(["draft", "private", "cohort", "public"]).default("public"),
   responsePreference: z.enum(["open", "question_only", "closed"]).default("open"),
+  searchIndexingOptOut: z.boolean().default(false),
   captureQuestion: z.string().optional(),
   captureDirection: z.enum(["inward", "outward", "next_stage"]).default("inward"),
   originalUrl: z.preprocess(
@@ -133,6 +135,7 @@ export const createArticleSchema = z
     content: z.string().min(1, "내용을 입력해주세요").max(50000),
     rhythm: z.enum(["moment", "weekly", "monthly", "stage", "free"]).default("free"),
     visibility: z.enum(["draft", "private", "cohort", "public"]).default("public"),
+    searchIndexingOptOut: z.boolean().default(false),
     recordedAt: z.string().optional(),
     recordedEndAt: z.string().optional(),
     templateId: z.string().optional(),
@@ -199,6 +202,7 @@ export const updateRecordMetadataSchema = z.object({
   question: z.string().max(500).optional(),
   questionDirection: z.enum(["outward", "inward", "next_stage"]).optional(),
   responsePreference: z.enum(["open", "question_only", "closed"]).optional(),
+  searchIndexingOptOut: z.boolean().optional(),
   tagIds: z.array(z.string()).optional(),
   originalUrl: z.preprocess(
     normalizeUrl,

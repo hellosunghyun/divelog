@@ -129,4 +129,9 @@ describe("updateRecordMetadataSchema", () => {
     const result = updateRecordMetadataSchema.safeParse({ question: "이 경험에서 뭘 배웠나요?" });
     expect(result.success).toBe(true);
   });
+
+  it("passes with search indexing opt-out", () => {
+    const result = updateRecordMetadataSchema.safeParse({ searchIndexingOptOut: true });
+    expect(result.success).toBe(true);
+  });
 });

@@ -11,6 +11,7 @@ import { DraftRecoveryPrompt } from "~/components/content/DraftRecoveryPrompt";
 import { AutosaveIndicator } from "~/components/feedback/AutosaveIndicator";
 import { NavigationBlockerDialog } from "~/components/feedback/NavigationBlockerDialog";
 import { SubmitButton } from "~/components/feedback/SubmitButton";
+import { SearchIndexingOptOutField } from "~/components/record/SearchIndexingOptOutField";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 
@@ -101,6 +102,7 @@ export async function action({ request, context }: Route.ActionArgs) {
   const content = typeof contentRaw === "string" ? contentRaw : "";
   const responsePreferenceRaw = formData.get("responsePreference");
   const responsePreference = typeof responsePreferenceRaw === "string" ? responsePreferenceRaw : "open";
+  const searchIndexingOptOut = formData.get("searchIndexingOptOut") === "on";
 
   let contentText = "";
   try {
@@ -118,6 +120,7 @@ export async function action({ request, context }: Route.ActionArgs) {
     content,
     rhythm: formData.get("rhythm") || "free",
     visibility: formData.get("visibility") || "public",
+    searchIndexingOptOut,
     recordedAt: typeof recordedAtRaw === "string" && recordedAtRaw ? recordedAtRaw : undefined,
     recordedEndAt: typeof recordedEndAtRaw === "string" && recordedEndAtRaw ? recordedEndAtRaw : undefined,
   });
@@ -147,6 +150,7 @@ export async function action({ request, context }: Route.ActionArgs) {
     rhythm: parsed.data.rhythm,
     visibility: parsed.data.visibility,
     responsePreference,
+    searchIndexingOptOut: parsed.data.searchIndexingOptOut,
     challengeId: null,
     collaborationUnitId: null,
     recordedAt,
@@ -208,6 +212,7 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
   const [type, setType] = useState(DEFAULT_RECORD_TYPE);
   const [rhythm, setRhythm] = useState("free");
   const [visibility, setVisibility] = useState(learnerDefaults.defaultVisibility);
+  const [searchIndexingOptOut, setSearchIndexingOptOut] = useState(false);
   const [savedDraft, setSavedDraft] = useState<DraftData | null>(null);
   const errors = actionData?.errors;
   const titleError = errors && "title" in errors ? errors.title?.[0] : undefined;
@@ -229,6 +234,7 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
       setArticleContentJson(savedDraft.content);
       if (savedDraft.rhythm) setRhythm(savedDraft.rhythm);
       if (savedDraft.visibility) setVisibility(savedDraft.visibility);
+      setSearchIndexingOptOut(savedDraft.searchIndexingOptOut ?? false);
     }
     setSavedDraft(null);
   };
@@ -245,8 +251,17 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
       rhythm,
       visibility,
       responsePreference: learnerDefaults.defaultResponsePreference,
+      searchIndexingOptOut,
     }),
-    [articleContent, articleContentJson, title, rhythm, visibility, learnerDefaults.defaultResponsePreference],
+    [
+      articleContent,
+      articleContentJson,
+      title,
+      rhythm,
+      visibility,
+      learnerDefaults.defaultResponsePreference,
+      searchIndexingOptOut,
+    ],
   );
 
   const { status: autosaveStatus, lastSavedAt } = useAutosave({
@@ -340,6 +355,11 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
               defaultValue={learnerDefaults.defaultResponsePreference}
             />
           </div>
+
+          <SearchIndexingOptOutField
+            checked={searchIndexingOptOut}
+            onChange={setSearchIndexingOptOut}
+          />
 
           <div>
             <Label className="mb-2 block text-meta font-medium text-text-secondary">

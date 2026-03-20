@@ -35,6 +35,7 @@ interface RecordState {
   rhythm?: string;
   visibility?: string;
   responsePreference?: string;
+  searchIndexingOptOut?: boolean;
   challengeId?: string | null;
   collaborationUnitId?: string | null;
 }
@@ -48,6 +49,7 @@ const TRACKED_FIELDS = [
   "rhythm",
   "visibility",
   "responsePreference",
+  "searchIndexingOptOut",
   "challengeId",
   "collaborationUnitId",
 ] as const;
@@ -61,6 +63,7 @@ const FIELD_LABELS: Record<string, string> = {
   rhythm: "리듬",
   visibility: "공개 범위",
   responsePreference: "응답 선호도",
+  searchIndexingOptOut: "검색 엔진 제외",
   challengeId: "챌린지",
   collaborationUnitId: "협업 유닛",
   tags: "태그",

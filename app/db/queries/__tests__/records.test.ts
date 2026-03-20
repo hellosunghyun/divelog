@@ -61,9 +61,10 @@ describe("records query", () => {
       format: "note",
       type: "exploration",
       rhythm: "free",
-      visibility: "cohort",
-      responsePreference: "open",
-    });
+        visibility: "cohort",
+        responsePreference: "open",
+        searchIndexingOptOut: false,
+      });
 
     expect(result.id).toBe("record-fixed-id");
     expect(mockDb._spies.insertValues).toHaveBeenCalledTimes(1);
@@ -96,9 +97,10 @@ describe("records query", () => {
       format: "note",
       type: "exploration",
       rhythm: "free",
-      visibility: "cohort",
-      responsePreference: "open",
-    });
+        visibility: "cohort",
+        responsePreference: "open",
+        searchIndexingOptOut: false,
+      });
 
     expect(result).toHaveProperty("id");
     expect(result).toHaveProperty("slug");
@@ -118,6 +120,7 @@ describe("records query", () => {
       rhythm: "free",
       visibility: "cohort",
       responsePreference: "open",
+      searchIndexingOptOut: false,
       challengeId: null,
       collaborationUnitId: null,
       createdAt: 1700000000,

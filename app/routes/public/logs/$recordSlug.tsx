@@ -103,6 +103,9 @@ export function meta({ data: loaderData }: Route.MetaArgs) {
       name: "description",
       content: loaderData.plainTextContent.slice(0, 150),
     },
+    ...(loaderData.record.searchIndexingOptOut
+      ? [{ name: "robots", content: "noindex" as const }]
+      : []),
   ];
 }
 

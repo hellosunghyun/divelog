@@ -103,6 +103,7 @@ export const records = sqliteTable("records", {
   rhythm: text("rhythm").notNull().default("free"),
   visibility: text("visibility").notNull().default("public"),
   responsePreference: text("response_preference").notNull().default("open"),
+  searchIndexingOptOut: integer("search_indexing_opt_out", { mode: "boolean" }).notNull().default(false),
   isFeatured: integer("is_featured", { mode: "boolean" }).notNull().default(false),
   moderationStatus: text("moderation_status").notNull().default("clean"),
   moderationNote: text("moderation_note"),

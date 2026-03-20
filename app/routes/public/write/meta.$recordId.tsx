@@ -8,6 +8,7 @@ import PersonSearch from "~/components/PersonSearch";
 import RecordSearch from "~/components/RecordSearch";
 import { TagSelector } from "~/components/TagSelector";
 import { NavigationBlockerDialog } from "~/components/feedback/NavigationBlockerDialog";
+import { SearchIndexingOptOutField } from "~/components/record/SearchIndexingOptOutField";
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
@@ -100,13 +101,14 @@ export async function loader({ params, request, context }: Route.LoaderArgs) {
     ]);
 
   return {
-    record: {
-      id: record.id,
-      slug: record.slug,
-      format: record.format,
-      title: record.title,
-      originalUrl: record.originalUrl ?? "",
-      originalTitle: record.originalTitle ?? "",
+      record: {
+        id: record.id,
+        slug: record.slug,
+        format: record.format,
+        title: record.title,
+        searchIndexingOptOut: record.searchIndexingOptOut ?? false,
+        originalUrl: record.originalUrl ?? "",
+        originalTitle: record.originalTitle ?? "",
       originalDescription: record.originalDescription ?? "",
     },
     tags: allTags,
@@ -137,6 +139,7 @@ export async function action({ params, request, context }: Route.ActionArgs) {
 
   const questionContent = formData.get("question")?.toString()?.trim() ?? "";
   const questionDirection = formData.get("questionDirection")?.toString() ?? "outward";
+  const searchIndexingOptOut = formData.get("searchIndexingOptOut") === "on";
 
   const database = db(context.cloudflare.env.DB);
   if (questionContent.length > 0) {
@@ -166,11 +169,12 @@ export async function action({ params, request, context }: Route.ActionArgs) {
   }
 
   const responsePreference = formData.get("responsePreference")?.toString();
-  if (responsePreference) {
+  if (responsePreference || searchIndexingOptOut !== record.searchIndexingOptOut) {
     await database
       .update(records)
       .set({
-        responsePreference,
+        ...(responsePreference ? { responsePreference } : {}),
+        searchIndexingOptOut,
         updatedAt: Math.floor(Date.now() / 1000),
       })
       .where(eq(records.id, record.id));
@@ -297,6 +301,7 @@ export default function WriteMetaPage({ loaderData }: Route.ComponentProps) {
   const [originalUrl, setOriginalUrl] = useState(record.originalUrl);
   const [originalTitle, setOriginalTitle] = useState(record.originalTitle);
   const [originalDescription, setOriginalDescription] = useState(record.originalDescription);
+  const [searchIndexingOptOut, setSearchIndexingOptOut] = useState(record.searchIndexingOptOut);
   const [questionDirection, setQuestionDirection] = useState(existingQuestion?.direction ?? "outward");
   const [refList, setRefList] = useState<ReferenceField[]>(
     initialReferences.length > 0
@@ -358,6 +363,11 @@ export default function WriteMetaPage({ loaderData }: Route.ComponentProps) {
               <span className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">질문과 응답</span>
               <div className="h-px flex-1 bg-border" />
             </div>
+
+            <SearchIndexingOptOutField
+              checked={searchIndexingOptOut}
+              onChange={setSearchIndexingOptOut}
+            />
 
             <div className="rounded-xl border border-border bg-surface-secondary p-5">
               <Label htmlFor="question" className="mb-1 block text-sm font-medium text-text-primary">

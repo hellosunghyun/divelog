@@ -6,6 +6,7 @@ import { useState } from "react";
 import type { Route } from "./+types/$recordSlug.details";
 
 import { Button } from "~/components/ui/button";
+import { SearchIndexingOptOutField } from "~/components/record/SearchIndexingOptOutField";
 import { Label } from "~/components/ui/label";
 import { SubmitButton } from "~/components/feedback/SubmitButton";
 import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
@@ -101,11 +102,13 @@ export async function action({ params, request, context }: Route.ActionArgs) {
   const references = parseReferencesFromFormData(formData);
   const originalUrlRaw = formData.get("originalUrl");
   const originalUrl = typeof originalUrlRaw === "string" ? originalUrlRaw : "";
+  const searchIndexingOptOut = formData.get("searchIndexingOptOut") === "on";
 
   const parsed = updateRecordMetadataSchema.safeParse({
     question: formData.get("question") || undefined,
     questionDirection: formData.get("questionDirection") || undefined,
     responsePreference: formData.get("responsePreference") || undefined,
+    searchIndexingOptOut,
     tagIds: tagIds.length > 0 ? tagIds : undefined,
     originalUrl,
     references,
@@ -150,6 +153,9 @@ export async function action({ params, request, context }: Route.ActionArgs) {
   if (parsed.data.responsePreference) {
     recordUpdateFields.responsePreference = parsed.data.responsePreference;
   }
+  if (parsed.data.searchIndexingOptOut !== undefined) {
+    recordUpdateFields.searchIndexingOptOut = parsed.data.searchIndexingOptOut;
+  }
   if (parsed.data.originalUrl !== undefined) {
     recordUpdateFields.originalUrl = parsed.data.originalUrl || null;
   }
@@ -186,6 +192,7 @@ export default function RecordDetailsPage({ loaderData }: Route.ComponentProps) 
   const { record, existingQuestion, tags, currentTags, existingReferences } = loaderData;
   const actionData = useActionData<typeof action>();
   const [question, setQuestion] = useState(existingQuestion?.content ?? "");
+  const [searchIndexingOptOut, setSearchIndexingOptOut] = useState(record.searchIndexingOptOut ?? false);
   const [selectedTags, setSelectedTags] = useState<Set<string>>(
     new Set(currentTags.map((tag: { id: string }) => tag.id)),
   );
@@ -287,6 +294,11 @@ export default function RecordDetailsPage({ loaderData }: Route.ComponentProps) 
             </SelectContent>
           </Select>
         </div>
+
+        <SearchIndexingOptOutField
+          checked={searchIndexingOptOut}
+          onChange={setSearchIndexingOptOut}
+        />
 
         <div className="space-y-2">
           <Label htmlFor="originalUrl" className="mb-1 block text-meta font-medium text-text-secondary">

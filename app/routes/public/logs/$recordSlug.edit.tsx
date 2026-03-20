@@ -12,6 +12,7 @@ const ArticleEditor = lazy(() =>
 );
 import NoteEditor from "~/components/editor/editors/NoteEditor";
 import { RhythmDateInput } from "~/components/record/RhythmDateInput";
+import { SearchIndexingOptOutField } from "~/components/record/SearchIndexingOptOutField";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
@@ -171,10 +172,11 @@ export async function action({ params, request, context }: Route.ActionArgs) {
     collaborationUnitId: formData.get("collaborationUnitId") || undefined,
     recordedAt:
       typeof recordedAtRaw === "string" && recordedAtRaw ? recordedAtRaw : undefined,
-    recordedEndAt:
-      typeof recordedEndAtRaw === "string" && recordedEndAtRaw ? recordedEndAtRaw : undefined,
-    originalUrl: formData.get("originalUrl") || undefined,
-  });
+      recordedEndAt:
+        typeof recordedEndAtRaw === "string" && recordedEndAtRaw ? recordedEndAtRaw : undefined,
+      originalUrl: formData.get("originalUrl") || undefined,
+      searchIndexingOptOut: formData.get("searchIndexingOptOut") === "on",
+    });
 
   if (!parsed.success) {
     return { errors: parsed.error.flatten().fieldErrors };
@@ -200,6 +202,7 @@ export async function action({ params, request, context }: Route.ActionArgs) {
     rhythm: parsed.data.rhythm,
     visibility: parsed.data.visibility,
     responsePreference: parsed.data.responsePreference,
+    searchIndexingOptOut: parsed.data.searchIndexingOptOut,
     challengeId: parsed.data.challengeId,
     collaborationUnitId: parsed.data.collaborationUnitId,
     recordedAt: parsed.data.recordedAt,
@@ -313,6 +316,7 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
   const [title, setTitle] = useState(record.title);
   const [articleContent, setArticleContent] = useState(isArticleRecord ? record.content : "");
   const [originalUrl, setOriginalUrl] = useState(record.originalUrl ?? "");
+  const [searchIndexingOptOut, setSearchIndexingOptOut] = useState(record.searchIndexingOptOut ?? false);
   const [refList, setRefList] = useState(
     initialReferences.map((reference) => ({
       id: reference.id,
@@ -332,6 +336,7 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
     title !== record.title ||
     (isArticleRecord && articleContent !== record.content) ||
     (isArticleRecord && originalUrl !== (record.originalUrl ?? "")) ||
+    searchIndexingOptOut !== (record.searchIndexingOptOut ?? false) ||
     (isArticleRecord &&
       (refList.length !== initialReferences.length ||
         refList.some((reference, index) => {
@@ -590,6 +595,11 @@ export default function EditRecordPage({ loaderData }: Route.ComponentProps) {
             </SelectContent>
           </Select>
         </div>
+
+        <SearchIndexingOptOutField
+          checked={searchIndexingOptOut}
+          onChange={setSearchIndexingOptOut}
+        />
 
         <TagSelector
           tags={tags}
