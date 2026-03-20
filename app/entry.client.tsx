@@ -43,35 +43,39 @@ function logWebVital(metric: { name: string; value: number; rating: string }) {
   }
 }
 
-window.addEventListener("load", () => {
-  setTimeout(async () => {
-    const { replayIntegration, feedbackIntegration } = await import(
-      "@sentry/react-router/cloudflare"
-    );
-    Sentry.addIntegration(replayIntegration());
-    Sentry.addIntegration(
-      feedbackIntegration({
-        colorScheme: "system",
-        showBranding: false,
-        triggerLabel: "제보 및 건의",
-        formTitle: "제보 및 건의",
-        submitButtonLabel: "제출",
-        cancelButtonLabel: "취소",
-        confirmButtonLabel: "확인",
-        addScreenshotButtonLabel: "스크린샷 첨부",
-        removeScreenshotButtonLabel: "스크린샷 제거",
-        nameLabel: "이름",
-        namePlaceholder: "이름",
-        emailLabel: "이메일",
-        emailPlaceholder: "email@example.com",
-        isRequiredLabel: "(필수)",
-        messageLabel: "설명",
-        messagePlaceholder: "어떤 문제가 있었나요? 자세히 알려주세요.",
-        successMessageText: "소중한 제보 감사합니다!",
-      }),
-    );
-  }, 2000);
-});
+if (document.readyState === "complete") {
+  void loadSentryIntegrations();
+} else {
+  window.addEventListener("load", () => void loadSentryIntegrations());
+}
+
+async function loadSentryIntegrations() {
+  const { feedbackIntegration, replayIntegration } = await import(
+    "@sentry/react-router/cloudflare"
+  );
+  Sentry.addIntegration(
+    feedbackIntegration({
+      colorScheme: "system",
+      showBranding: false,
+      triggerLabel: "제보 및 건의",
+      formTitle: "제보 및 건의",
+      submitButtonLabel: "제출",
+      cancelButtonLabel: "취소",
+      confirmButtonLabel: "확인",
+      addScreenshotButtonLabel: "스크린샷 첨부",
+      removeScreenshotButtonLabel: "스크린샷 제거",
+      nameLabel: "이름",
+      namePlaceholder: "이름",
+      emailLabel: "이메일",
+      emailPlaceholder: "email@example.com",
+      isRequiredLabel: "(필수)",
+      messageLabel: "설명",
+      messagePlaceholder: "어떤 문제가 있었나요? 자세히 알려주세요.",
+      successMessageText: "소중한 제보 감사합니다!",
+    }),
+  );
+  Sentry.addIntegration(replayIntegration());
+}
 
 // 배포 후 구 청크 로딩 실패 시 자동 새로고침 (1회만)
 window.addEventListener("error", (event) => {
