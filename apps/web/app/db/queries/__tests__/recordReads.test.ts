@@ -65,7 +65,7 @@ describe("recordReads query", () => {
   });
 
   it("getReadRecordIds 빈 배열 입력 시 빈 Set을 반환한다", async () => {
-    const mockDb = createDatabaseMock([]);
+    const mockDb = createDatabaseMock([[{ id: "record-001" }, { id: "record-002" }]]);
     vi.mocked(db).mockReturnValue(mockDb as never);
 
     const readIds = await getReadRecordIds(d1, "hana", []);
