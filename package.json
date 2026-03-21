@@ -15,7 +15,7 @@
     "typecheck": "pnpm run typecheck:workspace",
     "cf-typegen": "pnpm --filter @divelog/web cf-typegen",
     "cf-types:check": "pnpm --filter @divelog/web exec wrangler types --check",
-    "deploy": "pnpm --filter @divelog/web deploy",
+    "deploy": "pnpm --filter @divelog/web run deploy",
     "deploy:dry-run": "CLOUDFLARE_ACCOUNT_ID=affecc6aaec94a3ab40da3da7a7ef1af pnpm --filter @divelog/web exec wrangler deploy --dry-run --config wrangler.deploy.toml",
     "verify:deploy:dry-run": "pnpm typecheck && pnpm run cf-types:check && pnpm build && pnpm run deploy:dry-run",
     "test:e2e": "pnpm --filter @divelog/web exec playwright test",
