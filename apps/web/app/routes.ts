@@ -2,6 +2,7 @@
 
  
 export default [
+  route(".well-known/security.txt", "routes/well-known.security.txt.ts"),
   layout("routes/_public.tsx", [
     index("routes/public/index.tsx"),
     route("journey", "routes/public/journey/index.tsx"),
