@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { useCallback, useEffect, useState, Suspense, lazy } from "react";
+import { useCallback, useEffect, useMemo, useState, Suspense, lazy } from "react";
 import { Link } from "~/components/content/SmartLink";
 import { Form, redirect, useActionData, isRouteErrorResponse, useRouteError } from "react-router";
 import type { Route } from "./+types/article";
@@ -11,6 +11,7 @@ import { DraftRecoveryPrompt } from "~/components/content/DraftRecoveryPrompt";
 import { AutosaveIndicator } from "~/components/feedback/AutosaveIndicator";
 import { NavigationBlockerDialog } from "~/components/feedback/NavigationBlockerDialog";
 import { SubmitButton } from "~/components/feedback/SubmitButton";
+import { ContentRenderer } from "~/components/content/ContentRenderer";
 import { SearchIndexingOptOutField } from "~/components/record/SearchIndexingOptOutField";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
@@ -33,6 +34,7 @@ import { useUnsavedWarning } from "~/hooks/useUnsavedWarning";
 import { requireVerified } from "~/lib/auth/auth.middleware.server";
 import { createArticleSchema } from "~/lib/auth/validation";
 import { getPlainText } from "~/lib/content/content.server";
+import { renderArticlePreviewHtml } from "~/lib/content/render-content.client";
 import { extractRecordRefs } from "~/lib/content/extract-references.server";
 import { clearLocalDraft, loadDraftFromLocal, type DraftData } from "~/lib/infra/draft-storage";
 import { parseDateToUnix } from "~/lib/utils/date";
@@ -206,6 +208,7 @@ export function ErrorBoundary() {
 export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
   const { learnerDefaults, stages } = loaderData;
   const actionData = useActionData<typeof action>();
+  const [mode, setMode] = useState<"edit" | "preview">("edit");
   const [title, setTitle] = useState("");
   const [articleContent, setArticleContent] = useState("");
   const [articleContentJson, setArticleContentJson] = useState("");
@@ -218,8 +221,18 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
   const titleError = errors && "title" in errors ? errors.title?.[0] : undefined;
   const contentError = errors && "content" in errors ? errors.content?.[0] : undefined;
   const dateError = errors && "recordedAt" in errors ? errors.recordedAt?.[0] : undefined;
+  const previewContent = articleContentJson || articleContent;
+  const hasDraftContent = title.trim().length > 0 || articleContent.trim().length > 0 || articleContentJson.trim().length > 0;
 
-  const blocker = useUnsavedWarning(title.length > 0 || articleContent.length > 0);
+  const blocker = useUnsavedWarning(hasDraftContent);
+
+  const previewHtml = useMemo(() => {
+    if (!previewContent.trim()) {
+      return "";
+    }
+
+    return renderArticlePreviewHtml(previewContent);
+  }, [previewContent]);
 
   useEffect(() => {
     const draft = loadDraftFromLocal("article");
@@ -273,6 +286,7 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
     <div className="min-h-screen bg-background">
       <div className="mx-auto px-6 py-16 max-w-[720px]">
         <Form method="post" className="flex flex-col gap-6">
+          <input type="hidden" name="content" value={previewContent} readOnly />
           <div className="flex flex-col gap-4">
             <Link to="/write" className="text-sm text-text-tertiary no-underline hover:text-text-secondary w-fit">
               ← 돌아가기
@@ -409,20 +423,74 @@ export default function WriteArticlePage({ loaderData }: Route.ComponentProps) {
           </div>
 
           <div>
-            <p className="mb-2 block text-meta font-medium text-text-secondary">
-              내용 <span className="text-error">*</span>
-            </p>
-            <Suspense fallback={<div className="animate-pulse bg-surface-secondary rounded-lg h-64" />}>
-              <ArticleEditor
-                name="content"
-                content={articleContentJson}
-                onChange={(json, text) => {
-                  setArticleContent(text);
-                  setArticleContentJson(JSON.stringify(json));
-                }}
-                placeholder="여기에 글을 쓰세요. `/`를 입력하면 블록을 추가할 수 있습니다."
-              />
-            </Suspense>
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-3">
+              <p className="block text-meta font-medium text-text-secondary">
+                내용 <span className="text-error">*</span>
+              </p>
+              <div className="inline-flex rounded-full bg-surface-secondary p-1 gap-0.5">
+                {[
+                  { value: "edit", label: "편집" },
+                  { value: "preview", label: "미리보기" },
+                ].map((option) => {
+                  const isActive = mode === option.value;
+
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      aria-pressed={isActive}
+                      onClick={() => setMode(option.value as "edit" | "preview")}
+                      className={cn(
+                        "rounded-full px-3 py-1.5 text-sm font-medium transition-premium",
+                        "focus-visible:ring-2 focus-visible:ring-ocean-blue focus-visible:ring-offset-2 focus-visible:outline-none",
+                        "active:scale-[0.98]",
+                        isActive
+                          ? "bg-surface shadow-tinted-sm text-text-primary"
+                          : "text-text-secondary hover:text-text-primary"
+                      )}
+                    >
+                      {option.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {mode === "edit" ? (
+              <Suspense fallback={<div className="animate-pulse bg-surface-secondary rounded-lg h-64" />}>
+                <ArticleEditor
+                  content={articleContentJson}
+                  onChange={(json, text) => {
+                    setArticleContent(text);
+                    setArticleContentJson(JSON.stringify(json));
+                  }}
+                  placeholder="여기에 글을 쓰세요. `/`를 입력하면 블록을 추가할 수 있습니다."
+                />
+              </Suspense>
+            ) : (
+              <div className="min-h-[480px] rounded-[24px] border border-border bg-surface-secondary/60 p-5">
+                {title.trim() ? (
+                  <h2 className="mb-5 text-2xl font-semibold tracking-tight text-text-primary">
+                    {title}
+                  </h2>
+                ) : null}
+
+                {previewHtml ? (
+                  <ContentRenderer
+                    contentHtml={previewHtml}
+                    format="article"
+                    className="min-h-[360px] [&_a]:pointer-events-none [&_.record-ref]:pointer-events-none [&_.user-mention]:pointer-events-none"
+                  />
+                ) : (
+                  <div className="flex min-h-[360px] items-center justify-center rounded-[20px] border border-dashed border-border bg-surface px-6 text-center text-text-tertiary">
+                    <p className="text-sm leading-relaxed">
+                      작성한 글이 여기에 미리 보입니다.
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
             {contentError ? <p className="mt-1 text-meta text-error">{contentError}</p> : null}
           </div>
         </Form>
