@@ -32,9 +32,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <link rel="preconnect" href="https://cdn.jsdelivr.net" crossOrigin="anonymous" />
         <Meta />
         <Links />
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-8H2HE0875X" />
+        <script>{`window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-8H2HE0875X');`}</script>
       </head>
       <body>
-
         {children}
         <ScrollRestoration />
         <Scripts />
