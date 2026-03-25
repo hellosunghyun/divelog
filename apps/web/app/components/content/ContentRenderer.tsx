@@ -33,6 +33,11 @@ const ARTICLE_CLASS_NAME = [
   "[&_a:not(.user-mention):not(.record-ref)]:text-ocean-blue [&_a:not(.user-mention):not(.record-ref)]:underline [&_a:not(.user-mention):not(.record-ref)]:underline-offset-4 [&_a:not(.user-mention):not(.record-ref)]:decoration-ocean-blue/30 [&_a:not(.user-mention):not(.record-ref)]:hover:decoration-ocean-blue",
   "[&_.user-mention]:text-ocean-blue [&_.user-mention]:no-underline [&_.user-mention]:font-medium [&_.user-mention]:hover:underline [&_.user-mention]:hover:underline-offset-4",
   "[&_.record-ref]:text-ocean-blue [&_.record-ref]:no-underline [&_.record-ref]:font-medium [&_.record-ref]:hover:underline [&_.record-ref]:hover:underline-offset-4",
+  "[&_table]:my-6 [&_table]:w-full [&_table]:table-auto [&_table]:border-collapse [&_table]:overflow-hidden [&_table]:rounded-2xl [&_table]:border [&_table]:border-border [&_table]:bg-surface",
+  "[&_thead]:bg-surface-secondary/80",
+  "[&_th]:border [&_th]:border-border [&_th]:px-4 [&_th]:py-3 [&_th]:text-left [&_th]:align-top [&_th]:text-sm [&_th]:font-semibold [&_th]:text-text-primary",
+  "[&_td]:border [&_td]:border-border [&_td]:px-4 [&_td]:py-3 [&_td]:align-top [&_td]:text-text-primary",
+  "[&_tbody_tr:nth-child(even)]:bg-surface-secondary/30",
   "[&_img]:my-6 [&_img]:w-full [&_img]:rounded-md [&_img]:border [&_img]:border-border",
   "[&_hr]:my-8 [&_hr]:border-border",
 ].join(" ");
@@ -42,9 +47,53 @@ export function ContentRenderer({ contentHtml, format, className }: ContentRende
   const { preview, open, pos, cardRef, onCardEnter, onCardLeave } = useMentionPreview(containerRef);
 
   useEffect(() => {
-    if (containerRef.current) {
-      containerRef.current.innerHTML = contentHtml;
+    const container = containerRef.current;
+    if (!container) {
+      return;
     }
+
+    container.innerHTML = contentHtml;
+
+    container.querySelectorAll("table").forEach((table, index) => {
+      const tableElement = table as HTMLTableElement;
+      tableElement.style.width = "100%";
+      tableElement.style.margin = "1.5rem 0";
+      tableElement.style.borderCollapse = "collapse";
+      tableElement.style.tableLayout = "auto";
+      tableElement.style.background = "var(--color-surface, #FFFFFF)";
+      tableElement.style.border = "1px solid var(--color-border, #E3E8EF)";
+
+      tableElement.querySelectorAll("thead").forEach((thead) => {
+        (thead as HTMLElement).style.background = "var(--color-surface-secondary, #F2F5F8)";
+      });
+
+      tableElement.querySelectorAll("th").forEach((headerCell) => {
+        const cell = headerCell as HTMLTableCellElement;
+        cell.style.padding = "0.75rem 1rem";
+        cell.style.border = "1px solid var(--color-border, #E3E8EF)";
+        cell.style.textAlign = "left";
+        cell.style.verticalAlign = "top";
+        cell.style.fontSize = "0.875rem";
+        cell.style.fontWeight = "600";
+      });
+
+      tableElement.querySelectorAll("td").forEach((dataCell) => {
+        const cell = dataCell as HTMLTableCellElement;
+        cell.style.padding = "0.75rem 1rem";
+        cell.style.border = "1px solid var(--color-border, #E3E8EF)";
+        cell.style.verticalAlign = "top";
+      });
+
+      tableElement.querySelectorAll("tbody tr").forEach((row, rowIndex) => {
+        if ((rowIndex + 1) % 2 === 0) {
+          (row as HTMLElement).style.background = "rgba(242, 245, 248, 0.7)";
+        }
+      });
+
+      if (index === 0) {
+        tableElement.style.marginTop = "0";
+      }
+    });
   }, [contentHtml]);
 
   // Force full-page navigation for mention/record-ref links.
