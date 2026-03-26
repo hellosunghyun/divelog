@@ -406,13 +406,38 @@ function buildTocTree(tocHeadings: TocHeading[]): TocTreeNode[] {
 }
 
 function renderTocItems(nodes: TocTreeNode[]): string {
-  return nodes
-    .map((node) => {
-      const children = node.children.length > 0 ? `<ol>${renderTocItems(node.children)}</ol>` : "";
+  const displayLabels = getTocDisplayLabels(nodes);
 
-      return `<li data-level="${node.level}"><a href="#${escapeHtml(node.id)}">${escapeHtml(node.text)}</a>${children}</li>`;
+  return nodes
+    .map((node, index) => {
+      const children = node.children.length > 0 ? `<ol>${renderTocItems(node.children)}</ol>` : "";
+      const displayLabel = displayLabels[index] ?? node.text;
+
+      return `<li data-level="${node.level}"><a href="#${escapeHtml(node.id)}">${escapeHtml(displayLabel)}</a>${children}</li>`;
     })
     .join("");
+}
+
+function getTocDisplayLabels(nodes: TocTreeNode[]): string[] {
+  if (!shouldStripSiblingNumberPrefixes(nodes)) {
+    return nodes.map((node) => node.text);
+  }
+
+  return nodes.map((node, index) => stripExactSiblingNumberPrefix(node.text, index + 1));
+}
+
+function shouldStripSiblingNumberPrefixes(nodes: TocTreeNode[]): boolean {
+  return nodes.length > 0 && nodes.every((node, index) => hasExactSiblingNumberPrefix(node.text, index + 1));
+}
+
+function hasExactSiblingNumberPrefix(text: string, index: number): boolean {
+  return text.startsWith(`${index}. `);
+}
+
+function stripExactSiblingNumberPrefix(text: string, index: number): string {
+  const prefix = `${index}. `;
+
+  return text.startsWith(prefix) ? text.slice(prefix.length).trimStart() : text;
 }
 
 function parseTiptapDocument(content: string): TiptapDocument | null {

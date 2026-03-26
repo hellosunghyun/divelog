@@ -433,6 +433,77 @@ describe("content.server", () => {
       expect(result).toContain('<h4 id="더-깊은-메모">더 깊은 메모</h4>');
     });
 
+    it("should strip duplicated sibling numbering from TOC labels only when the full section matches exactly", () => {
+      const tiptapJson = JSON.stringify({
+        type: "doc",
+        content: [
+          { type: "toc" },
+          {
+            type: "heading",
+            attrs: { level: 2 },
+            content: [{ type: "text", text: "핵심 키워드 해설 : 직역과 의역 사이" }],
+          },
+          {
+            type: "heading",
+            attrs: { level: 3 },
+            content: [{ type: "text", text: "1. Big Idea - 탐구의 씨앗" }],
+          },
+          {
+            type: "heading",
+            attrs: { level: 3 },
+            content: [{ type: "text", text: "2. Essential Question (EQ) - 나의 질문" }],
+          },
+          {
+            type: "heading",
+            attrs: { level: 3 },
+            content: [{ type: "text", text: "3. Challenge Statement (CS) - 실행 선언" }],
+          },
+        ],
+      });
+
+      const result = renderContentToHtml(tiptapJson, "article");
+
+      expect(result).toContain(
+        '<nav class="table-of-contents" data-toc><p>목차</p><ol><li data-level="2"><a href="#핵심-키워드-해설-직역과-의역-사이">핵심 키워드 해설 : 직역과 의역 사이</a><ol><li data-level="3"><a href="#1-big-idea-탐구의-씨앗">Big Idea - 탐구의 씨앗</a></li><li data-level="3"><a href="#2-essential-question-eq-나의-질문">Essential Question (EQ) - 나의 질문</a></li><li data-level="3"><a href="#3-challenge-statement-cs-실행-선언">Challenge Statement (CS) - 실행 선언</a></li></ol></li></ol></nav>',
+      );
+      expect(result).toContain('<h3 id="1-big-idea-탐구의-씨앗">1. Big Idea - 탐구의 씨앗</h3>');
+      expect(result).toContain('<h3 id="2-essential-question-eq-나의-질문">2. Essential Question (EQ) - 나의 질문</h3>');
+      expect(result).toContain('<h3 id="3-challenge-statement-cs-실행-선언">3. Challenge Statement (CS) - 실행 선언</h3>');
+      expect(result).not.toContain('>1. Big Idea - 탐구의 씨앗</a>');
+      expect(result).not.toContain('>2. Essential Question (EQ) - 나의 질문</a>');
+      expect(result).not.toContain('>3. Challenge Statement (CS) - 실행 선언</a>');
+    });
+
+    it("should preserve numbered TOC labels when sibling numbering is not an exact full-section match", () => {
+      const tiptapJson = JSON.stringify({
+        type: "doc",
+        content: [
+          { type: "toc" },
+          {
+            type: "heading",
+            attrs: { level: 2 },
+            content: [{ type: "text", text: "불완전한 번호 섹션" }],
+          },
+          {
+            type: "heading",
+            attrs: { level: 3 },
+            content: [{ type: "text", text: "1. 첫 번째 항목" }],
+          },
+          {
+            type: "heading",
+            attrs: { level: 3 },
+            content: [{ type: "text", text: "3. 세 번째처럼 보이는 항목" }],
+          },
+        ],
+      });
+
+      const result = renderContentToHtml(tiptapJson, "article");
+
+      expect(result).toContain(
+        '<nav class="table-of-contents" data-toc><p>목차</p><ol><li data-level="2"><a href="#불완전한-번호-섹션">불완전한 번호 섹션</a><ol><li data-level="3"><a href="#1-첫-번째-항목">1. 첫 번째 항목</a></li><li data-level="3"><a href="#3-세-번째처럼-보이는-항목">3. 세 번째처럼 보이는 항목</a></li></ol></li></ol></nav>',
+      );
+    });
+
     it("should render empty 목차 markup when there are no eligible headings", () => {
       const tiptapJson = JSON.stringify({
         type: "doc",
