@@ -24,6 +24,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const selectFields = {
     id: records.id,
     slug: records.slug,
+    title: records.title,
     content: records.content,
     format: records.format,
     visibility: records.visibility,
@@ -78,6 +79,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   return Response.json({
     id: record.id,
     slug: record.slug,
+    title: record.title,
     content: record.content,
     contentHtml,
   }, {

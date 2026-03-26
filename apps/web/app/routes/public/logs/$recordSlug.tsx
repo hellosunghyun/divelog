@@ -542,6 +542,13 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
   const articleFallbackContentUrl = isArticleRecord
     ? `/api/record-content?id=${encodeURIComponent(record.id)}`
     : undefined;
+  const [cleanTitle, setCleanTitle] = useState<string | null>(null);
+  const displayTitle = cleanTitle ?? record.title;
+  const handleCleanPayload = useCallback((payload: { title?: string }) => {
+    if (payload.title && !payload.title.includes("�")) {
+      setCleanTitle(payload.title);
+    }
+  }, []);
   const hasSidebarContent = recordTags.length > 0 || linkedRecords.length > 0 || incomingLinks.length > 0 || participants.length > 0 || mentions.length > 0;
 
   const selfAnswersByQuestion = new Map<string, typeof selfAnswers>();
@@ -782,7 +789,7 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
           </li>
           <li aria-hidden="true" className="text-text-tertiary">/</li>
           <li className="text-text-primary truncate max-w-[200px]" aria-current="page">
-            {record.title}
+            {displayTitle}
           </li>
         </ol>
       </nav>
@@ -820,7 +827,7 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
           className="text-4xl md:text-5xl font-semibold text-text-primary leading-[1.15] mb-6"
           style={{ letterSpacing: 'var(--tracking-tighter, -0.04em)' }}
         >
-          {record.title}
+          {displayTitle}
         </h1>
 
         <div className="flex items-center gap-3 flex-wrap">
@@ -929,6 +936,7 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
             content={record.content}
             format={recordFormat}
             fallbackContentUrl={articleFallbackContentUrl}
+            onCleanPayload={handleCleanPayload}
           />
           <div ref={highlightOverlayRef} className="pointer-events-none absolute inset-0" aria-hidden="true" />
         </div>

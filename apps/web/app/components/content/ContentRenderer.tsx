@@ -7,6 +7,7 @@ const MENTION_LINK_SELECTOR = ".user-mention, .record-ref";
 const REPLACEMENT_CHARACTER = "�";
 
 type CleanArticlePayload = {
+  title?: string;
   content: string;
   contentHtml: string;
 };
@@ -17,6 +18,7 @@ interface ContentRendererProps {
   format: ContentFormat;
   className?: string;
   fallbackContentUrl?: string;
+  onCleanPayload?: (payload: CleanArticlePayload) => void;
 }
 
 const NOTE_CLASS_NAME = "editor-content";
@@ -81,6 +83,7 @@ export function ContentRenderer({
   format,
   className,
   fallbackContentUrl,
+  onCleanPayload,
 }: ContentRendererProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const fallbackAttemptedRef = useRef<string | null>(null);
@@ -195,12 +198,13 @@ export function ContentRenderer({
       }
 
       setCleanArticlePayload(payload);
+      onCleanPayload?.(payload);
     });
 
     return () => {
       cancelled = true;
     };
-  }, [cleanArticlePayload, content, contentHtml, fallbackContentUrl, format]);
+  }, [cleanArticlePayload, content, contentHtml, fallbackContentUrl, format, onCleanPayload]);
 
   // Force full-page navigation for mention/record-ref links.
   // React Router intercepts <a> clicks for SPA navigation but mishandles
