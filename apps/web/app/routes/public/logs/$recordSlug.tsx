@@ -920,7 +920,7 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
 
       <section className="mb-12 relative">
         <div ref={articleContentRef} className="relative">
-          <ContentRenderer contentHtml={contentHtml} format={recordFormat} />
+          <ContentRenderer contentHtml={contentHtml} content={record.content} format={recordFormat} />
           <div ref={highlightOverlayRef} className="pointer-events-none absolute inset-0" aria-hidden="true" />
         </div>
 

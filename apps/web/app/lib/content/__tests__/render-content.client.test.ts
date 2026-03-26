@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { renderArticlePreviewHtml } from "../render-content.client";
+import { renderArticlePreviewHtml, renderStoredArticleHtml } from "../render-content.client";
 
 describe("renderArticlePreviewHtml", () => {
   it("renders table nodes into table HTML", () => {
@@ -55,5 +55,41 @@ describe("renderArticlePreviewHtml", () => {
     expect(result).toContain('class="whitespace-pre-wrap"');
     expect(result).toContain("&lt;script&gt;");
     expect(result).not.toContain("<script>");
+  });
+
+  it("preserves korean text in stored article rendering", () => {
+    const content = JSON.stringify({
+      type: "doc",
+      content: [
+        { type: "toc" },
+        {
+          type: "heading",
+          attrs: { level: 2 },
+          content: [{ type: "text", text: "리서치가 바꾼 것들" }],
+        },
+        {
+          type: "paragraph",
+          content: [
+            { type: "text", marks: [{ type: "bold" }], text: "바뀌기 전" },
+            { type: "text", text: ": 여행지 DB + 지도 + 리뷰 (= 정보 제공 앱)" },
+          ],
+        },
+        {
+          type: "paragraph",
+          content: [
+            { type: "text", text: "공통 키워드를 묶으니 " },
+            { type: "text", marks: [{ type: "bold" }], text: '"교통과 접근성"' },
+            { type: "text", text: "이 남았다." },
+          ],
+        },
+      ],
+    });
+
+    const result = renderStoredArticleHtml(content);
+
+    expect(result).toContain("공통 키워드를 묶으니");
+    expect(result).toContain("바뀌기 전");
+    expect(result).toContain('<nav class="table-of-contents" data-toc>');
+    expect(result).not.toContain("�");
   });
 });

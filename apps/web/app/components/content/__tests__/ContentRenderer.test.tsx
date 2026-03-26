@@ -41,6 +41,20 @@ describe("ContentRenderer", () => {
       expect(paragraphs).toHaveLength(3);
       expect(paragraphs[1]?.querySelector("br")).toBeInTheDocument();
     });
+
+    it("re-renders corrupted article html from stored content", () => {
+      const content = JSON.stringify({
+        type: "doc",
+        content: [{ type: "paragraph", content: [{ type: "text", text: "공통 키워드를 묶으니" }] }],
+      });
+
+      const { container } = render(
+        <ContentRenderer contentHtml="<p>공통 키��드를 묶으니</p>" content={content} format="article" />
+      );
+
+      expect(container.textContent).toContain("공통 키워드를 묶으니");
+      expect(container.textContent).not.toContain("키��드");
+    });
   });
 
   describe("note format", () => {

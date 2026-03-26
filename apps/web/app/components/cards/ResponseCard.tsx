@@ -106,7 +106,7 @@ export default function ResponseCard({
       </div>
 
       {contentHtml ? (
-        <ContentRenderer contentHtml={contentHtml} format="article" />
+        <ContentRenderer contentHtml={contentHtml} content={response.content} format="article" />
       ) : (
         <p className="text-base leading-relaxed text-text-primary">
           {response.content}

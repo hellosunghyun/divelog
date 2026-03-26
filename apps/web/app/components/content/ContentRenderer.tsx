@@ -1,11 +1,13 @@
 import { useRef, useEffect } from "react";
 import type { ContentFormat } from "../../lib/content/editor-extensions";
 import { useMentionPreview, MentionPreviewCard } from "./MentionPreview";
+import { renderStoredArticleHtml } from "~/lib/content/render-content.client";
 
 const MENTION_LINK_SELECTOR = ".user-mention, .record-ref";
 
 interface ContentRendererProps {
   contentHtml: string;
+  content?: string;
   format: ContentFormat;
   className?: string;
 }
@@ -14,7 +16,7 @@ const NOTE_CLASS_NAME = "editor-content";
 
 const ARTICLE_CLASS_NAME = "editor-content";
 
-export function ContentRenderer({ contentHtml, format, className }: ContentRendererProps) {
+export function ContentRenderer({ contentHtml, content, format, className }: ContentRendererProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const { preview, open, pos, cardRef, onCardEnter, onCardLeave } = useMentionPreview(containerRef);
 
@@ -24,7 +26,15 @@ export function ContentRenderer({ contentHtml, format, className }: ContentRende
       return;
     }
 
-    container.innerHTML = contentHtml;
+    const resolvedHtml =
+      format === "article" &&
+      typeof content === "string" &&
+      content.length > 0 &&
+      (contentHtml.length === 0 || contentHtml.includes("�"))
+        ? renderStoredArticleHtml(content)
+        : contentHtml;
+
+    container.innerHTML = resolvedHtml;
 
     container.querySelectorAll("p").forEach((paragraph) => {
       const hasVisibleContent = Array.from(paragraph.childNodes).some((node) => {
@@ -80,7 +90,7 @@ export function ContentRenderer({ contentHtml, format, className }: ContentRende
         tableElement.style.marginTop = "0";
       }
     });
-  }, [contentHtml]);
+  }, [content, contentHtml, format]);
 
   // Force full-page navigation for mention/record-ref links.
   // React Router intercepts <a> clicks for SPA navigation but mishandles
