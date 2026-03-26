@@ -350,9 +350,9 @@ describe("content.server", () => {
 
       const result = renderContentToHtml(tiptapJson, "article");
 
-      expect(result).toContain('<nav class="table-of-contents" data-toc><p>목차</p><ol>');
-      expect(result).toContain('<a href="#여정-소개">여정 소개</a>');
-      expect(result).toContain('<a href="#다음-단계">다음 단계</a>');
+      expect(result).toContain(
+        '<nav class="table-of-contents" data-toc><p>목차</p><ol><li data-level="1"><a href="#여정-소개">여정 소개</a><ol><li data-level="2"><a href="#다음-단계">다음 단계</a></li></ol></li></ol></nav>',
+      );
       expect(result).toContain('<h1 id="여정-소개">여정 소개</h1>');
       expect(result).toContain('<h2 id="다음-단계">다음 단계</h2>');
     });
@@ -382,6 +382,9 @@ describe("content.server", () => {
 
       const result = renderContentToHtml(tiptapJson, "article");
 
+      expect(result).toContain(
+        '<nav class="table-of-contents" data-toc><p>목차</p><ol><li data-level="2"><a href="#중복-제목">중복 제목</a><ol><li data-level="3"><a href="#중복-제목-2">중복 제목</a><ol><li data-level="4"><a href="#section">섹션 3</a></li></ol></li></ol></li></ol></nav>',
+      );
       expect(result).toContain('<h2 id="중복-제목">중복 제목</h2>');
       expect(result).toContain('<h3 id="중복-제목-2">중복 제목</h3>');
       expect(result).toContain('<h4 id="section">!!!</h4>');
@@ -389,6 +392,70 @@ describe("content.server", () => {
       expect(result).toContain('<a href="#중복-제목-2">중복 제목</a>');
       expect(result).toContain('<a href="#section">섹션 3</a>');
       expect(result).not.toContain('<a href="#section">!!!</a>');
+    });
+
+    it("should keep 목차 hierarchy stable when heading levels are skipped", () => {
+      const tiptapJson = JSON.stringify({
+        type: "doc",
+        content: [
+          { type: "toc" },
+          {
+            type: "heading",
+            attrs: { level: 1 },
+            content: [{ type: "text", text: "시작" }],
+          },
+          {
+            type: "heading",
+            attrs: { level: 3 },
+            content: [{ type: "text", text: "건너뛴 소제목" }],
+          },
+          {
+            type: "heading",
+            attrs: { level: 2 },
+            content: [{ type: "text", text: "다음 큰 흐름" }],
+          },
+          {
+            type: "heading",
+            attrs: { level: 4 },
+            content: [{ type: "text", text: "더 깊은 메모" }],
+          },
+        ],
+      });
+
+      const result = renderContentToHtml(tiptapJson, "article");
+
+      expect(result).toContain(
+        '<nav class="table-of-contents" data-toc><p>목차</p><ol><li data-level="1"><a href="#시작">시작</a><ol><li data-level="3"><a href="#건너뛴-소제목">건너뛴 소제목</a></li><li data-level="2"><a href="#다음-큰-흐름">다음 큰 흐름</a><ol><li data-level="4"><a href="#더-깊은-메모">더 깊은 메모</a></li></ol></li></ol></li></ol></nav>',
+      );
+      expect(result).toContain('<h1 id="시작">시작</h1>');
+      expect(result).toContain('<h3 id="건너뛴-소제목">건너뛴 소제목</h3>');
+      expect(result).toContain('<h2 id="다음-큰-흐름">다음 큰 흐름</h2>');
+      expect(result).toContain('<h4 id="더-깊은-메모">더 깊은 메모</h4>');
+    });
+
+    it("should render empty 목차 markup when there are no eligible headings", () => {
+      const tiptapJson = JSON.stringify({
+        type: "doc",
+        content: [
+          { type: "toc" },
+          {
+            type: "paragraph",
+            content: [{ type: "text", text: "본문만 있습니다." }],
+          },
+          {
+            type: "heading",
+            attrs: { level: 5 },
+            content: [{ type: "text", text: "목차 제외 제목" }],
+          },
+        ],
+      });
+
+      const result = renderContentToHtml(tiptapJson, "article");
+
+      expect(result).toContain('<nav class="table-of-contents" data-toc><p>목차</p></nav>');
+      expect(result).not.toContain('data-level=');
+      expect(result).not.toContain('<nav class="table-of-contents" data-toc><p>목차</p><ol>');
+      expect(result).toContain('<h5>목차 제외 제목</h5>');
     });
 
     it("should fallback to plain text rendering for invalid JSON in article format", () => {

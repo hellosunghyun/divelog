@@ -33,6 +33,10 @@ type TocHeading = {
   text: string;
 };
 
+type TocTreeNode = TocHeading & {
+  children: TocTreeNode[];
+};
+
 type RenderContext = {
   headingIndex: number;
   mentionSlugMap?: MentionSlugMap;
@@ -366,13 +370,49 @@ function createHeadingId(text: string): string {
 }
 
 function renderToc(tocHeadings: TocHeading[]): string {
-  const items = tocHeadings
-    .map((heading) => `<li><a href="#${escapeHtml(heading.id)}">${escapeHtml(heading.text)}</a></li>`)
-    .join("");
+  const items = renderTocItems(buildTocTree(tocHeadings));
 
   return items.length > 0
     ? `<nav class="table-of-contents" data-toc><p>목차</p><ol>${items}</ol></nav>`
     : '<nav class="table-of-contents" data-toc><p>목차</p></nav>';
+}
+
+function buildTocTree(tocHeadings: TocHeading[]): TocTreeNode[] {
+  const root: TocTreeNode[] = [];
+  const stack: TocTreeNode[] = [];
+
+  for (const heading of tocHeadings) {
+    const node: TocTreeNode = {
+      ...heading,
+      children: [],
+    };
+
+    while (stack.length > 0 && stack[stack.length - 1]?.level >= heading.level) {
+      stack.pop();
+    }
+
+    const parent = stack[stack.length - 1];
+
+    if (parent) {
+      parent.children.push(node);
+    } else {
+      root.push(node);
+    }
+
+    stack.push(node);
+  }
+
+  return root;
+}
+
+function renderTocItems(nodes: TocTreeNode[]): string {
+  return nodes
+    .map((node) => {
+      const children = node.children.length > 0 ? `<ol>${renderTocItems(node.children)}</ol>` : "";
+
+      return `<li data-level="${node.level}"><a href="#${escapeHtml(node.id)}">${escapeHtml(node.text)}</a>${children}</li>`;
+    })
+    .join("");
 }
 
 function parseTiptapDocument(content: string): TiptapDocument | null {
