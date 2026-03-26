@@ -330,6 +330,67 @@ describe("content.server", () => {
       expect(result).toContain("<p");
     });
 
+    it("should render populated 목차 markup with Korean heading ids", () => {
+      const tiptapJson = JSON.stringify({
+        type: "doc",
+        content: [
+          { type: "toc" },
+          {
+            type: "heading",
+            attrs: { level: 1 },
+            content: [{ type: "text", text: "여정 소개" }],
+          },
+          {
+            type: "heading",
+            attrs: { level: 2 },
+            content: [{ type: "text", text: "다음 단계" }],
+          },
+        ],
+      });
+
+      const result = renderContentToHtml(tiptapJson, "article");
+
+      expect(result).toContain('<nav class="table-of-contents" data-toc><p>목차</p><ol>');
+      expect(result).toContain('<a href="#여정-소개">여정 소개</a>');
+      expect(result).toContain('<a href="#다음-단계">다음 단계</a>');
+      expect(result).toContain('<h1 id="여정-소개">여정 소개</h1>');
+      expect(result).toContain('<h2 id="다음-단계">다음 단계</h2>');
+    });
+
+    it("should generate unique fallback heading ids for duplicates and empty headings", () => {
+      const tiptapJson = JSON.stringify({
+        type: "doc",
+        content: [
+          { type: "toc" },
+          {
+            type: "heading",
+            attrs: { level: 2 },
+            content: [{ type: "text", text: "중복 제목" }],
+          },
+          {
+            type: "heading",
+            attrs: { level: 3 },
+            content: [{ type: "text", text: "중복 제목" }],
+          },
+          {
+            type: "heading",
+            attrs: { level: 4 },
+            content: [{ type: "text", text: "!!!" }],
+          },
+        ],
+      });
+
+      const result = renderContentToHtml(tiptapJson, "article");
+
+      expect(result).toContain('<h2 id="중복-제목">중복 제목</h2>');
+      expect(result).toContain('<h3 id="중복-제목-2">중복 제목</h3>');
+      expect(result).toContain('<h4 id="section">!!!</h4>');
+      expect(result).toContain('<a href="#중복-제목">중복 제목</a>');
+      expect(result).toContain('<a href="#중복-제목-2">중복 제목</a>');
+      expect(result).toContain('<a href="#section">섹션 3</a>');
+      expect(result).not.toContain('<a href="#section">!!!</a>');
+    });
+
     it("should fallback to plain text rendering for invalid JSON in article format", () => {
       const invalidJson = "{broken json";
       const result = renderContentToHtml(invalidJson, "article");

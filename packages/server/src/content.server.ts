@@ -27,6 +27,18 @@ type TiptapDocument = TiptapNode & {
   type: "doc";
 };
 
+type TocHeading = {
+  id: string;
+  level: 1 | 2 | 3 | 4;
+  text: string;
+};
+
+type RenderContext = {
+  headingIndex: number;
+  mentionSlugMap?: MentionSlugMap;
+  tocHeadings: TocHeading[];
+};
+
 const BLOCK_NODE_TYPES = new Set([
   "blockquote",
   "bulletList",
@@ -82,10 +94,16 @@ export function renderContentToHtml(
 }
 
 function tiptapJsonToHtml(doc: TiptapDocument, mentionSlugMap?: MentionSlugMap): string {
-  return renderNode(doc, mentionSlugMap);
+  const tocHeadings = extractTocHeadings(doc);
+
+  return renderNode(doc, {
+    headingIndex: 0,
+    mentionSlugMap,
+    tocHeadings,
+  });
 }
 
-function renderNode(node: TiptapNode, mentionSlugMap?: MentionSlugMap): string {
+function renderNode(node: TiptapNode, context: RenderContext): string {
   if (node.type === "text") {
     let text = escapeHtml(node.text ?? "");
 
@@ -136,7 +154,7 @@ function renderNode(node: TiptapNode, mentionSlugMap?: MentionSlugMap): string {
     return text;
   }
 
-  const children = (node.content ?? []).map((child) => renderNode(child, mentionSlugMap)).join("");
+  const children = (node.content ?? []).map((child) => renderNode(child, context)).join("");
 
   switch (node.type) {
     case "doc":
@@ -144,7 +162,15 @@ function renderNode(node: TiptapNode, mentionSlugMap?: MentionSlugMap): string {
     case "paragraph":
       return `<p>${children}</p>`;
     case "heading": {
-      const level = (node.attrs?.level as number) ?? 2;
+      const level = getHeadingLevel(node);
+
+      if (level >= 1 && level <= 4) {
+        const tocHeading = context.tocHeadings[context.headingIndex];
+        context.headingIndex += 1;
+        const idAttr = tocHeading ? ` id="${escapeHtml(tocHeading.id)}"` : "";
+        return `<h${level}${idAttr}>${children}</h${level}>`;
+      }
+
       return `<h${level}>${children}</h${level}>`;
     }
     case "bulletList":
@@ -197,7 +223,7 @@ function renderNode(node: TiptapNode, mentionSlugMap?: MentionSlugMap): string {
     case "mention": {
       const storedId = (node.attrs?.id as string) ?? "";
       const storedSlug = (node.attrs?.slug as string) ?? "";
-      const resolvedSlug = mentionSlugMap?.get(storedId) ?? (storedSlug || storedId);
+      const resolvedSlug = context.mentionSlugMap?.get(storedId) ?? (storedSlug || storedId);
       const mentionSlug = escapeHtml(resolvedSlug);
       const mentionLabel = escapeHtml((node.attrs?.label as string) ?? "");
       return `<a href="/learners/${mentionSlug}" class="user-mention" data-user-id="${escapeHtml(storedId)}">@${mentionLabel}</a>`;
@@ -235,10 +261,118 @@ function renderNode(node: TiptapNode, mentionSlugMap?: MentionSlugMap): string {
       return `<span class="inline-tag" data-tag="${tagId}">#${tagLabel}</span>`;
     }
     case "toc":
-      return '<nav class="table-of-contents" data-toc>목차</nav>';
+      return renderToc(context.tocHeadings);
     default:
       return children;
   }
+}
+
+function extractTocHeadings(doc: TiptapDocument): TocHeading[] {
+  const tocHeadings: TocHeading[] = [];
+  const usedIds = new Map<string, number>();
+
+  walkNodes(doc, (node) => {
+    if (node.type !== "heading") {
+      return;
+    }
+
+    const level = getTocHeadingLevel(node);
+
+    if (!level) {
+      return;
+    }
+
+    const headingText = normalizeHeadingText(extractNodeText(node));
+    const slug = createHeadingId(headingText);
+    const baseId = slug || "section";
+    const occurrence = (usedIds.get(baseId) ?? 0) + 1;
+    usedIds.set(baseId, occurrence);
+
+    tocHeadings.push({
+      id: occurrence === 1 ? baseId : `${baseId}-${occurrence}`,
+      level,
+      text: slug ? headingText : `섹션 ${tocHeadings.length + 1}`,
+    });
+  });
+
+  return tocHeadings;
+}
+
+function walkNodes(node: TiptapNode, visit: (node: TiptapNode) => void): void {
+  visit(node);
+
+  for (const child of node.content ?? []) {
+    walkNodes(child, visit);
+  }
+}
+
+function getHeadingLevel(node: TiptapNode): 1 | 2 | 3 | 4 | 5 | 6 {
+  const rawLevel = node.attrs?.level;
+  const numericLevel = typeof rawLevel === "number" ? rawLevel : Number(rawLevel);
+
+  if (Number.isInteger(numericLevel) && numericLevel >= 1 && numericLevel <= 6) {
+    return numericLevel as 1 | 2 | 3 | 4 | 5 | 6;
+  }
+
+  return 2;
+}
+
+function getTocHeadingLevel(node: TiptapNode): TocHeading["level"] | null {
+  const level = getHeadingLevel(node);
+
+  if (isTocHeadingLevel(level)) {
+    return level;
+  }
+
+  return null;
+}
+
+function isTocHeadingLevel(level: number): level is TocHeading["level"] {
+  return level === 1 || level === 2 || level === 3 || level === 4;
+}
+
+function extractNodeText(node: TiptapNode): string {
+  if (node.type === "text") {
+    return node.text ?? "";
+  }
+
+  if (node.type === "hardBreak") {
+    return " ";
+  }
+
+  if (node.type === "userMention" || node.type === "mention") {
+    const label = (node.attrs?.label as string) ?? "";
+    return label ? `@${label}` : "";
+  }
+
+  if (node.type === "recordRef") {
+    return (node.attrs?.label as string) ?? "";
+  }
+
+  return (node.content ?? []).map(extractNodeText).join("");
+}
+
+function normalizeHeadingText(text: string): string {
+  return text.replace(/\s+/g, " ").trim();
+}
+
+function createHeadingId(text: string): string {
+  return text
+    .normalize("NFKC")
+    .toLowerCase()
+    .replace(/[^\p{Letter}\p{Number}\s-]/gu, "")
+    .trim()
+    .replace(/[\s-]+/g, "-");
+}
+
+function renderToc(tocHeadings: TocHeading[]): string {
+  const items = tocHeadings
+    .map((heading) => `<li><a href="#${escapeHtml(heading.id)}">${escapeHtml(heading.text)}</a></li>`)
+    .join("");
+
+  return items.length > 0
+    ? `<nav class="table-of-contents" data-toc><p>목차</p><ol>${items}</ol></nav>`
+    : '<nav class="table-of-contents" data-toc><p>목차</p></nav>';
 }
 
 function parseTiptapDocument(content: string): TiptapDocument | null {
