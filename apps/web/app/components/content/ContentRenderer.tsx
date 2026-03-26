@@ -26,6 +26,20 @@ export function ContentRenderer({ contentHtml, format, className }: ContentRende
 
     container.innerHTML = contentHtml;
 
+    container.querySelectorAll("p").forEach((paragraph) => {
+      const hasVisibleContent = Array.from(paragraph.childNodes).some((node) => {
+        if (node.nodeType === Node.TEXT_NODE) {
+          return (node.textContent?.trim().length ?? 0) > 0;
+        }
+
+        return node.nodeType === Node.ELEMENT_NODE;
+      });
+
+      if (!hasVisibleContent) {
+        paragraph.innerHTML = "<br>";
+      }
+    });
+
     container.querySelectorAll("table").forEach((table, index) => {
       const tableElement = table as HTMLTableElement;
       tableElement.style.width = "100%";

@@ -30,6 +30,17 @@ describe("ContentRenderer", () => {
       const root = container.firstElementChild;
       expect(root).toHaveClass("editor-content");
     });
+
+    it("preserves empty paragraphs as visible blank lines", () => {
+      const contentHtml = "<p>첫 문단</p><p></p><p>둘째 문단</p>";
+      const { container } = render(
+        <ContentRenderer contentHtml={contentHtml} format="article" />
+      );
+
+      const paragraphs = container.querySelectorAll("p");
+      expect(paragraphs).toHaveLength(3);
+      expect(paragraphs[1]?.querySelector("br")).toBeInTheDocument();
+    });
   });
 
   describe("note format", () => {
