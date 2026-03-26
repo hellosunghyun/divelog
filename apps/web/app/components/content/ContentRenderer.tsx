@@ -100,27 +100,13 @@ export function ContentRenderer({
     content: activeContent,
     contentHtml: activeContentHtml,
     format,
-  });
+  }).replace(/<p([^>]*)>\s*<\/p>/g, "<p$1><br></p>");
 
   useEffect(() => {
     const container = containerRef.current;
     if (!container) {
       return;
     }
-
-    container.querySelectorAll("p").forEach((paragraph) => {
-      const hasVisibleContent = Array.from(paragraph.childNodes).some((node) => {
-        if (node.nodeType === Node.TEXT_NODE) {
-          return (node.textContent?.trim().length ?? 0) > 0;
-        }
-
-        return node.nodeType === Node.ELEMENT_NODE;
-      });
-
-      if (!hasVisibleContent) {
-        paragraph.innerHTML = "<br>";
-      }
-    });
 
     container.querySelectorAll("table").forEach((table, index) => {
       const tableElement = table as HTMLTableElement;
