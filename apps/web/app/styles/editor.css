@@ -35,6 +35,8 @@
   letter-spacing: var(--tracking-tight);
   color: var(--color-text-primary);
   margin: 1em 0 0.25em 0;
+  /* Scroll offset for anchor jumps — lands below sticky nav */
+  scroll-margin-top: var(--space-24);
 }
 
 :is(.ProseMirror, .editor-content) h1 {
@@ -241,12 +243,16 @@
 :is(.ProseMirror, .editor-content) .table-of-contents ol,
 :is(.ProseMirror, .editor-content) .table-of-contents ul {
   margin: var(--space-3) 0 0 0;
-  padding-left: var(--space-5);
+  padding-left: var(--space-6);
 }
 
 :is(.ProseMirror, .editor-content) .table-of-contents li {
   margin: var(--space-1) 0;
   line-height: 1.5;
+}
+
+:is(.ProseMirror, .editor-content) .table-of-contents li::marker {
+  color: var(--color-text-tertiary);
 }
 
 :is(.ProseMirror, .editor-content) .table-of-contents a {
@@ -257,6 +263,56 @@
 
 :is(.ProseMirror, .editor-content) .table-of-contents a:hover {
   color: var(--color-ocean-blue);
+}
+
+/* TOC hierarchy — visual differentiation by level */
+:is(.ProseMirror, .editor-content) .table-of-contents li[data-level="1"] {
+  padding-left: 0;
+}
+
+:is(.ProseMirror, .editor-content) .table-of-contents li[data-level="1"] > a {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+:is(.ProseMirror, .editor-content) .table-of-contents li[data-level="1"]::marker {
+  color: var(--color-text-secondary);
+}
+
+:is(.ProseMirror, .editor-content) .table-of-contents li[data-level="2"] {
+  padding-left: var(--space-2);
+}
+
+:is(.ProseMirror, .editor-content) .table-of-contents li[data-level="2"] > a {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+:is(.ProseMirror, .editor-content) .table-of-contents li[data-level="3"] {
+  padding-left: var(--space-4);
+}
+
+:is(.ProseMirror, .editor-content) .table-of-contents li[data-level="3"] > a {
+  font-size: 13px;
+  color: var(--color-text-tertiary);
+}
+
+:is(.ProseMirror, .editor-content) .table-of-contents li[data-level="4"] {
+  padding-left: var(--space-6);
+}
+
+:is(.ProseMirror, .editor-content) .table-of-contents li[data-level="4"] > a {
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+  opacity: 0.8;
+}
+
+/* Nested list containers within TOC */
+:is(.ProseMirror, .editor-content) .table-of-contents ol ol,
+:is(.ProseMirror, .editor-content) .table-of-contents ul ul,
+:is(.ProseMirror, .editor-content) .table-of-contents ol ul,
+:is(.ProseMirror, .editor-content) .table-of-contents ul ol {
+  margin: var(--space-1) 0 0 0;
 }
 
 /* === Shared Callout === */
