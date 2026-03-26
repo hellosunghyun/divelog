@@ -539,6 +539,9 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
   const isRecordAuthor = currentUserId === record.authorId;
   const recordFormat = normalizeContentFormat(record.format);
   const isArticleRecord = recordFormat === "article";
+  const articleFallbackContentUrl = isArticleRecord
+    ? `/api/record-content?id=${encodeURIComponent(record.id)}`
+    : undefined;
   const hasSidebarContent = recordTags.length > 0 || linkedRecords.length > 0 || incomingLinks.length > 0 || participants.length > 0 || mentions.length > 0;
 
   const selfAnswersByQuestion = new Map<string, typeof selfAnswers>();
@@ -920,7 +923,13 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
 
       <section className="mb-12 relative">
         <div ref={articleContentRef} className="relative">
-          <ContentRenderer contentHtml={contentHtml} content={record.content} format={recordFormat} />
+          <ContentRenderer
+            key={record.id}
+            contentHtml={contentHtml}
+            content={record.content}
+            format={recordFormat}
+            fallbackContentUrl={articleFallbackContentUrl}
+          />
           <div ref={highlightOverlayRef} className="pointer-events-none absolute inset-0" aria-hidden="true" />
         </div>
 

@@ -1,23 +1,90 @@
-import { useRef, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ContentFormat } from "../../lib/content/editor-extensions";
 import { useMentionPreview, MentionPreviewCard } from "./MentionPreview";
 import { renderStoredArticleHtml } from "~/lib/content/render-content.client";
 
 const MENTION_LINK_SELECTOR = ".user-mention, .record-ref";
+const REPLACEMENT_CHARACTER = "�";
+
+type CleanArticlePayload = {
+  content: string;
+  contentHtml: string;
+};
 
 interface ContentRendererProps {
   contentHtml: string;
   content?: string;
   format: ContentFormat;
   className?: string;
+  fallbackContentUrl?: string;
 }
 
 const NOTE_CLASS_NAME = "editor-content";
 
 const ARTICLE_CLASS_NAME = "editor-content";
 
-export function ContentRenderer({ contentHtml, content, format, className }: ContentRendererProps) {
+function hasReplacementCharacter(value: string | undefined): boolean {
+  return typeof value === "string" && value.includes(REPLACEMENT_CHARACTER);
+}
+
+function resolveRenderedHtml({
+  content,
+  contentHtml,
+  format,
+}: {
+  content?: string;
+  contentHtml: string;
+  format: ContentFormat;
+}): string {
+  if (
+    format === "article"
+    && typeof content === "string"
+    && content.length > 0
+    && (contentHtml.length === 0 || hasReplacementCharacter(contentHtml))
+  ) {
+    return renderStoredArticleHtml(content);
+  }
+
+  return contentHtml;
+}
+
+function isCleanArticlePayload(value: unknown): value is CleanArticlePayload {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const candidate = value as Record<string, unknown>;
+  return typeof candidate.content === "string" && typeof candidate.contentHtml === "string";
+}
+
+async function fetchCleanArticlePayload(url: string): Promise<CleanArticlePayload | null> {
+  return fetch(url, {
+    headers: {
+      Accept: "application/json",
+    },
+    cache: "no-store",
+  })
+    .then(async (response) => {
+      if (!response.ok) {
+        return null;
+      }
+
+      const payload: unknown = await response.json();
+      return isCleanArticlePayload(payload) ? payload : null;
+    })
+    .catch(() => null);
+}
+
+export function ContentRenderer({
+  contentHtml,
+  content,
+  format,
+  className,
+  fallbackContentUrl,
+}: ContentRendererProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const fallbackAttemptedRef = useRef<string | null>(null);
+  const [cleanArticlePayload, setCleanArticlePayload] = useState<CleanArticlePayload | null>(null);
   const { preview, open, pos, cardRef, onCardEnter, onCardLeave } = useMentionPreview(containerRef);
 
   useEffect(() => {
@@ -26,13 +93,14 @@ export function ContentRenderer({ contentHtml, content, format, className }: Con
       return;
     }
 
-    const resolvedHtml =
-      format === "article" &&
-      typeof content === "string" &&
-      content.length > 0 &&
-      (contentHtml.length === 0 || contentHtml.includes("�"))
-        ? renderStoredArticleHtml(content)
-        : contentHtml;
+    const activeContent = cleanArticlePayload?.content ?? content;
+    const activeContentHtml = cleanArticlePayload?.contentHtml ?? contentHtml;
+
+    const resolvedHtml = resolveRenderedHtml({
+      content: activeContent,
+      contentHtml: activeContentHtml,
+      format,
+    });
 
     container.innerHTML = resolvedHtml;
 
@@ -90,7 +158,49 @@ export function ContentRenderer({ contentHtml, content, format, className }: Con
         tableElement.style.marginTop = "0";
       }
     });
-  }, [content, contentHtml, format]);
+
+    const shouldFetchCleanPayload =
+      format === "article"
+      && typeof fallbackContentUrl === "string"
+      && fallbackContentUrl.length > 0
+      && !cleanArticlePayload
+      && fallbackAttemptedRef.current !== fallbackContentUrl
+      && (
+        hasReplacementCharacter(contentHtml)
+        || hasReplacementCharacter(content)
+        || hasReplacementCharacter(container.textContent ?? undefined)
+      );
+
+    if (!shouldFetchCleanPayload) {
+      return;
+    }
+
+    fallbackAttemptedRef.current = fallbackContentUrl;
+
+    let cancelled = false;
+
+    void fetchCleanArticlePayload(fallbackContentUrl).then((payload) => {
+      if (cancelled || !payload) {
+        return;
+      }
+
+      const cleanHtml = resolveRenderedHtml({
+        content: payload.content,
+        contentHtml: payload.contentHtml,
+        format,
+      });
+
+      if (hasReplacementCharacter(cleanHtml)) {
+        return;
+      }
+
+      setCleanArticlePayload(payload);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [cleanArticlePayload, content, contentHtml, fallbackContentUrl, format]);
 
   // Force full-page navigation for mention/record-ref links.
   // React Router intercepts <a> clicks for SPA navigation but mishandles
