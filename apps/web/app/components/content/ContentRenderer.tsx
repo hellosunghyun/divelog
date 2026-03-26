@@ -207,7 +207,8 @@ export function ContentRenderer({
         e.stopPropagation();
         const target = document.getElementById(href.slice(1));
         if (target) {
-          target.scrollIntoView({ behavior: "smooth" });
+          const y = target.getBoundingClientRect().top + window.scrollY - 72;
+          window.scrollTo({ top: y, behavior: "smooth" });
           history.replaceState(null, "", href);
         }
         return;

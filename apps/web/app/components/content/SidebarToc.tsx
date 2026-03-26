@@ -1,5 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 
+const NAV_HEIGHT = 72;
+
 type TocHeading = {
   id: string;
   text: string;
@@ -48,12 +50,11 @@ export function SidebarToc() {
     if (headings.length === 0) return;
 
     function onScroll() {
-      const scrollY = window.scrollY + 120;
       let current: string | null = null;
 
       for (const h of headings) {
         const el = document.getElementById(h.id);
-        if (el && el.offsetTop <= scrollY) {
+        if (el && el.getBoundingClientRect().top <= NAV_HEIGHT) {
           current = h.id;
         }
       }
@@ -72,7 +73,8 @@ export function SidebarToc() {
       e.stopPropagation();
       const target = document.getElementById(id);
       if (target) {
-        target.scrollIntoView({ behavior: "smooth" });
+        const y = target.getBoundingClientRect().top + window.scrollY - NAV_HEIGHT;
+        window.scrollTo({ top: y, behavior: "smooth" });
         history.replaceState(null, "", `#${id}`);
       }
     },
