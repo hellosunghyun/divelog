@@ -94,22 +94,19 @@ export function ContentRenderer({
   const [cleanArticlePayload, setCleanArticlePayload] = useState<CleanArticlePayload | null>(null);
   const { preview, open, pos, cardRef, onCardEnter, onCardLeave } = useMentionPreview(containerRef);
 
+  const activeContentHtml = cleanArticlePayload?.contentHtml ?? contentHtml;
+  const activeContent = cleanArticlePayload?.content ?? content;
+  const displayHtml = resolveRenderedHtml({
+    content: activeContent,
+    contentHtml: activeContentHtml,
+    format,
+  });
+
   useEffect(() => {
     const container = containerRef.current;
     if (!container) {
       return;
     }
-
-    const activeContent = cleanArticlePayload?.content ?? content;
-    const activeContentHtml = cleanArticlePayload?.contentHtml ?? contentHtml;
-
-    const resolvedHtml = resolveRenderedHtml({
-      content: activeContent,
-      contentHtml: activeContentHtml,
-      format,
-    });
-
-    container.innerHTML = resolvedHtml;
 
     container.querySelectorAll("p").forEach((paragraph) => {
       const hasVisibleContent = Array.from(paragraph.childNodes).some((node) => {
@@ -209,9 +206,6 @@ export function ContentRenderer({
     };
   }, [cleanArticlePayload, content, contentHtml, fallbackContentUrl, format]);
 
-  // Force full-page navigation for mention/record-ref links.
-  // React Router intercepts <a> clicks for SPA navigation but mishandles
-  // links inside dangerouslySetInnerHTML, causing route mismatch errors.
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -240,7 +234,11 @@ export function ContentRenderer({
 
   return (
     <>
-      <div ref={containerRef} className={combinedClassName} />
+      <div
+        ref={containerRef}
+        className={combinedClassName}
+        dangerouslySetInnerHTML={{ __html: displayHtml }}
+      />
       <MentionPreviewCard
         preview={preview}
         open={open}
