@@ -197,13 +197,27 @@ export function ContentRenderer({
     if (!container) return;
 
     function onClick(e: MouseEvent) {
-      const anchor = (e.target as HTMLElement).closest<HTMLAnchorElement>(MENTION_LINK_SELECTOR);
+      const anchor = (e.target as HTMLElement).closest<HTMLAnchorElement>("a");
       if (!anchor || !container!.contains(anchor)) return;
       const href = anchor.getAttribute("href");
       if (!href) return;
-      e.preventDefault();
-      if (typeof window !== "undefined") {
-        window.location.href = href;
+
+      if (href.startsWith("#")) {
+        e.preventDefault();
+        e.stopPropagation();
+        const target = document.getElementById(href.slice(1));
+        if (target) {
+          target.scrollIntoView({ behavior: "smooth" });
+          history.replaceState(null, "", href);
+        }
+        return;
+      }
+
+      if (anchor.matches(MENTION_LINK_SELECTOR)) {
+        e.preventDefault();
+        if (typeof window !== "undefined") {
+          window.location.href = href;
+        }
       }
     }
 
