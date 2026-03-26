@@ -982,6 +982,8 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
 
 
 
+      <hr className="border-border mb-12" />
+
       <section className="mb-12">
         <h2 className="text-xl font-semibold text-text-primary tracking-tight mb-8">
           남겨진 질문
