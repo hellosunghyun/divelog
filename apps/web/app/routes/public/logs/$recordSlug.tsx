@@ -542,34 +542,7 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
   const articleFallbackContentUrl = isArticleRecord
     ? `/api/record-content?id=${encodeURIComponent(record.id)}`
     : undefined;
-  const [cleanTitle, setCleanTitle] = useState<string | null>(null);
-  const displayTitle = cleanTitle ?? record.title;
-
-  useEffect(() => {
-    if (!record.title.includes("�") || !articleFallbackContentUrl) {
-      return;
-    }
-
-    let cancelled = false;
-
-    fetch(articleFallbackContentUrl, {
-      headers: { Accept: "application/json" },
-      cache: "no-store",
-    })
-      .then((res) => (res.ok ? (res.json() as Promise<{ title?: string }>) : null))
-      .then((data) => {
-        if (cancelled || !data?.title || data.title.includes("�")) {
-          return;
-        }
-
-        setCleanTitle(data.title);
-      })
-      .catch(() => {});
-
-    return () => {
-      cancelled = true;
-    };
-  }, [record.title, articleFallbackContentUrl]);
+  const displayTitle = record.title;
   const hasSidebarContent = recordTags.length > 0 || linkedRecords.length > 0 || incomingLinks.length > 0 || participants.length > 0 || mentions.length > 0;
 
   const selfAnswersByQuestion = new Map<string, typeof selfAnswers>();

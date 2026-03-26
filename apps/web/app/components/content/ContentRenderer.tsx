@@ -37,6 +37,10 @@ function resolveRenderedHtml({
   contentHtml: string;
   format: ContentFormat;
 }): string {
+  if (!hasReplacementCharacter(contentHtml)) {
+    return contentHtml;
+  }
+
   if (
     format === "article"
     && typeof content === "string"

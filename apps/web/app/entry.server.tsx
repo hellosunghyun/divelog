@@ -3,6 +3,7 @@ import { ServerRouter } from "react-router";
 import { isbot } from "isbot";
 import { renderToReadableStream } from "react-dom/server";
 import * as Sentry from "@sentry/react-router/cloudflare";
+import { safeInjectTraceMetaTags } from "~/lib/infra/safe-inject-sentry-meta";
 
 async function handleRequest(
   request: Request,
@@ -31,7 +32,7 @@ async function handleRequest(
     await stream.allReady;
   }
 
-  const body = Sentry.injectTraceMetaTags(stream);
+  const body = safeInjectTraceMetaTags(stream);
 
   responseHeaders.set("Content-Type", "text/html");
   return new Response(body, {
