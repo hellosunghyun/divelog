@@ -13,6 +13,7 @@ import SelfAnswerCard from "~/components/cards/SelfAnswerCard";
 import SceneCard from "~/components/cards/SceneCard";
 import { IncomingResponseRefs } from "~/components/sections/IncomingResponseRefs";
 import { ContentRenderer } from "~/components/content/ContentRenderer";
+import { SidebarToc } from "~/components/content/SidebarToc";
 import { EditedIndicator } from "~/components/ui/EditedIndicator";
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
@@ -543,7 +544,7 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
     ? `/api/record-content?id=${encodeURIComponent(record.id)}`
     : undefined;
   const displayTitle = record.title;
-  const hasSidebarContent = recordTags.length > 0 || linkedRecords.length > 0 || incomingLinks.length > 0 || participants.length > 0 || mentions.length > 0;
+  const hasSidebarContent = isArticleRecord || recordTags.length > 0 || linkedRecords.length > 0 || incomingLinks.length > 0 || participants.length > 0 || mentions.length > 0;
 
   const selfAnswersByQuestion = new Map<string, typeof selfAnswers>();
   for (const sa of selfAnswers) {
@@ -1278,6 +1279,8 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
             </div>
           </div>
         )}
+
+        {isArticleRecord && <SidebarToc />}
 
         {linkedRecords.length > 0 && (
           <div>
