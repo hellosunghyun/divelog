@@ -65,6 +65,14 @@ export function meta(_args: Route.MetaArgs) {
   return [{ title: "기록 수정 — DiveLog" }];
 }
 
+export async function clientAction({ serverAction }: Route.ClientActionArgs) {
+  if (typeof sessionStorage !== "undefined") {
+    sessionStorage.setItem("divelog:invalidate-record-cache", "1");
+  }
+
+  return await serverAction();
+}
+
 export async function loader({ params, request, context }: Route.LoaderArgs) {
   const logger = createLogger(request, context.cloudflare.env).child({ route: "logs_edit" });
   logger.info("loader_start");
