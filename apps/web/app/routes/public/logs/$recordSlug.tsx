@@ -544,11 +544,32 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
     : undefined;
   const [cleanTitle, setCleanTitle] = useState<string | null>(null);
   const displayTitle = cleanTitle ?? record.title;
-  const handleCleanPayload = useCallback((payload: { title?: string }) => {
-    if (payload.title && !payload.title.includes("�")) {
-      setCleanTitle(payload.title);
+
+  useEffect(() => {
+    if (!record.title.includes("�") || !articleFallbackContentUrl) {
+      return;
     }
-  }, []);
+
+    let cancelled = false;
+
+    fetch(articleFallbackContentUrl, {
+      headers: { Accept: "application/json" },
+      cache: "no-store",
+    })
+      .then((res) => (res.ok ? (res.json() as Promise<{ title?: string }>) : null))
+      .then((data) => {
+        if (cancelled || !data?.title || data.title.includes("�")) {
+          return;
+        }
+
+        setCleanTitle(data.title);
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, [record.title, articleFallbackContentUrl]);
   const hasSidebarContent = recordTags.length > 0 || linkedRecords.length > 0 || incomingLinks.length > 0 || participants.length > 0 || mentions.length > 0;
 
   const selfAnswersByQuestion = new Map<string, typeof selfAnswers>();
@@ -936,7 +957,6 @@ export default function RecordDetailPage({ loaderData }: Route.ComponentProps) {
             content={record.content}
             format={recordFormat}
             fallbackContentUrl={articleFallbackContentUrl}
-            onCleanPayload={handleCleanPayload}
           />
           <div ref={highlightOverlayRef} className="pointer-events-none absolute inset-0" aria-hidden="true" />
         </div>

@@ -18,7 +18,6 @@ interface ContentRendererProps {
   format: ContentFormat;
   className?: string;
   fallbackContentUrl?: string;
-  onCleanPayload?: (payload: CleanArticlePayload) => void;
 }
 
 const NOTE_CLASS_NAME = "editor-content";
@@ -42,9 +41,11 @@ function resolveRenderedHtml({
     format === "article"
     && typeof content === "string"
     && content.length > 0
-    && (contentHtml.length === 0 || hasReplacementCharacter(contentHtml))
   ) {
-    return renderStoredArticleHtml(content);
+    const clientHtml = renderStoredArticleHtml(content);
+    if (!hasReplacementCharacter(clientHtml)) {
+      return clientHtml;
+    }
   }
 
   return contentHtml;
@@ -83,7 +84,6 @@ export function ContentRenderer({
   format,
   className,
   fallbackContentUrl,
-  onCleanPayload,
 }: ContentRendererProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const fallbackAttemptedRef = useRef<string | null>(null);
@@ -198,13 +198,12 @@ export function ContentRenderer({
       }
 
       setCleanArticlePayload(payload);
-      onCleanPayload?.(payload);
     });
 
     return () => {
       cancelled = true;
     };
-  }, [cleanArticlePayload, content, contentHtml, fallbackContentUrl, format, onCleanPayload]);
+  }, [cleanArticlePayload, content, contentHtml, fallbackContentUrl, format]);
 
   // Force full-page navigation for mention/record-ref links.
   // React Router intercepts <a> clicks for SPA navigation but mishandles
